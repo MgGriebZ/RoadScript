@@ -1,0 +1,426 @@
+﻿@page "/"
+@using BlazorMonaco.Editor
+@using System.Text.Json
+@using RoadScript.Models
+
+<div class="container-fluid vh-100 d-flex p-0">
+    @* Editor Pane *@
+    <div class="editor-pane" style="width: 30%; border-right: 1px solid #ccc; display: flex; flex-direction: column;">
+        <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+            <span>RoadScript <span style="font-size: 0.75em; color: #888; font-weight: 400;">v1.0</span></span>
+            <span style="font-size: 0.7em; color: #666;">JSON Editor</span>
+        </div>
+        <StandaloneCodeEditor @ref="_editor"
+                              Id="json-editor"
+                              ConstructionOptions="EditorConstructionOptions"
+                              OnDidChangeModelContent="OnEditorChange"
+                              CssClass="h-100" />
+    </div>
+
+    @* Preview Pane *@
+    <div class="preview-pane" style="width: 70%; background: #e8eaed; overflow: auto; padding: 24px; display: flex; justify-content: center; align-items: flex-start;">
+        @if (_data != null)
+        {
+            <div class="roadmap" style="@RoadmapContainerStyle()">
+                @* Header *@
+                <div style="margin-bottom: 20px;">
+                    <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: #1a1a2e; letter-spacing: -0.5px;">
+                        @_data.Title
+                    </h1>
+                    <p style="margin: 2px 0 0; font-size: 15px; color: #6b7280; font-weight: 500;">
+                        @_data.Subtitle
+                    </p>
+                </div>
+
+                @* Grid *@
+                <div style="display: flex; height: calc(100% - 70px);">
+                    @* Lane Labels *@
+                    <div style="width: 190px; flex-shrink: 0; padding-top: 52px; padding-right: 16px;">
+                        @foreach (var lane in _data.Lanes)
+                        {
+                            <div style="@LaneLabelWrapStyle()">
+                                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                                    <div style="@LaneBarStyle(lane.Color)"></div>
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <span style="font-size: 15px; font-weight: 700; color: #374151; line-height: 1.3;">
+                                            @((MarkupString)lane.Title.Replace("&", "&amp;<br/>"))
+                                        </span>
+                                        @if (lane.History != null)
+                                        {
+                                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                                <div style="@HistoryBarContainerStyle()">
+                                                    <div style="@HistoryPastStyle(lane.Color, lane.History.PastPct)"></div>
+                                                    <div style="@HistoryCurrentStyle(lane.Color, lane.History.PastPct)"></div>
+                                                </div>
+                                                <div style="display: flex; justify-content: space-between; width: 90px;">
+                                                    <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.StartYear</span>
+                                                    <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.EndYear</span>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @* Timeline *@
+                    <div style="flex: 1; display: flex; flex-direction: column;">
+                        @* Column Headers *@
+                        <div style="display: flex; height: 52px; border-bottom: 2px solid #e5e7eb; position: relative;">
+                            @for (int i = 0; i < _data.Columns.Count; i++)
+                            {
+                                var col = _data.Columns[i];
+                                <div style="@ColumnHeaderStyle(i)">
+                                    <span style="font-size: 17px; font-weight: 700; color: #1f2937;">@col.Label</span>
+                                    <span style="font-size: 12px; color: #9ca3af; font-weight: 500;">@col.Sub</span>
+                                </div>
+                            }
+
+                            @* Milestones *@
+                            @foreach (var milestone in _data.Milestones)
+                            {
+                                <div style="@MilestoneStyle(milestone.Position)">
+                                    <div style="width: 14px; height: 14px; background: #1f2937; transform: rotate(45deg); border: 2px solid #fafbfc;"></div>
+                                    <span style="position: absolute; top: 18px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; color: #6b7280; white-space: nowrap;">
+                                        @milestone.Label
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        @* Lanes Container *@
+                        <div style="flex: 1; position: relative;">
+                            @* Grid Columns Background *@
+                            <div style="position: absolute; inset: 0; display: flex; pointer-events: none;">
+                                @for (int i = 0; i < _data.Columns.Count; i++)
+                                {
+                                    <div style="@GridColumnStyle(i)"></div>
+                                }
+                            </div>
+
+                            @* Lane Rows *@
+                            @for (int li = 0; li < _data.Lanes.Count; li++)
+                            {
+                                var lane = _data.Lanes[li];
+                                <div style="@LaneRowStyle(li)">
+                                    @foreach (var item in lane.Items)
+                                    {
+                                        <div style="@ItemStyle(item, lane.Color)">
+                                            <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #1f2937; line-height: 1.2;">
+                                                @item.Title
+                                            </h4>
+                                            <ul style="margin: 0; padding: 0; list-style: none;">
+                                                @if (item.Details != null)
+                                                {
+                                                    @foreach (var detail in item.Details)
+                                                    {
+                                                        <li style="@DetailItemStyle(detail)">
+                                                            <div style="@DetailTextStyle(lane.Color)">
+                                                                <span style="@BulletStyle(lane.Color)">•</span>
+                                                                @detail.Text
+                                                            </div>
+                                                            @if (detail.Subs != null && detail.Subs.Count > 0)
+                                                            {
+                                                                <ul style="margin: 2px 0 4px 0; padding: 0; list-style: none;">
+                                                                    @foreach (var sub in detail.Subs)
+                                                                    {
+                                                                        <li style="font-size: 11px; color: #6b7280; line-height: 1.4; padding-left: 22px; position: relative; margin-bottom: 1px;">
+                                                                            <span style="position: absolute; left: 12px; color: #9ca3af;">–</span>
+                                                                            @sub
+                                                                        </li>
+                                                                    }
+                                                                </ul>
+                                                            }
+                                                        </li>
+                                                    }
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (_error != null)
+        {
+            <div style="background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; padding: 16px; border-radius: 8px; max-width: 600px;">
+                <strong>JSON Error:</strong> @_error
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private StandaloneCodeEditor _editor = null!;
+    private RoadmapData? _data;
+    private string? _error;
+
+    // REPLACE THIS VARIABLE BLOCK ONLY
+    private string _initialJson = @"
+    {
+      ""title"": ""2026 Product Roadmap"",
+      ""subtitle"": ""Platform Modernization & Client Experience"",
+      ""columns"": [
+        { ""id"": ""q1"", ""label"": ""Q1 2026"", ""sub"": ""Jan – Mar"" },
+        { ""id"": ""q2"", ""label"": ""Q2 2026"", ""sub"": ""Apr – Jun"" },
+        { ""id"": ""q3"", ""label"": ""Q3 2026"", ""sub"": ""Jul – Sep"" },
+        { ""id"": ""q4"", ""label"": ""Q4 2026"", ""sub"": ""Oct – Dec"" }
+      ],
+      ""milestones"": [
+        { ""position"": 12.5, ""label"": ""Image Import Live"" },
+        { ""position"": 37.5, ""label"": ""TrackingLink Launch"" }
+      ],
+      ""lanes"": [
+        {
+          ""id"": ""perfectdocs"",
+          ""title"": ""PerfectDocs"",
+          ""color"": ""#45B69C"",
+          ""history"": { ""startYear"": 2020, ""endYear"": 2026, ""pastPct"": 80 },
+          ""items"": [
+            {
+              ""id"": ""rcr-sadb"",
+              ""title"": ""RCR & SADB"",
+              ""start"": 0,
+              ""span"": 2,
+              ""details"": [
+                { ""text"": ""RCR overcollection monitoring"", ""subs"": [""Basic workflow completion""] },
+                { ""text"": ""SADB signer integration"", ""subs"": [""Signers + Notaries"", ""Internal/client dependency""] }
+              ]
+            },
+            {
+              ""id"": ""pd-dashboard"",
+              ""title"": ""Dashboard & Reporting"",
+              ""start"": 2,
+              ""span"": 2,
+              ""details"": [
+                { ""text"": ""Management reporting dashboard"", ""subs"": [""Cross-project visibility""] },
+                { ""text"": ""New build from scratch"" },
+                { ""text"": ""Intersects with other initiatives"" }
+              ]
+            }
+          ]
+        },
+        {
+          ""id"": ""infrastructure"",
+          ""title"": ""Azure & Infrastructure"",
+          ""color"": ""#4A90D9"",
+          ""history"": { ""startYear"": 2023, ""endYear"": 2026, ""pastPct"": 60 },
+          ""items"": [
+            {
+              ""id"": ""azure"",
+              ""title"": ""Azure Migration"",
+              ""start"": 0,
+              ""span"": 4,
+              ""spanning"": true,
+              ""details"": [
+                { ""text"": ""Final app conversions to prod"", ""subs"": [""Internal apps cleanup"", ""Lower environments wrap-up""] },
+                { ""text"": ""Ongoing maintenance & optimization"" },
+                { ""text"": ""High expectations for continued support"" }
+              ]
+            }
+          ]
+        },
+        {
+          ""id"": ""serviceconnect"",
+          ""title"": ""ServiceConnect"",
+          ""color"": ""#D4A520"",
+          ""history"": { ""startYear"": 2024, ""endYear"": 2026, ""pastPct"": 50 },
+          ""items"": [
+            {
+              ""id"": ""image-import"",
+              ""title"": ""Image Import"",
+              ""start"": 0,
+              ""span"": 1,
+              ""details"": [
+                { ""text"": ""Production release & testing"", ""subs"": [""Client conversions"", ""Bug fixes & stability""] }
+              ]
+            },
+            {
+              ""id"": ""sc-ongoing"",
+              ""title"": ""Ingestion & Stability"",
+              ""start"": 1,
+              ""span"": 2,
+              ""spanning"": true,
+              ""details"": [
+                { ""text"": ""Order import refinement"" },
+                { ""text"": ""New client onboarding & config"" },
+                { ""text"": ""Feature requests from business"" }
+              ]
+            },
+            {
+              ""id"": ""image2client"",
+              ""title"": ""Image2Client"",
+              ""start"": 3,
+              ""span"": 1,
+              ""details"": [
+                { ""text"": ""Client image delivery"", ""subs"": [""Target: Q4 and beyond""] }
+              ]
+            }
+          ]
+        },
+        {
+          ""id"": ""clientconnect"",
+          ""title"": ""ClientConnect"",
+          ""color"": ""#9B7ED9"",
+          ""history"": { ""startYear"": 2025, ""endYear"": 2026, ""pastPct"": 0 },
+          ""items"": [
+            {
+              ""id"": ""trackinglink"",
+              ""title"": ""TrackingLink"",
+              ""start"": 0,
+              ""span"": 2,
+              ""details"": [
+                { ""text"": ""MVC to Blazor/EF rebuild"", ""subs"": [""First hub app migration""] },
+                { ""text"": ""Client hub tile integration"" }
+              ]
+            },
+            {
+              ""id"": ""querylink"",
+              ""title"": ""QueryLink"",
+              ""start"": 2,
+              ""span"": 1,
+              ""details"": [
+                { ""text"": ""MVC to Blazor migration"" },
+                { ""text"": ""Hub navigation integration"" }
+              ]
+            },
+            {
+              ""id"": ""mop"",
+              ""title"": ""MOP"",
+              ""start"": 3,
+              ""span"": 1,
+              ""details"": [
+                { ""text"": ""Manual Order Placement"" },
+                { ""text"": ""Final legacy app rebuild"" }
+              ]
+            }
+          ]
+        }
+      ]
+    }";
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            Language = "json",
+            Value = _initialJson,
+            Theme = "vs-dark",
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            AutomaticLayout = true,
+            FontSize = 13,
+            LineNumbers = "on",
+            ScrollBeyondLastLine = false,
+            WordWrap = "on"
+        };
+    }
+
+    protected override void OnInitialized()
+    {
+        ParseJson(_initialJson);
+    }
+
+    private async Task OnEditorChange()
+    {
+        var value = await _editor.GetValue();
+        ParseJson(value);
+        StateHasChanged();
+    }
+
+    private void ParseJson(string json)
+    {
+        try
+        {
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            _data = JsonSerializer.Deserialize<RoadmapData>(json, options);
+            _error = null;
+        }
+        catch (Exception ex)
+        {
+            _data = null;
+            _error = ex.Message;
+        }
+    }
+
+    // === Style Helper Methods ===
+
+    private string RoadmapContainerStyle() =>
+        "width: 100%; max-width: 1400px; aspect-ratio: 16/9; background: #fafbfc; " +
+        "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
+        "padding: 28px 36px; border: 1px solid #d1d5db; position: relative;";
+
+    private string LaneLabelWrapStyle()
+    {
+        var laneCount = _data?.Lanes.Count ?? 1;
+        return $"height: {100.0 / laneCount}%; display: flex; align-items: center;";
+    }
+
+    private string LaneBarStyle(string color) =>
+        $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {color};";
+
+    private string HistoryBarContainerStyle() =>
+        "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: #e5e7eb;";
+
+    private string HistoryPastStyle(string color, int pastPct)
+    {
+        // Create striped pattern effect using a gradient
+        return $"width: {pastPct}%; background: repeating-linear-gradient(90deg, {color} 0px, {color} 3px, transparent 3px, transparent 6px); opacity: 0.45;";
+    }
+
+    private string HistoryCurrentStyle(string color, int pastPct) =>
+        $"width: {100 - pastPct}%; background: {color};";
+
+    private string ColumnHeaderStyle(int index)
+    {
+        var bg = index % 2 == 0 ? "#f8f9fa" : "#fff";
+        var border = index > 0 ? "border-left: 1px solid #e5e7eb;" : "";
+        return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} background: {bg};";
+    }
+
+    private string MilestoneStyle(double position) =>
+        $"position: absolute; bottom: -8px; left: {position}%; transform: translateX(-50%); z-index: 10;";
+
+    private string GridColumnStyle(int index)
+    {
+        var bg = index % 2 == 0 ? "#f8f9fa" : "#fff";
+        var border = index > 0 ? "border-left: 1px solid #e5e7eb;" : "";
+        return $"flex: 1; {border} background: {bg};";
+    }
+
+    private string LaneRowStyle(int index)
+    {
+        var laneCount = _data?.Lanes.Count ?? 1;
+        var border = index < laneCount - 1 ? "border-bottom: 1px solid #e5e7eb;" : "";
+        return $"height: {100.0 / laneCount}%; position: relative; {border}";
+    }
+
+    private string ItemStyle(Item item, string color)
+    {
+        var cols = _data?.Columns.Count ?? 4;
+        var leftPct = (item.Start / cols) * 100;
+        var widthPct = (item.Span / cols) * 100;
+
+        var borderStyle = item.Spanning
+            ? $"border: 2px dashed {color}50; border-left: 5px solid {color};"
+            : $"border: 1px solid {color}30; border-left: 5px solid {color};";
+
+        var shadow = item.Spanning ? "" : "box-shadow: 0 1px 4px rgba(0,0,0,0.08);";
+
+        return $"position: absolute; left: calc({leftPct}% + 6px); top: 6px; bottom: 6px; " +
+               $"width: calc({widthPct}% - 12px); background: #fff; border-radius: 6px; " +
+               $"padding: 10px 14px; overflow: hidden; {borderStyle} {shadow}";
+    }
+
+    private string DetailItemStyle(Detail detail) =>
+        detail.Subs != null && detail.Subs.Count > 0 ? "margin-bottom: 2px;" : "margin-bottom: 3px;";
+
+    private string DetailTextStyle(string color) =>
+        $"font-size: 13px; color: #4b5563; line-height: 1.45; padding-left: 12px; position: relative;";
+
+    private string BulletStyle(string color) =>
+        $"position: absolute; left: 0; color: {color}; font-weight: 700;";
+}
