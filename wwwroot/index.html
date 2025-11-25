@@ -7,9 +7,9 @@
     <title>RoadScript</title>
     <base href="/" />
     <link rel="stylesheet" href="css/app.css" />
-    <!-- BlazorMonaco requires Monaco CSS -->
+    <!-- BlazorMonaco bundled CSS -->
     <link rel="stylesheet" data-name="vs/editor/editor.main"
-          href="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/editor/editor.main.css" />
+          href="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.css" />
 </head>
 
 <body>
@@ -27,33 +27,13 @@
         <span class="dismiss">🗙</span>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js"></script>
-    <script>
-        // Configure Monaco AMD loader paths
-        require.config({
-            paths: {
-                'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs'
-            }
-        });
-
-        // Pre-configure Monaco environment
-        window.MonacoEnvironment = {
-            getWorkerUrl: function (workerId, label) {
-                return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
-                        self.MonacoEnvironment = {
-                            baseUrl: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/'
-                        };
-                        importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/base/worker/workerMain.js');
-                    `)}`;
-            }
-        };
-    </script>
+    <!-- BlazorMonaco bundled scripts (BEFORE Blazor framework) -->
+    <script src="_content/BlazorMonaco/jsInterop.js"></script>
+    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
+    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
 
     <!-- Blazor framework -->
     <script src="_framework/blazor.webassembly.js"></script>
-
-    <!-- BlazorMonaco interop (after loader is configured) -->
-    <script src="_content/BlazorMonaco/jsInterop.js"></script>
 </body>
 
 </html>
