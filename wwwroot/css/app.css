@@ -5,21 +5,45 @@ html, body, #app {
     margin: 0;
     padding: 0;
     overflow: hidden;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* Container */
+.container-fluid {
+    display: flex;
+    height: 100vh;
 }
 
 /* Editor pane styling */
 .editor-pane {
     background: #1e1e1e;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Monaco editor container */
-.monaco-editor-container {
+/* Monaco editor container - CRITICAL for proper rendering */
+.monaco-editor-container,
+.monaco-editor,
+.overflow-guard {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+/* Ensure editor fills its container */
+#roadscript-json-editor {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+/* Fix for Monaco editor height calculation */
+.h-100 {
     height: 100% !important;
 }
 
 /* Preview pane */
 .preview-pane {
     background: #e8eaed;
+    overflow: auto;
 }
 
 /* Roadmap container - ensures proper scaling */
@@ -40,7 +64,7 @@ html, body, #app {
         transition: all 0.15s ease;
     }
 
-/* History bar striped pattern fallback for browsers that don't support repeating-linear-gradient well */
+/* History bar striped pattern fallback */
 @supports not (background: repeating-linear-gradient(90deg, #000 0px, #000 3px, transparent 3px, transparent 6px)) {
     .history-past {
         opacity: 0.3 !important;
@@ -51,6 +75,60 @@ html, body, #app {
 .milestone-diamond {
     box-sizing: border-box;
 }
+
+/* Loading indicator */
+.loading-progress {
+    position: relative;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+    margin: 20vh auto 1rem auto;
+}
+
+    .loading-progress circle {
+        fill: none;
+        stroke: #e0e0e0;
+        stroke-width: 0.6rem;
+        transform-origin: 50% 50%;
+        transform: rotate(-90deg);
+    }
+
+        .loading-progress circle:last-child {
+            stroke: #1b6ec2;
+            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+            transition: stroke-dasharray 0.05s ease-in-out;
+        }
+
+.loading-progress-text {
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+}
+
+    .loading-progress-text:after {
+        content: var(--blazor-load-percentage-text, "Loading");
+    }
+
+/* Blazor error UI */
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
 
 /* Print/export friendly styles */
 @media print {
@@ -108,3 +186,15 @@ html, body, #app {
     .preview-pane::-webkit-scrollbar-thumb:hover {
         background: #a1a1a1;
     }
+
+/* Button hover states (fallback for inline styles) */
+button:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+/* Monaco editor specific fixes */
+.monaco-editor .margin,
+.monaco-editor .monaco-editor-background {
+    background-color: #1e1e1e !important;
+}

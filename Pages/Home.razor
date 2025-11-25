@@ -1,7 +1,9 @@
 ﻿@page "/"
+@using BlazorMonaco
 @using BlazorMonaco.Editor
 @using System.Text.Json
 @using RoadScript.Models
+@inject IJSRuntime JSRuntime
 
 <div class="container-fluid vh-100 d-flex p-0">
     @* Editor Pane *@
@@ -12,15 +14,13 @@
         </div>
         <div style="background: #252526; padding: 8px 12px; border-bottom: 1px solid #333; display: flex; gap: 8px; align-items: center;">
             <button @onclick="UpdatePreview"
-                    style="background: #0e639c; color: #fff; border: none; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.2s;"
-                    onmouseover="this.style.background='#1177bb'"
-                    onmouseout="this.style.background='#0e639c'">
+                    disabled="@(!_editorReady)"
+                    style="@UpdateButtonStyle()">
                 Update Preview
             </button>
             <button @onclick="ResetToDefault"
-                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
-                    onmouseover="this.style.background='#505050'"
-                    onmouseout="this.style.background='#3c3c3c'">
+                    disabled="@(!_editorReady)"
+                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                 Reset
             </button>
 
@@ -34,7 +34,11 @@
                 </button>
             </div>
 
-            @if (_isUpdating)
+            @if (!_editorReady)
+            {
+                <span style="color: #888; font-size: 12px; margin-left: 12px;">⏳ Loading editor...</span>
+            }
+            else if (_isUpdating)
             {
                 <span style="color: #4ec9b0; font-size: 12px; margin-left: 12px;">● Updating...</span>
             }
@@ -47,10 +51,15 @@
                 <span style="color: #f48771; font-size: 12px; margin-left: 12px;">✗ Invalid JSON</span>
             }
         </div>
-        <StandaloneCodeEditor @ref="_editor"
-                              Id="json-editor"
-                              ConstructionOptions="EditorConstructionOptions"
-                              CssClass="h-100" />
+
+        @* Monaco Editor *@
+        <div style="flex: 1; overflow: hidden;">
+            <StandaloneCodeEditor @ref="_editor"
+                                  Id="roadscript-json-editor"
+                                  ConstructionOptions="EditorConstructionOptions"
+                                  OnDidInit="EditorOnDidInit"
+                                  CssClass="h-100" />
+        </div>
     </div>
 
     @* Preview Pane *@
@@ -191,164 +200,164 @@
 </div>
 
 @code {
-    private StandaloneCodeEditor _editor = null!;
+    private StandaloneCodeEditor? _editor;
     private RoadmapData? _data;
     private string? _error;
     private bool _isUpdating = false;
     private bool _lastUpdateSuccess = false;
     private string _currentJson = "";
     private bool _isVibeMode = false;
+    private bool _editorReady = false;
 
     // Default JSON template
-    private string _defaultJson = @"
+    private const string DefaultJson = @"{
+  ""title"": ""2026 Product Roadmap"",
+  ""subtitle"": ""Platform Modernization & Client Experience"",
+  ""columns"": [
+    { ""id"": ""q1"", ""label"": ""Q1 2026"", ""sub"": ""Jan – Mar"" },
+    { ""id"": ""q2"", ""label"": ""Q2 2026"", ""sub"": ""Apr – Jun"" },
+    { ""id"": ""q3"", ""label"": ""Q3 2026"", ""sub"": ""Jul – Sep"" },
+    { ""id"": ""q4"", ""label"": ""Q4 2026"", ""sub"": ""Oct – Dec"" }
+  ],
+  ""milestones"": [
+    { ""position"": 12.5, ""label"": ""Image Import Live"" },
+    { ""position"": 37.5, ""label"": ""TrackingLink Launch"" }
+  ],
+  ""lanes"": [
     {
-      ""title"": ""2026 Product Roadmap"",
-      ""subtitle"": ""Platform Modernization & Client Experience"",
-      ""columns"": [
-        { ""id"": ""q1"", ""label"": ""Q1 2026"", ""sub"": ""Jan – Mar"" },
-        { ""id"": ""q2"", ""label"": ""Q2 2026"", ""sub"": ""Apr – Jun"" },
-        { ""id"": ""q3"", ""label"": ""Q3 2026"", ""sub"": ""Jul – Sep"" },
-        { ""id"": ""q4"", ""label"": ""Q4 2026"", ""sub"": ""Oct – Dec"" }
-      ],
-      ""milestones"": [
-        { ""position"": 12.5, ""label"": ""Image Import Live"" },
-        { ""position"": 37.5, ""label"": ""TrackingLink Launch"" }
-      ],
-      ""lanes"": [
+      ""id"": ""perfectdocs"",
+      ""title"": ""PerfectDocs"",
+      ""color"": ""#45B69C"",
+      ""history"": { ""startYear"": 2020, ""endYear"": 2026, ""pastPct"": 80 },
+      ""items"": [
         {
-          ""id"": ""perfectdocs"",
-          ""title"": ""PerfectDocs"",
-          ""color"": ""#45B69C"",
-          ""history"": { ""startYear"": 2020, ""endYear"": 2026, ""pastPct"": 80 },
-          ""items"": [
-            {
-              ""id"": ""rcr-sadb"",
-              ""title"": ""RCR & SADB"",
-              ""start"": 0,
-              ""span"": 2,
-              ""details"": [
-                { ""text"": ""RCR overcollection monitoring"", ""subs"": [""Basic workflow completion""] },
-                { ""text"": ""SADB signer integration"", ""subs"": [""Signers + Notaries"", ""Internal/client dependency""] }
-              ]
-            },
-            {
-              ""id"": ""pd-dashboard"",
-              ""title"": ""Dashboard & Reporting"",
-              ""start"": 2,
-              ""span"": 2,
-              ""details"": [
-                { ""text"": ""Management reporting dashboard"", ""subs"": [""Cross-project visibility""] },
-                { ""text"": ""New build from scratch"" },
-                { ""text"": ""Intersects with other initiatives"" }
-              ]
-            }
+          ""id"": ""rcr-sadb"",
+          ""title"": ""RCR & SADB"",
+          ""start"": 0,
+          ""span"": 2,
+          ""details"": [
+            { ""text"": ""RCR overcollection monitoring"", ""subs"": [""Basic workflow completion""] },
+            { ""text"": ""SADB signer integration"", ""subs"": [""Signers + Notaries"", ""Internal/client dependency""] }
           ]
         },
         {
-          ""id"": ""infrastructure"",
-          ""title"": ""Azure & Infrastructure"",
-          ""color"": ""#4A90D9"",
-          ""history"": { ""startYear"": 2023, ""endYear"": 2026, ""pastPct"": 60 },
-          ""items"": [
-            {
-              ""id"": ""azure"",
-              ""title"": ""Azure Migration"",
-              ""start"": 0,
-              ""span"": 4,
-              ""spanning"": true,
-              ""details"": [
-                { ""text"": ""Final app conversions to prod"", ""subs"": [""Internal apps cleanup"", ""Lower environments wrap-up""] },
-                { ""text"": ""Ongoing maintenance & optimization"" },
-                { ""text"": ""High expectations for continued support"" }
-              ]
-            }
-          ]
-        },
-        {
-          ""id"": ""serviceconnect"",
-          ""title"": ""ServiceConnect"",
-          ""color"": ""#D4A520"",
-          ""history"": { ""startYear"": 2024, ""endYear"": 2026, ""pastPct"": 50 },
-          ""items"": [
-            {
-              ""id"": ""image-import"",
-              ""title"": ""Image Import"",
-              ""start"": 0,
-              ""span"": 1,
-              ""details"": [
-                { ""text"": ""Production release & testing"", ""subs"": [""Client conversions"", ""Bug fixes & stability""] }
-              ]
-            },
-            {
-              ""id"": ""sc-ongoing"",
-              ""title"": ""Ingestion & Stability"",
-              ""start"": 1,
-              ""span"": 2,
-              ""spanning"": true,
-              ""details"": [
-                { ""text"": ""Order import refinement"" },
-                { ""text"": ""New client onboarding & config"" },
-                { ""text"": ""Feature requests from business"" }
-              ]
-            },
-            {
-              ""id"": ""image2client"",
-              ""title"": ""Image2Client"",
-              ""start"": 3,
-              ""span"": 1,
-              ""details"": [
-                { ""text"": ""Client image delivery"", ""subs"": [""Target: Q4 and beyond""] }
-              ]
-            }
-          ]
-        },
-        {
-          ""id"": ""clientconnect"",
-          ""title"": ""ClientConnect"",
-          ""color"": ""#9B7ED9"",
-          ""history"": { ""startYear"": 2025, ""endYear"": 2026, ""pastPct"": 0 },
-          ""items"": [
-            {
-              ""id"": ""trackinglink"",
-              ""title"": ""TrackingLink"",
-              ""start"": 0,
-              ""span"": 2,
-              ""details"": [
-                { ""text"": ""MVC to Blazor/EF rebuild"", ""subs"": [""First hub app migration""] },
-                { ""text"": ""Client hub tile integration"" }
-              ]
-            },
-            {
-              ""id"": ""querylink"",
-              ""title"": ""QueryLink"",
-              ""start"": 2,
-              ""span"": 1,
-              ""details"": [
-                { ""text"": ""MVC to Blazor migration"" },
-                { ""text"": ""Hub navigation integration"" }
-              ]
-            },
-            {
-              ""id"": ""mop"",
-              ""title"": ""MOP"",
-              ""start"": 3,
-              ""span"": 1,
-              ""details"": [
-                { ""text"": ""Manual Order Placement"" },
-                { ""text"": ""Final legacy app rebuild"" }
-              ]
-            }
+          ""id"": ""pd-dashboard"",
+          ""title"": ""Dashboard & Reporting"",
+          ""start"": 2,
+          ""span"": 2,
+          ""details"": [
+            { ""text"": ""Management reporting dashboard"", ""subs"": [""Cross-project visibility""] },
+            { ""text"": ""New build from scratch"" },
+            { ""text"": ""Intersects with other initiatives"" }
           ]
         }
       ]
-    }";
+    },
+    {
+      ""id"": ""infrastructure"",
+      ""title"": ""Azure & Infrastructure"",
+      ""color"": ""#4A90D9"",
+      ""history"": { ""startYear"": 2023, ""endYear"": 2026, ""pastPct"": 60 },
+      ""items"": [
+        {
+          ""id"": ""azure"",
+          ""title"": ""Azure Migration"",
+          ""start"": 0,
+          ""span"": 4,
+          ""spanning"": true,
+          ""details"": [
+            { ""text"": ""Final app conversions to prod"", ""subs"": [""Internal apps cleanup"", ""Lower environments wrap-up""] },
+            { ""text"": ""Ongoing maintenance & optimization"" },
+            { ""text"": ""High expectations for continued support"" }
+          ]
+        }
+      ]
+    },
+    {
+      ""id"": ""serviceconnect"",
+      ""title"": ""ServiceConnect"",
+      ""color"": ""#D4A520"",
+      ""history"": { ""startYear"": 2024, ""endYear"": 2026, ""pastPct"": 50 },
+      ""items"": [
+        {
+          ""id"": ""image-import"",
+          ""title"": ""Image Import"",
+          ""start"": 0,
+          ""span"": 1,
+          ""details"": [
+            { ""text"": ""Production release & testing"", ""subs"": [""Client conversions"", ""Bug fixes & stability""] }
+          ]
+        },
+        {
+          ""id"": ""sc-ongoing"",
+          ""title"": ""Ingestion & Stability"",
+          ""start"": 1,
+          ""span"": 2,
+          ""spanning"": true,
+          ""details"": [
+            { ""text"": ""Order import refinement"" },
+            { ""text"": ""New client onboarding & config"" },
+            { ""text"": ""Feature requests from business"" }
+          ]
+        },
+        {
+          ""id"": ""image2client"",
+          ""title"": ""Image2Client"",
+          ""start"": 3,
+          ""span"": 1,
+          ""details"": [
+            { ""text"": ""Client image delivery"", ""subs"": [""Target: Q4 and beyond""] }
+          ]
+        }
+      ]
+    },
+    {
+      ""id"": ""clientconnect"",
+      ""title"": ""ClientConnect"",
+      ""color"": ""#9B7ED9"",
+      ""history"": { ""startYear"": 2025, ""endYear"": 2026, ""pastPct"": 0 },
+      ""items"": [
+        {
+          ""id"": ""trackinglink"",
+          ""title"": ""TrackingLink"",
+          ""start"": 0,
+          ""span"": 2,
+          ""details"": [
+            { ""text"": ""MVC to Blazor/EF rebuild"", ""subs"": [""First hub app migration""] },
+            { ""text"": ""Client hub tile integration"" }
+          ]
+        },
+        {
+          ""id"": ""querylink"",
+          ""title"": ""QueryLink"",
+          ""start"": 2,
+          ""span"": 1,
+          ""details"": [
+            { ""text"": ""MVC to Blazor migration"" },
+            { ""text"": ""Hub navigation integration"" }
+          ]
+        },
+        {
+          ""id"": ""mop"",
+          ""title"": ""MOP"",
+          ""start"": 3,
+          ""span"": 1,
+          ""details"": [
+            { ""text"": ""Manual Order Placement"" },
+            { ""text"": ""Final legacy app rebuild"" }
+          ]
+        }
+      ]
+    }
+  ]
+}";
 
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
         return new StandaloneEditorConstructionOptions
         {
             Language = "json",
-            Value = _defaultJson,
+            Value = DefaultJson,
             Theme = "vs-dark",
             Minimap = new EditorMinimapOptions { Enabled = false },
             AutomaticLayout = true,
@@ -356,28 +365,46 @@
             LineNumbers = "on",
             ScrollBeyondLastLine = false,
             WordWrap = "on",
-            TabSize = 2
+            TabSize = 2,
+            FormatOnPaste = true,
+            FormatOnType = true
         };
+    }
+
+    private async Task EditorOnDidInit()
+    {
+        _editorReady = true;
+        _currentJson = DefaultJson;
+        ParseJson(DefaultJson);
+        _lastUpdateSuccess = _error == null;
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override void OnInitialized()
     {
-        _currentJson = _defaultJson;
-        ParseJson(_defaultJson);
+        _currentJson = DefaultJson;
+        ParseJson(DefaultJson);
     }
 
     private async Task UpdatePreview()
     {
+        if (_editor == null || !_editorReady) return;
+
         _isUpdating = true;
         StateHasChanged();
 
         try
         {
-            await Task.Delay(100); // Brief delay for visual feedback
+            await Task.Delay(50); // Brief delay for visual feedback
             var value = await _editor.GetValue();
             _currentJson = value;
             ParseJson(value);
             _lastUpdateSuccess = _error == null;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to read editor: {ex.Message}";
+            _lastUpdateSuccess = false;
         }
         finally
         {
@@ -388,10 +415,20 @@
 
     private async Task ResetToDefault()
     {
-        await _editor.SetValue(_defaultJson);
-        _currentJson = _defaultJson;
-        ParseJson(_defaultJson);
-        _lastUpdateSuccess = true;
+        if (_editor == null || !_editorReady) return;
+
+        try
+        {
+            await _editor.SetValue(DefaultJson);
+            _currentJson = DefaultJson;
+            ParseJson(DefaultJson);
+            _lastUpdateSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to reset editor: {ex.Message}";
+        }
+
         StateHasChanged();
     }
 
@@ -405,9 +442,19 @@
     {
         try
         {
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true,
+                ReadCommentHandling = JsonCommentHandling.Skip
+            };
             _data = JsonSerializer.Deserialize<RoadmapData>(json, options);
             _error = null;
+        }
+        catch (JsonException ex)
+        {
+            _data = null;
+            _error = $"Line {ex.LineNumber}, Position {ex.BytePositionInLine}: {ex.Message}";
         }
         catch (Exception ex)
         {
@@ -415,6 +462,13 @@
             _error = ex.Message;
         }
     }
+
+    // === Button Styles ===
+
+    private string UpdateButtonStyle() =>
+        _editorReady
+            ? "background: #0e639c; color: #fff; border: none; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.2s;"
+            : "background: #555; color: #888; border: none; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: not-allowed;";
 
     // === Theme Toggle UI ===
 
@@ -547,7 +601,6 @@
 
         if (_isVibeMode)
         {
-            // Convert hex color to a neon/vibrant version for vibe mode
             var vibeColor = GetVibeColor(color);
             var vibeGradient = GetVibeGradient(color);
 
@@ -651,11 +704,11 @@
     private string GetVibeColor(string hexColor) =>
         hexColor.ToLower() switch
         {
-            "#45b69c" => "#00ffcc", // Teal/Cyan neon
-            "#4a90d9" => "#4da6ff", // Bright blue
-            "#d4a520" => "#ffd700", // Bright gold/yellow
-            "#9b7ed9" => "#b794f6", // Bright purple
-            _ => "#00e5ff" // Default cyan
+            "#45b69c" => "#00ffcc",
+            "#4a90d9" => "#4da6ff",
+            "#d4a520" => "#ffd700",
+            "#9b7ed9" => "#b794f6",
+            _ => "#00e5ff"
         };
 
     private string GetVibeGradient(string hexColor) =>
