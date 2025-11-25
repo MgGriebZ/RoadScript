@@ -10,10 +10,35 @@
             <span>RoadScript <span style="font-size: 0.75em; color: #888; font-weight: 400;">v1.0</span></span>
             <span style="font-size: 0.7em; color: #666;">JSON Editor</span>
         </div>
+        <div style="background: #252526; padding: 8px 12px; border-bottom: 1px solid #333; display: flex; gap: 8px; align-items: center;">
+            <button @onclick="UpdatePreview"
+                    style="background: #0e639c; color: #fff; border: none; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.2s;"
+                    onmouseover="this.style.background='#1177bb'"
+                    onmouseout="this.style.background='#0e639c'">
+                Update Preview
+            </button>
+            <button @onclick="ResetToDefault"
+                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
+                    onmouseover="this.style.background='#505050'"
+                    onmouseout="this.style.background='#3c3c3c'">
+                Reset
+            </button>
+            @if (_isUpdating)
+            {
+                <span style="color: #4ec9b0; font-size: 12px; margin-left: auto;">● Updating...</span>
+            }
+            else if (_lastUpdateSuccess && !_error)
+            {
+                <span style="color: #4ec9b0; font-size: 12px; margin-left: auto;">✓ Valid JSON</span>
+            }
+            else if (_error != null)
+            {
+                <span style="color: #f48771; font-size: 12px; margin-left: auto;">✗ Invalid JSON</span>
+            }
+        </div>
         <StandaloneCodeEditor @ref="_editor"
                               Id="json-editor"
                               ConstructionOptions="EditorConstructionOptions"
-                              OnDidChangeModelContent="OnEditorChange"
                               CssClass="h-100" />
     </div>
 
@@ -158,9 +183,12 @@
     private StandaloneCodeEditor _editor = null!;
     private RoadmapData? _data;
     private string? _error;
+    private bool _isUpdating = false;
+    private bool _lastUpdateSuccess = false;
+    private string _currentJson = "";
 
-    // REPLACE THIS VARIABLE BLOCK ONLY
-    private string _initialJson = @"
+    // Default JSON template
+    private string _defaultJson = @"
     {
       ""title"": ""2026 Product Roadmap"",
       ""subtitle"": ""Platform Modernization & Client Experience"",
@@ -308,26 +336,50 @@
         return new StandaloneEditorConstructionOptions
         {
             Language = "json",
-            Value = _initialJson,
+            Value = _defaultJson,
             Theme = "vs-dark",
             Minimap = new EditorMinimapOptions { Enabled = false },
             AutomaticLayout = true,
             FontSize = 13,
             LineNumbers = "on",
             ScrollBeyondLastLine = false,
-            WordWrap = "on"
+            WordWrap = "on",
+            TabSize = 2
         };
     }
 
     protected override void OnInitialized()
     {
-        ParseJson(_initialJson);
+        _currentJson = _defaultJson;
+        ParseJson(_defaultJson);
     }
 
-    private async Task OnEditorChange()
+    private async Task UpdatePreview()
     {
-        var value = await _editor.GetValue();
-        ParseJson(value);
+        _isUpdating = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Delay(100); // Brief delay for visual feedback
+            var value = await _editor.GetValue();
+            _currentJson = value;
+            ParseJson(value);
+            _lastUpdateSuccess = _error == null;
+        }
+        finally
+        {
+            _isUpdating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ResetToDefault()
+    {
+        await _editor.SetValue(_defaultJson);
+        _currentJson = _defaultJson;
+        ParseJson(_defaultJson);
+        _lastUpdateSuccess = true;
         StateHasChanged();
     }
 
