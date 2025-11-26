@@ -388,7 +388,7 @@ window.RoadScriptInterop = {
     exportAsPng: async function(elementSelector, filename) {
         try {
             // Load html2canvas dynamically if not already loaded
-            if (typeof html2canvas === 'undefined') {
+            if (!window.html2canvas) {
                 await this.loadHtml2Canvas();
             }
 
@@ -399,7 +399,7 @@ window.RoadScriptInterop = {
             }
 
             // Capture the element
-            const canvas = await html2canvas(element, {
+            const canvas = await window.html2canvas(element, {
                 backgroundColor: null,
                 scale: 2, // Higher quality
                 logging: false,
@@ -428,16 +428,43 @@ window.RoadScriptInterop = {
      */
     loadHtml2Canvas: function() {
         return new Promise((resolve, reject) => {
-            if (typeof html2canvas !== 'undefined') {
+            if (window.html2canvas) {
                 resolve();
                 return;
             }
 
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
+            // Temporarily disable AMD to avoid conflicts with Monaco Editor
+            const oldDefine = window.define;
+            const oldRequire = window.require;
+
+            try {
+                window.define = undefined;
+                window.require = undefined;
+
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+
+                script.onload = () => {
+                    // Restore AMD after loading
+                    window.define = oldDefine;
+                    window.require = oldRequire;
+                    resolve();
+                };
+
+                script.onerror = (error) => {
+                    // Restore AMD even on error
+                    window.define = oldDefine;
+                    window.require = oldRequire;
+                    reject(error);
+                };
+
+                document.head.appendChild(script);
+            } catch (error) {
+                // Restore AMD on any error
+                window.define = oldDefine;
+                window.require = oldRequire;
+                reject(error);
+            }
         });
     }
 };
