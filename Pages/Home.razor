@@ -178,12 +178,12 @@
                                 <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
                                      class="@GetElementClass($"milestones[{msIndex}]")"
                                      style="@MilestoneStyle(milestone.Position)">
-                                    <div style="@MilestoneIconContainerStyle()">
-                                        @((MarkupString)GetMilestoneIcon(milestone.Icon))
+                                    <div style="@MilestoneContainerStyle()">
+                                        @((MarkupString)GetMilestoneIcon(milestone.Icon, milestone.Color))
+                                        <span style="@MilestoneLabelStyle(milestone.Color)">
+                                            @milestone.Label
+                                        </span>
                                     </div>
-                                    <span style="@MilestoneLabelStyle()">
-                                        @milestone.Label
-                                    </span>
                                 </div>
                             }
                         </div>
@@ -296,8 +296,8 @@
     { ""label"": ""Quarter 4"", ""sub"": ""Oct – Dec"" }
   ],
   ""milestones"": [
-    { ""position"": 25, ""label"": ""Milestone 1"" },
-    { ""position"": 75, ""label"": ""Milestone 2"" }
+    { ""position"": 25, ""label"": ""Milestone 1"", ""color"": ""#667eea"" },
+    { ""position"": 75, ""label"": ""Milestone 2"", ""color"": ""#667eea"" }
   ],
   ""lanes"": [
     {
@@ -729,29 +729,26 @@
             : "position: relative; height: 44px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
 
     private string MilestoneStyle(double position) =>
-        $"position: absolute; left: {position}%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 10;";
+        $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10;";
 
-    private string MilestoneIconContainerStyle() =>
+    private string MilestoneContainerStyle() =>
+        "display: flex; flex-direction: column; align-items: center; gap: 4px;";
+
+    private string MilestoneLabelStyle(string color) =>
         _isVibeMode
-            ? "width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; box-shadow: 0 0 12px rgba(102, 126, 234, 0.6), 0 2px 4px rgba(0,0,0,0.3); border: 2px solid #fafbfc;"
-            : "width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: #667eea; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 2px solid #fafbfc;";
+            ? $"font-size: 13px; font-weight: 700; color: #e0e7ff; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,0.5); background: rgba(30, 30, 46, 0.95); padding: 4px 10px; border-radius: 4px; border-left: 3px solid {color};"
+            : $"font-size: 13px; font-weight: 700; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.98); padding: 4px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 3px solid {color};";
 
-    private string MilestoneLabelStyle() =>
-        _isVibeMode
-            ? "margin-top: 6px; font-size: 13px; font-weight: 700; color: #e0e7ff; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,0.5); background: rgba(30, 30, 46, 0.9); padding: 4px 10px; border-radius: 4px; border: 1px solid #3a3a4e;"
-            : "margin-top: 6px; font-size: 13px; font-weight: 700; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.95); padding: 4px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #d1d5db;";
-
-    private string GetMilestoneIcon(string? iconType)
+    private string GetMilestoneIcon(string? iconType, string color)
     {
-        var color = _isVibeMode ? "#fafbfc" : "#fff";
         return iconType?.ToLower() switch
         {
-            "star" => $"<svg width='12' height='12' viewBox='0 0 24 24' fill='{color}'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>",
-            "flag" => $"<svg width='12' height='12' viewBox='0 0 24 24' fill='{color}'><path d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/></svg>",
-            "check" => $"<svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='{color}' stroke-width='3'><path d='M20 6L9 17l-5-5'/></svg>",
-            "circle" => $"<svg width='10' height='10' viewBox='0 0 24 24' fill='{color}'><circle cx='12' cy='12' r='10'/></svg>",
-            "diamond" => $"<div style='width: 10px; height: 10px; background: {color}; transform: rotate(45deg);'></div>",
-            _ => $"<div style='width: 10px; height: 10px; background: {color}; transform: rotate(45deg);'></div>" // Default diamond
+            "star" => $"<svg width='24' height='24' viewBox='0 0 24 24' fill='{color}' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>",
+            "flag" => $"<svg width='24' height='24' viewBox='0 0 24 24' fill='{color}' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><path d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/></svg>",
+            "check" => $"<svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='{color}' stroke-width='3' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><path d='M20 6L9 17l-5-5'/></svg>",
+            "circle" => $"<svg width='20' height='20' viewBox='0 0 24 24' fill='{color}' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><circle cx='12' cy='12' r='10'/></svg>",
+            "diamond" => $"<div style='width: 16px; height: 16px; background: {color}; transform: rotate(45deg); box-shadow: 0 2px 4px rgba(0,0,0,0.2);'></div>",
+            _ => $"<div style='width: 16px; height: 16px; background: {color}; transform: rotate(45deg); box-shadow: 0 2px 4px rgba(0,0,0,0.2);'></div>" // Default diamond
         };
     }
 
@@ -1068,7 +1065,8 @@
                     {
                         Label = "New Milestone",
                         Position = 50,
-                        Icon = "diamond"
+                        Icon = "diamond",
+                        Color = "#667eea"
                     };
                     _data.Milestones.Insert(milestoneIndex + 1, newMilestone);
                     break;

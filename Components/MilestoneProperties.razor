@@ -11,6 +11,22 @@
     </div>
 
     <div class="form-group">
+        <label>Color</label>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="color"
+                   value="@Milestone.Color"
+                   @onchange="@(e => OnChange.InvokeAsync(("color", e.Value)))"
+                   style="width: 60px; height: 40px; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; background: #2a2a3e; padding: 2px;" />
+            <input type="text"
+                   value="@Milestone.Color"
+                   @onchange="@(e => OnChange.InvokeAsync(("color", e.Value)))"
+                   class="form-control"
+                   placeholder="#667eea"
+                   style="flex: 1;" />
+        </div>
+    </div>
+
+    <div class="form-group">
         <label>Icon</label>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px;">
             @foreach (var icon in _availableIcons)
@@ -110,7 +126,7 @@
 
     private string GetIconPreview(string iconType)
     {
-        var color = "#d1d5db";
+        var color = Milestone.Color;
         return iconType.ToLower() switch
         {
             "star" => $"<svg width='20' height='20' viewBox='0 0 24 24' fill='{color}'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>",

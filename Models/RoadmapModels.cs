@@ -42,6 +42,9 @@ public class Milestone
 
     [JsonPropertyName("icon")]
     public string? Icon { get; set; }  // Optional icon: star, flag, diamond, circle, check
+
+    [JsonPropertyName("color")]
+    public string Color { get; set; } = "#667eea";  // Optional color for the milestone icon
 }
 
 public class Lane
