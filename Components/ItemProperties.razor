@@ -57,9 +57,19 @@
     </div>
 
     <div class="form-group">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox"
+                   checked="@Item.Completed"
+                   @onchange="@(e => OnChange.InvokeAsync(("completed", (bool)(e.Value ?? false))))"
+                   style="margin-right: 8px; cursor: pointer;" />
+            Completed (shows checkmark badge)
+        </label>
+    </div>
+
+    <div class="form-group">
         <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <span>Details</span>
-            <button @onclick="AddDetail" class="btn-add" type="button">+ Add</button>
+            <button @onclick="AddDetail" class="btn-add" type="button">+ Add Detail</button>
         </label>
 
         @if (Item.Details != null && Item.Details.Count > 0)
@@ -68,13 +78,50 @@
             {
                 var index = i;
                 var detail = Item.Details[i];
-                <div class="detail-item">
-                    <input type="text"
-                           value="@detail.Text"
-                           @onchange="@(e => UpdateDetailText(index, e.Value?.ToString() ?? ""))"
-                           class="form-control"
-                           placeholder="Detail text" />
-                    <button @onclick="() => RemoveDetail(index)" class="btn-remove" type="button">×</button>
+                <div style="background: #252538; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #3a3a4e;">
+                    <div class="detail-item">
+                        <input type="text"
+                               value="@detail.Text"
+                               @onchange="@(e => UpdateDetailText(index, e.Value?.ToString() ?? ""))"
+                               class="form-control"
+                               placeholder="Detail text"
+                               style="flex: 1;" />
+                        <button @onclick="() => RemoveDetail(index)" class="btn-remove" type="button">×</button>
+                    </div>
+
+                    @* Sub-bullets section *@
+                    <div style="margin-top: 10px; padding-left: 8px;">
+                        <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 11px; color: #888;">Sub-items</span>
+                            <button @onclick="() => AddSubBullet(index)" class="btn-add" type="button" style="font-size: 11px; padding: 4px 10px;">+ Add Sub</button>
+                        </label>
+
+                        @if (detail.Subs != null && detail.Subs.Count > 0)
+                        {
+                            @for (int j = 0; j < detail.Subs.Count; j++)
+                            {
+                                var subIndex = j;
+                                var sub = detail.Subs[j];
+                                <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 6px;">
+                                    <span style="color: #666; font-size: 12px;">–</span>
+                                    <input type="text"
+                                           value="@sub"
+                                           @onchange="@(e => UpdateSubBullet(index, subIndex, e.Value?.ToString() ?? ""))"
+                                           class="form-control"
+                                           placeholder="Sub-item text"
+                                           style="font-size: 12px; padding: 6px 10px;" />
+                                    <button @onclick="() => RemoveSubBullet(index, subIndex)"
+                                            class="btn-remove"
+                                            type="button"
+                                            style="width: 24px; height: 24px; font-size: 14px;">×</button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div style="color: #555; font-size: 11px; font-style: italic; padding-left: 8px;">No sub-items</div>
+                        }
+                    </div>
                 </div>
             }
         }
@@ -141,6 +188,36 @@
         if (Item.Details != null && index < Item.Details.Count)
         {
             Item.Details[index].Text = text;
+            OnChange.InvokeAsync(("details", Item.Details));
+        }
+    }
+
+    private void AddSubBullet(int detailIndex)
+    {
+        if (Item.Details != null && detailIndex < Item.Details.Count)
+        {
+            Item.Details[detailIndex].Subs ??= new List<string>();
+            Item.Details[detailIndex].Subs.Add("New sub-item");
+            OnChange.InvokeAsync(("details", Item.Details));
+        }
+    }
+
+    private void RemoveSubBullet(int detailIndex, int subIndex)
+    {
+        if (Item.Details != null && detailIndex < Item.Details.Count &&
+            Item.Details[detailIndex].Subs != null && subIndex < Item.Details[detailIndex].Subs.Count)
+        {
+            Item.Details[detailIndex].Subs.RemoveAt(subIndex);
+            OnChange.InvokeAsync(("details", Item.Details));
+        }
+    }
+
+    private void UpdateSubBullet(int detailIndex, int subIndex, string text)
+    {
+        if (Item.Details != null && detailIndex < Item.Details.Count &&
+            Item.Details[detailIndex].Subs != null && subIndex < Item.Details[detailIndex].Subs.Count)
+        {
+            Item.Details[detailIndex].Subs[subIndex] = text;
             OnChange.InvokeAsync(("details", Item.Details));
         }
     }

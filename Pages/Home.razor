@@ -2,9 +2,11 @@
 @using BlazorMonaco
 @using BlazorMonaco.Editor
 @using System.Text.Json
+@using Microsoft.JSInterop
 @inject IJSRuntime JSRuntime
 @inject EditorInteropService EditorInterop
 @inject SelectionState SelectionState
+@implements IDisposable
 
 <div class="container-fluid vh-100 d-flex p-0">
     @* Editor Pane *@
@@ -12,8 +14,15 @@
     {
         <div class="editor-pane" style="width: 20%; min-width: 300px; max-width: 400px; flex-shrink: 0; border-right: 1px solid #ccc; display: flex; flex-direction: column;">
             <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-                <span>RoadScript <span style="font-size: 0.75em; color: #888; font-weight: 400;">v1.0</span></span>
-                <span style="font-size: 0.7em; color: #666;">JSON Editor</span>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">RoadScript</span>
+                    <span style="font-size: 11px; color: #666; font-weight: 400;">JSON Editor</span>
+                </div>
+                <button @onclick="ToggleEditor"
+                        title="Collapse JSON Editor"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                    ◀
+                </button>
             </div>
         <div style="background: #252526; padding: 8px 12px; border-bottom: 1px solid #333; display: flex; gap: 8px; align-items: center;">
             <button @onclick="UpdatePreview"
@@ -26,16 +35,11 @@
                     style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                 Reset
             </button>
-
-            @* Theme Toggle *@
-            <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; color: #888;">@(_isVibeMode ? "Vibe" : "Lite")</span>
-                <button @onclick="ToggleTheme"
-                        style="@ThemeToggleStyle()"
-                        title="Toggle between Lite and Vibe modes">
-                    <div style="@ThemeToggleIndicatorStyle()"></div>
-                </button>
-            </div>
+            <button @onclick="DownloadJson"
+                    disabled="@(!_editorReady)"
+                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                💾
+            </button>
 
             @if (!_editorReady)
             {
@@ -65,50 +69,28 @@
         </div>
     </div>
     }
+    else
+    {
+        @* Collapsed Editor Panel *@
+        <div style="width: 50px; flex-shrink: 0; background: #1e1e1e; border-right: 1px solid #333; display: flex; flex-direction: column; align-items: center; padding: 16px 0;">
+            <button @onclick="ToggleEditor"
+                    title="Expand JSON Editor"
+                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s; writing-mode: vertical-rl; text-orientation: mixed; font-size: 11px; font-weight: 500;">
+                JSON ▶
+            </button>
+        </div>
+    }
 
     @* Preview Pane *@
     <div class="preview-pane" style="@PreviewPaneStyle()">
-        @* Preview Control Bar *@
-        <div style="@PreviewControlBarStyle()">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <button @onclick="ToggleViewMode"
-                        title="@(_isPreviewMode ? "Switch to Edit Mode" : "Switch to Preview Mode")"
-                        style="@ViewModeToggleStyle()">
-                    @(_isPreviewMode ? "📝 Edit Mode" : "👁️ Preview Mode")
-                </button>
-
-                @if (!_isPreviewMode)
-                {
-                    <button @onclick="ToggleEditor"
-                            title="@(_showEditor ? "Hide JSON Editor" : "Show JSON Editor")"
-                            style="@PanelToggleStyle()">
-                        @(_showEditor ? "◀" : "▶") Editor
-                    </button>
-
-                    <button @onclick="ToggleProperties"
-                            title="@(_showProperties ? "Hide Properties" : "Show Properties")"
-                            style="@PanelToggleStyle()">
-                        Properties @(_showProperties ? "▶" : "◀")
-                    </button>
-                }
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; color: #888;">@(_isVibeMode ? "Vibe" : "Lite")</span>
-                <button @onclick="ToggleTheme"
-                        style="@ThemeToggleStyle()"
-                        title="Toggle between Lite and Vibe modes">
-                    <div style="@ThemeToggleIndicatorStyle()"></div>
-                </button>
-            </div>
-        </div>
-
         @if (_data != null)
         {
-            <div style="flex: 1; display: flex; justify-content: center; align-items: flex-start; overflow: auto;">
-                <div class="roadmap" style="@RoadmapContainerStyle()">
+            <div style="@RoadmapWrapperStyle()">
+                <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
                 @* Header *@
-                <div style="margin-bottom: 20px;">
+                <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
+                     class="@GetElementClass("title")"
+                     style="@TitleContainerStyle()">
                     <h1 style="@TitleStyle()">
                         @_data.Title
                     </h1>
@@ -168,8 +150,10 @@
                                     <span style="@ColumnSubStyle()">@col.Sub</span>
                                 </div>
                             }
+                        </div>
 
-                            @* Milestones *@
+                        @* Milestone Scale Row *@
+                        <div style="@MilestoneScaleContainerStyle()">
                             @for (int mi = 0; mi < _data.Milestones.Count; mi++)
                             {
                                 var milestone = _data.Milestones[mi];
@@ -177,12 +161,12 @@
                                 <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
                                      class="@GetElementClass($"milestones[{msIndex}]")"
                                      style="@MilestoneStyle(milestone.Position)">
-                                    <div style="@MilestoneIconContainerStyle()">
-                                        @((MarkupString)GetMilestoneIcon(milestone.Icon))
+                                    <div style="@MilestoneContainerStyle()">
+                                        @((MarkupString)GetMilestoneIcon(milestone.Icon, milestone.Color))
+                                        <span style="@MilestoneLabelStyle(milestone.Color)">
+                                            @milestone.Label
+                                        </span>
                                     </div>
-                                    <span style="@MilestoneLabelStyle()">
-                                        @milestone.Label
-                                    </span>
                                 </div>
                             }
                         </div>
@@ -211,9 +195,17 @@
                                              @onclick:stopPropagation="@(!_isPreviewMode)"
                                              class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]")"
                                              style="@ItemStyle(item, lane.Color)">
-                                            <h4 style="@ItemTitleStyle()">
-                                                @item.Title
-                                            </h4>
+                                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                                <h4 style="@ItemTitleStyle()">
+                                                    @item.Title
+                                                </h4>
+                                                @if (item.Completed)
+                                                {
+                                                    <div style="@CompletedBadgeStyle()">
+                                                        ✓
+                                                    </div>
+                                                }
+                                            </div>
                                             <ul style="margin: 0; padding: 0; list-style: none;">
                                                 @if (item.Details != null)
                                                 {
@@ -259,12 +251,16 @@
     </div>
 
     @* Property Panel *@
-    @if (_showProperties)
-    {
-        <PropertyPanel OnPropertyChange="HandlePropertyChange"
-                      OnAddElement="HandleAddElement"
-                      OnRemoveElement="HandleRemoveElement" />
-    }
+    <PropertyPanel OnPropertyChange="HandlePropertyChange"
+                  OnAddElement="HandleAddElement"
+                  OnRemoveElement="HandleRemoveElement"
+                  OnHidePanel="ToggleProperties"
+                  IsVibeMode="@_isVibeMode"
+                  OnToggleTheme="ToggleTheme"
+                  IsCollapsed="@(!_showProperties)"
+                  IsPreviewMode="@_isPreviewMode"
+                  OnTogglePreview="ToggleViewMode"
+                  OnExportPng="ExportAsPng" />
 </div>
 
 @code {
@@ -277,8 +273,9 @@
     private bool _isVibeMode = false;
     private bool _editorReady = false;
     private bool _isPreviewMode = false;  // Toggle between Edit Mode and Preview Mode
-    private bool _showEditor = true;      // Show/hide JSON editor panel
-    private bool _showProperties = true;  // Show/hide properties panel
+    private bool _showEditor = false;     // Show/hide JSON editor panel - hidden by default
+    private bool _showProperties = true;  // Show/hide properties panel - open by default
+    private DotNetObjectReference<Home>? _dotNetRef;
 
     // LocalStorage key for persisting roadmap data
     private const string LocalStorageKey = "roadscript_roadmap_data";
@@ -294,8 +291,8 @@
     { ""label"": ""Quarter 4"", ""sub"": ""Oct – Dec"" }
   ],
   ""milestones"": [
-    { ""position"": 25, ""label"": ""Milestone 1"" },
-    { ""position"": 75, ""label"": ""Milestone 2"" }
+    { ""position"": 25, ""label"": ""Milestone 1"", ""color"": ""#667eea"" },
+    { ""position"": 75, ""label"": ""Milestone 2"", ""color"": ""#667eea"" }
   ],
   ""lanes"": [
     {
@@ -482,6 +479,68 @@
         ParseJson(_currentJson);
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupKeyboardShortcuts", _dotNetRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleKeyboardShortcut(string action)
+    {
+        switch (action)
+        {
+            case "TogglePreview":
+                ToggleViewMode();
+                break;
+            case "ToggleTheme":
+                ToggleTheme();
+                break;
+            case "ClearSelection":
+                SelectionState.Clear();
+                await InvokeAsync(StateHasChanged);
+                break;
+        }
+    }
+
+    private async Task ExportAsPng()
+    {
+        try
+        {
+            var filename = $"roadmap-{DateTime.Now:yyyy-MM-dd}.png";
+            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.exportAsPng", ".roadmap-container", filename);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error exporting PNG: {ex.Message}");
+        }
+    }
+
+    private async Task DownloadJson()
+    {
+        try
+        {
+            if (_editor == null || !_editorReady) return;
+
+            var jsonContent = await _editor.GetValue();
+            var filename = $"roadmap-{DateTime.Now:yyyy-MM-dd}.json";
+            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.downloadJson", jsonContent, filename);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading JSON: {ex.Message}");
+        }
+    }
+
+    public void Dispose()
+    {
+        _dotNetRef?.Dispose();
+        JSRuntime.InvokeVoidAsync("RoadScriptInterop.removeKeyboardShortcuts");
+    }
+
     private async Task UpdatePreview()
     {
         if (_editor == null || !_editorReady) return;
@@ -546,7 +605,8 @@
     private void ToggleViewMode()
     {
         _isPreviewMode = !_isPreviewMode;
-        _showEditor = !_isPreviewMode;
+        // Don't auto-expand editor when switching to edit mode
+        // Users can manually expand if needed
         _showProperties = !_isPreviewMode;
         StateHasChanged();
     }
@@ -614,12 +674,12 @@
 
     private string PreviewPaneStyle()
     {
-        // Use flex: 1 to fill remaining space instead of explicit width
+        // Use flex: 1 to fill remaining space, no padding needed since no control bar
         if (_isVibeMode)
         {
-            return "flex: 1; background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%); overflow: auto; padding: 12px; display: flex; flex-direction: column;";
+            return "flex: 1; background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%); overflow: auto; display: flex; flex-direction: column;";
         }
-        return "flex: 1; background: #e8eaed; overflow: auto; padding: 12px; display: flex; flex-direction: column;";
+        return "flex: 1; background: #e8eaed; overflow: auto; display: flex; flex-direction: column;";
     }
 
     private string PreviewControlBarStyle() =>
@@ -629,8 +689,13 @@
 
     private string ViewModeToggleStyle() =>
         _isPreviewMode
-            ? "background: #0e639c; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(14, 99, 156, 0.4);"
-            : "background: #667eea; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);";
+            ? "background: #0e639c; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s; flex: 1;"
+            : "background: #667eea; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s; flex: 1;";
+
+    private string CollapsedViewModeToggleStyle() =>
+        _isPreviewMode
+            ? "background: #0e639c; color: #fff; border: none; padding: 8px; border-radius: 4px; font-size: 16px; cursor: pointer; transition: all 0.2s; writing-mode: horizontal-tb;"
+            : "background: #667eea; color: #fff; border: none; padding: 8px; border-radius: 4px; font-size: 16px; cursor: pointer; transition: all 0.2s; writing-mode: horizontal-tb;";
 
     private string PanelToggleStyle() =>
         _isVibeMode
@@ -639,20 +704,34 @@
 
     // === Style Helper Methods ===
 
+    private string RoadmapWrapperStyle()
+    {
+        // In edit mode, fill available space; in preview mode, center content
+        if (_isPreviewMode)
+        {
+            return "flex: 1; display: flex; justify-content: center; align-items: flex-start; overflow: auto;";
+        }
+        else
+        {
+            return "flex: 1; display: flex; align-items: flex-start; overflow: auto; padding: 20px;";
+        }
+    }
+
     private string RoadmapContainerStyle()
     {
-        // Optimize for different screen sizes and view modes
-        var maxWidth = _isPreviewMode ? "1700px" : "1200px";
+        // In edit mode, use full width; in preview mode, constrain width for presentation
+        var maxWidthStyle = _isPreviewMode ? "max-width: 1700px;" : "";
+        var widthStyle = _isPreviewMode ? "width: 100%;" : "width: 100%;";
 
         if (_isVibeMode)
         {
-            return $"width: 100%; max-width: {maxWidth}; aspect-ratio: 16/9; " +
+            return $"{widthStyle} {maxWidthStyle} aspect-ratio: 16/9; " +
                   "background: linear-gradient(135deg, #1e1e2f 0%, #2a2a3e 100%); " +
                   "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
                   "padding: 28px 36px; border: 1px solid #3a3a4e; position: relative; " +
                   "box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);";
         }
-        return $"width: 100%; max-width: {maxWidth}; aspect-ratio: 16/9; background: #fafbfc; " +
+        return $"{widthStyle} {maxWidthStyle} aspect-ratio: 16/9; background: #fafbfc; " +
               "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
               "padding: 28px 36px; border: 1px solid #d1d5db; position: relative;";
     }
@@ -716,30 +795,32 @@
         }
     }
 
+    private string MilestoneScaleContainerStyle() =>
+        _isVibeMode
+            ? "position: relative; height: 44px; border-bottom: 2px solid #3a3a4e; display: flex; align-items: center; background: linear-gradient(180deg, #252538 0%, #2a2a3e 100%);"
+            : "position: relative; height: 44px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
+
     private string MilestoneStyle(double position) =>
-        $"position: absolute; top: -2px; left: {position}%; transform: translateX(-50%); z-index: 20; display: flex; flex-direction: column; align-items: center;";
+        $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10;";
 
-    private string MilestoneIconContainerStyle() =>
+    private string MilestoneContainerStyle() =>
+        "display: flex; flex-direction: column; align-items: center; gap: 4px;";
+
+    private string MilestoneLabelStyle(string color) =>
         _isVibeMode
-            ? "width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; box-shadow: 0 0 12px rgba(102, 126, 234, 0.6), 0 2px 4px rgba(0,0,0,0.3); border: 2px solid #fafbfc;"
-            : "width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: #667eea; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 2px solid #fafbfc;";
+            ? $"font-size: 13px; font-weight: 700; color: #e0e7ff; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,0.5); background: rgba(30, 30, 46, 0.95); padding: 4px 10px; border-radius: 4px; border-left: 3px solid {color};"
+            : $"font-size: 13px; font-weight: 700; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.98); padding: 4px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 3px solid {color};";
 
-    private string MilestoneLabelStyle() =>
-        _isVibeMode
-            ? "margin-top: 6px; font-size: 11px; font-weight: 700; color: #e0e7ff; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,0.5); background: rgba(30, 30, 46, 0.9); padding: 3px 8px; border-radius: 4px; border: 1px solid #3a3a4e;"
-            : "margin-top: 6px; font-size: 11px; font-weight: 700; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.95); padding: 3px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #d1d5db;";
-
-    private string GetMilestoneIcon(string? iconType)
+    private string GetMilestoneIcon(string? iconType, string color)
     {
-        var color = _isVibeMode ? "#fafbfc" : "#fff";
         return iconType?.ToLower() switch
         {
-            "star" => $"<svg width='12' height='12' viewBox='0 0 24 24' fill='{color}'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>",
-            "flag" => $"<svg width='12' height='12' viewBox='0 0 24 24' fill='{color}'><path d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/></svg>",
-            "check" => $"<svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='{color}' stroke-width='3'><path d='M20 6L9 17l-5-5'/></svg>",
-            "circle" => $"<svg width='10' height='10' viewBox='0 0 24 24' fill='{color}'><circle cx='12' cy='12' r='10'/></svg>",
-            "diamond" => $"<div style='width: 10px; height: 10px; background: {color}; transform: rotate(45deg);'></div>",
-            _ => $"<div style='width: 10px; height: 10px; background: {color}; transform: rotate(45deg);'></div>" // Default diamond
+            "star" => $"<svg width='24' height='24' viewBox='0 0 24 24' fill='{color}' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>",
+            "flag" => $"<svg width='24' height='24' viewBox='0 0 24 24' fill='{color}' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><path d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/></svg>",
+            "check" => $"<svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='{color}' stroke-width='3' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><path d='M20 6L9 17l-5-5'/></svg>",
+            "circle" => $"<svg width='20' height='20' viewBox='0 0 24 24' fill='{color}' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><circle cx='12' cy='12' r='10'/></svg>",
+            "diamond" => $"<div style='width: 16px; height: 16px; background: {color}; transform: rotate(45deg); box-shadow: 0 2px 4px rgba(0,0,0,0.2);'></div>",
+            _ => $"<div style='width: 16px; height: 16px; background: {color}; transform: rotate(45deg); box-shadow: 0 2px 4px rgba(0,0,0,0.2);'></div>" // Default diamond
         };
     }
 
@@ -790,7 +871,7 @@
 
             return $"position: absolute; left: calc({leftPct}% + 6px); top: 6px; bottom: 6px; " +
                    $"width: calc({widthPct}% - 12px); {vibeGradient} border-radius: 8px; " +
-                   $"padding: 10px 14px; overflow: hidden; {borderStyle} {shadow}";
+                   $"padding: 14px 18px; overflow: hidden; {borderStyle} {shadow}";
         }
         else
         {
@@ -802,7 +883,7 @@
 
             return $"position: absolute; left: calc({leftPct}% + 6px); top: 6px; bottom: 6px; " +
                    $"width: calc({widthPct}% - 12px); background: #fff; border-radius: 6px; " +
-                   $"padding: 10px 14px; overflow: hidden; {borderStyle} {shadow}";
+                   $"padding: 14px 18px; overflow: hidden; {borderStyle} {shadow}";
         }
     }
 
@@ -813,9 +894,9 @@
     {
         if (_isVibeMode)
         {
-            return $"font-size: 13px; color: #d1d5db; line-height: 1.45; padding-left: 12px; position: relative;";
+            return $"font-size: 16px; color: #d1d5db; line-height: 1.5; padding-left: 14px; position: relative;";
         }
-        return $"font-size: 13px; color: #4b5563; line-height: 1.45; padding-left: 12px; position: relative;";
+        return $"font-size: 16px; color: #4b5563; line-height: 1.5; padding-left: 14px; position: relative;";
     }
 
     private string BulletStyle(string color)
@@ -840,6 +921,16 @@
             ? "margin: 2px 0 0; font-size: 15px; color: #a5b4fc; font-weight: 500;"
             : "margin: 2px 0 0; font-size: 15px; color: #6b7280; font-weight: 500;";
 
+    private string TitleContainerStyle()
+    {
+        var baseStyle = "margin-bottom: 20px; padding: 8px 12px; border-radius: 6px; transition: all 0.2s;";
+        if (_isPreviewMode)
+        {
+            return baseStyle;
+        }
+        return baseStyle + " cursor: pointer;";
+    }
+
     private string LaneTitleStyle() =>
         _isVibeMode
             ? "font-size: 15px; font-weight: 700; color: #d1d5db; line-height: 1.3;"
@@ -862,18 +953,23 @@
 
     private string ItemTitleStyle() =>
         _isVibeMode
-            ? "margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #f3f4f6; line-height: 1.2;"
-            : "margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #1f2937; line-height: 1.2;";
+            ? "margin: 0 0 10px 0; font-size: 20px; font-weight: 700; color: #f3f4f6; line-height: 1.25;"
+            : "margin: 0 0 10px 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.25;";
+
+    private string CompletedBadgeStyle() =>
+        _isVibeMode
+            ? "width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); flex-shrink: 0;"
+            : "width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); flex-shrink: 0;";
 
     private string SubBulletStyle() =>
         _isVibeMode
-            ? "font-size: 11px; color: #9ca3af; line-height: 1.4; padding-left: 22px; position: relative; margin-bottom: 1px;"
-            : "font-size: 11px; color: #6b7280; line-height: 1.4; padding-left: 22px; position: relative; margin-bottom: 1px;";
+            ? "font-size: 14px; color: #9ca3af; line-height: 1.45; padding-left: 24px; position: relative; margin-bottom: 2px;"
+            : "font-size: 14px; color: #6b7280; line-height: 1.45; padding-left: 24px; position: relative; margin-bottom: 2px;";
 
     private string SubBulletDashStyle() =>
         _isVibeMode
-            ? "position: absolute; left: 12px; color: #6b7280;"
-            : "position: absolute; left: 12px; color: #9ca3af;";
+            ? "position: absolute; left: 14px; color: #6b7280; font-size: 14px;"
+            : "position: absolute; left: 14px; color: #9ca3af; font-size: 14px;";
 
     // === Vibe Mode Color Helpers ===
 
@@ -937,13 +1033,27 @@
         );
     }
 
+    private void HandleTitleClick()
+    {
+        if (_data != null)
+        {
+            SelectionState.Select("title", "title", _data);
+        }
+    }
+
     private async Task HandlePropertyChange((string JsonPath, string PropertyName, object Value) change)
     {
         try
         {
+            // For title, the JsonPath is "title" and the PropertyName is "title" or "subtitle"
+            // So we need to use just the PropertyName, not JsonPath.PropertyName
+            var propertyPath = change.JsonPath == "title"
+                ? change.PropertyName
+                : $"{change.JsonPath}.{change.PropertyName}";
+
             var updatedJson = await EditorInterop.UpdateJsonValue(
                 _currentJson,
-                $"{change.JsonPath}.{change.PropertyName}",
+                propertyPath,
                 change.Value
             );
 
@@ -1024,6 +1134,19 @@
                     };
                     _data.Columns.Insert(columnIndex + 1, newColumn);
                     break;
+
+                case "milestone":
+                    // Add a new milestone after the current one
+                    var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
+                    var newMilestone = new Milestone
+                    {
+                        Label = "New Milestone",
+                        Position = 50,
+                        Icon = "diamond",
+                        Color = "#667eea"
+                    };
+                    _data.Milestones.Insert(milestoneIndex + 1, newMilestone);
+                    break;
             }
 
             // Serialize and update editor
@@ -1082,6 +1205,14 @@
                     if (_data.Columns.Count > 1 && columnIndex < _data.Columns.Count)
                     {
                         _data.Columns.RemoveAt(columnIndex);
+                    }
+                    break;
+
+                case "milestone":
+                    var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
+                    if (_data.Milestones.Count > 0 && milestoneIndex < _data.Milestones.Count)
+                    {
+                        _data.Milestones.RemoveAt(milestoneIndex);
                     }
                     break;
             }
