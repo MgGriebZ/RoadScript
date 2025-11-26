@@ -166,7 +166,7 @@
                                     {
                                         var item = lane.Items[ii];
                                         var itemIdx = ii;
-                                        <div @onclick="@(async (MouseEventArgs e) => { e.StopPropagation(); await HandleItemClick(laneIdx, itemIdx, item); })"
+                                        <div @onclick="@(async () => await HandleItemClick(laneIdx, itemIdx, item))"
                                              @onclick:stopPropagation="true"
                                              class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]")"
                                              style="@ItemStyle(item, lane.Color)">
