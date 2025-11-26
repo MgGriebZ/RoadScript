@@ -1,14 +1,10 @@
 ﻿# RoadScript
 
-**A simple, browser-based roadmap editor inspired by [Mermaid.live](https://mermaid.live)**
-
-![RoadScript Preview](docs/preview.png)
-
 ## Overview
 
-RoadScript is a lightweight, JSON-driven roadmap visualization tool built with Blazor WebAssembly. Edit JSON on the left, see your roadmap render instantly on the right. No server required – runs entirely in your browser.
+RoadScript is a lightweight, JSON-driven roadmap visualization tool built with Blazor WebAssembly. Edit JSON on the left and UI properties on the right, see your roadmap render instantly in the middle. No server required as it runs entirely in your browser.
 
-**Target Domain:** [RoadScript.NET](https://roadscript.net)
+Domain:[RoadScript.NET](https://roadscript.net)
 
 ## Features
 
@@ -16,19 +12,11 @@ RoadScript is a lightweight, JSON-driven roadmap visualization tool built with B
 - 🎨 **Dual Themes** – Toggle between "Lite" (clean/professional) and "Vibe" (dark/neon) modes
 - 🏊 **Swim Lanes** – Organize work by team, project, or category
 - 📅 **Flexible Columns** – Quarters, months, sprints, or custom time periods
-- 💎 **Milestones** – Mark key dates with diamond markers
+- 💎 **Milestones** – Mark key dates with shape markers
 - 📊 **History Bars** – Show project maturity/timeline at a glance
 - ✅ **Bullet Details** – Add context with bullets and sub-bullets
 
-## Quick Start
-
-### Prerequisites
-
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-
-## JSON Schema
-
-RoadScript uses a simple JSON structure:
+## JSON Schema References
 
 ```json
 {
@@ -64,8 +52,6 @@ RoadScript uses a simple JSON structure:
   ]
 }
 ```
-
-### Schema Reference
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -131,14 +117,6 @@ RoadScript/
 - **Editor:** [BlazorMonaco](https://github.com/nicholsonjon/BlazorMonaco) v3.4.0
 - **Monaco Editor:** v0.52.0 (via CDN)
 - **Styling:** Inline CSS (no external dependencies)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ## License
 
