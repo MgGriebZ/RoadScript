@@ -85,6 +85,19 @@
             </button>
         </div>
     }
+
+    @* Lane Management Section *@
+    <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
+        <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Lane Management</label>
+
+        <button @onclick="AddLane" class="btn-add" type="button" style="width: 100%; margin-bottom: 8px;">
+            + Add New Lane
+        </button>
+
+        <button @onclick="RemoveLane" class="btn-danger" type="button" style="width: 100%;">
+            Remove This Lane
+        </button>
+    </div>
 </div>
 
 @code {
@@ -96,6 +109,12 @@
 
     [Parameter]
     public EventCallback<(string PropertyName, object Value)> OnChange { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnAdd { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnRemove { get; set; }
 
     private void UpdateHistory(string propertyName, object value)
     {
@@ -132,5 +151,15 @@
     {
         Lane.History = null;
         OnChange.InvokeAsync(("history", null!));
+    }
+
+    private void AddLane()
+    {
+        OnAdd.InvokeAsync("lane");
+    }
+
+    private void RemoveLane()
+    {
+        OnRemove.InvokeAsync("lane");
     }
 }

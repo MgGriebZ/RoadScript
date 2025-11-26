@@ -18,19 +18,25 @@
             {
                 <ItemProperties Item="@item"
                                JsonPath="@SelectionState.SelectedPath"
-                               OnChange="HandlePropertyChange" />
+                               OnChange="HandlePropertyChange"
+                               OnAdd="HandleAddElement"
+                               OnRemove="HandleRemoveElement" />
             }
             else if (SelectionState.ElementType == "lane" && SelectionState.SelectedElement is Lane lane && SelectionState.SelectedPath != null)
             {
                 <LaneProperties Lane="@lane"
                                JsonPath="@SelectionState.SelectedPath"
-                               OnChange="HandlePropertyChange" />
+                               OnChange="HandlePropertyChange"
+                               OnAdd="HandleAddElement"
+                               OnRemove="HandleRemoveElement" />
             }
             else if (SelectionState.ElementType == "column" && SelectionState.SelectedElement is Column column && SelectionState.SelectedPath != null)
             {
                 <ColumnProperties Column="@column"
                                  JsonPath="@SelectionState.SelectedPath"
-                                 OnChange="HandlePropertyChange" />
+                                 OnChange="HandlePropertyChange"
+                                 OnAdd="HandleAddElement"
+                                 OnRemove="HandleRemoveElement" />
             }
             else if (SelectionState.ElementType == "milestone" && SelectionState.SelectedElement is Milestone milestone && SelectionState.SelectedPath != null)
             {
@@ -60,6 +66,12 @@
 @code {
     [Parameter]
     public EventCallback<(string JsonPath, string PropertyName, object Value)> OnPropertyChange { get; set; }
+
+    [Parameter]
+    public EventCallback<(string ElementType, string JsonPath)> OnAddElement { get; set; }
+
+    [Parameter]
+    public EventCallback<(string ElementType, string JsonPath)> OnRemoveElement { get; set; }
 
     protected override void OnInitialized()
     {
@@ -99,6 +111,22 @@
         if (OnPropertyChange.HasDelegate && SelectionState.SelectedPath != null)
         {
             await OnPropertyChange.InvokeAsync((SelectionState.SelectedPath, change.PropertyName, change.Value));
+        }
+    }
+
+    private async Task HandleAddElement(string elementType)
+    {
+        if (OnAddElement.HasDelegate && SelectionState.SelectedPath != null)
+        {
+            await OnAddElement.InvokeAsync((elementType, SelectionState.SelectedPath));
+        }
+    }
+
+    private async Task HandleRemoveElement(string elementType)
+    {
+        if (OnRemoveElement.HasDelegate && SelectionState.SelectedPath != null)
+        {
+            await OnRemoveElement.InvokeAsync((elementType, SelectionState.SelectedPath));
         }
     }
 }

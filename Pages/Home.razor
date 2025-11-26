@@ -261,7 +261,9 @@
     @* Property Panel *@
     @if (_showProperties)
     {
-        <PropertyPanel OnPropertyChange="HandlePropertyChange" />
+        <PropertyPanel OnPropertyChange="HandlePropertyChange"
+                      OnAddElement="HandleAddElement"
+                      OnRemoveElement="HandleRemoveElement" />
     }
 </div>
 
@@ -299,6 +301,11 @@
     {
       ""title"": ""Project Alpha"",
       ""color"": ""#45B69C"",
+      ""history"": {
+        ""startYear"": 2022,
+        ""endYear"": 2026,
+        ""pastPct"": 75
+      },
       ""items"": [
         {
           ""title"": ""Phase 1: Planning"",
@@ -332,6 +339,11 @@
     {
       ""title"": ""Project Beta"",
       ""color"": ""#4A90D9"",
+      ""history"": {
+        ""startYear"": 2020,
+        ""endYear"": 2025,
+        ""pastPct"": 85
+      },
       ""items"": [
         {
           ""title"": ""Infrastructure Setup"",
@@ -357,6 +369,11 @@
     {
       ""title"": ""Project Gamma"",
       ""color"": ""#D4A520"",
+      ""history"": {
+        ""startYear"": 2023,
+        ""endYear"": 2027,
+        ""pastPct"": 50
+      },
       ""items"": [
         {
           ""title"": ""Research & Discovery"",
@@ -390,6 +407,11 @@
     {
       ""title"": ""Project Delta"",
       ""color"": ""#9B7ED9"",
+      ""history"": {
+        ""startYear"": 2021,
+        ""endYear"": 2024,
+        ""pastPct"": 90
+      },
       ""items"": [
         {
           ""title"": ""Initial Planning"",
@@ -944,6 +966,158 @@
         {
             Console.WriteLine($"Error updating property: {ex.Message}");
         }
+    }
+
+    private async Task HandleAddElement((string ElementType, string JsonPath) args)
+    {
+        try
+        {
+            if (_data == null) return;
+
+            var (elementType, jsonPath) = args;
+
+            switch (elementType)
+            {
+                case "lane":
+                    // Add a new lane after the current one
+                    var laneIndex = ExtractIndexFromPath(jsonPath, "lanes");
+                    var newLane = new Lane
+                    {
+                        Title = "New Lane",
+                        Color = "#667eea",
+                        Items = new List<Item>
+                        {
+                            new Item
+                            {
+                                Title = "New Item",
+                                Start = 0,
+                                Span = 1,
+                                Details = new List<Detail>()
+                            }
+                        }
+                    };
+                    _data.Lanes.Insert(laneIndex + 1, newLane);
+                    break;
+
+                case "item":
+                    // Add a new item to the current lane
+                    var itemPath = jsonPath.Split(".items[")[0];
+                    var itemLaneIndex = ExtractIndexFromPath(itemPath, "lanes");
+                    var itemIndex = ExtractIndexFromPath(jsonPath, "items");
+                    var newItem = new Item
+                    {
+                        Title = "New Item",
+                        Start = 0,
+                        Span = 1,
+                        Details = new List<Detail>()
+                    };
+                    _data.Lanes[itemLaneIndex].Items.Insert(itemIndex + 1, newItem);
+                    break;
+
+                case "column":
+                    // Add a new column after the current one
+                    var columnIndex = ExtractIndexFromPath(jsonPath, "columns");
+                    var newColumn = new Column
+                    {
+                        Label = "New Column",
+                        Sub = ""
+                    };
+                    _data.Columns.Insert(columnIndex + 1, newColumn);
+                    break;
+            }
+
+            // Serialize and update editor
+            var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+            if (_editor != null)
+            {
+                await _editor.SetValue(updatedJson);
+                _currentJson = updatedJson;
+                ParseJson(updatedJson);
+
+                // Save to localStorage
+                if (_error == null)
+                {
+                    await SaveToLocalStorage(updatedJson);
+                }
+
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding element: {ex.Message}");
+        }
+    }
+
+    private async Task HandleRemoveElement((string ElementType, string JsonPath) args)
+    {
+        try
+        {
+            if (_data == null) return;
+
+            var (elementType, jsonPath) = args;
+
+            switch (elementType)
+            {
+                case "lane":
+                    var laneIndex = ExtractIndexFromPath(jsonPath, "lanes");
+                    if (_data.Lanes.Count > 1 && laneIndex < _data.Lanes.Count)
+                    {
+                        _data.Lanes.RemoveAt(laneIndex);
+                    }
+                    break;
+
+                case "item":
+                    var itemPath = jsonPath.Split(".items[")[0];
+                    var itemLaneIndex = ExtractIndexFromPath(itemPath, "lanes");
+                    var itemIndex = ExtractIndexFromPath(jsonPath, "items");
+                    if (_data.Lanes[itemLaneIndex].Items.Count > 0 && itemIndex < _data.Lanes[itemLaneIndex].Items.Count)
+                    {
+                        _data.Lanes[itemLaneIndex].Items.RemoveAt(itemIndex);
+                    }
+                    break;
+
+                case "column":
+                    var columnIndex = ExtractIndexFromPath(jsonPath, "columns");
+                    if (_data.Columns.Count > 1 && columnIndex < _data.Columns.Count)
+                    {
+                        _data.Columns.RemoveAt(columnIndex);
+                    }
+                    break;
+            }
+
+            // Serialize and update editor
+            var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+            if (_editor != null)
+            {
+                await _editor.SetValue(updatedJson);
+                _currentJson = updatedJson;
+                ParseJson(updatedJson);
+
+                // Clear selection
+                SelectionState.Clear();
+
+                // Save to localStorage
+                if (_error == null)
+                {
+                    await SaveToLocalStorage(updatedJson);
+                }
+
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error removing element: {ex.Message}");
+        }
+    }
+
+    private int ExtractIndexFromPath(string jsonPath, string arrayName)
+    {
+        // Extract index from path like "lanes[2]" or "lanes[2].items[1]"
+        var pattern = $@"{arrayName}\[(\d+)\]";
+        var match = System.Text.RegularExpressions.Regex.Match(jsonPath, pattern);
+        return match.Success ? int.Parse(match.Groups[1].Value) : 0;
     }
 
     // === LocalStorage Methods ===
