@@ -520,7 +520,7 @@
                 ToggleTheme();
                 break;
             case "ClearSelection":
-                SelectionState.ClearSelection();
+                SelectionState.Clear();
                 await InvokeAsync(StateHasChanged);
                 break;
         }
