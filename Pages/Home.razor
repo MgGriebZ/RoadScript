@@ -282,150 +282,118 @@
 
     // Default JSON template - Generic boilerplate for easy customization
     private const string DefaultJson = @"{
-  ""title"": ""Project Roadmap"",
-  ""subtitle"": ""Customize your timeline and milestones"",
+  ""title"": ""Product Roadmap"",
+  ""subtitle"": ""A visual timeline showcasing features and capabilities"",
   ""columns"": [
-    { ""label"": ""Quarter 1"", ""sub"": ""Jan – Mar"" },
-    { ""label"": ""Quarter 2"", ""sub"": ""Apr – Jun"" },
-    { ""label"": ""Quarter 3"", ""sub"": ""Jul – Sep"" },
-    { ""label"": ""Quarter 4"", ""sub"": ""Oct – Dec"" }
+    { ""label"": ""Week 1"", ""sub"": ""Mon – Fri"" },
+    { ""label"": ""February"", ""sub"": ""2026"" },
+    { ""label"": ""Q2 2026"", ""sub"": ""Apr – Jun"" },
+    { ""label"": ""Phase 4"", ""sub"": ""Launch"" }
   ],
   ""milestones"": [
-    { ""position"": 25, ""label"": ""Milestone 1"", ""color"": ""#667eea"" },
-    { ""position"": 75, ""label"": ""Milestone 2"", ""color"": ""#667eea"" }
+    { ""position"": 25, ""label"": ""Beta Release"", ""icon"": ""star"", ""color"": ""#667eea"" },
+    { ""position"": 75, ""label"": ""Public Launch"", ""icon"": ""flag"", ""color"": ""#27AE60"" }
   ],
   ""lanes"": [
     {
-      ""title"": ""Project Alpha"",
+      ""title"": ""Product Development"",
       ""color"": ""#45B69C"",
-      ""history"": {
-        ""startYear"": 2022,
-        ""endYear"": 2026,
-        ""pastPct"": 75
-      },
       ""items"": [
         {
-          ""title"": ""Phase 1: Planning"",
+          ""title"": ""Discovery"",
           ""start"": 0,
-          ""span"": 1,
+          ""span"": 0.75,
+          ""completed"": true,
           ""details"": [
-            { ""text"": ""Requirements gathering"" },
-            { ""text"": ""Stakeholder alignment"" }
+            { ""text"": ""User research"", ""subs"": [""Interviews"", ""Surveys"", ""Analytics review""] },
+            { ""text"": ""Problem validation"" }
           ]
         },
         {
-          ""title"": ""Phase 2: Development"",
+          ""title"": ""Design Sprint"",
           ""start"": 1,
-          ""span"": 2,
+          ""span"": 1,
+          ""completed"": true,
           ""details"": [
-            { ""text"": ""Core feature implementation"" },
+            { ""text"": ""Wireframes and prototypes"" },
+            { ""text"": ""Usability testing"" }
+          ]
+        },
+        {
+          ""title"": ""MVP Build"",
+          ""start"": 2.25,
+          ""span"": 1.75,
+          ""details"": [
+            { ""text"": ""Core features"", ""subs"": [""Authentication"", ""Dashboard"", ""Data models""] },
+            { ""text"": ""API development"" },
             { ""text"": ""Testing and QA"" }
           ]
-        },
-        {
-          ""title"": ""Phase 3: Launch"",
-          ""start"": 3,
-          ""span"": 1,
-          ""details"": [
-            { ""text"": ""Production deployment"" },
-            { ""text"": ""User training and support"" }
-          ]
         }
       ]
     },
     {
-      ""title"": ""Project Beta"",
+      ""title"": ""Platform & Infrastructure"",
       ""color"": ""#4A90D9"",
-      ""history"": {
-        ""startYear"": 2020,
-        ""endYear"": 2025,
-        ""pastPct"": 85
-      },
-      ""items"": [
-        {
-          ""title"": ""Infrastructure Setup"",
-          ""start"": 0,
-          ""span"": 2,
-          ""details"": [
-            { ""text"": ""Environment configuration"" },
-            { ""text"": ""Security & compliance review"" }
-          ]
-        },
-        {
-          ""title"": ""Ongoing Maintenance"",
-          ""start"": 2,
-          ""span"": 2,
-          ""spanning"": true,
-          ""details"": [
-            { ""text"": ""Monitor system performance"" },
-            { ""text"": ""Address technical debt"" }
-          ]
-        }
-      ]
-    },
-    {
-      ""title"": ""Project Gamma"",
-      ""color"": ""#D4A520"",
       ""history"": {
         ""startYear"": 2023,
         ""endYear"": 2027,
-        ""pastPct"": 50
+        ""pastPct"": 60
       },
       ""items"": [
         {
-          ""title"": ""Research & Discovery"",
+          ""title"": ""Platform Modernization"",
           ""start"": 0,
-          ""span"": 1,
+          ""span"": 4,
+          ""spanning"": true,
           ""details"": [
-            { ""text"": ""Market analysis"" },
-            { ""text"": ""Competitive research"" }
+            { ""text"": ""Infrastructure as code"" },
+            { ""text"": ""Performance optimization"", ""subs"": [""Caching strategy"", ""Database tuning""] },
+            { ""text"": ""Monitoring and observability"" }
           ]
         },
         {
-          ""title"": ""Prototype Development"",
-          ""start"": 1,
-          ""span"": 1,
+          ""title"": ""Security Audit"",
+          ""start"": 2.5,
+          ""span"": 0.75,
           ""details"": [
-            { ""text"": ""Build MVP"" },
-            { ""text"": ""User feedback sessions"" }
-          ]
-        },
-        {
-          ""title"": ""Full Implementation"",
-          ""start"": 2,
-          ""span"": 2,
-          ""details"": [
-            { ""text"": ""Scale to production"" },
-            { ""text"": ""Integration with existing systems"" }
+            { ""text"": ""Penetration testing"" },
+            { ""text"": ""Compliance review"" }
           ]
         }
       ]
     },
     {
-      ""title"": ""Project Delta"",
+      ""title"": ""Marketing & Launch"",
       ""color"": ""#9B7ED9"",
-      ""history"": {
-        ""startYear"": 2021,
-        ""endYear"": 2024,
-        ""pastPct"": 90
-      },
       ""items"": [
         {
-          ""title"": ""Initial Planning"",
-          ""start"": 1,
-          ""span"": 1,
+          ""title"": ""Brand Strategy"",
+          ""start"": 0.5,
+          ""span"": 1.5,
+          ""completed"": true,
           ""details"": [
-            { ""text"": ""Define objectives and KPIs"" },
-            { ""text"": ""Resource allocation"" }
+            { ""text"": ""Market positioning"", ""subs"": [""Competitive analysis"", ""Value proposition""] },
+            { ""text"": ""Visual identity"" }
           ]
         },
         {
-          ""title"": ""Execution Phase"",
-          ""start"": 2,
-          ""span"": 2,
+          ""title"": ""Content Creation"",
+          ""start"": 1.5,
+          ""span"": 1,
           ""details"": [
-            { ""text"": ""Implement core functionality"" },
-            { ""text"": ""Iterative improvements"" }
+            { ""text"": ""Blog posts and tutorials"" },
+            { ""text"": ""Video demos"" }
+          ]
+        },
+        {
+          ""title"": ""Campaign Launch"",
+          ""start"": 3,
+          ""span"": 1,
+          ""spanning"": true,
+          ""details"": [
+            { ""text"": ""Social media"", ""subs"": [""Twitter"", ""LinkedIn"", ""YouTube""] },
+            { ""text"": ""Email campaigns"" },
+            { ""text"": ""PR and partnerships"" }
           ]
         }
       ]
