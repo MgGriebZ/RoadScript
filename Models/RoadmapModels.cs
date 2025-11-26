@@ -23,7 +23,7 @@ public class RoadmapData
 public class Column
 {
     [JsonPropertyName("id")]
-    public string Id { get; set; } = "";
+    public string? Id { get; set; }  // Optional - auto-generated if not provided
 
     [JsonPropertyName("label")]
     public string Label { get; set; } = "";
@@ -44,7 +44,7 @@ public class Milestone
 public class Lane
 {
     [JsonPropertyName("id")]
-    public string Id { get; set; } = "";
+    public string? Id { get; set; }  // Optional - auto-generated if not provided
 
     [JsonPropertyName("title")]
     public string Title { get; set; } = "";
@@ -74,7 +74,7 @@ public class History
 public class Item
 {
     [JsonPropertyName("id")]
-    public string Id { get; set; } = "";
+    public string? Id { get; set; }  // Optional - auto-generated if not provided
 
     [JsonPropertyName("title")]
     public string Title { get; set; } = "";

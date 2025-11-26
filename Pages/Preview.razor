@@ -1,0 +1,489 @@
+@page "/preview"
+@using System.Text.Json
+@inject IJSRuntime JSRuntime
+@inject RoadmapDataService RoadmapData
+@implements IDisposable
+
+<div class="preview-fullscreen" style="@FullscreenContainerStyle()">
+    @* Control Bar *@
+    <div style="@ControlBarStyle()">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: @(_isVibeMode ? "#e0e7ff" : "#1a1a2e");">
+                RoadScript Preview
+            </h2>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button @onclick="ToggleTheme"
+                    style="@ThemeToggleButtonStyle()"
+                    title="Toggle between Lite and Vibe modes">
+                @(_isVibeMode ? "🌙 Vibe Mode" : "☀️ Lite Mode")
+            </button>
+            <button @onclick="Print"
+                    style="@PrintButtonStyle()"
+                    title="Print or save as PDF">
+                🖨️ Print / PDF
+            </button>
+        </div>
+    </div>
+
+    @* Roadmap Content *@
+    <div style="flex: 1; display: flex; justify-content: center; align-items: center; overflow: auto; padding: 24px;">
+        @if (_data != null)
+        {
+            <div class="roadmap" style="@RoadmapContainerStyle()">
+                @* Header *@
+                <div style="margin-bottom: 20px;">
+                    <h1 style="@TitleStyle()">
+                        @_data.Title
+                    </h1>
+                    <p style="@SubtitleStyle()">
+                        @_data.Subtitle
+                    </p>
+                </div>
+
+                @* Grid *@
+                <div style="display: flex; height: calc(100% - 70px);">
+                    @* Lane Labels *@
+                    <div style="width: 190px; flex-shrink: 0; padding-top: 52px; padding-right: 16px;">
+                        @for (int li = 0; li < _data.Lanes.Count; li++)
+                        {
+                            var lane = _data.Lanes[li];
+                            <div style="@LaneLabelWrapStyle()">
+                                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                                    <div style="@LaneBarStyle(lane.Color)"></div>
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <span style="@LaneTitleStyle()">
+                                            @((MarkupString)lane.Title.Replace("&", "&amp;<br/>"))
+                                        </span>
+                                        @if (lane.History != null)
+                                        {
+                                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                                <div style="@HistoryBarContainerStyle()">
+                                                    <div style="@HistoryPastStyle(lane.Color, lane.History.PastPct)"></div>
+                                                    <div style="@HistoryCurrentStyle(lane.Color, lane.History.PastPct)"></div>
+                                                </div>
+                                                <div style="display: flex; justify-content: space-between; width: 90px;">
+                                                    <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.StartYear</span>
+                                                    <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.EndYear</span>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @* Timeline *@
+                    <div style="flex: 1; display: flex; flex-direction: column;">
+                        @* Column Headers *@
+                        <div style="@ColumnHeaderContainerStyle()">
+                            @for (int i = 0; i < _data.Columns.Count; i++)
+                            {
+                                var col = _data.Columns[i];
+                                <div style="@ColumnHeaderStyle(i)">
+                                    <span style="@ColumnLabelStyle()">@col.Label</span>
+                                    <span style="@ColumnSubStyle()">@col.Sub</span>
+                                </div>
+                            }
+
+                            @* Milestones *@
+                            @for (int mi = 0; mi < _data.Milestones.Count; mi++)
+                            {
+                                var milestone = _data.Milestones[mi];
+                                <div style="@MilestoneStyle(milestone.Position)">
+                                    <div style="width: 14px; height: 14px; background: #1f2937; transform: rotate(45deg); border: 2px solid #fafbfc;"></div>
+                                    <span style="position: absolute; top: 18px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; color: #6b7280; white-space: nowrap;">
+                                        @milestone.Label
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        @* Lanes Container *@
+                        <div style="flex: 1; position: relative;">
+                            @* Grid Columns Background *@
+                            <div style="position: absolute; inset: 0; display: flex; pointer-events: none;">
+                                @for (int i = 0; i < _data.Columns.Count; i++)
+                                {
+                                    <div style="@GridColumnStyle(i)"></div>
+                                }
+                            </div>
+
+                            @* Lane Rows *@
+                            @for (int li = 0; li < _data.Lanes.Count; li++)
+                            {
+                                var lane = _data.Lanes[li];
+                                <div style="@LaneRowStyle(li)">
+                                    @for (int ii = 0; ii < lane.Items.Count; ii++)
+                                    {
+                                        var item = lane.Items[ii];
+                                        <div style="@ItemStyle(item, lane.Color)">
+                                            <h4 style="@ItemTitleStyle()">
+                                                @item.Title
+                                            </h4>
+                                            <ul style="margin: 0; padding: 0; list-style: none;">
+                                                @if (item.Details != null)
+                                                {
+                                                    @foreach (var detail in item.Details)
+                                                    {
+                                                        <li style="@DetailItemStyle(detail)">
+                                                            <div style="@DetailTextStyle(lane.Color)">
+                                                                <span style="@BulletStyle(lane.Color)">•</span>
+                                                                @detail.Text
+                                                            </div>
+                                                            @if (detail.Subs != null && detail.Subs.Count > 0)
+                                                            {
+                                                                <ul style="margin: 2px 0 4px 0; padding: 0; list-style: none;">
+                                                                    @foreach (var sub in detail.Subs)
+                                                                    {
+                                                                        <li style="@SubBulletStyle()">
+                                                                            <span style="@SubBulletDashStyle()">–</span>
+                                                                            @sub
+                                                                        </li>
+                                                                    }
+                                                                </ul>
+                                                            }
+                                                        </li>
+                                                    }
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (_error != null)
+        {
+            <div style="background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; padding: 16px; border-radius: 8px; max-width: 600px;">
+                <strong>Error:</strong> @_error
+            </div>
+        }
+        else
+        {
+            <div style="color: @(_isVibeMode ? "#d1d5db" : "#6b7280"); font-size: 16px;">
+                No roadmap data available. Please configure your roadmap in the editor first.
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private RoadScript.Models.RoadmapData? _data;
+    private string? _error;
+    private bool _isVibeMode = false;
+
+    protected override void OnInitialized()
+    {
+        // Load data from service
+        _isVibeMode = RoadmapData.IsVibeMode;
+        LoadData();
+
+        // Subscribe to data changes
+        RoadmapData.OnDataChanged += OnDataChanged;
+    }
+
+    private void OnDataChanged()
+    {
+        _isVibeMode = RoadmapData.IsVibeMode;
+        LoadData();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void LoadData()
+    {
+        if (string.IsNullOrWhiteSpace(RoadmapData.CurrentJson))
+        {
+            _error = "No data loaded";
+            _data = null;
+            return;
+        }
+
+        try
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true,
+                ReadCommentHandling = JsonCommentHandling.Skip
+            };
+            _data = JsonSerializer.Deserialize<RoadScript.Models.RoadmapData>(RoadmapData.CurrentJson, options);
+            _error = null;
+        }
+        catch (JsonException ex)
+        {
+            _data = null;
+            _error = $"Line {ex.LineNumber}, Position {ex.BytePositionInLine}: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            _data = null;
+            _error = ex.Message;
+        }
+    }
+
+    private void ToggleTheme()
+    {
+        _isVibeMode = !_isVibeMode;
+        RoadmapData.UpdateData(RoadmapData.CurrentJson, _isVibeMode);
+        StateHasChanged();
+    }
+
+    private async Task Print()
+    {
+        // Trigger browser print dialog
+        await JSRuntime.InvokeVoidAsync("print");
+    }
+
+    public void Dispose()
+    {
+        RoadmapData.OnDataChanged -= OnDataChanged;
+    }
+
+    // === Style Methods ===
+
+    private string FullscreenContainerStyle() =>
+        _isVibeMode
+            ? "width: 100vw; height: 100vh; background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%); display: flex; flex-direction: column; overflow: hidden;"
+            : "width: 100vw; height: 100vh; background: #e8eaed; display: flex; flex-direction: column; overflow: hidden;";
+
+    private string ControlBarStyle() =>
+        _isVibeMode
+            ? "background: rgba(30, 30, 46, 0.95); padding: 12px 24px; border-bottom: 1px solid #3a3a4e; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"
+            : "background: rgba(255, 255, 255, 0.98); padding: 12px 24px; border-bottom: 1px solid #d1d5db; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);";
+
+    private string ThemeToggleButtonStyle() =>
+        _isVibeMode
+            ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);"
+            : "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);";
+
+    private string PrintButtonStyle() =>
+        _isVibeMode
+            ? "background: #2a2a3e; color: #d1d5db; border: 1px solid #3a3a4e; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
+            : "background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;";
+
+    private string RoadmapContainerStyle() =>
+        _isVibeMode
+            ? "width: 100%; max-width: 1800px; aspect-ratio: 16/9; " +
+              "background: linear-gradient(135deg, #1e1e2f 0%, #2a2a3e 100%); " +
+              "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
+              "padding: 32px 40px; border: 1px solid #3a3a4e; position: relative; " +
+              "box-shadow: 0 12px 48px rgba(102, 126, 234, 0.2);"
+            : "width: 100%; max-width: 1800px; aspect-ratio: 16/9; background: #fafbfc; " +
+              "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
+              "padding: 32px 40px; border: 1px solid #d1d5db; position: relative; " +
+              "box-shadow: 0 4px 16px rgba(0,0,0,0.08);";
+
+    private string LaneLabelWrapStyle()
+    {
+        var laneCount = _data?.Lanes.Count ?? 1;
+        return $"height: {100.0 / laneCount}%; display: flex; align-items: center;";
+    }
+
+    private string LaneBarStyle(string color)
+    {
+        if (_isVibeMode)
+        {
+            var vibeColor = GetVibeColor(color);
+            return $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {vibeColor}; box-shadow: 0 0 10px {vibeColor}80;";
+        }
+        return $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {color};";
+    }
+
+    private string HistoryBarContainerStyle() =>
+        _isVibeMode
+            ? "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: #2a2a3e;"
+            : "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: #e5e7eb;";
+
+    private string HistoryPastStyle(string color, int pastPct)
+    {
+        if (_isVibeMode)
+        {
+            var vibeColor = GetVibeColor(color);
+            return $"width: {pastPct}%; background: repeating-linear-gradient(90deg, {vibeColor} 0px, {vibeColor} 3px, transparent 3px, transparent 6px); opacity: 0.35;";
+        }
+        return $"width: {pastPct}%; background: repeating-linear-gradient(90deg, {color} 0px, {color} 3px, transparent 3px, transparent 6px); opacity: 0.45;";
+    }
+
+    private string HistoryCurrentStyle(string color, int pastPct)
+    {
+        if (_isVibeMode)
+        {
+            var vibeColor = GetVibeColor(color);
+            return $"width: {100 - pastPct}%; background: {vibeColor}; box-shadow: 0 0 8px {vibeColor}60;";
+        }
+        return $"width: {100 - pastPct}%; background: {color};";
+    }
+
+    private string ColumnHeaderStyle(int index)
+    {
+        if (_isVibeMode)
+        {
+            var bg = index % 2 == 0
+                ? "background: linear-gradient(180deg, #2a2a3e 0%, #252538 100%);"
+                : "background: linear-gradient(180deg, #252538 0%, #2a2a3e 100%);";
+            var border = index > 0 ? "border-left: 1px solid #3a3a4e;" : "";
+            return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} {bg}";
+        }
+        else
+        {
+            var bg = index % 2 == 0 ? "#f8f9fa" : "#fff";
+            var border = index > 0 ? "border-left: 1px solid #e5e7eb;" : "";
+            return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} background: {bg};";
+        }
+    }
+
+    private string MilestoneStyle(double position) =>
+        $"position: absolute; bottom: -8px; left: {position}%; transform: translateX(-50%); z-index: 10;";
+
+    private string GridColumnStyle(int index)
+    {
+        if (_isVibeMode)
+        {
+            var bg = index % 2 == 0
+                ? "background: linear-gradient(180deg, #2a2a3e 0%, #252538 100%);"
+                : "background: linear-gradient(180deg, #252538 0%, #2a2a3e 100%);";
+            var border = index > 0 ? "border-left: 1px solid #3a3a4e;" : "";
+            return $"flex: 1; {border} {bg}";
+        }
+        else
+        {
+            var bg = index % 2 == 0 ? "#f8f9fa" : "#fff";
+            var border = index > 0 ? "border-left: 1px solid #e5e7eb;" : "";
+            return $"flex: 1; {border} background: {bg};";
+        }
+    }
+
+    private string LaneRowStyle(int index)
+    {
+        var laneCount = _data?.Lanes.Count ?? 1;
+        var borderColor = _isVibeMode ? "#3a3a4e" : "#e5e7eb";
+        var border = index < laneCount - 1 ? $"border-bottom: 1px solid {borderColor};" : "";
+        return $"height: {100.0 / laneCount}%; position: relative; {border}";
+    }
+
+    private string ItemStyle(RoadScript.Models.Item item, string color)
+    {
+        var cols = _data?.Columns.Count ?? 4;
+        var leftPct = (item.Start / cols) * 100;
+        var widthPct = (item.Span / cols) * 100;
+
+        if (_isVibeMode)
+        {
+            var vibeColor = GetVibeColor(color);
+            var vibeGradient = GetVibeGradient(color);
+
+            var borderStyle = item.Spanning
+                ? $"border: 2px dashed {vibeColor}; border-left: 4px solid {vibeColor};"
+                : $"border: 1px solid {vibeColor}; border-left: 4px solid {vibeColor};";
+
+            var shadow = item.Spanning
+                ? $"box-shadow: 0 0 20px {vibeColor}40, 0 4px 12px rgba(0,0,0,0.4);"
+                : $"box-shadow: 0 0 15px {vibeColor}30, 0 4px 12px rgba(0,0,0,0.4);";
+
+            return $"position: absolute; left: calc({leftPct}% + 6px); top: 6px; bottom: 6px; " +
+                   $"width: calc({widthPct}% - 12px); {vibeGradient} border-radius: 8px; " +
+                   $"padding: 10px 14px; overflow: hidden; {borderStyle} {shadow}";
+        }
+        else
+        {
+            var borderStyle = item.Spanning
+                ? $"border: 2px dashed {color}50; border-left: 5px solid {color};"
+                : $"border: 1px solid {color}30; border-left: 5px solid {color};";
+
+            var shadow = item.Spanning ? "" : "box-shadow: 0 1px 4px rgba(0,0,0,0.08);";
+
+            return $"position: absolute; left: calc({leftPct}% + 6px); top: 6px; bottom: 6px; " +
+                   $"width: calc({widthPct}% - 12px); background: #fff; border-radius: 6px; " +
+                   $"padding: 10px 14px; overflow: hidden; {borderStyle} {shadow}";
+        }
+    }
+
+    private string DetailItemStyle(RoadScript.Models.Detail detail) =>
+        detail.Subs != null && detail.Subs.Count > 0 ? "margin-bottom: 2px;" : "margin-bottom: 3px;";
+
+    private string DetailTextStyle(string color) =>
+        _isVibeMode
+            ? "font-size: 13px; color: #d1d5db; line-height: 1.45; padding-left: 12px; position: relative;"
+            : "font-size: 13px; color: #4b5563; line-height: 1.45; padding-left: 12px; position: relative;";
+
+    private string BulletStyle(string color)
+    {
+        if (_isVibeMode)
+        {
+            var vibeColor = GetVibeColor(color);
+            return $"position: absolute; left: 0; color: {vibeColor}; font-weight: 700; text-shadow: 0 0 8px {vibeColor}80;";
+        }
+        return $"position: absolute; left: 0; color: {color}; font-weight: 700;";
+    }
+
+    private string TitleStyle() =>
+        _isVibeMode
+            ? "margin: 0; font-size: 32px; font-weight: 700; color: #e0e7ff; letter-spacing: -0.5px; text-shadow: 0 0 20px rgba(224, 231, 255, 0.3);"
+            : "margin: 0; font-size: 32px; font-weight: 700; color: #1a1a2e; letter-spacing: -0.5px;";
+
+    private string SubtitleStyle() =>
+        _isVibeMode
+            ? "margin: 2px 0 0; font-size: 15px; color: #a5b4fc; font-weight: 500;"
+            : "margin: 2px 0 0; font-size: 15px; color: #6b7280; font-weight: 500;";
+
+    private string LaneTitleStyle() =>
+        _isVibeMode
+            ? "font-size: 15px; font-weight: 700; color: #d1d5db; line-height: 1.3;"
+            : "font-size: 15px; font-weight: 700; color: #374151; line-height: 1.3;";
+
+    private string ColumnHeaderContainerStyle() =>
+        _isVibeMode
+            ? "display: flex; height: 52px; border-bottom: 2px solid #3a3a4e; position: relative;"
+            : "display: flex; height: 52px; border-bottom: 2px solid #e5e7eb; position: relative;";
+
+    private string ColumnLabelStyle() =>
+        _isVibeMode
+            ? "font-size: 17px; font-weight: 700; color: #e0e7ff;"
+            : "font-size: 17px; font-weight: 700; color: #1f2937;";
+
+    private string ColumnSubStyle() =>
+        _isVibeMode
+            ? "font-size: 12px; color: #9ca3af; font-weight: 500;"
+            : "font-size: 12px; color: #9ca3af; font-weight: 500;";
+
+    private string ItemTitleStyle() =>
+        _isVibeMode
+            ? "margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #f3f4f6; line-height: 1.2;"
+            : "margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #1f2937; line-height: 1.2;";
+
+    private string SubBulletStyle() =>
+        _isVibeMode
+            ? "font-size: 11px; color: #9ca3af; line-height: 1.4; padding-left: 22px; position: relative; margin-bottom: 1px;"
+            : "font-size: 11px; color: #6b7280; line-height: 1.4; padding-left: 22px; position: relative; margin-bottom: 1px;";
+
+    private string SubBulletDashStyle() =>
+        _isVibeMode
+            ? "position: absolute; left: 12px; color: #6b7280;"
+            : "position: absolute; left: 12px; color: #9ca3af;";
+
+    private string GetVibeColor(string hexColor) =>
+        hexColor.ToLower() switch
+        {
+            "#45b69c" => "#00ffcc",
+            "#4a90d9" => "#4da6ff",
+            "#d4a520" => "#ffd700",
+            "#9b7ed9" => "#b794f6",
+            _ => "#00e5ff"
+        };
+
+    private string GetVibeGradient(string hexColor) =>
+        hexColor.ToLower() switch
+        {
+            "#45b69c" => "background: linear-gradient(135deg, rgba(0, 255, 204, 0.15) 0%, rgba(0, 229, 255, 0.1) 100%);",
+            "#4a90d9" => "background: linear-gradient(135deg, rgba(77, 166, 255, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%);",
+            "#d4a520" => "background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.1) 100%);",
+            "#9b7ed9" => "background: linear-gradient(135deg, rgba(183, 148, 246, 0.15) 0%, rgba(118, 75, 162, 0.1) 100%);",
+            _ => "background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%);"
+        };
+}

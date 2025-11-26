@@ -13,5 +13,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 // Register RoadScript services
 builder.Services.AddSingleton<SelectionState>();
 builder.Services.AddSingleton<EditorInteropService>();
+builder.Services.AddSingleton<RoadmapDataService>();
 
 await builder.Build().RunAsync();
