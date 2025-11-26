@@ -223,11 +223,14 @@ button:disabled {
 /* Property Panel */
 .property-panel {
     width: 320px;
+    min-width: 320px;
+    max-width: 400px;
     background: #1e1e2f;
     border-left: 1px solid #3a3a4e;
     display: flex;
     flex-direction: column;
     height: 100%;
+    flex-shrink: 0;
 }
 
 /* Property Editor Form Styles */
