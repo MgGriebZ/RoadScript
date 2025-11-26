@@ -3,11 +3,14 @@
 @using BlazorMonaco.Editor
 @using System.Text.Json
 @using RoadScript.Models
+@using RoadScript.Components
 @inject IJSRuntime JSRuntime
+@inject EditorInteropService EditorInterop
+@inject SelectionState SelectionState
 
 <div class="container-fluid vh-100 d-flex p-0">
     @* Editor Pane *@
-    <div class="editor-pane" style="width: 30%; border-right: 1px solid #ccc; display: flex; flex-direction: column;">
+    <div class="editor-pane" style="width: 25%; border-right: 1px solid #ccc; display: flex; flex-direction: column;">
         <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
             <span>RoadScript <span style="font-size: 0.75em; color: #888; font-weight: 400;">v1.0</span></span>
             <span style="font-size: 0.7em; color: #666;">JSON Editor</span>
@@ -81,9 +84,13 @@
                 <div style="display: flex; height: calc(100% - 70px);">
                     @* Lane Labels *@
                     <div style="width: 190px; flex-shrink: 0; padding-top: 52px; padding-right: 16px;">
-                        @foreach (var lane in _data.Lanes)
+                        @for (int li = 0; li < _data.Lanes.Count; li++)
                         {
-                            <div style="@LaneLabelWrapStyle()">
+                            var lane = _data.Lanes[li];
+                            var laneIndex = li;
+                            <div @onclick="@(() => HandleElementClick($"lanes[{laneIndex}]", "lane", lane))"
+                                 class="@GetElementClass($"lanes[{laneIndex}]")"
+                                 style="@LaneLabelWrapStyle()">
                                 <div style="display: flex; align-items: flex-start; gap: 12px;">
                                     <div style="@LaneBarStyle(lane.Color)"></div>
                                     <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -116,16 +123,23 @@
                             @for (int i = 0; i < _data.Columns.Count; i++)
                             {
                                 var col = _data.Columns[i];
-                                <div style="@ColumnHeaderStyle(i)">
+                                var colIndex = i;
+                                <div @onclick="@(() => HandleElementClick($"columns[{colIndex}]", "column", col))"
+                                     class="@GetElementClass($"columns[{colIndex}]")"
+                                     style="@ColumnHeaderStyle(i)">
                                     <span style="@ColumnLabelStyle()">@col.Label</span>
                                     <span style="@ColumnSubStyle()">@col.Sub</span>
                                 </div>
                             }
 
                             @* Milestones *@
-                            @foreach (var milestone in _data.Milestones)
+                            @for (int mi = 0; mi < _data.Milestones.Count; mi++)
                             {
-                                <div style="@MilestoneStyle(milestone.Position)">
+                                var milestone = _data.Milestones[mi];
+                                var msIndex = mi;
+                                <div @onclick="@(() => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
+                                     class="@GetElementClass($"milestones[{msIndex}]")"
+                                     style="@MilestoneStyle(milestone.Position)">
                                     <div style="width: 14px; height: 14px; background: #1f2937; transform: rotate(45deg); border: 2px solid #fafbfc;"></div>
                                     <span style="position: absolute; top: 18px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; color: #6b7280; white-space: nowrap;">
                                         @milestone.Label
@@ -148,10 +162,16 @@
                             @for (int li = 0; li < _data.Lanes.Count; li++)
                             {
                                 var lane = _data.Lanes[li];
+                                var laneIdx = li;
                                 <div style="@LaneRowStyle(li)">
-                                    @foreach (var item in lane.Items)
+                                    @for (int ii = 0; ii < lane.Items.Count; ii++)
                                     {
-                                        <div style="@ItemStyle(item, lane.Color)">
+                                        var item = lane.Items[ii];
+                                        var itemIdx = ii;
+                                        <div @onclick="@(async (MouseEventArgs e) => { e.StopPropagation(); await HandleItemClick(laneIdx, itemIdx, item); })"
+                                             @onclick:stopPropagation="true"
+                                             class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]")"
+                                             style="@ItemStyle(item, lane.Color)">
                                             <h4 style="@ItemTitleStyle()">
                                                 @item.Title
                                             </h4>
@@ -197,6 +217,9 @@
             </div>
         }
     </div>
+
+    @* Property Panel *@
+    <PropertyPanel OnPropertyChange="HandlePropertyChange" />
 </div>
 
 @code {
@@ -489,8 +512,8 @@
 
     private string PreviewPaneStyle() =>
         _isVibeMode
-            ? "width: 70%; background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%); overflow: auto; padding: 24px; display: flex; justify-content: center; align-items: flex-start;"
-            : "width: 70%; background: #e8eaed; overflow: auto; padding: 24px; display: flex; justify-content: center; align-items: flex-start;";
+            ? "width: 50%; background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%); overflow: auto; padding: 24px; display: flex; justify-content: center; align-items: flex-start;"
+            : "width: 50%; background: #e8eaed; overflow: auto; padding: 24px; display: flex; justify-content: center; align-items: flex-start;";
 
     // === Style Helper Methods ===
 
@@ -720,4 +743,65 @@
             "#9b7ed9" => "background: linear-gradient(135deg, rgba(183, 148, 246, 0.15) 0%, rgba(118, 75, 162, 0.1) 100%);",
             _ => "background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%);"
         };
+
+    // === Interactive Editing Methods ===
+
+    private string GetElementClass(string jsonPath)
+    {
+        var baseClass = "clickable-element";
+        if (SelectionState.SelectedPath == jsonPath)
+        {
+            baseClass += " selected-element";
+        }
+        return baseClass;
+    }
+
+    private async Task HandleItemClick(int laneIndex, int itemIndex, Item item)
+    {
+        var jsonPath = $"lanes[{laneIndex}].items[{itemIndex}]";
+        SelectionState.Select(jsonPath, "item", item);
+
+        await EditorInterop.NavigateToJsonPath(
+            "roadscript-json-editor",
+            _currentJson,
+            jsonPath,
+            highlight: true
+        );
+    }
+
+    private async Task HandleElementClick(string jsonPath, string elementType, object element)
+    {
+        SelectionState.Select(jsonPath, elementType, element);
+
+        await EditorInterop.NavigateToJsonPath(
+            "roadscript-json-editor",
+            _currentJson,
+            jsonPath,
+            highlight: true
+        );
+    }
+
+    private async Task HandlePropertyChange((string JsonPath, string PropertyName, object Value) change)
+    {
+        try
+        {
+            var updatedJson = await EditorInterop.UpdateJsonValue(
+                _currentJson,
+                $"{change.JsonPath}.{change.PropertyName}",
+                change.Value
+            );
+
+            if (updatedJson != null && _editor != null)
+            {
+                await _editor.SetValue(updatedJson);
+                _currentJson = updatedJson;
+                ParseJson(updatedJson);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating property: {ex.Message}");
+        }
+    }
 }

@@ -1,0 +1,128 @@
+@using RoadScript.Models
+
+<div class="property-editor">
+    <div class="form-group">
+        <label>Title</label>
+        <input type="text"
+               value="@Item.Title"
+               @onchange="@(e => OnChange.InvokeAsync(("title", e.Value)))"
+               class="form-control" />
+    </div>
+
+    <div class="form-row">
+        <div class="form-group" style="flex: 1;">
+            <label>Start Position</label>
+            <input type="number"
+                   value="@Item.Start"
+                   @onchange="@(e => OnChange.InvokeAsync(("start", double.Parse(e.Value?.ToString() ?? "0"))))"
+                   class="form-control"
+                   step="0.25"
+                   min="0" />
+        </div>
+
+        <div class="form-group" style="flex: 1; margin-left: 12px;">
+            <label>Span</label>
+            <input type="number"
+                   value="@Item.Span"
+                   @onchange="@(e => OnChange.InvokeAsync(("span", double.Parse(e.Value?.ToString() ?? "1"))))"
+                   class="form-control"
+                   step="0.25"
+                   min="0.25" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Position Slider</label>
+        <input type="range"
+               value="@Item.Start"
+               @onchange="@(e => OnChange.InvokeAsync(("start", double.Parse(e.Value?.ToString() ?? "0"))))"
+               min="0"
+               max="@GetMaxPosition()"
+               step="0.25"
+               class="form-range" />
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-top: 4px;">
+            <span>Start</span>
+            <span>End</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox"
+                   checked="@Item.Spanning"
+                   @onchange="@(e => OnChange.InvokeAsync(("spanning", (bool)(e.Value ?? false))))"
+                   style="margin-right: 8px; cursor: pointer;" />
+            Spanning (dashed border)
+        </label>
+    </div>
+
+    <div class="form-group">
+        <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span>Details</span>
+            <button @onclick="AddDetail" class="btn-add" type="button">+ Add</button>
+        </label>
+
+        @if (Item.Details != null && Item.Details.Count > 0)
+        {
+            @for (int i = 0; i < Item.Details.Count; i++)
+            {
+                var index = i;
+                var detail = Item.Details[i];
+                <div class="detail-item">
+                    <input type="text"
+                           value="@detail.Text"
+                           @onchange="@(e => UpdateDetailText(index, e.Value?.ToString() ?? ""))"
+                           class="form-control"
+                           placeholder="Detail text" />
+                    <button @onclick="() => RemoveDetail(index)" class="btn-remove" type="button">×</button>
+                </div>
+            }
+        }
+        else
+        {
+            <div style="color: #666; font-size: 12px; font-style: italic;">No details added yet</div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Item Item { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public string JsonPath { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<(string PropertyName, object Value)> OnChange { get; set; }
+
+    private double GetMaxPosition()
+    {
+        // Assume 4 columns for now, can be made dynamic later
+        return 4.0;
+    }
+
+    private void AddDetail()
+    {
+        Item.Details ??= new List<Detail>();
+        Item.Details.Add(new Detail { Text = "New detail", Subs = new List<string>() });
+        OnChange.InvokeAsync(("details", Item.Details));
+    }
+
+    private void RemoveDetail(int index)
+    {
+        if (Item.Details != null && index < Item.Details.Count)
+        {
+            Item.Details.RemoveAt(index);
+            OnChange.InvokeAsync(("details", Item.Details));
+        }
+    }
+
+    private void UpdateDetailText(int index, string text)
+    {
+        if (Item.Details != null && index < Item.Details.Count)
+        {
+            Item.Details[index].Text = text;
+            OnChange.InvokeAsync(("details", Item.Details));
+        }
+    }
+}

@@ -1,0 +1,339 @@
+/**
+ * RoadScript Interactive Editing - JavaScript Interop
+ * Handles Monaco editor navigation, JSON parsing, and element selection
+ */
+
+window.RoadScriptInterop = {
+
+    /**
+     * Finds the position of a JSON property by path
+     * @param {string} jsonText - The full JSON text
+     * @param {string} jsonPath - Path like "lanes[0].items[1].title"
+     * @returns {object} - { line, column, startOffset, endOffset }
+     */
+    findJsonPosition: function(jsonText, jsonPath) {
+        try {
+            // Parse the JSON path into segments
+            const pathSegments = this.parseJsonPath(jsonPath);
+
+            // Find the position in the JSON text
+            const position = this.walkJsonText(jsonText, pathSegments);
+
+            if (!position) {
+                console.warn(`Could not find path: ${jsonPath}`);
+                return null;
+            }
+
+            // Convert offset to line/column
+            const lineCol = this.offsetToLineColumn(jsonText, position.startOffset);
+
+            return {
+                line: lineCol.line,
+                column: lineCol.column,
+                startOffset: position.startOffset,
+                endOffset: position.endOffset
+            };
+        } catch (error) {
+            console.error('Error finding JSON position:', error);
+            return null;
+        }
+    },
+
+    /**
+     * Parses a JSON path into segments
+     * "lanes[0].items[1].title" -> [{ type: 'property', value: 'lanes' }, { type: 'index', value: 0 }, ...]
+     */
+    parseJsonPath: function(path) {
+        const segments = [];
+        const regex = /([^\[\].]+)|\[(\d+)\]/g;
+        let match;
+
+        while ((match = regex.exec(path)) !== null) {
+            if (match[1]) {
+                segments.push({ type: 'property', value: match[1] });
+            } else if (match[2] !== undefined) {
+                segments.push({ type: 'index', value: parseInt(match[2]) });
+            }
+        }
+
+        return segments;
+    },
+
+    /**
+     * Walks through JSON text to find the position of a path
+     */
+    walkJsonText: function(jsonText, pathSegments) {
+        if (pathSegments.length === 0) {
+            return { startOffset: 0, endOffset: jsonText.length };
+        }
+
+        // Build a regex to find the property based on path segments
+        let currentText = jsonText;
+        let baseOffset = 0;
+
+        for (let i = 0; i < pathSegments.length; i++) {
+            const segment = pathSegments[i];
+
+            if (segment.type === 'property') {
+                // Find the property key
+                const propRegex = new RegExp(`"${segment.value}"\\s*:`);
+                const match = propRegex.exec(currentText);
+
+                if (!match) {
+                    console.warn(`Property ${segment.value} not found`);
+                    return null;
+                }
+
+                baseOffset += match.index;
+
+                // If this is the last segment, we want to position at the property name
+                if (i === pathSegments.length - 1) {
+                    const valueStart = match.index + match[0].length;
+                    const value = this.extractJsonValue(currentText.substring(valueStart));
+
+                    return {
+                        startOffset: baseOffset + match.index + 1, // +1 to skip opening quote
+                        endOffset: baseOffset + valueStart + value.length
+                    };
+                }
+
+                // Move past the property key to its value
+                const afterKeyIndex = match.index + match[0].length;
+                currentText = currentText.substring(afterKeyIndex);
+                baseOffset += match[0].length;
+
+            } else if (segment.type === 'index') {
+                // Find the array and navigate to the specific index
+                const arrayStart = currentText.indexOf('[');
+                if (arrayStart === -1) {
+                    console.warn('Array not found');
+                    return null;
+                }
+
+                baseOffset += arrayStart + 1;
+                currentText = currentText.substring(arrayStart + 1);
+
+                // Skip to the correct array index
+                let currentIndex = 0;
+                let depth = 0;
+                let pos = 0;
+
+                while (currentIndex < segment.value && pos < currentText.length) {
+                    const char = currentText[pos];
+
+                    if (char === '{' || char === '[') {
+                        depth++;
+                    } else if (char === '}' || char === ']') {
+                        depth--;
+                    } else if (char === ',' && depth === 0) {
+                        currentIndex++;
+                    }
+
+                    pos++;
+                }
+
+                if (currentIndex < segment.value) {
+                    console.warn(`Array index ${segment.value} not found`);
+                    return null;
+                }
+
+                baseOffset += pos;
+                currentText = currentText.substring(pos);
+            }
+        }
+
+        return { startOffset: baseOffset, endOffset: baseOffset + 100 };
+    },
+
+    /**
+     * Extracts a JSON value from text starting at a position
+     */
+    extractJsonValue: function(text) {
+        text = text.trim();
+
+        if (text.startsWith('"')) {
+            // String value
+            let i = 1;
+            while (i < text.length) {
+                if (text[i] === '"' && text[i - 1] !== '\\') {
+                    return text.substring(0, i + 1);
+                }
+                i++;
+            }
+        } else if (text.startsWith('{')) {
+            // Object
+            let depth = 0;
+            for (let i = 0; i < text.length; i++) {
+                if (text[i] === '{') depth++;
+                if (text[i] === '}') {
+                    depth--;
+                    if (depth === 0) return text.substring(0, i + 1);
+                }
+            }
+        } else if (text.startsWith('[')) {
+            // Array
+            let depth = 0;
+            for (let i = 0; i < text.length; i++) {
+                if (text[i] === '[') depth++;
+                if (text[i] === ']') {
+                    depth--;
+                    if (depth === 0) return text.substring(0, i + 1);
+                }
+            }
+        } else {
+            // Number, boolean, or null
+            const match = text.match(/^(-?\d+\.?\d*|true|false|null)/);
+            if (match) {
+                return match[0];
+            }
+        }
+
+        return '';
+    },
+
+    /**
+     * Converts a character offset to line/column position
+     */
+    offsetToLineColumn: function(text, offset) {
+        let line = 1;
+        let column = 1;
+
+        for (let i = 0; i < offset && i < text.length; i++) {
+            if (text[i] === '\n') {
+                line++;
+                column = 1;
+            } else {
+                column++;
+            }
+        }
+
+        return { line, column };
+    },
+
+    /**
+     * Navigates Monaco editor to a specific position
+     */
+    navigateToPosition: function(editorId, line, column, highlight = true) {
+        // Find the Monaco editor instance
+        const editors = monaco.editor.getEditors();
+        const editor = editors.find(e => {
+            const domNode = e.getDomNode();
+            return domNode && (domNode.id === editorId || domNode.closest(`#${editorId}`));
+        });
+
+        if (!editor) {
+            console.error('Editor not found:', editorId);
+            return;
+        }
+
+        // Set cursor position
+        editor.setPosition({ lineNumber: line, column: column });
+
+        // Reveal the position in center of view
+        editor.revealPositionInCenter({ lineNumber: line, column: column });
+
+        // Optionally highlight the range
+        if (highlight) {
+            const model = editor.getModel();
+            if (model) {
+                const wordAtPosition = model.getWordAtPosition({ lineNumber: line, column: column });
+
+                if (wordAtPosition) {
+                    const range = {
+                        startLineNumber: line,
+                        startColumn: wordAtPosition.startColumn,
+                        endLineNumber: line,
+                        endColumn: wordAtPosition.endColumn
+                    };
+
+                    editor.setSelection(range);
+
+                    // Add temporary decoration
+                    const decorations = editor.deltaDecorations([], [
+                        {
+                            range: range,
+                            options: {
+                                className: 'roadscript-highlight-line',
+                                isWholeLine: false,
+                                inlineClassName: 'roadscript-highlight-inline'
+                            }
+                        }
+                    ]);
+
+                    // Remove decoration after 2 seconds
+                    setTimeout(() => {
+                        editor.deltaDecorations(decorations, []);
+                    }, 2000);
+                }
+            }
+        }
+
+        // Focus the editor
+        editor.focus();
+    },
+
+    /**
+     * Updates JSON value at a specific path
+     */
+    updateJsonValue: function(jsonText, jsonPath, newValue) {
+        try {
+            const obj = JSON.parse(jsonText);
+
+            // Navigate to the property
+            const pathSegments = this.parseJsonPath(jsonPath);
+            let current = obj;
+
+            for (let i = 0; i < pathSegments.length - 1; i++) {
+                const segment = pathSegments[i];
+                if (segment.type === 'property') {
+                    current = current[segment.value];
+                } else if (segment.type === 'index') {
+                    current = current[segment.value];
+                }
+            }
+
+            // Set the value
+            const lastSegment = pathSegments[pathSegments.length - 1];
+            if (lastSegment.type === 'property') {
+                current[lastSegment.value] = newValue;
+            } else if (lastSegment.type === 'index') {
+                current[lastSegment.value] = newValue;
+            }
+
+            // Return formatted JSON
+            return JSON.stringify(obj, null, 2);
+        } catch (error) {
+            console.error('Error updating JSON value:', error);
+            return null;
+        }
+    },
+
+    /**
+     * Adds highlight CSS to editor
+     */
+    addEditorStyles: function() {
+        if (!document.getElementById('roadscript-editor-styles')) {
+            const style = document.createElement('style');
+            style.id = 'roadscript-editor-styles';
+            style.textContent = `
+                .roadscript-highlight-line {
+                    background-color: rgba(102, 126, 234, 0.1);
+                }
+                .roadscript-highlight-inline {
+                    background-color: rgba(102, 126, 234, 0.3);
+                    border-radius: 3px;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+};
+
+// Initialize styles when script loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.RoadScriptInterop.addEditorStyles();
+    });
+} else {
+    window.RoadScriptInterop.addEditorStyles();
+}

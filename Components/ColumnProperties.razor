@@ -1,0 +1,44 @@
+@using RoadScript.Models
+
+<div class="property-editor">
+    <div class="form-group">
+        <label>Column Label</label>
+        <input type="text"
+               value="@Column.Label"
+               @onchange="@(e => OnChange.InvokeAsync(("label", e.Value)))"
+               class="form-control"
+               placeholder="Q1 2026" />
+    </div>
+
+    <div class="form-group">
+        <label>Sub-Label</label>
+        <input type="text"
+               value="@Column.Sub"
+               @onchange="@(e => OnChange.InvokeAsync(("sub", e.Value)))"
+               class="form-control"
+               placeholder="Jan - Mar" />
+    </div>
+
+    <div class="form-group">
+        <label>Column ID</label>
+        <input type="text"
+               value="@Column.Id"
+               @onchange="@(e => OnChange.InvokeAsync(("id", e.Value)))"
+               class="form-control"
+               placeholder="q1" />
+        <div style="font-size: 11px; color: #888; margin-top: 4px;">
+            Unique identifier for this column
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Column Column { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public string JsonPath { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<(string PropertyName, object Value)> OnChange { get; set; }
+}
