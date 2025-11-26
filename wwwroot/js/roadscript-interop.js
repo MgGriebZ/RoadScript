@@ -381,6 +381,38 @@ window.RoadScriptInterop = {
     },
 
     /**
+     * Downloads JSON content as a file
+     * @param {string} jsonContent - The JSON content to download
+     * @param {string} filename - Name of the file to download
+     * @param {boolean} showConfirmation - Whether to show confirmation dialog
+     */
+    downloadJson: function(jsonContent, filename, showConfirmation = true) {
+        try {
+            // Show confirmation dialog if requested
+            if (showConfirmation) {
+                const confirmed = confirm('Download roadmap as JSON file?');
+                if (!confirmed) {
+                    return false;
+                }
+            }
+
+            // Create blob and download
+            const blob = new Blob([jsonContent], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = filename || 'roadmap.json';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            return true;
+        } catch (error) {
+            console.error('Error downloading JSON:', error);
+            return false;
+        }
+    },
+
+    /**
      * Exports the roadmap as PNG
      * @param {string} elementSelector - CSS selector for the element to capture
      * @param {string} filename - Name of the file to download

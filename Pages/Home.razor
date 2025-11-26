@@ -35,6 +35,11 @@
                     style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                 Reset
             </button>
+            <button @onclick="DownloadJson"
+                    disabled="@(!_editorReady)"
+                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                💾
+            </button>
 
             @if (!_editorReady)
             {
@@ -80,7 +85,7 @@
     <div class="preview-pane" style="@PreviewPaneStyle()">
         @if (_data != null)
         {
-            <div style="flex: 1; display: flex; justify-content: center; align-items: flex-start; overflow: auto;">
+            <div style="@RoadmapWrapperStyle()">
                 <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
                 @* Header *@
                 <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
@@ -514,6 +519,22 @@
         }
     }
 
+    private async Task DownloadJson()
+    {
+        try
+        {
+            if (_editor == null || !_editorReady) return;
+
+            var jsonContent = await _editor.GetValue();
+            var filename = $"roadmap-{DateTime.Now:yyyy-MM-dd}.json";
+            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.downloadJson", jsonContent, filename);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading JSON: {ex.Message}");
+        }
+    }
+
     public void Dispose()
     {
         _dotNetRef?.Dispose();
@@ -683,20 +704,34 @@
 
     // === Style Helper Methods ===
 
+    private string RoadmapWrapperStyle()
+    {
+        // In edit mode, fill available space; in preview mode, center content
+        if (_isPreviewMode)
+        {
+            return "flex: 1; display: flex; justify-content: center; align-items: flex-start; overflow: auto;";
+        }
+        else
+        {
+            return "flex: 1; display: flex; align-items: flex-start; overflow: auto; padding: 20px;";
+        }
+    }
+
     private string RoadmapContainerStyle()
     {
-        // Optimize for different screen sizes and view modes
-        var maxWidth = _isPreviewMode ? "1700px" : "1200px";
+        // In edit mode, use full width; in preview mode, constrain width for presentation
+        var maxWidthStyle = _isPreviewMode ? "max-width: 1700px;" : "";
+        var widthStyle = _isPreviewMode ? "width: 100%;" : "width: 100%;";
 
         if (_isVibeMode)
         {
-            return $"width: 100%; max-width: {maxWidth}; aspect-ratio: 16/9; " +
+            return $"{widthStyle} {maxWidthStyle} aspect-ratio: 16/9; " +
                   "background: linear-gradient(135deg, #1e1e2f 0%, #2a2a3e 100%); " +
                   "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
                   "padding: 28px 36px; border: 1px solid #3a3a4e; position: relative; " +
                   "box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);";
         }
-        return $"width: 100%; max-width: {maxWidth}; aspect-ratio: 16/9; background: #fafbfc; " +
+        return $"{widthStyle} {maxWidthStyle} aspect-ratio: 16/9; background: #fafbfc; " +
               "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
               "padding: 28px 36px; border: 1px solid #d1d5db; position: relative;";
     }
