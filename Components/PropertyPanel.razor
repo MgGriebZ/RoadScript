@@ -49,7 +49,16 @@
             {
                 <MilestoneProperties Milestone="@milestone"
                                     JsonPath="@SelectionState.SelectedPath"
-                                    OnChange="HandlePropertyChange" />
+                                    OnChange="HandlePropertyChange"
+                                    OnAdd="HandleAddElement"
+                                    OnRemove="HandleRemoveElement" />
+            }
+            else if (SelectionState.ElementType == "title" && SelectionState.SelectedElement is RoadmapData roadmapData && SelectionState.SelectedPath != null)
+            {
+                <TitleProperties Title="@roadmapData.Title"
+                                Subtitle="@roadmapData.Subtitle"
+                                JsonPath="@SelectionState.SelectedPath"
+                                OnChange="HandlePropertyChange" />
             }
         </div>
     }
@@ -116,6 +125,7 @@
             "lane" => "Lane",
             "column" => "Column",
             "milestone" => "Milestone",
+            "title" => "Title",
             "detail" => "Detail",
             _ => "Element"
         };

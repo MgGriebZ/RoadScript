@@ -118,7 +118,9 @@
             <div style="flex: 1; display: flex; justify-content: center; align-items: flex-start; overflow: auto;">
                 <div class="roadmap" style="@RoadmapContainerStyle()">
                 @* Header *@
-                <div style="margin-bottom: 20px;">
+                <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
+                     class="@GetElementClass("title")"
+                     style="@TitleContainerStyle()">
                     <h1 style="@TitleStyle()">
                         @_data.Title
                     </h1>
@@ -178,8 +180,10 @@
                                     <span style="@ColumnSubStyle()">@col.Sub</span>
                                 </div>
                             }
+                        </div>
 
-                            @* Milestones *@
+                        @* Milestone Scale Row *@
+                        <div style="@MilestoneScaleContainerStyle()">
                             @for (int mi = 0; mi < _data.Milestones.Count; mi++)
                             {
                                 var milestone = _data.Milestones[mi];
@@ -727,8 +731,13 @@
         }
     }
 
+    private string MilestoneScaleContainerStyle() =>
+        _isVibeMode
+            ? "position: relative; height: 44px; border-bottom: 2px solid #3a3a4e; display: flex; align-items: center; background: linear-gradient(180deg, #252538 0%, #2a2a3e 100%);"
+            : "position: relative; height: 44px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
+
     private string MilestoneStyle(double position) =>
-        $"position: absolute; top: -2px; left: {position}%; transform: translateX(-50%); z-index: 20; display: flex; flex-direction: column; align-items: center;";
+        $"position: absolute; left: {position}%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 10;";
 
     private string MilestoneIconContainerStyle() =>
         _isVibeMode
@@ -851,6 +860,16 @@
             ? "margin: 2px 0 0; font-size: 15px; color: #a5b4fc; font-weight: 500;"
             : "margin: 2px 0 0; font-size: 15px; color: #6b7280; font-weight: 500;";
 
+    private string TitleContainerStyle()
+    {
+        var baseStyle = "margin-bottom: 20px; padding: 8px 12px; border-radius: 6px; transition: all 0.2s;";
+        if (_isPreviewMode)
+        {
+            return baseStyle;
+        }
+        return baseStyle + " cursor: pointer;";
+    }
+
     private string LaneTitleStyle() =>
         _isVibeMode
             ? "font-size: 15px; font-weight: 700; color: #d1d5db; line-height: 1.3;"
@@ -948,13 +967,27 @@
         );
     }
 
+    private void HandleTitleClick()
+    {
+        if (_data != null)
+        {
+            SelectionState.Select("title", "title", _data);
+        }
+    }
+
     private async Task HandlePropertyChange((string JsonPath, string PropertyName, object Value) change)
     {
         try
         {
+            // For title, the JsonPath is "title" and the PropertyName is "title" or "subtitle"
+            // So we need to use just the PropertyName, not JsonPath.PropertyName
+            var propertyPath = change.JsonPath == "title"
+                ? change.PropertyName
+                : $"{change.JsonPath}.{change.PropertyName}";
+
             var updatedJson = await EditorInterop.UpdateJsonValue(
                 _currentJson,
-                $"{change.JsonPath}.{change.PropertyName}",
+                propertyPath,
                 change.Value
             );
 
@@ -1035,6 +1068,18 @@
                     };
                     _data.Columns.Insert(columnIndex + 1, newColumn);
                     break;
+
+                case "milestone":
+                    // Add a new milestone after the current one
+                    var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
+                    var newMilestone = new Milestone
+                    {
+                        Label = "New Milestone",
+                        Position = 50,
+                        Icon = "diamond"
+                    };
+                    _data.Milestones.Insert(milestoneIndex + 1, newMilestone);
+                    break;
             }
 
             // Serialize and update editor
@@ -1093,6 +1138,14 @@
                     if (_data.Columns.Count > 1 && columnIndex < _data.Columns.Count)
                     {
                         _data.Columns.RemoveAt(columnIndex);
+                    }
+                    break;
+
+                case "milestone":
+                    var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
+                    if (_data.Milestones.Count > 0 && milestoneIndex < _data.Milestones.Count)
+                    {
+                        _data.Milestones.RemoveAt(milestoneIndex);
                     }
                     break;
             }

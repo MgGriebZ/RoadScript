@@ -56,6 +56,19 @@
     <div style="margin-top: 16px; padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 6px; font-size: 12px; color: #9ca3af;">
         <strong>Tip:</strong> Position is a percentage across the entire timeline (0% = start, 100% = end).
     </div>
+
+    @* Milestone Management Section *@
+    <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
+        <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Milestone Management</label>
+
+        <button @onclick="AddMilestone" class="btn-add" type="button" style="width: 100%; margin-bottom: 8px;">
+            + Add New Milestone
+        </button>
+
+        <button @onclick="RemoveMilestone" class="btn-danger" type="button" style="width: 100%;">
+            Remove This Milestone
+        </button>
+    </div>
 </div>
 
 @code {
@@ -67,6 +80,12 @@
 
     [Parameter]
     public EventCallback<(string PropertyName, object Value)> OnChange { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnAdd { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnRemove { get; set; }
 
     private readonly List<(string Name, string Value)> _availableIcons = new()
     {
@@ -101,5 +120,15 @@
             "diamond" => $"<div style='width: 16px; height: 16px; background: {color}; transform: rotate(45deg);'></div>",
             _ => $"<div style='width: 16px; height: 16px; background: {color}; transform: rotate(45deg);'></div>"
         };
+    }
+
+    private void AddMilestone()
+    {
+        OnAdd.InvokeAsync("milestone");
+    }
+
+    private void RemoveMilestone()
+    {
+        OnRemove.InvokeAsync("milestone");
     }
 }
