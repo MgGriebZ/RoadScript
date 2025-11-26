@@ -12,8 +12,15 @@
     {
         <div class="editor-pane" style="width: 20%; min-width: 300px; max-width: 400px; flex-shrink: 0; border-right: 1px solid #ccc; display: flex; flex-direction: column;">
             <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-                <span>RoadScript <span style="font-size: 0.75em; color: #888; font-weight: 400;">v1.0</span></span>
-                <span style="font-size: 0.7em; color: #666;">JSON Editor</span>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">RoadScript</span>
+                    <span style="font-size: 11px; color: #666; font-weight: 400;">JSON Editor</span>
+                </div>
+                <button @onclick="ToggleEditor"
+                        title="Hide JSON Editor"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                    ◀ Hide
+                </button>
             </div>
         <div style="background: #252526; padding: 8px 12px; border-bottom: 1px solid #333; display: flex; gap: 8px; align-items: center;">
             <button @onclick="UpdatePreview"
@@ -77,18 +84,21 @@
                     @(_isPreviewMode ? "📝 Edit Mode" : "👁️ Preview Mode")
                 </button>
 
-                @if (!_isPreviewMode)
+                @if (!_isPreviewMode && !_showEditor)
                 {
                     <button @onclick="ToggleEditor"
-                            title="@(_showEditor ? "Hide JSON Editor" : "Show JSON Editor")"
+                            title="Show JSON Editor"
                             style="@PanelToggleStyle()">
-                        @(_showEditor ? "◀" : "▶") Editor
+                        ▶ JSON Editor
                     </button>
+                }
 
+                @if (!_isPreviewMode && !_showProperties)
+                {
                     <button @onclick="ToggleProperties"
-                            title="@(_showProperties ? "Hide Properties" : "Show Properties")"
+                            title="Show Properties Panel"
                             style="@PanelToggleStyle()">
-                        Properties @(_showProperties ? "▶" : "◀")
+                        Properties ◀
                     </button>
                 }
             </div>
@@ -263,7 +273,8 @@
     {
         <PropertyPanel OnPropertyChange="HandlePropertyChange"
                       OnAddElement="HandleAddElement"
-                      OnRemoveElement="HandleRemoveElement" />
+                      OnRemoveElement="HandleRemoveElement"
+                      OnHidePanel="ToggleProperties" />
     }
 </div>
 
@@ -277,8 +288,8 @@
     private bool _isVibeMode = false;
     private bool _editorReady = false;
     private bool _isPreviewMode = false;  // Toggle between Edit Mode and Preview Mode
-    private bool _showEditor = true;      // Show/hide JSON editor panel
-    private bool _showProperties = true;  // Show/hide properties panel
+    private bool _showEditor = false;     // Show/hide JSON editor panel - hidden by default
+    private bool _showProperties = true;  // Show/hide properties panel - open by default
 
     // LocalStorage key for persisting roadmap data
     private const string LocalStorageKey = "roadscript_roadmap_data";
@@ -790,7 +801,7 @@
 
             return $"position: absolute; left: calc({leftPct}% + 6px); top: 6px; bottom: 6px; " +
                    $"width: calc({widthPct}% - 12px); {vibeGradient} border-radius: 8px; " +
-                   $"padding: 10px 14px; overflow: hidden; {borderStyle} {shadow}";
+                   $"padding: 12px 16px; overflow: hidden; {borderStyle} {shadow}";
         }
         else
         {
@@ -802,7 +813,7 @@
 
             return $"position: absolute; left: calc({leftPct}% + 6px); top: 6px; bottom: 6px; " +
                    $"width: calc({widthPct}% - 12px); background: #fff; border-radius: 6px; " +
-                   $"padding: 10px 14px; overflow: hidden; {borderStyle} {shadow}";
+                   $"padding: 12px 16px; overflow: hidden; {borderStyle} {shadow}";
         }
     }
 
@@ -813,9 +824,9 @@
     {
         if (_isVibeMode)
         {
-            return $"font-size: 13px; color: #d1d5db; line-height: 1.45; padding-left: 12px; position: relative;";
+            return $"font-size: 15px; color: #d1d5db; line-height: 1.5; padding-left: 14px; position: relative;";
         }
-        return $"font-size: 13px; color: #4b5563; line-height: 1.45; padding-left: 12px; position: relative;";
+        return $"font-size: 15px; color: #4b5563; line-height: 1.5; padding-left: 14px; position: relative;";
     }
 
     private string BulletStyle(string color)
@@ -862,18 +873,18 @@
 
     private string ItemTitleStyle() =>
         _isVibeMode
-            ? "margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #f3f4f6; line-height: 1.2;"
-            : "margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #1f2937; line-height: 1.2;";
+            ? "margin: 0 0 10px 0; font-size: 18px; font-weight: 700; color: #f3f4f6; line-height: 1.25;"
+            : "margin: 0 0 10px 0; font-size: 18px; font-weight: 700; color: #1f2937; line-height: 1.25;";
 
     private string SubBulletStyle() =>
         _isVibeMode
-            ? "font-size: 11px; color: #9ca3af; line-height: 1.4; padding-left: 22px; position: relative; margin-bottom: 1px;"
-            : "font-size: 11px; color: #6b7280; line-height: 1.4; padding-left: 22px; position: relative; margin-bottom: 1px;";
+            ? "font-size: 13px; color: #9ca3af; line-height: 1.45; padding-left: 24px; position: relative; margin-bottom: 2px;"
+            : "font-size: 13px; color: #6b7280; line-height: 1.45; padding-left: 24px; position: relative; margin-bottom: 2px;";
 
     private string SubBulletDashStyle() =>
         _isVibeMode
-            ? "position: absolute; left: 12px; color: #6b7280;"
-            : "position: absolute; left: 12px; color: #9ca3af;";
+            ? "position: absolute; left: 14px; color: #6b7280; font-size: 13px;"
+            : "position: absolute; left: 14px; color: #9ca3af; font-size: 13px;";
 
     // === Vibe Mode Color Helpers ===
 

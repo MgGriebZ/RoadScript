@@ -5,12 +5,19 @@
     @if (SelectionState.IsSelected)
     {
         <div style="background: #2a2a3e; padding: 12px 16px; border-bottom: 1px solid #3a3a4e; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-weight: 600; color: #e0e7ff; font-size: 14px;">
-                @GetElementTypeLabel() Properties
-            </span>
-            <button @onclick="ClosePanel" style="background: transparent; border: none; color: #999; cursor: pointer; font-size: 18px; padding: 0; width: 24px; height: 24px;" type="button">
-                ×
-            </button>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-weight: 600; color: #e0e7ff; font-size: 14px;">
+                    @GetElementTypeLabel() Properties
+                </span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button @onclick="ClosePanel" style="background: transparent; border: none; color: #999; cursor: pointer; font-size: 18px; padding: 0; width: 24px; height: 24px;" type="button">
+                    ×
+                </button>
+                <button @onclick="HidePanel" style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s;" type="button">
+                    Hide ▶
+                </button>
+            </div>
         </div>
 
         <div style="padding: 16px; overflow-y: auto; flex: 1;">
@@ -48,7 +55,17 @@
     }
     else
     {
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666; padding: 24px; text-align: center;">
+        <div style="background: #2a2a3e; padding: 12px 16px; border-bottom: 1px solid #3a3a4e; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-weight: 600; color: #e0e7ff; font-size: 14px;">
+                    Properties Panel
+                </span>
+            </div>
+            <button @onclick="HidePanel" style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s;" type="button">
+                Hide ▶
+            </button>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: #666; padding: 24px; text-align: center;">
             <div style="font-size: 48px; margin-bottom: 12px; opacity: 0.3;">📝</div>
             <p style="margin: 0; font-size: 14px; line-height: 1.6;">
                 Click any roadmap element to edit its properties
@@ -72,6 +89,9 @@
 
     [Parameter]
     public EventCallback<(string ElementType, string JsonPath)> OnRemoveElement { get; set; }
+
+    [Parameter]
+    public EventCallback OnHidePanel { get; set; }
 
     protected override void OnInitialized()
     {
@@ -104,6 +124,14 @@
     private void ClosePanel()
     {
         SelectionState.Clear();
+    }
+
+    private async Task HidePanel()
+    {
+        if (OnHidePanel.HasDelegate)
+        {
+            await OnHidePanel.InvokeAsync();
+        }
     }
 
     private async Task HandlePropertyChange((string PropertyName, object Value) change)
