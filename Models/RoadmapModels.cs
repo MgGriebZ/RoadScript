@@ -94,6 +94,9 @@ public class Item
     [JsonPropertyName("spanning")]
     public bool Spanning { get; set; }  // true = dashed border (ongoing work)
 
+    [JsonPropertyName("completed")]
+    public bool Completed { get; set; }  // true = item is completed (shows checkmark badge)
+
     [JsonPropertyName("details")]
     public List<Detail>? Details { get; set; }  // Nullable - items can have no details
 }

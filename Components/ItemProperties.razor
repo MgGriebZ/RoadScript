@@ -57,6 +57,16 @@
     </div>
 
     <div class="form-group">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox"
+                   checked="@Item.Completed"
+                   @onchange="@(e => OnChange.InvokeAsync(("completed", (bool)(e.Value ?? false))))"
+                   style="margin-right: 8px; cursor: pointer;" />
+            Completed (shows checkmark badge)
+        </label>
+    </div>
+
+    <div class="form-group">
         <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <span>Details</span>
             <button @onclick="AddDetail" class="btn-add" type="button">+ Add Detail</button>

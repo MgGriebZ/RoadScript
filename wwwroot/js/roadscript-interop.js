@@ -326,6 +326,119 @@ window.RoadScriptInterop = {
             `;
             document.head.appendChild(style);
         }
+    },
+
+    /**
+     * Sets up keyboard shortcuts
+     * @param {object} dotNetRef - .NET object reference for callbacks
+     */
+    setupKeyboardShortcuts: function(dotNetRef) {
+        // Remove existing listener if any
+        if (window.roadscriptKeyboardHandler) {
+            document.removeEventListener('keydown', window.roadscriptKeyboardHandler);
+        }
+
+        // Create new handler
+        window.roadscriptKeyboardHandler = function(e) {
+            // Check if user is typing in an input/textarea (but not Monaco editor)
+            const target = e.target;
+            const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+
+            // Ctrl/Cmd + P - Toggle Preview/Edit mode
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'TogglePreview');
+                return;
+            }
+
+            // Ctrl/Cmd + T - Toggle Theme
+            if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+                e.preventDefault();
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'ToggleTheme');
+                return;
+            }
+
+            // Esc - Clear selection (only if not in input field)
+            if (e.key === 'Escape' && !isInputField) {
+                e.preventDefault();
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'ClearSelection');
+                return;
+            }
+        };
+
+        // Add listener
+        document.addEventListener('keydown', window.roadscriptKeyboardHandler);
+    },
+
+    /**
+     * Removes keyboard shortcuts
+     */
+    removeKeyboardShortcuts: function() {
+        if (window.roadscriptKeyboardHandler) {
+            document.removeEventListener('keydown', window.roadscriptKeyboardHandler);
+            window.roadscriptKeyboardHandler = null;
+        }
+    },
+
+    /**
+     * Exports the roadmap as PNG
+     * @param {string} elementSelector - CSS selector for the element to capture
+     * @param {string} filename - Name of the file to download
+     */
+    exportAsPng: async function(elementSelector, filename) {
+        try {
+            // Load html2canvas dynamically if not already loaded
+            if (typeof html2canvas === 'undefined') {
+                await this.loadHtml2Canvas();
+            }
+
+            const element = document.querySelector(elementSelector);
+            if (!element) {
+                console.error('Element not found:', elementSelector);
+                return false;
+            }
+
+            // Capture the element
+            const canvas = await html2canvas(element, {
+                backgroundColor: null,
+                scale: 2, // Higher quality
+                logging: false,
+                useCORS: true
+            });
+
+            // Convert to blob and download
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = filename || 'roadmap.png';
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+            });
+
+            return true;
+        } catch (error) {
+            console.error('Error exporting PNG:', error);
+            return false;
+        }
+    },
+
+    /**
+     * Dynamically loads html2canvas library
+     */
+    loadHtml2Canvas: function() {
+        return new Promise((resolve, reject) => {
+            if (typeof html2canvas !== 'undefined') {
+                resolve();
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
     }
 };
 
