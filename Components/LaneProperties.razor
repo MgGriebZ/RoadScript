@@ -1,0 +1,136 @@
+@using RoadScript.Models
+
+<div class="property-editor">
+    <div class="form-group">
+        <label>Lane Title</label>
+        <input type="text"
+               value="@Lane.Title"
+               @onchange="@(e => OnChange.InvokeAsync(("title", e.Value)))"
+               class="form-control"
+               placeholder="Team Name" />
+        <div style="font-size: 11px; color: #888; margin-top: 4px;">
+            Use "&amp;" to add line breaks in the title
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Color</span>
+            <input type="color"
+                   value="@Lane.Color"
+                   @onchange="@(e => OnChange.InvokeAsync(("color", e.Value)))"
+                   style="width: 60px; height: 32px; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; background: #2a2a3e;" />
+        </label>
+        <input type="text"
+               value="@Lane.Color"
+               @onchange="@(e => OnChange.InvokeAsync(("color", e.Value)))"
+               class="form-control"
+               placeholder="#45B69C"
+               pattern="^#[0-9A-Fa-f]{6}$" />
+    </div>
+
+    @if (Lane.History != null)
+    {
+        <div class="form-group">
+            <label style="margin-bottom: 12px;">History Timeline</label>
+
+            <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                    <label style="font-size: 11px;">Start Year</label>
+                    <input type="number"
+                           value="@Lane.History.StartYear"
+                           @onchange="@(e => UpdateHistory("startYear", int.Parse(e.Value?.ToString() ?? "2020")))"
+                           class="form-control"
+                           min="2000"
+                           max="2100" />
+                </div>
+
+                <div class="form-group" style="flex: 1; margin-left: 12px;">
+                    <label style="font-size: 11px;">End Year</label>
+                    <input type="number"
+                           value="@Lane.History.EndYear"
+                           @onchange="@(e => UpdateHistory("endYear", int.Parse(e.Value?.ToString() ?? "2026")))"
+                           class="form-control"
+                           min="2000"
+                           max="2100" />
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 8px;">
+                <label style="font-size: 11px;">Past Percentage</label>
+                <input type="range"
+                       value="@Lane.History.PastPct"
+                       @onchange="@(e => UpdateHistory("pastPct", int.Parse(e.Value?.ToString() ?? "50")))"
+                       min="0"
+                       max="100"
+                       step="1"
+                       class="form-range" />
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-top: 4px;">
+                    <span>0%</span>
+                    <span style="font-weight: 600; color: #667eea;">@Lane.History.PastPct%</span>
+                    <span>100%</span>
+                </div>
+            </div>
+
+            <button @onclick="RemoveHistory" class="btn-danger" type="button" style="margin-top: 12px;">
+                Remove History
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="form-group">
+            <button @onclick="AddHistory" class="btn-add" type="button">
+                + Add History Timeline
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Lane Lane { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public string JsonPath { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<(string PropertyName, object Value)> OnChange { get; set; }
+
+    private void UpdateHistory(string propertyName, object value)
+    {
+        if (Lane.History != null)
+        {
+            switch (propertyName.ToLower())
+            {
+                case "startyear":
+                    Lane.History.StartYear = (int)value;
+                    break;
+                case "endyear":
+                    Lane.History.EndYear = (int)value;
+                    break;
+                case "pastpct":
+                    Lane.History.PastPct = (int)value;
+                    break;
+            }
+            OnChange.InvokeAsync(("history", Lane.History));
+        }
+    }
+
+    private void AddHistory()
+    {
+        Lane.History = new History
+        {
+            StartYear = 2020,
+            EndYear = 2026,
+            PastPct = 80
+        };
+        OnChange.InvokeAsync(("history", Lane.History));
+    }
+
+    private void RemoveHistory()
+    {
+        Lane.History = null;
+        OnChange.InvokeAsync(("history", null!));
+    }
+}

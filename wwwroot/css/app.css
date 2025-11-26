@@ -198,3 +198,228 @@ button:disabled {
 .monaco-editor .monaco-editor-background {
     background-color: #1e1e1e !important;
 }
+
+/* ========== INTERACTIVE EDITING FEATURES ========== */
+
+/* Clickable roadmap elements */
+.clickable-element {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.clickable-element:hover {
+    filter: brightness(1.1);
+    transform: scale(1.01);
+}
+
+/* Selection highlight */
+.selected-element {
+    outline: 3px solid #667eea !important;
+    outline-offset: 2px;
+    z-index: 100 !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3) !important;
+}
+
+/* Property Panel */
+.property-panel {
+    width: 320px;
+    background: #1e1e2f;
+    border-left: 1px solid #3a3a4e;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Property Editor Form Styles */
+.property-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-row {
+    display: flex;
+    gap: 12px;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Form Controls */
+.form-control {
+    background: #2a2a3e;
+    border: 1px solid #3a3a4e;
+    color: #e0e7ff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.form-control::placeholder {
+    color: #555;
+}
+
+/* Range Slider */
+.form-range,
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: #3a3a4e;
+    border-radius: 3px;
+    outline: none;
+}
+
+.form-range::-webkit-slider-thumb,
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #667eea;
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.form-range::-moz-range-thumb,
+input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #667eea;
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    border: none;
+}
+
+/* Color Picker */
+input[type="color"] {
+    width: 50px;
+    height: 36px;
+    border: 1px solid #3a3a4e;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #2a2a3e;
+    padding: 2px;
+}
+
+/* Buttons */
+.btn-add {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.btn-add:hover {
+    background: #5568d3;
+}
+
+.btn-remove {
+    background: #ef4444;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-remove:hover {
+    background: #dc2626;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    width: 100%;
+    transition: background 0.2s ease;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+/* Detail Item */
+.detail-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.detail-item .form-control {
+    flex: 1;
+}
+
+/* Responsive - Property Panel */
+@media (max-width: 1400px) {
+    .property-panel {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+        box-shadow: -4px 0 12px rgba(0,0,0,0.3);
+        transform: translateX(0);
+    }
+
+    .property-panel:not(:has(.selected-element)) {
+        transform: translateX(100%);
+    }
+}
+
+/* Scrollbar for Property Panel */
+.property-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.property-panel::-webkit-scrollbar-track {
+    background: #1e1e2f;
+}
+
+.property-panel::-webkit-scrollbar-thumb {
+    background: #3a3a4e;
+    border-radius: 3px;
+}
+
+.property-panel::-webkit-scrollbar-thumb:hover {
+    background: #4a4a5e;
+}

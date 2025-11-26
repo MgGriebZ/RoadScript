@@ -1,0 +1,54 @@
+@using RoadScript.Models
+
+<div class="property-editor">
+    <div class="form-group">
+        <label>Milestone Label</label>
+        <input type="text"
+               value="@Milestone.Label"
+               @onchange="@(e => OnChange.InvokeAsync(("label", e.Value)))"
+               class="form-control"
+               placeholder="Launch Date" />
+    </div>
+
+    <div class="form-group">
+        <label>Position (%)</label>
+        <input type="number"
+               value="@Milestone.Position"
+               @onchange="@(e => OnChange.InvokeAsync(("position", double.Parse(e.Value?.ToString() ?? "0"))))"
+               class="form-control"
+               step="0.1"
+               min="0"
+               max="100" />
+    </div>
+
+    <div class="form-group">
+        <label>Position Slider</label>
+        <input type="range"
+               value="@Milestone.Position"
+               @onchange="@(e => OnChange.InvokeAsync(("position", double.Parse(e.Value?.ToString() ?? "0"))))"
+               min="0"
+               max="100"
+               step="0.5"
+               class="form-range" />
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-top: 4px;">
+            <span>0%</span>
+            <span style="font-weight: 600; color: #667eea;">@Milestone.Position.ToString("F1")%</span>
+            <span>100%</span>
+        </div>
+    </div>
+
+    <div style="margin-top: 16px; padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 6px; font-size: 12px; color: #9ca3af;">
+        <strong>Tip:</strong> Position is a percentage across the entire timeline (0% = start, 100% = end).
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Milestone Milestone { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public string JsonPath { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<(string PropertyName, object Value)> OnChange { get; set; }
+}
