@@ -13,25 +13,16 @@
     @if (_showEditor)
     {
         <div class="editor-pane" style="width: 20%; min-width: 300px; max-width: 400px; flex-shrink: 0; border-right: 1px solid #ccc; display: flex; flex-direction: column;">
-            <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; flex-direction: column; gap: 2px;">
-                        <span style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">RoadScript</span>
-                        <span style="font-size: 11px; color: #666; font-weight: 400;">JSON Editor</span>
-                    </div>
-                    <button @onclick="ToggleEditor"
-                            title="Collapse JSON Editor"
-                            style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                        ◀
-                    </button>
+            <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">RoadScript</span>
+                    <span style="font-size: 11px; color: #666; font-weight: 400;">JSON Editor</span>
                 </div>
-                <div style="display: flex; gap: 8px; align-items: center; padding-top: 8px; border-top: 1px solid #333;">
-                    <button @onclick="ToggleViewMode"
-                            title="@(_isPreviewMode ? "Switch to Edit Mode" : "Switch to Preview Mode")"
-                            style="@ViewModeToggleStyle()">
-                        @(_isPreviewMode ? "📝 Edit" : "👁️ Preview")
-                    </button>
-                </div>
+                <button @onclick="ToggleEditor"
+                        title="Collapse JSON Editor"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                    ◀
+                </button>
             </div>
         <div style="background: #252526; padding: 8px 12px; border-bottom: 1px solid #333; display: flex; gap: 8px; align-items: center;">
             <button @onclick="UpdatePreview"
@@ -44,20 +35,6 @@
                     style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                 Reset
             </button>
-            <button @onclick="ExportAsPng"
-                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                📷 Export PNG
-            </button>
-
-            @* Theme Toggle *@
-            <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; color: #888;">@(_isVibeMode ? "Vibe" : "Lite")</span>
-                <button @onclick="ToggleTheme"
-                        style="@ThemeToggleStyle()"
-                        title="Toggle between Lite and Vibe modes">
-                    <div style="@ThemeToggleIndicatorStyle()"></div>
-                </button>
-            </div>
 
             @if (!_editorReady)
             {
@@ -93,13 +70,8 @@
         <div style="width: 50px; flex-shrink: 0; background: #1e1e1e; border-right: 1px solid #333; display: flex; flex-direction: column; align-items: center; padding: 16px 0;">
             <button @onclick="ToggleEditor"
                     title="Expand JSON Editor"
-                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s; writing-mode: vertical-rl; text-orientation: mixed; font-size: 11px; font-weight: 500; margin-bottom: 16px;">
+                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s; writing-mode: vertical-rl; text-orientation: mixed; font-size: 11px; font-weight: 500;">
                 JSON ▶
-            </button>
-            <button @onclick="ToggleViewMode"
-                    title="@(_isPreviewMode ? "Switch to Edit Mode" : "Switch to Preview Mode")"
-                    style="@CollapsedViewModeToggleStyle()">
-                @(_isPreviewMode ? "📝" : "👁️")
             </button>
         </div>
     }
@@ -280,7 +252,10 @@
                   OnHidePanel="ToggleProperties"
                   IsVibeMode="@_isVibeMode"
                   OnToggleTheme="ToggleTheme"
-                  IsCollapsed="@(!_showProperties)" />
+                  IsCollapsed="@(!_showProperties)"
+                  IsPreviewMode="@_isPreviewMode"
+                  OnTogglePreview="ToggleViewMode"
+                  OnExportPng="ExportAsPng" />
 </div>
 
 @code {
@@ -609,7 +584,8 @@
     private void ToggleViewMode()
     {
         _isPreviewMode = !_isPreviewMode;
-        _showEditor = !_isPreviewMode;
+        // Don't auto-expand editor when switching to edit mode
+        // Users can manually expand if needed
         _showProperties = !_isPreviewMode;
         StateHasChanged();
     }

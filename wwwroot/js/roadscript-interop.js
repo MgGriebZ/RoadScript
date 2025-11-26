@@ -384,9 +384,18 @@ window.RoadScriptInterop = {
      * Exports the roadmap as PNG
      * @param {string} elementSelector - CSS selector for the element to capture
      * @param {string} filename - Name of the file to download
+     * @param {boolean} showConfirmation - Whether to show confirmation dialog
      */
-    exportAsPng: async function(elementSelector, filename) {
+    exportAsPng: async function(elementSelector, filename, showConfirmation = true) {
         try {
+            // Show confirmation dialog if requested
+            if (showConfirmation) {
+                const confirmed = confirm('Download roadmap as PNG image?');
+                if (!confirmed) {
+                    return false;
+                }
+            }
+
             // Load html2canvas dynamically if not already loaded
             if (!window.html2canvas) {
                 await this.loadHtml2Canvas();
