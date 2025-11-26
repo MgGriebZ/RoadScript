@@ -5,14 +5,17 @@
 @inject IJSRuntime JSRuntime
 @inject EditorInteropService EditorInterop
 @inject SelectionState SelectionState
+@inject RoadmapDataService RoadmapData
 
 <div class="container-fluid vh-100 d-flex p-0">
     @* Editor Pane *@
-    <div class="editor-pane" style="width: 25%; border-right: 1px solid #ccc; display: flex; flex-direction: column;">
-        <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-            <span>RoadScript <span style="font-size: 0.75em; color: #888; font-weight: 400;">v1.0</span></span>
-            <span style="font-size: 0.7em; color: #666;">JSON Editor</span>
-        </div>
+    @if (_showEditor)
+    {
+        <div class="editor-pane" style="width: 25%; border-right: 1px solid #ccc; display: flex; flex-direction: column;">
+            <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+                <span>RoadScript <span style="font-size: 0.75em; color: #888; font-weight: 400;">v1.0</span></span>
+                <span style="font-size: 0.7em; color: #666;">JSON Editor</span>
+            </div>
         <div style="background: #252526; padding: 8px 12px; border-bottom: 1px solid #333; display: flex; gap: 8px; align-items: center;">
             <button @onclick="UpdatePreview"
                     disabled="@(!_editorReady)"
@@ -62,12 +65,55 @@
                                   CssClass="h-100" />
         </div>
     </div>
+    }
 
     @* Preview Pane *@
     <div class="preview-pane" style="@PreviewPaneStyle()">
+        @* Preview Control Bar *@
+        <div style="@PreviewControlBarStyle()">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button @onclick="ToggleViewMode"
+                        title="@(_isPreviewMode ? "Switch to Edit Mode" : "Switch to Preview Mode")"
+                        style="@ViewModeToggleStyle()">
+                    @(_isPreviewMode ? "📝 Edit Mode" : "👁️ Preview Mode")
+                </button>
+
+                @if (!_isPreviewMode)
+                {
+                    <button @onclick="ToggleEditor"
+                            title="@(_showEditor ? "Hide JSON Editor" : "Show JSON Editor")"
+                            style="@PanelToggleStyle()">
+                        @(_showEditor ? "◀" : "▶") Editor
+                    </button>
+
+                    <button @onclick="ToggleProperties"
+                            title="@(_showProperties ? "Hide Properties" : "Show Properties")"
+                            style="@PanelToggleStyle()">
+                        Properties @(_showProperties ? "▶" : "◀")
+                    </button>
+                }
+
+                <button @onclick="OpenInNewTab"
+                        title="Open full-screen preview in new tab"
+                        style="@OpenInNewTabStyle()">
+                    🗗 Open in New Tab
+                </button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; color: #888;">@(_isVibeMode ? "Vibe" : "Lite")</span>
+                <button @onclick="ToggleTheme"
+                        style="@ThemeToggleStyle()"
+                        title="Toggle between Lite and Vibe modes">
+                    <div style="@ThemeToggleIndicatorStyle()"></div>
+                </button>
+            </div>
+        </div>
+
         @if (_data != null)
         {
-            <div class="roadmap" style="@RoadmapContainerStyle()">
+            <div style="flex: 1; display: flex; justify-content: center; align-items: flex-start; overflow: auto;">
+                <div class="roadmap" style="@RoadmapContainerStyle()">
                 @* Header *@
                 <div style="margin-bottom: 20px;">
                     <h1 style="@TitleStyle()">
@@ -207,6 +253,7 @@
                     </div>
                 </div>
             </div>
+            </div>
         }
         else if (_error != null)
         {
@@ -217,7 +264,10 @@
     </div>
 
     @* Property Panel *@
-    <PropertyPanel OnPropertyChange="HandlePropertyChange" />
+    @if (_showProperties)
+    {
+        <PropertyPanel OnPropertyChange="HandlePropertyChange" />
+    }
 </div>
 
 @code {
@@ -229,143 +279,136 @@
     private string _currentJson = "";
     private bool _isVibeMode = false;
     private bool _editorReady = false;
+    private bool _isPreviewMode = false;  // Toggle between Edit Mode and Preview Mode
+    private bool _showEditor = true;      // Show/hide JSON editor panel
+    private bool _showProperties = true;  // Show/hide properties panel
 
-    // Default JSON template
+    // Default JSON template - Generic boilerplate for easy customization
     private const string DefaultJson = @"{
-  ""title"": ""2026 Product Roadmap"",
-  ""subtitle"": ""Platform Modernization & Client Experience"",
+  ""title"": ""Project Roadmap"",
+  ""subtitle"": ""Customize your timeline and milestones"",
   ""columns"": [
-    { ""id"": ""q1"", ""label"": ""Q1 2026"", ""sub"": ""Jan – Mar"" },
-    { ""id"": ""q2"", ""label"": ""Q2 2026"", ""sub"": ""Apr – Jun"" },
-    { ""id"": ""q3"", ""label"": ""Q3 2026"", ""sub"": ""Jul – Sep"" },
-    { ""id"": ""q4"", ""label"": ""Q4 2026"", ""sub"": ""Oct – Dec"" }
+    { ""label"": ""Quarter 1"", ""sub"": ""Jan – Mar"" },
+    { ""label"": ""Quarter 2"", ""sub"": ""Apr – Jun"" },
+    { ""label"": ""Quarter 3"", ""sub"": ""Jul – Sep"" },
+    { ""label"": ""Quarter 4"", ""sub"": ""Oct – Dec"" }
   ],
   ""milestones"": [
-    { ""position"": 12.5, ""label"": ""Image Import Live"" },
-    { ""position"": 37.5, ""label"": ""TrackingLink Launch"" }
+    { ""position"": 25, ""label"": ""Milestone 1"" },
+    { ""position"": 75, ""label"": ""Milestone 2"" }
   ],
   ""lanes"": [
     {
-      ""id"": ""perfectdocs"",
-      ""title"": ""PerfectDocs"",
+      ""title"": ""Project Alpha"",
       ""color"": ""#45B69C"",
-      ""history"": { ""startYear"": 2020, ""endYear"": 2026, ""pastPct"": 80 },
       ""items"": [
         {
-          ""id"": ""rcr-sadb"",
-          ""title"": ""RCR & SADB"",
-          ""start"": 0,
-          ""span"": 2,
-          ""details"": [
-            { ""text"": ""RCR overcollection monitoring"", ""subs"": [""Basic workflow completion""] },
-            { ""text"": ""SADB signer integration"", ""subs"": [""Signers + Notaries"", ""Internal/client dependency""] }
-          ]
-        },
-        {
-          ""id"": ""pd-dashboard"",
-          ""title"": ""Dashboard & Reporting"",
-          ""start"": 2,
-          ""span"": 2,
-          ""details"": [
-            { ""text"": ""Management reporting dashboard"", ""subs"": [""Cross-project visibility""] },
-            { ""text"": ""New build from scratch"" },
-            { ""text"": ""Intersects with other initiatives"" }
-          ]
-        }
-      ]
-    },
-    {
-      ""id"": ""infrastructure"",
-      ""title"": ""Azure & Infrastructure"",
-      ""color"": ""#4A90D9"",
-      ""history"": { ""startYear"": 2023, ""endYear"": 2026, ""pastPct"": 60 },
-      ""items"": [
-        {
-          ""id"": ""azure"",
-          ""title"": ""Azure Migration"",
-          ""start"": 0,
-          ""span"": 4,
-          ""spanning"": true,
-          ""details"": [
-            { ""text"": ""Final app conversions to prod"", ""subs"": [""Internal apps cleanup"", ""Lower environments wrap-up""] },
-            { ""text"": ""Ongoing maintenance & optimization"" },
-            { ""text"": ""High expectations for continued support"" }
-          ]
-        }
-      ]
-    },
-    {
-      ""id"": ""serviceconnect"",
-      ""title"": ""ServiceConnect"",
-      ""color"": ""#D4A520"",
-      ""history"": { ""startYear"": 2024, ""endYear"": 2026, ""pastPct"": 50 },
-      ""items"": [
-        {
-          ""id"": ""image-import"",
-          ""title"": ""Image Import"",
+          ""title"": ""Phase 1: Planning"",
           ""start"": 0,
           ""span"": 1,
           ""details"": [
-            { ""text"": ""Production release & testing"", ""subs"": [""Client conversions"", ""Bug fixes & stability""] }
+            { ""text"": ""Requirements gathering"" },
+            { ""text"": ""Stakeholder alignment"" }
           ]
         },
         {
-          ""id"": ""sc-ongoing"",
-          ""title"": ""Ingestion & Stability"",
+          ""title"": ""Phase 2: Development"",
           ""start"": 1,
           ""span"": 2,
-          ""spanning"": true,
           ""details"": [
-            { ""text"": ""Order import refinement"" },
-            { ""text"": ""New client onboarding & config"" },
-            { ""text"": ""Feature requests from business"" }
+            { ""text"": ""Core feature implementation"" },
+            { ""text"": ""Testing and QA"" }
           ]
         },
         {
-          ""id"": ""image2client"",
-          ""title"": ""Image2Client"",
+          ""title"": ""Phase 3: Launch"",
           ""start"": 3,
           ""span"": 1,
           ""details"": [
-            { ""text"": ""Client image delivery"", ""subs"": [""Target: Q4 and beyond""] }
+            { ""text"": ""Production deployment"" },
+            { ""text"": ""User training and support"" }
           ]
         }
       ]
     },
     {
-      ""id"": ""clientconnect"",
-      ""title"": ""ClientConnect"",
-      ""color"": ""#9B7ED9"",
-      ""history"": { ""startYear"": 2025, ""endYear"": 2026, ""pastPct"": 0 },
+      ""title"": ""Project Beta"",
+      ""color"": ""#4A90D9"",
       ""items"": [
         {
-          ""id"": ""trackinglink"",
-          ""title"": ""TrackingLink"",
+          ""title"": ""Infrastructure Setup"",
           ""start"": 0,
           ""span"": 2,
           ""details"": [
-            { ""text"": ""MVC to Blazor/EF rebuild"", ""subs"": [""First hub app migration""] },
-            { ""text"": ""Client hub tile integration"" }
+            { ""text"": ""Environment configuration"" },
+            { ""text"": ""Security & compliance review"" }
           ]
         },
         {
-          ""id"": ""querylink"",
-          ""title"": ""QueryLink"",
+          ""title"": ""Ongoing Maintenance"",
           ""start"": 2,
+          ""span"": 2,
+          ""spanning"": true,
+          ""details"": [
+            { ""text"": ""Monitor system performance"" },
+            { ""text"": ""Address technical debt"" }
+          ]
+        }
+      ]
+    },
+    {
+      ""title"": ""Project Gamma"",
+      ""color"": ""#D4A520"",
+      ""items"": [
+        {
+          ""title"": ""Research & Discovery"",
+          ""start"": 0,
           ""span"": 1,
           ""details"": [
-            { ""text"": ""MVC to Blazor migration"" },
-            { ""text"": ""Hub navigation integration"" }
+            { ""text"": ""Market analysis"" },
+            { ""text"": ""Competitive research"" }
           ]
         },
         {
-          ""id"": ""mop"",
-          ""title"": ""MOP"",
-          ""start"": 3,
+          ""title"": ""Prototype Development"",
+          ""start"": 1,
           ""span"": 1,
           ""details"": [
-            { ""text"": ""Manual Order Placement"" },
-            { ""text"": ""Final legacy app rebuild"" }
+            { ""text"": ""Build MVP"" },
+            { ""text"": ""User feedback sessions"" }
+          ]
+        },
+        {
+          ""title"": ""Full Implementation"",
+          ""start"": 2,
+          ""span"": 2,
+          ""details"": [
+            { ""text"": ""Scale to production"" },
+            { ""text"": ""Integration with existing systems"" }
+          ]
+        }
+      ]
+    },
+    {
+      ""title"": ""Project Delta"",
+      ""color"": ""#9B7ED9"",
+      ""items"": [
+        {
+          ""title"": ""Initial Planning"",
+          ""start"": 1,
+          ""span"": 1,
+          ""details"": [
+            { ""text"": ""Define objectives and KPIs"" },
+            { ""text"": ""Resource allocation"" }
+          ]
+        },
+        {
+          ""title"": ""Execution Phase"",
+          ""start"": 2,
+          ""span"": 2,
+          ""details"": [
+            { ""text"": ""Implement core functionality"" },
+            { ""text"": ""Iterative improvements"" }
           ]
         }
       ]
@@ -456,7 +499,34 @@
     private void ToggleTheme()
     {
         _isVibeMode = !_isVibeMode;
+        RoadmapData.UpdateData(_currentJson, _isVibeMode);
         StateHasChanged();
+    }
+
+    private void ToggleViewMode()
+    {
+        _isPreviewMode = !_isPreviewMode;
+        _showEditor = !_isPreviewMode;
+        _showProperties = !_isPreviewMode;
+        StateHasChanged();
+    }
+
+    private void ToggleEditor()
+    {
+        _showEditor = !_showEditor;
+        StateHasChanged();
+    }
+
+    private void ToggleProperties()
+    {
+        _showProperties = !_showProperties;
+        StateHasChanged();
+    }
+
+    private async Task OpenInNewTab()
+    {
+        // Open the preview in a new tab
+        await JSRuntime.InvokeVoidAsync("open", "/preview", "_blank");
     }
 
     private void ParseJson(string json)
@@ -471,6 +541,9 @@
             };
             _data = JsonSerializer.Deserialize<RoadmapData>(json, options);
             _error = null;
+
+            // Update shared data service for preview page
+            RoadmapData.UpdateData(json, _isVibeMode);
         }
         catch (JsonException ex)
         {
@@ -508,23 +581,72 @@
             : "width: 18px; height: 18px; border-radius: 50%; background: #ccc; " +
               "transition: all 0.3s ease; transform: translateX(0);";
 
-    private string PreviewPaneStyle() =>
+    private string PreviewPaneStyle()
+    {
+        var width = "50%";
+        if (_isPreviewMode)
+        {
+            width = "100%";
+        }
+        else if (!_showEditor && _showProperties)
+        {
+            width = "75%";
+        }
+        else if (_showEditor && !_showProperties)
+        {
+            width = "75%";
+        }
+        else if (!_showEditor && !_showProperties)
+        {
+            width = "100%";
+        }
+
+        if (_isVibeMode)
+        {
+            return $"width: {width}; background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%); overflow: auto; padding: 12px; display: flex; flex-direction: column;";
+        }
+        return $"width: {width}; background: #e8eaed; overflow: auto; padding: 12px; display: flex; flex-direction: column;";
+    }
+
+    private string PreviewControlBarStyle() =>
         _isVibeMode
-            ? "width: 50%; background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%); overflow: auto; padding: 24px; display: flex; justify-content: center; align-items: flex-start;"
-            : "width: 50%; background: #e8eaed; overflow: auto; padding: 24px; display: flex; justify-content: center; align-items: flex-start;";
+            ? "background: rgba(30, 30, 46, 0.9); padding: 8px 16px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #3a3a4e;"
+            : "background: rgba(255, 255, 255, 0.95); padding: 8px 16px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #d1d5db; box-shadow: 0 1px 3px rgba(0,0,0,0.1);";
+
+    private string ViewModeToggleStyle() =>
+        _isPreviewMode
+            ? "background: #0e639c; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(14, 99, 156, 0.4);"
+            : "background: #667eea; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);";
+
+    private string PanelToggleStyle() =>
+        _isVibeMode
+            ? "background: #2a2a3e; color: #d1d5db; border: 1px solid #3a3a4e; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
+            : "background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;";
+
+    private string OpenInNewTabStyle() =>
+        _isVibeMode
+            ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);"
+            : "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);";
 
     // === Style Helper Methods ===
 
-    private string RoadmapContainerStyle() =>
-        _isVibeMode
-            ? "width: 100%; max-width: 1400px; aspect-ratio: 16/9; " +
-              "background: linear-gradient(135deg, #1e1e2f 0%, #2a2a3e 100%); " +
-              "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
-              "padding: 28px 36px; border: 1px solid #3a3a4e; position: relative; " +
-              "box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);"
-            : "width: 100%; max-width: 1400px; aspect-ratio: 16/9; background: #fafbfc; " +
+    private string RoadmapContainerStyle()
+    {
+        // Optimize for different screen sizes and view modes
+        var maxWidth = _isPreviewMode ? "1700px" : "1200px";
+
+        if (_isVibeMode)
+        {
+            return $"width: 100%; max-width: {maxWidth}; aspect-ratio: 16/9; " +
+                  "background: linear-gradient(135deg, #1e1e2f 0%, #2a2a3e 100%); " +
+                  "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
+                  "padding: 28px 36px; border: 1px solid #3a3a4e; position: relative; " +
+                  "box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);";
+        }
+        return $"width: 100%; max-width: {maxWidth}; aspect-ratio: 16/9; background: #fafbfc; " +
               "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
               "padding: 28px 36px; border: 1px solid #d1d5db; position: relative;";
+    }
 
     private string LaneLabelWrapStyle()
     {
