@@ -88,11 +88,11 @@
     <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
         <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Item Management</label>
 
-        <button @onclick="() => OnAdd.InvokeAsync(\"item\")" class="btn-add" type="button" style="width: 100%; margin-bottom: 8px;">
+        <button @onclick="AddItem" class="btn-add" type="button" style="width: 100%; margin-bottom: 8px;">
             + Add New Item
         </button>
 
-        <button @onclick="() => OnRemove.InvokeAsync(\"item\")" class="btn-danger" type="button" style="width: 100%;">
+        <button @onclick="RemoveItem" class="btn-danger" type="button" style="width: 100%;">
             Remove This Item
         </button>
     </div>
@@ -143,5 +143,15 @@
             Item.Details[index].Text = text;
             OnChange.InvokeAsync(("details", Item.Details));
         }
+    }
+
+    private void AddItem()
+    {
+        OnAdd.InvokeAsync("item");
+    }
+
+    private void RemoveItem()
+    {
+        OnRemove.InvokeAsync("item");
     }
 }
