@@ -5,13 +5,12 @@
 @inject IJSRuntime JSRuntime
 @inject EditorInteropService EditorInterop
 @inject SelectionState SelectionState
-@inject RoadmapDataService RoadmapData
 
 <div class="container-fluid vh-100 d-flex p-0">
     @* Editor Pane *@
     @if (_showEditor)
     {
-        <div class="editor-pane" style="width: 25%; border-right: 1px solid #ccc; display: flex; flex-direction: column;">
+        <div class="editor-pane" style="width: 20%; border-right: 1px solid #ccc; display: flex; flex-direction: column;">
             <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
                 <span>RoadScript <span style="font-size: 0.75em; color: #888; font-weight: 400;">v1.0</span></span>
                 <span style="font-size: 0.7em; color: #666;">JSON Editor</span>
@@ -92,12 +91,6 @@
                         Properties @(_showProperties ? "▶" : "◀")
                     </button>
                 }
-
-                <button @onclick="OpenInNewTab"
-                        title="Open full-screen preview in new tab"
-                        style="@OpenInNewTabStyle()">
-                    🗗 Open in New Tab
-                </button>
             </div>
 
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -132,7 +125,7 @@
                         {
                             var lane = _data.Lanes[li];
                             var laneIndex = li;
-                            <div @onclick="@(() => HandleElementClick($"lanes[{laneIndex}]", "lane", lane))"
+                            <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"lanes[{laneIndex}]", "lane", lane))"
                                  class="@GetElementClass($"lanes[{laneIndex}]")"
                                  style="@LaneLabelWrapStyle()">
                                 <div style="display: flex; align-items: flex-start; gap: 12px;">
@@ -168,7 +161,7 @@
                             {
                                 var col = _data.Columns[i];
                                 var colIndex = i;
-                                <div @onclick="@(() => HandleElementClick($"columns[{colIndex}]", "column", col))"
+                                <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"columns[{colIndex}]", "column", col))"
                                      class="@GetElementClass($"columns[{colIndex}]")"
                                      style="@ColumnHeaderStyle(i)">
                                     <span style="@ColumnLabelStyle()">@col.Label</span>
@@ -181,11 +174,13 @@
                             {
                                 var milestone = _data.Milestones[mi];
                                 var msIndex = mi;
-                                <div @onclick="@(() => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
+                                <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
                                      class="@GetElementClass($"milestones[{msIndex}]")"
                                      style="@MilestoneStyle(milestone.Position)">
-                                    <div style="width: 14px; height: 14px; background: #1f2937; transform: rotate(45deg); border: 2px solid #fafbfc;"></div>
-                                    <span style="position: absolute; top: 18px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; color: #6b7280; white-space: nowrap;">
+                                    <div style="@MilestoneIconContainerStyle()">
+                                        @((MarkupString)GetMilestoneIcon(milestone.Icon))
+                                    </div>
+                                    <span style="@MilestoneLabelStyle()">
                                         @milestone.Label
                                     </span>
                                 </div>
@@ -212,8 +207,8 @@
                                     {
                                         var item = lane.Items[ii];
                                         var itemIdx = ii;
-                                        <div @onclick="@(async () => await HandleItemClick(laneIdx, itemIdx, item))"
-                                             @onclick:stopPropagation="true"
+                                        <div @onclick="@(_isPreviewMode ? null : async () => await HandleItemClick(laneIdx, itemIdx, item))"
+                                             @onclick:stopPropagation="@(!_isPreviewMode)"
                                              class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]")"
                                              style="@ItemStyle(item, lane.Color)">
                                             <h4 style="@ItemTitleStyle()">
@@ -499,7 +494,6 @@
     private void ToggleTheme()
     {
         _isVibeMode = !_isVibeMode;
-        RoadmapData.UpdateData(_currentJson, _isVibeMode);
         StateHasChanged();
     }
 
@@ -523,12 +517,6 @@
         StateHasChanged();
     }
 
-    private async Task OpenInNewTab()
-    {
-        // Open the preview in a new tab
-        await JSRuntime.InvokeVoidAsync("open", "/preview", "_blank");
-    }
-
     private void ParseJson(string json)
     {
         try
@@ -541,9 +529,6 @@
             };
             _data = JsonSerializer.Deserialize<RoadmapData>(json, options);
             _error = null;
-
-            // Update shared data service for preview page
-            RoadmapData.UpdateData(json, _isVibeMode);
         }
         catch (JsonException ex)
         {
@@ -583,18 +568,18 @@
 
     private string PreviewPaneStyle()
     {
-        var width = "50%";
+        var width = "53%";  // Default with all panels visible
         if (_isPreviewMode)
         {
             width = "100%";
         }
         else if (!_showEditor && _showProperties)
         {
-            width = "75%";
+            width = "73%";  // Only properties hidden
         }
         else if (_showEditor && !_showProperties)
         {
-            width = "75%";
+            width = "80%";  // Only properties hidden
         }
         else if (!_showEditor && !_showProperties)
         {
@@ -622,11 +607,6 @@
         _isVibeMode
             ? "background: #2a2a3e; color: #d1d5db; border: 1px solid #3a3a4e; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
             : "background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;";
-
-    private string OpenInNewTabStyle() =>
-        _isVibeMode
-            ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);"
-            : "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);";
 
     // === Style Helper Methods ===
 
@@ -708,7 +688,31 @@
     }
 
     private string MilestoneStyle(double position) =>
-        $"position: absolute; bottom: -8px; left: {position}%; transform: translateX(-50%); z-index: 10;";
+        $"position: absolute; top: -2px; left: {position}%; transform: translateX(-50%); z-index: 20; display: flex; flex-direction: column; align-items: center;";
+
+    private string MilestoneIconContainerStyle() =>
+        _isVibeMode
+            ? "width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; box-shadow: 0 0 12px rgba(102, 126, 234, 0.6), 0 2px 4px rgba(0,0,0,0.3); border: 2px solid #fafbfc;"
+            : "width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: #667eea; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 2px solid #fafbfc;";
+
+    private string MilestoneLabelStyle() =>
+        _isVibeMode
+            ? "margin-top: 6px; font-size: 11px; font-weight: 700; color: #e0e7ff; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,0.5); background: rgba(30, 30, 46, 0.9); padding: 3px 8px; border-radius: 4px; border: 1px solid #3a3a4e;"
+            : "margin-top: 6px; font-size: 11px; font-weight: 700; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.95); padding: 3px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #d1d5db;";
+
+    private string GetMilestoneIcon(string? iconType)
+    {
+        var color = _isVibeMode ? "#fafbfc" : "#fff";
+        return iconType?.ToLower() switch
+        {
+            "star" => $"<svg width='12' height='12' viewBox='0 0 24 24' fill='{color}'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>",
+            "flag" => $"<svg width='12' height='12' viewBox='0 0 24 24' fill='{color}'><path d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/></svg>",
+            "check" => $"<svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='{color}' stroke-width='3'><path d='M20 6L9 17l-5-5'/></svg>",
+            "circle" => $"<svg width='10' height='10' viewBox='0 0 24 24' fill='{color}'><circle cx='12' cy='12' r='10'/></svg>",
+            "diamond" => $"<div style='width: 10px; height: 10px; background: {color}; transform: rotate(45deg);'></div>",
+            _ => $"<div style='width: 10px; height: 10px; background: {color}; transform: rotate(45deg);'></div>" // Default diamond
+        };
+    }
 
     private string GridColumnStyle(int index)
     {
@@ -868,6 +872,9 @@
 
     private string GetElementClass(string jsonPath)
     {
+        // Don't add clickable classes in preview mode
+        if (_isPreviewMode) return "";
+
         var baseClass = "clickable-element";
         if (SelectionState.SelectedPath == jsonPath)
         {
