@@ -19,24 +19,12 @@ RoadScript is a lightweight, JSON-driven roadmap visualization tool built with B
 - 💎 **Milestones** – Mark key dates with diamond markers
 - 📊 **History Bars** – Show project maturity/timeline at a glance
 - ✅ **Bullet Details** – Add context with bullets and sub-bullets
-- 🖨️ **Print Ready** – Clean print styles included
 
 ## Quick Start
 
 ### Prerequisites
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- Modern browser (Chrome, Edge, Firefox, Safari)
-
-### Run Locally
-
-```bash
-git clone https://github.com/yourusername/RoadScript.git
-cd RoadScript
-dotnet run
-```
-
-Open `https://localhost:7298` in your browser.
 
 ## JSON Schema
 
@@ -144,28 +132,6 @@ RoadScript/
 - **Monaco Editor:** v0.52.0 (via CDN)
 - **Styling:** Inline CSS (no external dependencies)
 
-## Roadmap for RoadScript 🚀
-
-### v1.0 (Current)
-- [x] JSON-to-roadmap rendering
-- [x] Live preview updates
-- [x] Dual theme support (Lite/Vibe)
-- [x] Monaco JSON editor
-- [x] Print-friendly output
-
-### v1.1 (Planned)
-- [ ] Export to PNG/SVG
-- [ ] Export to PDF
-- [ ] Shareable URLs (JSON in URL hash)
-- [ ] Local storage persistence
-
-### v2.0 (Future)
-- [ ] Visual drag-and-drop editor
-- [ ] Template gallery
-- [ ] Custom color picker
-- [ ] Multi-roadmap tabs
-- [ ] Import from CSV/Excel
-
 ## Contributing
 
 1. Fork the repository
@@ -182,8 +148,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - Inspired by [Mermaid.live](https://mermaid.live)
 - Monaco Editor by Microsoft
-- BlazorMonaco by nicholsonjon
+- BlazorMonaco by Serdar Ciplak
 
 ---
-
-**Made with ❤️ for roadmap enthusiasts**
