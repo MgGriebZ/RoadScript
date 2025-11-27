@@ -10,7 +10,7 @@
 
 <div class="container-fluid vh-100 d-flex p-0">
     @* Editor Pane - Always render Monaco but hide UI when collapsed *@
-    <div class="editor-pane" style="@EditorPaneStyle()">
+    <div class="@(_showEditor ? "editor-pane editor-pane-expanded" : "editor-pane editor-pane-collapsed")">
         @if (_showEditor)
         {
             @* Expanded Editor UI *@
