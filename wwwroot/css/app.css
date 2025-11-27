@@ -149,6 +149,120 @@ html, body, #app {
     }
 }
 
+/* Mid-size screens (Surface Pro 9 @ 2880x1920 and similar) */
+@media (min-width: 1201px) and (max-width: 1650px) {
+    /* Minimize wrapper padding for maximum roadmap space */
+    .preview-pane > div {
+        padding: 8px !important;
+    }
+
+    /* Optimize roadmap container padding */
+    .roadmap-container {
+        padding: 18px 22px !important;
+    }
+
+    /* Reduce lane label width to give more room for content */
+    .roadmap > div > div:first-child {
+        width: 155px !important;
+        padding-right: 10px !important;
+        padding-top: 50px !important;
+    }
+
+    /* Optimize header spacing */
+    .roadmap > div:first-child {
+        margin-bottom: 14px !important;
+        padding: 6px 10px !important;
+    }
+
+    /* Slightly reduce title font size */
+    .roadmap h1 {
+        font-size: 28px !important;
+        letter-spacing: -0.3px !important;
+    }
+
+    /* Reduce subtitle font size */
+    .roadmap > div:first-child > p {
+        font-size: 13px !important;
+    }
+
+    /* Optimize lane title sizing */
+    .roadmap > div > div:first-child span {
+        font-size: 13px !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Reduce column header height for more vertical space */
+    .roadmap > div > div:last-child > div:first-child {
+        height: 48px !important;
+    }
+
+    /* Reduce column label font size */
+    .roadmap > div > div:last-child > div:first-child > div span:first-child {
+        font-size: 15px !important;
+    }
+
+    .roadmap > div > div:last-child > div:first-child > div span:last-child {
+        font-size: 11px !important;
+    }
+
+    /* Optimize milestone row height */
+    .roadmap > div > div:last-child > div:nth-child(2) {
+        height: 40px !important;
+    }
+
+    /* Reduce milestone label size */
+    .roadmap > div > div:last-child > div:nth-child(2) span {
+        font-size: 12px !important;
+        padding: 3px 8px !important;
+    }
+
+    /* Reduce item title font size */
+    .roadmap h4 {
+        font-size: 17px !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* Optimize detail text size */
+    .roadmap ul li > div {
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+        padding-left: 12px !important;
+    }
+
+    /* Reduce sub-bullet text size */
+    .roadmap ul li ul li {
+        font-size: 12px !important;
+        line-height: 1.35 !important;
+        padding-left: 20px !important;
+    }
+
+    /* Tighten item padding */
+    .roadmap > div > div:last-child > div:last-child > div > div {
+        padding: 12px 14px !important;
+    }
+
+    /* Reduce editor panel width for more preview space */
+    .editor-pane {
+        width: 18% !important;
+        min-width: 280px !important;
+        max-width: 340px !important;
+    }
+
+    /* Reduce property panel width */
+    .property-panel {
+        width: 280px !important;
+        min-width: 280px !important;
+        max-width: 340px !important;
+    }
+
+    /* Reduce completed badge size */
+    .roadmap > div > div:last-child > div:last-child > div > div > div > div:last-child {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 14px !important;
+    }
+}
+
 /* Responsive adjustments for smaller screens */
 @media (max-width: 1200px) {
     .container-fluid {
