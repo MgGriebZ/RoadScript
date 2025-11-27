@@ -20,7 +20,6 @@ window.RoadScriptInterop = {
             const position = this.walkJsonText(jsonText, pathSegments);
 
             if (!position) {
-                console.warn(`Could not find path: ${jsonPath}`);
                 return null;
             }
 
@@ -80,7 +79,6 @@ window.RoadScriptInterop = {
                 const match = propRegex.exec(currentText);
 
                 if (!match) {
-                    console.warn(`Property ${segment.value} not found`);
                     return null;
                 }
 
@@ -106,7 +104,6 @@ window.RoadScriptInterop = {
                 // Find the array and navigate to the specific index
                 const arrayStart = currentText.indexOf('[');
                 if (arrayStart === -1) {
-                    console.warn('Array not found');
                     return null;
                 }
 
@@ -133,7 +130,6 @@ window.RoadScriptInterop = {
                 }
 
                 if (currentIndex < segment.value) {
-                    console.warn(`Array index ${segment.value} not found`);
                     return null;
                 }
 
