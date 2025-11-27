@@ -226,11 +226,6 @@ html, body, #app {
 
     /* ========== LAYOUT OPTIMIZATION ========== */
 
-    /* Grid height - reduced header from 66px to 58px */
-    .roadmap > div {
-        height: calc(100% - 58px) !important;
-    }
-
     /* Title container spacing */
     .roadmap > div:first-child {
         margin-bottom: 12px !important;
