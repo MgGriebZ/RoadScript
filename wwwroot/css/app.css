@@ -19,6 +19,27 @@ html, body, #app {
     background: #1e1e1e;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
+    border-right: 1px solid #333;
+    transition: width 0.3s ease;
+}
+
+/* Editor pane expanded state */
+.editor-pane-expanded {
+    width: 20%;
+    min-width: 300px;
+    max-width: 400px;
+    border-right: 1px solid #ccc;
+}
+
+/* Editor pane collapsed state */
+.editor-pane-collapsed {
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    align-items: center;
+    padding: 16px 0;
+    position: relative;
 }
 
 /* Monaco editor container - CRITICAL for proper rendering */
@@ -263,11 +284,18 @@ html, body, #app {
 
     /* ========== PANEL WIDTHS ========== */
 
-    /* Editor panel - narrower for more preview */
-    .editor-pane {
+    /* Editor panel - narrower for more preview (only when expanded) */
+    .editor-pane-expanded {
         width: 17% !important;
         min-width: 270px !important;
         max-width: 320px !important;
+    }
+
+    /* Keep collapsed state narrow on mid-size screens too */
+    .editor-pane-collapsed {
+        width: 50px !important;
+        min-width: 50px !important;
+        max-width: 50px !important;
     }
 
     /* Property panel - narrower */
