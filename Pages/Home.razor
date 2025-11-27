@@ -9,10 +9,11 @@
 @implements IDisposable
 
 <div class="container-fluid vh-100 d-flex p-0">
-    @* Editor Pane *@
-    @if (_showEditor)
-    {
-        <div class="editor-pane" style="width: 20%; min-width: 300px; max-width: 400px; flex-shrink: 0; border-right: 1px solid #ccc; display: flex; flex-direction: column;">
+    @* Editor Pane - Always render Monaco but hide UI when collapsed *@
+    <div class="editor-pane" style="@EditorPaneStyle()">
+        @if (_showEditor)
+        {
+            @* Expanded Editor UI *@
             <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; flex-direction: column; gap: 2px;">
                     <span style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">RoadScript</span>
@@ -24,62 +25,66 @@
                     ◀
                 </button>
             </div>
-        <div style="background: #252526; padding: 8px 12px; border-bottom: 1px solid #333; display: flex; gap: 8px; align-items: center;">
-            <button @onclick="UpdatePreview"
-                    disabled="@(!_editorReady)"
-                    style="@UpdateButtonStyle()">
-                Update Preview
-            </button>
-            <button @onclick="ResetToDefault"
-                    disabled="@(!_editorReady)"
-                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                Reset
-            </button>
-            <button @onclick="DownloadJson"
-                    disabled="@(!_editorReady)"
-                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                💾
-            </button>
+            <div style="background: #252526; padding: 8px 12px; border-bottom: 1px solid #333; display: flex; gap: 8px; align-items: center;">
+                <button @onclick="UpdatePreview"
+                        disabled="@(!_editorReady)"
+                        style="@UpdateButtonStyle()">
+                    Update Preview
+                </button>
+                <button @onclick="ResetToDefault"
+                        disabled="@(!_editorReady)"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                    Reset
+                </button>
+                <button @onclick="DownloadJson"
+                        disabled="@(!_editorReady)"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                    💾
+                </button>
 
-            @if (!_editorReady)
-            {
-                <span style="color: #888; font-size: 12px; margin-left: 12px;">⏳ Loading editor...</span>
-            }
-            else if (_isUpdating)
-            {
-                <span style="color: #4ec9b0; font-size: 12px; margin-left: 12px;">● Updating...</span>
-            }
-            else if (_lastUpdateSuccess && _error == null)
-            {
-                <span style="color: #4ec9b0; font-size: 12px; margin-left: 12px;">✓ Valid JSON</span>
-            }
-            else if (_error != null)
-            {
-                <span style="color: #f48771; font-size: 12px; margin-left: 12px;">✗ Invalid JSON</span>
-            }
-        </div>
-
-        @* Monaco Editor *@
-        <div style="flex: 1; overflow: hidden;">
-            <StandaloneCodeEditor @ref="_editor"
-                                  Id="roadscript-json-editor"
-                                  ConstructionOptions="EditorConstructionOptions"
-                                  OnDidInit="EditorOnDidInit"
-                                  CssClass="h-100" />
-        </div>
-    </div>
-    }
-    else
-    {
-        @* Collapsed Editor Panel *@
-        <div style="width: 50px; flex-shrink: 0; background: #1e1e1e; border-right: 1px solid #333; display: flex; flex-direction: column; align-items: center; padding: 16px 0;">
+                @if (!_editorReady)
+                {
+                    <span style="color: #888; font-size: 12px; margin-left: 12px;">⏳ Loading editor...</span>
+                }
+                else if (_isUpdating)
+                {
+                    <span style="color: #4ec9b0; font-size: 12px; margin-left: 12px;">● Updating...</span>
+                }
+                else if (_lastUpdateSuccess && _error == null)
+                {
+                    <span style="color: #4ec9b0; font-size: 12px; margin-left: 12px;">✓ Valid JSON</span>
+                }
+                else if (_error != null)
+                {
+                    <span style="color: #f48771; font-size: 12px; margin-left: 12px;">✗ Invalid JSON</span>
+                }
+            </div>
+            <div style="flex: 1; overflow: hidden;">
+                <StandaloneCodeEditor @ref="_editor"
+                                      Id="roadscript-json-editor"
+                                      ConstructionOptions="EditorConstructionOptions"
+                                      OnDidInit="EditorOnDidInit"
+                                      CssClass="h-100" />
+            </div>
+        }
+        else
+        {
+            @* Collapsed Editor Button *@
             <button @onclick="ToggleEditor"
                     title="Expand JSON Editor"
-                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s; writing-mode: vertical-rl; text-orientation: mixed; font-size: 11px; font-weight: 500;">
+                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s; writing-mode: vertical-rl; text-orientation: mixed; font-size: 11px; font-weight: 500; margin: 16px auto;">
                 JSON ▶
             </button>
-        </div>
-    }
+            @* Hidden editor - always rendered for initialization *@
+            <div style="position: absolute; visibility: hidden; width: 0; height: 0; overflow: hidden;">
+                <StandaloneCodeEditor @ref="_editor"
+                                      Id="roadscript-json-editor"
+                                      ConstructionOptions="EditorConstructionOptions"
+                                      OnDidInit="EditorOnDidInit"
+                                      CssClass="h-100" />
+            </div>
+        }
+    </div>
 
     @* Preview Pane *@
     <div class="preview-pane" style="@PreviewPaneStyle()">
@@ -613,6 +618,20 @@
         {
             _data = null;
             _error = ex.Message;
+        }
+    }
+
+    // === Editor Pane Style ===
+
+    private string EditorPaneStyle()
+    {
+        if (_showEditor)
+        {
+            return "width: 20%; min-width: 300px; max-width: 400px; flex-shrink: 0; border-right: 1px solid #ccc; display: flex; flex-direction: column;";
+        }
+        else
+        {
+            return "width: 50px; flex-shrink: 0; background: #1e1e1e; border-right: 1px solid #333; display: flex; flex-direction: column; align-items: center; padding: 16px 0; position: relative;";
         }
     }
 
