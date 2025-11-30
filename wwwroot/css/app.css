@@ -38,8 +38,24 @@ html, body, #app {
     min-width: 60px !important;
     max-width: 60px !important;
     align-items: center;
-    padding: 16px 0;
+    padding: 0;
     position: relative;
+}
+
+/* Command Center icon buttons */
+.cc-icon-btn {
+    transition: all 0.2s ease;
+}
+
+.cc-icon-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+    filter: brightness(1.1);
+}
+
+.cc-icon-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3) !important;
 }
 
 /* Monaco editor container - CRITICAL for proper rendering */

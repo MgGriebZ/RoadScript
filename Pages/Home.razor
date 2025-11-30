@@ -20,11 +20,11 @@
             <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; flex-direction: column; gap: 2px;">
                     <span style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">RoadScript</span>
-                    <span style="font-size: 11px; color: #666; font-weight: 400;">Control Center</span>
+                    <span style="font-size: 11px; color: #666; font-weight: 400;">Command Center</span>
                 </div>
                 <button @onclick="ToggleControlPanel"
-                        title="Collapse Control Panel"
-                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                        title="Collapse to icon toolbar"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                     ◀
                 </button>
             </div>
@@ -86,21 +86,21 @@
 
                 @* View Modes Section *@
                 <div style="margin-bottom: 20px;">
-                    <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">View Modes</h3>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Quick Actions</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
                         @* Edit/Preview Toggle *@
                         <div>
-                            <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Display Mode</div>
                             <button @onclick="@(() => ToggleViewMode(null))"
+                                    title="@(_isPreviewMode ? "Switch to Edit Mode - Enable editing and properties panel" : "Switch to Preview Mode - Clean view for presentations")"
                                     style="@GetViewModeToggleStyle()">
                                 <div style="display: flex; width: 100%; height: 100%; border-radius: 6px; overflow: hidden;">
                                     <div style="@GetViewModeOptionStyle(false)">
-                                        <span style="font-size: 18px;">📝</span>
-                                        <span style="font-size: 11px; font-weight: 600;">Edit</span>
+                                        <span style="font-size: 24px;">✏️</span>
+                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Edit</span>
                                     </div>
                                     <div style="@GetViewModeOptionStyle(true)">
-                                        <span style="font-size: 18px;">👁️</span>
-                                        <span style="font-size: 11px; font-weight: 600;">Preview</span>
+                                        <span style="font-size: 24px;">👁️</span>
+                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Preview</span>
                                     </div>
                                 </div>
                             </button>
@@ -108,17 +108,17 @@
 
                         @* Lite/Vibe Toggle *@
                         <div>
-                            <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Theme Mode</div>
                             <button @onclick="@(() => ToggleTheme(null))"
+                                    title="@(_isVibeMode ? "Switch to Lite Theme - Light, professional appearance" : "Switch to Vibe Theme - Dark theme with vibrant neon accents")"
                                     style="@GetThemeModeToggleStyle()">
                                 <div style="display: flex; width: 100%; height: 100%; border-radius: 6px; overflow: hidden;">
                                     <div style="@GetThemeModeOptionStyle(false)">
-                                        <span style="font-size: 18px;">☀️</span>
-                                        <span style="font-size: 11px; font-weight: 600;">Lite</span>
+                                        <span style="font-size: 24px;">☀️</span>
+                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Lite</span>
                                     </div>
                                     <div style="@GetThemeModeOptionStyle(true)">
-                                        <span style="font-size: 18px;">🌙</span>
-                                        <span style="font-size: 11px; font-weight: 600;">Vibe</span>
+                                        <span style="font-size: 24px;">🌙</span>
+                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Vibe</span>
                                     </div>
                                 </div>
                             </button>
@@ -129,17 +129,23 @@
                 @* Export PNG Button *@
                 <div style="margin-bottom: 20px;">
                     <button @onclick="ExportAsPng"
-                            style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 12px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
-                        📷 Export as PNG
+                            title="Export your roadmap as a high-quality PNG image for sharing and presentations"
+                            style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 14px 16px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <span style="font-size: 22px;">📷</span>
+                        <span>Export PNG</span>
                     </button>
                 </div>
 
                 @* Advanced Section (Collapsible JSON Editor) *@
                 <div style="border-top: 1px solid #3a3a4e; padding-top: 16px; display: flex; flex-direction: column; flex: 1; min-height: 0;">
                     <button @onclick="ToggleAdvancedSection"
-                            style="width: 100%; background: #2a2a3e; color: #ccc; border: 1px solid #3a3a4e; padding: 10px 12px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
-                        <span>⚙️ Advanced JSON Editor</span>
-                        <span style="transform: rotate(@(_showAdvancedSection ? "180deg" : "0deg")); transition: transform 0.2s;">▼</span>
+                            title="@(_showAdvancedSection ? "Hide advanced JSON editor" : "Show advanced JSON editor - Edit roadmap data directly as JSON")"
+                            style="width: 100%; background: #2a2a3e; color: #ccc; border: 1px solid #3a3a4e; padding: 12px 14px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 8px;">
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 18px;">⚙️</span>
+                            <span>Advanced JSON</span>
+                        </span>
+                        <span style="transform: rotate(@(_showAdvancedSection ? "180deg" : "0deg")); transition: transform 0.2s; font-size: 12px;">▼</span>
                     </button>
 
                     @if (_showAdvancedSection)
@@ -148,16 +154,19 @@
                             <div style="background: #1e1e1e; padding: 8px 12px; border-radius: 4px; border: 1px solid #3a3a4e; display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-shrink: 0;">
                                 <button @onclick="UpdatePreview"
                                         disabled="@(!_editorReady)"
+                                        title="Apply JSON changes to the roadmap preview"
                                         style="@UpdateButtonStyle()">
                                     Update
                                 </button>
                                 <button @onclick="ResetToDefault"
                                         disabled="@(!_editorReady)"
+                                        title="Reset to default template"
                                         style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                                     Reset
                                 </button>
                                 <button @onclick="DownloadJson"
                                         disabled="@(!_editorReady)"
+                                        title="Download JSON file"
                                         style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                                     💾
                                 </button>
@@ -188,35 +197,126 @@
                             </div>
                         </div>
                     }
-                    else
-                    {
-                        @* Hidden editor - always rendered for initialization *@
-                        <div style="position: absolute; visibility: hidden; width: 0; height: 0; overflow: hidden;">
-                            <StandaloneCodeEditor @ref="_editor"
-                                                  Id="roadscript-json-editor"
-                                                  ConstructionOptions="EditorConstructionOptions"
-                                                  OnDidInit="EditorOnDidInit"
-                                                  CssClass="h-100" />
-                        </div>
-                    }
                 </div>
             </div>
         }
         else
         {
-            @* Collapsed Control Panel Button *@
-            <button @onclick="ToggleControlPanel"
-                    title="Expand Control Panel"
-                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s; writing-mode: vertical-rl; text-orientation: mixed; font-size: 11px; font-weight: 500; margin: 16px auto;">
-                Control ▶
-            </button>
-            @* Hidden editor - always rendered for initialization *@
-            <div style="position: absolute; visibility: hidden; width: 0; height: 0; overflow: hidden;">
-                <StandaloneCodeEditor @ref="_editor"
-                                      Id="roadscript-json-editor"
-                                      ConstructionOptions="EditorConstructionOptions"
-                                      OnDidInit="EditorOnDidInit"
-                                      CssClass="h-100" />
+            @* Collapsed Command Center - Icon Toolbar *@
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 12px 0; height: 100%;">
+                @* Expand Button *@
+                <button @onclick="ToggleControlPanel"
+                        title="Expand Command Center"
+                        class="cc-icon-btn"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 44px; height: 44px; border-radius: 8px; font-size: 22px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: center;">
+                    ▶
+                </button>
+
+                <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
+
+                @* Tab Indicators *@
+                @if (_sessionManager != null)
+                {
+                    <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
+                        @for (int i = 0; i < _sessionManager.Tabs.Count; i++)
+                        {
+                            var tab = _sessionManager.Tabs[i];
+                            var index = i;
+                            var isActive = tab.Id == _sessionManager.ActiveTabId;
+                            <button @onclick="@(() => HandleTabSwitch(tab.Id))"
+                                    title="@tab.Name"
+                                    style="@GetTabIndicatorStyle(isActive)">
+                                @(index + 1)
+                            </button>
+                        }
+
+                        @* Add new tab button (only show if under max) *@
+                        @if (_sessionManager.Tabs.Count < _sessionManager.MaxTabs)
+                        {
+                            <button @onclick="HandleTabAdd"
+                                    title="Add new roadmap tab"
+                                    class="cc-icon-btn"
+                                    style="background: linear-gradient(135deg, #f87171 0%, #dc2626 100%); color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(248, 113, 113, 0.4); display: flex; align-items: center; justify-content: center;">
+                                +
+                            </button>
+                        }
+
+                        @* Delete tab button (only show if more than 1 tab) *@
+                        @if (_sessionManager.Tabs.Count > 1 && _activeTab != null)
+                        {
+                            <button @onclick="HandleCollapsedTabDelete"
+                                    title="Delete current roadmap tab"
+                                    class="cc-icon-btn"
+                                    style="background: #3c3c3c; color: #f87171; border: 1px solid #555; width: 28px; height: 28px; border-radius: 50%; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; margin-top: 4px;">
+                                ×
+                            </button>
+                        }
+                    </div>
+                }
+
+                <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
+
+                @* Export PNG *@
+                <button @onclick="ExportAsPng"
+                        title="Export roadmap as PNG image"
+                        class="cc-icon-btn"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 24px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                    📷
+                </button>
+
+                @* Edit/Preview Toggle *@
+                <button @onclick="@(() => ToggleViewMode(null))"
+                        title="@(_isPreviewMode ? "Switch to Edit Mode" : "Switch to Preview Mode")"
+                        class="cc-icon-btn"
+                        style="@GetCollapsedToggleStyle(_isPreviewMode)">
+                    @(_isPreviewMode ? "👁️" : "✏️")
+                </button>
+
+                @* Lite/Vibe Toggle *@
+                <button @onclick="@(() => ToggleTheme(null))"
+                        title="@(_isVibeMode ? "Switch to Lite Theme" : "Switch to Vibe Theme")"
+                        class="cc-icon-btn"
+                        style="@GetCollapsedToggleStyle(_isVibeMode)">
+                    @(_isVibeMode ? "🌙" : "☀️")
+                </button>
+
+                @* Spacer to push templates to bottom *@
+                <div style="flex: 1;"></div>
+
+                @* Quick Templates - Show only in expanded state for simplicity *@
+                <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
+
+                @* Template Quick Access - Weekly *@
+                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Weekly7Days))"
+                        title="Apply Weekly Template (7 days)"
+                        class="cc-icon-btn"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                    📅
+                </button>
+
+                @* Bi-Weekly Sprint *@
+                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.BiWeeklySprint))"
+                        title="Apply Bi-Weekly Sprint Template"
+                        class="cc-icon-btn"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                    🔄
+                </button>
+
+                @* Quarterly *@
+                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Quarterly4Quarters))"
+                        title="Apply Quarterly Template (4 quarters)"
+                        class="cc-icon-btn"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                    📊
+                </button>
+
+                @* Yearly *@
+                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Yearly12Months))"
+                        title="Apply Yearly Template (12 months)"
+                        class="cc-icon-btn"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                    📆
+                </button>
             </div>
         }
     </div>
@@ -797,6 +897,11 @@
         _isPreviewMode = !_isPreviewMode;
         // Auto-hide properties panel in preview mode, show in edit mode
         _showProperties = !_isPreviewMode;
+        // Auto-hide Command Center only when entering preview mode (don't auto-show when exiting)
+        if (_isPreviewMode)
+        {
+            _showControlPanel = false;
+        }
         StateHasChanged();
     }
 
@@ -896,6 +1001,26 @@
         _isVibeMode
             ? "background: #2a2a3e; color: #d1d5db; border: 1px solid #3a3a4e; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
             : "background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;";
+
+    // === Collapsed Command Center Icon Styles ===
+
+    private string GetTabIndicatorStyle(bool isActive)
+    {
+        if (isActive)
+        {
+            return "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4); display: flex; align-items: center; justify-content: center;";
+        }
+        return "background: #2a2a3e; color: #888; border: 1px solid #3a3a4e; width: 32px; height: 32px; border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;";
+    }
+
+    private string GetCollapsedToggleStyle(bool isActive)
+    {
+        if (isActive)
+        {
+            return "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 44px; height: 44px; border-radius: 8px; font-size: 22px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: center;";
+        }
+        return "background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 22px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;";
+    }
 
     // === Style Helper Methods ===
 
@@ -1671,6 +1796,18 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private async Task HandleCollapsedTabDelete()
+    {
+        if (_activeTab == null || _sessionManager == null) return;
+
+        // Show confirmation dialog
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Delete tab '{_activeTab.Name}'?");
+        if (confirmed)
+        {
+            await HandleTabDelete(_activeTab.Id);
+        }
+    }
+
     private async Task HandleTabRename((string TabId, string NewName) args)
     {
         if (_sessionManager == null) return;
@@ -1758,11 +1895,11 @@
         var isActive = _isPreviewMode == isPreview;
         if (isActive)
         {
-            return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+            return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
                    "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 6px; " +
                    "transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);";
         }
-        return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+        return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
                "background: transparent; color: #666; transition: all 0.2s;";
     }
 
@@ -1774,11 +1911,11 @@
         var isActive = _isVibeMode == isVibe;
         if (isActive)
         {
-            return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+            return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
                    "background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); color: #fff; border-radius: 6px; " +
                    "transition: all 0.2s; box-shadow: 0 2px 8px rgba(118, 75, 162, 0.4);";
         }
-        return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+        return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
                "background: transparent; color: #666; transition: all 0.2s;";
     }
 
