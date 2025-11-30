@@ -429,8 +429,8 @@
                                             @{
                                                 var hasDetails = item.Details != null && item.Details.Count > 0;
                                             }
-                                            @* Header with full-width background bar *@
-                                            <div style="@ItemHeaderStyle(hasDetails, item.Span, !string.IsNullOrEmpty(item.StatusIcon), lane.Color)">
+                                            @* Header with full-width background bar - always visible *@
+                                            <div style="@ItemHeaderStyle(hasDetails, item.Span, lane.Color)">
                                                 @if (!string.IsNullOrEmpty(item.StatusIcon))
                                                 {
                                                     <Icon IconType="@item.StatusIcon"
@@ -1281,39 +1281,29 @@
             ? "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;"
             : "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;";
 
-    private string ItemHeaderStyle(bool hasDetails, double span, bool hasStatusIcon, string laneColor)
+    private string ItemHeaderStyle(bool hasDetails, double span, string laneColor)
     {
         var gap = hasDetails ? "8px" : "10px";
         var padding = hasDetails ? "8px 12px" : "10px 14px";
 
-        if (hasStatusIcon)
+        // Always apply full-width background bar matching lane color
+        if (_isVibeMode)
         {
-            // Full-width background bar matching lane color
-            if (_isVibeMode)
-            {
-                var background = $"background: linear-gradient(135deg, {laneColor}25 0%, {laneColor}15 100%);";
-                var border = $"border-bottom: 2px solid {laneColor}30;";
-                var shadow = $"box-shadow: 0 2px 8px {laneColor}15;";
-                var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
+            var background = $"background: linear-gradient(135deg, {laneColor}25 0%, {laneColor}15 100%);";
+            var border = $"border-bottom: 2px solid {laneColor}30;";
+            var shadow = $"box-shadow: 0 2px 8px {laneColor}15;";
+            var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
 
-                return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {shadow} {margin}";
-            }
-            else
-            {
-                var background = $"background: {laneColor}08;";
-                var border = $"border-bottom: 1px solid {laneColor}15;";
-                var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
-
-                return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {margin}";
-            }
+            return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {shadow} {margin}";
         }
+        else
+        {
+            var background = $"background: {laneColor}08;";
+            var border = $"border-bottom: 1px solid {laneColor}15;";
+            var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
 
-        if (hasDetails)
-            return $"display: flex; align-items: center; gap: {gap};";
-
-        // Dynamic indentation based on span width to prevent text clipping
-        var indent = span < 1.5 ? "4px" : "16px";
-        return $"display: flex; align-items: center; gap: {gap}; height: 100%; padding-left: {indent};";
+            return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {margin}";
+        }
     }
 
     private string ItemTitleStyle(bool hasDetails)
@@ -1429,9 +1419,23 @@
 
             if (updatedJson != null)
             {
+                // Store current selection to refresh it after parsing
+                var selectedPath = SelectionState.SelectedPath;
+                var selectedType = SelectionState.ElementType;
+
                 // Update current JSON and parse it
                 _currentJson = updatedJson;
                 ParseJson(updatedJson);
+
+                // Refresh selection with new object instance from parsed data
+                if (selectedPath != null && selectedType != null && _data != null)
+                {
+                    var refreshedElement = GetElementByPath(selectedPath, selectedType);
+                    if (refreshedElement != null)
+                    {
+                        SelectionState.Select(selectedPath, selectedType, refreshedElement);
+                    }
+                }
 
                 // Update editor if it's available
                 if (_editor != null)
@@ -1579,24 +1583,28 @@
                     break;
             }
 
-            // Serialize and update editor
+            // Serialize and update - parse JSON first, then update editor
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+            // Update current JSON and parse it FIRST
+            _currentJson = updatedJson;
+            ParseJson(updatedJson);
+
+            // Then update editor if available
             if (_editor != null)
             {
                 await _editor.SetValue(updatedJson);
-                _currentJson = updatedJson;
-                ParseJson(updatedJson);
-
-                // Save to storage
-                if (_error == null && _sessionManager != null && _activeTab != null)
-                {
-                    _activeTab.Data = _data;
-                    _activeTab.LastModified = DateTime.UtcNow;
-                    await StorageService.SaveSessionAsync(_sessionManager);
-                }
-
-                await InvokeAsync(StateHasChanged);
             }
+
+            // Save to storage
+            if (_error == null && _sessionManager != null && _activeTab != null)
+            {
+                _activeTab.Data = _data;
+                _activeTab.LastModified = DateTime.UtcNow;
+                await StorageService.SaveSessionAsync(_sessionManager);
+            }
+
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
@@ -1649,27 +1657,31 @@
                     break;
             }
 
-            // Serialize and update editor
+            // Serialize and update - parse JSON first, then update editor
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+            // Update current JSON and parse it FIRST
+            _currentJson = updatedJson;
+            ParseJson(updatedJson);
+
+            // Clear selection
+            SelectionState.Clear();
+
+            // Then update editor if available
             if (_editor != null)
             {
                 await _editor.SetValue(updatedJson);
-                _currentJson = updatedJson;
-                ParseJson(updatedJson);
-
-                // Clear selection
-                SelectionState.Clear();
-
-                // Save to storage
-                if (_error == null && _sessionManager != null && _activeTab != null)
-                {
-                    _activeTab.Data = _data;
-                    _activeTab.LastModified = DateTime.UtcNow;
-                    await StorageService.SaveSessionAsync(_sessionManager);
-                }
-
-                await InvokeAsync(StateHasChanged);
             }
+
+            // Save to storage
+            if (_error == null && _sessionManager != null && _activeTab != null)
+            {
+                _activeTab.Data = _data;
+                _activeTab.LastModified = DateTime.UtcNow;
+                await StorageService.SaveSessionAsync(_sessionManager);
+            }
+
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
@@ -1683,6 +1695,70 @@
         var pattern = $@"{arrayName}\[(\d+)\]";
         var match = System.Text.RegularExpressions.Regex.Match(jsonPath, pattern);
         return match.Success ? int.Parse(match.Groups[1].Value) : 0;
+    }
+
+    private object? GetElementByPath(string jsonPath, string elementType)
+    {
+        // Retrieve the element from _data based on the JSON path and type
+        if (_data == null) return null;
+
+        try
+        {
+            return elementType switch
+            {
+                "item" => GetItemByPath(jsonPath),
+                "lane" => GetLaneByPath(jsonPath),
+                "column" => GetColumnByPath(jsonPath),
+                "milestone" => GetMilestoneByPath(jsonPath),
+                "title" => _data,
+                _ => null
+            };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private Item? GetItemByPath(string jsonPath)
+    {
+        var laneIndex = ExtractIndexFromPath(jsonPath, "lanes");
+        var itemIndex = ExtractIndexFromPath(jsonPath, "items");
+        if (laneIndex < _data!.Lanes.Count && itemIndex < _data.Lanes[laneIndex].Items.Count)
+        {
+            return _data.Lanes[laneIndex].Items[itemIndex];
+        }
+        return null;
+    }
+
+    private Lane? GetLaneByPath(string jsonPath)
+    {
+        var laneIndex = ExtractIndexFromPath(jsonPath, "lanes");
+        if (laneIndex < _data!.Lanes.Count)
+        {
+            return _data.Lanes[laneIndex];
+        }
+        return null;
+    }
+
+    private Column? GetColumnByPath(string jsonPath)
+    {
+        var columnIndex = ExtractIndexFromPath(jsonPath, "columns");
+        if (columnIndex < _data!.Columns.Count)
+        {
+            return _data.Columns[columnIndex];
+        }
+        return null;
+    }
+
+    private Milestone? GetMilestoneByPath(string jsonPath)
+    {
+        var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
+        if (milestoneIndex < _data!.Milestones.Count)
+        {
+            return _data.Milestones[milestoneIndex];
+        }
+        return null;
     }
 
     private async Task HandleDuplicateElement((string ElementType, string JsonPath) args)
@@ -1756,24 +1832,28 @@
                     break;
             }
 
-            // Serialize and update editor
+            // Serialize and update - parse JSON first, then update editor
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+            // Update current JSON and parse it FIRST
+            _currentJson = updatedJson;
+            ParseJson(updatedJson);
+
+            // Then update editor if available
             if (_editor != null)
             {
                 await _editor.SetValue(updatedJson);
-                _currentJson = updatedJson;
-                ParseJson(updatedJson);
-
-                // Save to storage
-                if (_error == null && _sessionManager != null && _activeTab != null)
-                {
-                    _activeTab.Data = _data;
-                    _activeTab.LastModified = DateTime.UtcNow;
-                    await StorageService.SaveSessionAsync(_sessionManager);
-                }
-
-                await InvokeAsync(StateHasChanged);
             }
+
+            // Save to storage
+            if (_error == null && _sessionManager != null && _activeTab != null)
+            {
+                _activeTab.Data = _data;
+                _activeTab.LastModified = DateTime.UtcNow;
+                await StorageService.SaveSessionAsync(_sessionManager);
+            }
+
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
