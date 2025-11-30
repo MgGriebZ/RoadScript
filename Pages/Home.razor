@@ -57,6 +57,14 @@
                                 <span style="font-size: 10px; color: #888;">7 day columns</span>
                             </div>
                         </button>
+                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.BiWeeklySprint))"
+                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">🔄</span>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 600;">Bi-Weekly Sprint</span>
+                                <span style="font-size: 10px; color: #888;">10 day sprint cycle</span>
+                            </div>
+                        </button>
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Quarterly4Quarters))"
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 16px;">📊</span>
@@ -330,16 +338,16 @@
                                              @onclick:stopPropagation="@(!_isPreviewMode)"
                                              class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]")"
                                              style="@ItemStyle(item, lane.Color)">
-                                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                                <h4 style="@ItemTitleStyle()">
-                                                    @item.Title
-                                                </h4>
+                                            @{
+                                                var hasDetails = item.Details != null && item.Details.Count > 0;
+                                            }
+                                            <div style="@ItemHeaderStyle(hasDetails)">
                                                 @if (!string.IsNullOrEmpty(item.StatusIcon))
                                                 {
-                                                    <div style="@StatusIconBadgeStyle()">
+                                                    <div style="@StatusIconBadgeStyle(hasDetails)">
                                                         <Icon IconType="@item.StatusIcon"
                                                               Color="@(item.StatusColor ?? "#10b981")"
-                                                              Size="20"
+                                                              Size="@(hasDetails ? 20 : 24)"
                                                               DropShadow="true" />
                                                     </div>
                                                 }
@@ -350,6 +358,9 @@
                                                         ✓
                                                     </div>
                                                 }
+                                                <h4 style="@ItemTitleStyle(hasDetails)">
+                                                    @item.Title
+                                                </h4>
                                             </div>
                                             <ul style="margin: 0; padding: 0; list-style: none;">
                                                 @if (item.Details != null)
@@ -429,7 +440,8 @@
                   OnRemoveElement="HandleRemoveElement"
                   OnDuplicateElement="HandleDuplicateElement"
                   OnHidePanel="ToggleProperties"
-                  IsCollapsed="@(!_showProperties)" />
+                  IsCollapsed="@(!_showProperties)"
+                  ColumnCount="@(_data?.Columns.Count ?? 4)" />
 </div>
 
 @code {
@@ -1128,12 +1140,22 @@
             ? "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;"
             : "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;";
 
-    private string ItemTitleStyle() =>
-        _isVibeMode
-            ? "margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: #f3f4f6; line-height: 1.25;"
-            : "margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: #1f2937; line-height: 1.25;";
+    private string ItemHeaderStyle(bool hasDetails) =>
+        hasDetails
+            ? "display: flex; align-items: center; gap: 8px;"
+            : "display: flex; align-items: center; justify-content: center; gap: 10px; height: 100%;";
 
-    private string StatusIconBadgeStyle() =>
+    private string ItemTitleStyle(bool hasDetails)
+    {
+        var baseSize = hasDetails ? "22px" : "24px";
+        var margin = hasDetails ? "margin: 0 0 8px 0;" : "margin: 0;";
+
+        return _isVibeMode
+            ? $"{margin} font-size: {baseSize}; font-weight: 700; color: #f3f4f6; line-height: 1.25;"
+            : $"{margin} font-size: {baseSize}; font-weight: 700; color: #1f2937; line-height: 1.25;";
+    }
+
+    private string StatusIconBadgeStyle(bool hasDetails) =>
         "display: flex; align-items: center; justify-content: center; flex-shrink: 0;";
 
     private string CompletedBadgeStyle() =>
