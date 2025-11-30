@@ -14,8 +14,8 @@ html, body, #app {
     height: 100vh;
 }
 
-/* Editor pane styling */
-.editor-pane {
+/* Control Center panel styling */
+.control-panel {
     background: #1e1e1e;
     display: flex;
     flex-direction: column;
@@ -24,19 +24,19 @@ html, body, #app {
     transition: width 0.3s ease;
 }
 
-/* Editor pane expanded state */
-.editor-pane-expanded {
-    width: 20%;
-    min-width: 300px;
-    max-width: 400px;
-    border-right: 1px solid #ccc;
+/* Control panel expanded state */
+.control-panel-expanded {
+    width: 22%;
+    min-width: 320px;
+    max-width: 420px;
+    border-right: 1px solid #333;
 }
 
-/* Editor pane collapsed state */
-.editor-pane-collapsed {
-    width: 50px !important;
-    min-width: 50px !important;
-    max-width: 50px !important;
+/* Control panel collapsed state */
+.control-panel-collapsed {
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
     align-items: center;
     padding: 16px 0;
     position: relative;
@@ -153,7 +153,7 @@ html, body, #app {
 
 /* Print/export friendly styles */
 @media print {
-    .editor-pane {
+    .control-panel {
         display: none !important;
     }
 
@@ -284,18 +284,18 @@ html, body, #app {
 
     /* ========== PANEL WIDTHS ========== */
 
-    /* Editor panel - narrower for more preview (only when expanded) */
-    .editor-pane-expanded {
-        width: 17% !important;
-        min-width: 270px !important;
-        max-width: 320px !important;
+    /* Control Center panel - narrower for more preview (only when expanded) */
+    .control-panel-expanded {
+        width: 19% !important;
+        min-width: 290px !important;
+        max-width: 350px !important;
     }
 
     /* Keep collapsed state narrow on mid-size screens too */
-    .editor-pane-collapsed {
-        width: 50px !important;
-        min-width: 50px !important;
-        max-width: 50px !important;
+    .control-panel-collapsed {
+        width: 60px !important;
+        min-width: 60px !important;
+        max-width: 60px !important;
     }
 
     /* Property panel - narrower */
@@ -312,11 +312,11 @@ html, body, #app {
         flex-direction: column !important;
     }
 
-    .editor-pane {
+    .control-panel {
         width: 100% !important;
         height: 40% !important;
         border-right: none !important;
-        border-bottom: 1px solid #ccc !important;
+        border-bottom: 1px solid #333 !important;
     }
 
     .preview-pane {

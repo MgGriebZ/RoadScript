@@ -1,0 +1,187 @@
+@using RoadScript.Models
+
+@* TabBar Component - Manages up to 3 roadmap tabs *@
+
+<div style="@ContainerStyle()">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+        @for (int i = 0; i < Tabs.Count; i++)
+        {
+            var tab = Tabs[i];
+            var index = i;
+            <button type="button"
+                    @onclick="@(() => HandleTabSwitch(tab.Id))"
+                    style="@GetTabButtonStyle(tab.Id)">
+                @GetTabLabel(tab, index)
+            </button>
+        }
+
+        @if (Tabs.Count < MaxTabs)
+        {
+            <button type="button"
+                    @onclick="HandleAddTab"
+                    style="@AddTabButtonStyle()"
+                    title="Add new roadmap tab">
+                +
+            </button>
+        }
+    </div>
+
+    @if (ActiveTab != null)
+    {
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div style="flex: 1;">
+                @if (_editingTabName)
+                {
+                    <input type="text"
+                           @bind="_tempTabName"
+                           @onblur="HandleTabNameSave"
+                           @onkeydown="HandleTabNameKeyDown"
+                           @ref="_tabNameInput"
+                           style="@TabNameInputStyle()"
+                           placeholder="Tab name" />
+                }
+                else
+                {
+                    <div @onclick="HandleTabNameEdit"
+                         style="@TabNameDisplayStyle()"
+                         title="Click to rename">
+                        @ActiveTab.Name
+                    </div>
+                }
+            </div>
+
+            @if (Tabs.Count > 1)
+            {
+                <button type="button"
+                        @onclick="HandleDeleteTab"
+                        style="@DeleteTabButtonStyle()"
+                        title="Delete this tab">
+                    ×
+                </button>
+            }
+        </div>
+
+        <div style="font-size: 10px; color: #666; margin-bottom: 8px;">
+            Last modified: @ActiveTab.LastModified.ToLocalTime().ToString("MMM d, h:mm tt")
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<TabSession> Tabs { get; set; } = new();
+
+    [Parameter]
+    public string ActiveTabId { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<string> OnTabSwitch { get; set; }
+
+    [Parameter]
+    public EventCallback OnTabAdd { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnTabDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<(string TabId, string NewName)> OnTabRename { get; set; }
+
+    [Parameter]
+    public int MaxTabs { get; set; } = 3;
+
+    private TabSession? ActiveTab => Tabs.FirstOrDefault(t => t.Id == ActiveTabId);
+
+    private bool _editingTabName = false;
+    private string _tempTabName = "";
+    private ElementReference _tabNameInput;
+
+    private string ContainerStyle() =>
+        "background: #252538; padding: 12px; border-radius: 6px; border: 1px solid #3a3a4e;";
+
+    private string GetTabButtonStyle(string tabId)
+    {
+        var isActive = tabId == ActiveTabId;
+        var baseStyle = "padding: 8px 16px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1px solid ";
+
+        if (isActive)
+        {
+            return baseStyle + "#667eea; background: rgba(102, 126, 234, 0.2); color: #e0e7ff;";
+        }
+        return baseStyle + "#3a3a4e; background: #2a2a3e; color: #9ca3af;";
+    }
+
+    private string AddTabButtonStyle() =>
+        "width: 32px; height: 32px; border-radius: 4px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1px dashed #3a3a4e; background: transparent; color: #667eea;";
+
+    private string DeleteTabButtonStyle() =>
+        "width: 24px; height: 24px; border-radius: 4px; font-size: 18px; cursor: pointer; border: 1px solid #3a3a4e; background: #2a2a3e; color: #f87171; transition: all 0.2s;";
+
+    private string TabNameDisplayStyle() =>
+        "font-size: 14px; font-weight: 600; color: #e0e7ff; cursor: pointer; padding: 4px 8px; border-radius: 4px; background: rgba(102, 126, 234, 0.1); border: 1px solid transparent; transition: all 0.2s;";
+
+    private string TabNameInputStyle() =>
+        "width: 100%; font-size: 14px; font-weight: 600; color: #e0e7ff; padding: 4px 8px; border-radius: 4px; background: #2a2a3e; border: 1px solid #667eea;";
+
+    private string GetTabLabel(TabSession tab, int index) => $"Tab {index + 1}";
+
+    private async Task HandleTabSwitch(string tabId)
+    {
+        if (OnTabSwitch.HasDelegate)
+        {
+            await OnTabSwitch.InvokeAsync(tabId);
+        }
+    }
+
+    private async Task HandleAddTab()
+    {
+        if (OnTabAdd.HasDelegate)
+        {
+            await OnTabAdd.InvokeAsync();
+        }
+    }
+
+    private async Task HandleDeleteTab()
+    {
+        if (OnTabDelete.HasDelegate && ActiveTab != null)
+        {
+            var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Delete tab '{ActiveTab.Name}'?");
+            if (confirmed)
+            {
+                await OnTabDelete.InvokeAsync(ActiveTab.Id);
+            }
+        }
+    }
+
+    private void HandleTabNameEdit()
+    {
+        if (ActiveTab != null)
+        {
+            _tempTabName = ActiveTab.Name;
+            _editingTabName = true;
+        }
+    }
+
+    private async Task HandleTabNameSave()
+    {
+        if (ActiveTab != null && !string.IsNullOrWhiteSpace(_tempTabName) && OnTabRename.HasDelegate)
+        {
+            await OnTabRename.InvokeAsync((ActiveTab.Id, _tempTabName.Trim()));
+        }
+        _editingTabName = false;
+    }
+
+    private async Task HandleTabNameKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await HandleTabNameSave();
+        }
+        else if (e.Key == "Escape")
+        {
+            _editingTabName = false;
+        }
+    }
+
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; } = default!;
+}
