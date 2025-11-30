@@ -244,7 +244,7 @@
                         @* Delete tab button (only show if more than 1 tab) *@
                         @if (_sessionManager.Tabs.Count > 1 && _activeTab != null)
                         {
-                            <button @onclick="@(() => HandleTabDelete(_activeTab.Id))"
+                            <button @onclick="HandleCollapsedTabDelete"
                                     title="Delete current roadmap tab"
                                     class="cc-icon-btn"
                                     style="background: #3c3c3c; color: #f87171; border: 1px solid #555; width: 28px; height: 28px; border-radius: 50%; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; margin-top: 4px;">
@@ -1790,6 +1790,18 @@
         await StorageService.SaveSessionAsync(_sessionManager);
         SelectionState.Clear();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleCollapsedTabDelete()
+    {
+        if (_activeTab == null || _sessionManager == null) return;
+
+        // Show confirmation dialog
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Delete tab '{_activeTab.Name}'?");
+        if (confirmed)
+        {
+            await HandleTabDelete(_activeTab.Id);
+        }
     }
 
     private async Task HandleTabRename((string TabId, string NewName) args)
