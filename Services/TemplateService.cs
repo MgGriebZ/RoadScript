@@ -27,7 +27,7 @@ public class TemplateService
     public static string GetTemplateName(TemplateType type) => type switch
     {
         TemplateType.Weekly7Days => "Weekly (7 Days)",
-        TemplateType.BiWeeklySprint => "Bi-Weekly Sprint (10 Days)",
+        TemplateType.BiWeeklySprint => "Bi-Weekly Sprint (5 Days)",
         TemplateType.Monthly4Weeks => "Monthly (4 Weeks)",
         TemplateType.Quarterly4Quarters => "Quarterly (4 Quarters)",
         TemplateType.Yearly12Months => "Yearly (12 Months)",
@@ -110,19 +110,16 @@ public class TemplateService
     private static List<Column> GenerateBiWeeklySprintColumns(DateTime startDate)
     {
         var columns = new List<Column>();
-        var daysOfWeek = new[] { "Mon", "Tue", "Wed", "Thu", "Fri" };
+        var daysOfWeek = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
 
-        // Generate 10 columns for 2 weeks (Mon-Fri each week)
-        for (int i = 0; i < 10; i++)
+        // Generate 5 columns for Mon-Fri (representing both weeks via swim lanes)
+        for (int i = 0; i < 5; i++)
         {
             var date = startDate.AddDays(i);
-            var weekNum = (i / 5) + 1;
-            var dayOfWeek = daysOfWeek[i % 5];
-
             columns.Add(new Column
             {
-                Label = $"{dayOfWeek}",
-                Sub = $"W{weekNum} • {date:MMM d}"
+                Label = daysOfWeek[i],
+                Sub = date.ToString("MMM d")
             });
         }
 
@@ -255,14 +252,14 @@ public class TemplateService
             Height = 0.6,
             Items = new List<Item>
             {
-                new Item { Title = "Daily Sync", Start = 0, Span = 10, Spanning = true, StatusIcon = "clock", StatusColor = "#667eea" }
+                new Item { Title = "Daily Sync", Start = 0, Span = 5, Spanning = true, StatusIcon = "clock", StatusColor = "#667eea" }
             }
         });
 
-        // Sprint Ceremonies lane
+        // Odd Week Ceremonies lane (Week 1 of sprint cycle)
         data.Lanes.Add(new Lane
         {
-            Title = "Sprint Ceremonies",
+            Title = "Sprint Ceremonies (Odd Weeks)",
             Color = "#45B69C",
             Height = 1.0,
             Items = new List<Item>
@@ -270,8 +267,19 @@ public class TemplateService
                 new Item { Title = "Stakeholder Prioritization", Start = 1, Span = 1, StatusIcon = "star", StatusColor = "#D4A520" },
                 new Item { Title = "Refinement", Start = 2, Span = 1, StatusIcon = "search", StatusColor = "#9B7ED9" },
                 new Item { Title = "Sprint Planning", Start = 3, Span = 1, StatusIcon = "calendar", StatusColor = "#667eea" },
-                new Item { Title = "Sprint Review", Start = 4, Span = 1, StatusIcon = "flag", StatusColor = "#45B69C" },
-                new Item { Title = "Retro", Start = 9, Span = 1, StatusIcon = "target", StatusColor = "#D4A520" }
+                new Item { Title = "Sprint Review", Start = 4, Span = 1, StatusIcon = "flag", StatusColor = "#45B69C" }
+            }
+        });
+
+        // Even Week Ceremonies lane (Week 2 of sprint cycle)
+        data.Lanes.Add(new Lane
+        {
+            Title = "Sprint Ceremonies (Even Weeks)",
+            Color = "#D4A520",
+            Height = 0.8,
+            Items = new List<Item>
+            {
+                new Item { Title = "Retro", Start = 4, Span = 1, StatusIcon = "target", StatusColor = "#D4A520" }
             }
         });
 
@@ -280,22 +288,10 @@ public class TemplateService
         {
             Title = "Development",
             Color = "#4A90D9",
-            Height = 1.2,
+            Height = 1.1,
             Items = new List<Item>
             {
-                new Item { Title = "Sprint Execution", Start = 4, Span = 6, StatusIcon = "code", StatusColor = "#4A90D9" }
-            }
-        });
-
-        // Testing & QA lane
-        data.Lanes.Add(new Lane
-        {
-            Title = "Testing & QA",
-            Color = "#9B7ED9",
-            Height = 0.9,
-            Items = new List<Item>
-            {
-                new Item { Title = "QA Testing", Start = 6, Span = 4, StatusIcon = "wrench", StatusColor = "#9B7ED9" }
+                new Item { Title = "Sprint Execution", Start = 0, Span = 5, Spanning = true, StatusIcon = "code", StatusColor = "#4A90D9" }
             }
         });
     }

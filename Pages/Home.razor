@@ -62,7 +62,7 @@
                             <span style="font-size: 16px;">🔄</span>
                             <div style="display: flex; flex-direction: column;">
                                 <span style="font-weight: 600;">Bi-Weekly Sprint</span>
-                                <span style="font-size: 10px; color: #888;">10 day sprint cycle</span>
+                                <span style="font-size: 10px; color: #888;">2-week ceremony cycle</span>
                             </div>
                         </button>
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Quarterly4Quarters))"
@@ -341,7 +341,7 @@
                                             @{
                                                 var hasDetails = item.Details != null && item.Details.Count > 0;
                                             }
-                                            <div style="@ItemHeaderStyle(hasDetails)">
+                                            <div style="@ItemHeaderStyle(hasDetails, item.Span)">
                                                 @if (!string.IsNullOrEmpty(item.StatusIcon))
                                                 {
                                                     <div style="@StatusIconBadgeStyle(hasDetails)">
@@ -1140,10 +1140,15 @@
             ? "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;"
             : "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;";
 
-    private string ItemHeaderStyle(bool hasDetails) =>
-        hasDetails
-            ? "display: flex; align-items: center; gap: 8px;"
-            : "display: flex; align-items: center; gap: 10px; height: 100%; padding-left: 16px;";
+    private string ItemHeaderStyle(bool hasDetails, double span)
+    {
+        if (hasDetails)
+            return "display: flex; align-items: center; gap: 8px;";
+
+        // Dynamic indentation based on span width to prevent text clipping
+        var indent = span < 1.5 ? "4px" : "16px";
+        return $"display: flex; align-items: center; gap: 10px; height: 100%; padding-left: {indent};";
+    }
 
     private string ItemTitleStyle(bool hasDetails)
     {
