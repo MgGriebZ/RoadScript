@@ -115,11 +115,10 @@ public class TemplateService
         // Generate 5 columns for Mon-Fri (representing both weeks via swim lanes)
         for (int i = 0; i < 5; i++)
         {
-            var date = startDate.AddDays(i);
             columns.Add(new Column
             {
                 Label = daysOfWeek[i],
-                Sub = date.ToString("MMM d")
+                Sub = ""
             });
         }
 
@@ -201,7 +200,7 @@ public class TemplateService
                 break;
 
             case TemplateType.BiWeeklySprint:
-                data.Milestones.Add(new Milestone { Position = 50, Label = "Deployment Scheduling Cutoff Time", Icon = "triangle", Color = "#EF4444" });
+                data.Milestones.Add(new Milestone { Position = 50, Label = "Production Deployment Cutoff", Icon = "triangle", Color = "#EF4444" });
                 break;
 
             case TemplateType.Quarterly4Quarters:
