@@ -1,0 +1,101 @@
+@* Icon Component - Renders SVG icons for milestones and item status *@
+
+<div style="@ContainerStyle()">
+    @((MarkupString)GetIconSvg())
+</div>
+
+@code {
+    [Parameter]
+    public string IconType { get; set; } = "diamond";
+
+    [Parameter]
+    public string Color { get; set; } = "#667eea";
+
+    [Parameter]
+    public int Size { get; set; } = 24;
+
+    [Parameter]
+    public bool DropShadow { get; set; } = true;
+
+    private string ContainerStyle()
+    {
+        return $"display: inline-flex; align-items: center; justify-content: center; width: {Size}px; height: {Size}px;";
+    }
+
+    private string GetIconSvg()
+    {
+        var shadowFilter = DropShadow ? "filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));" : "";
+        var viewBoxSize = 24; // Standard viewBox
+
+        return IconType?.ToLower() switch
+        {
+            // === STATUS/STATE ICONS (8) ===
+            "check" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='none' stroke='{Color}' stroke-width='3' style='{shadowFilter}'><path d='M20 6L9 17l-5-5'/></svg>",
+
+            "pause" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M6 4h4v16H6V4zm8 0h4v16h-4V4z'/></svg>",
+
+            "x-mark" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg>",
+
+            "circle" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><circle cx='12' cy='12' r='10'/></svg>",
+
+            "half-circle" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10V2z'/></svg>",
+
+            "question" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z'/></svg>",
+
+            "triangle" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z'/></svg>",
+
+            "square" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><rect x='3' y='3' width='18' height='18'/></svg>",
+
+            // === MILESTONE ICONS (5) ===
+            "diamond" => $"<div style='width: {Size * 0.7}px; height: {Size * 0.7}px; background: {Color}; transform: rotate(45deg); {shadowFilter}'></div>",
+
+            "star" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>",
+
+            "flag" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/></svg>",
+
+            "target" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='none' stroke='{Color}' stroke-width='2' style='{shadowFilter}'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2' fill='{Color}'/></svg>",
+
+            "trophy" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z'/></svg>",
+
+            // === WORK TYPE ICONS (7) ===
+            "lightbulb" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z'/></svg>",
+
+            "bug" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M20 8h-2.81a5.985 5.985 0 0 0-1.82-1.96L17 4.41 15.59 3l-2.17 2.17a6.002 6.002 0 0 0-2.83 0L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z'/></svg>",
+
+            "code" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z'/></svg>",
+
+            "wrench" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z'/></svg>",
+
+            "gear" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z'/></svg>",
+
+            "chart" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z'/></svg>",
+
+            "search" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/></svg>",
+
+            // === PRIORITY/CATEGORY ICONS (5) ===
+            "heart" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/></svg>",
+
+            "bookmark" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z'/></svg>",
+
+            "rocket" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M9.19 6.35c-2.04 2.29-3.44 5.58-3.57 5.89L2 10.69l4.05-4.05c.47-.47 1.15-.68 1.81-.55L9.19 6.35zM11.17 17s3.74-1.55 5.89-3.7c5.4-5.4 4.5-9.62 4.21-10.57-.95-.3-5.17-1.19-10.57 4.21C8.55 9.09 7 12.83 7 12.83l4.17 4.17zm6.48-2.19c-2.29 2.04-5.58 3.44-5.89 3.57L13.31 22l4.05-4.05c.47-.47.68-1.15.55-1.81l-.26-1.33zM9 18c0 .83-.34 1.58-.88 2.12C6.94 21.3 2 22 2 22s.7-4.94 1.88-6.12C4.42 15.34 5.17 15 6 15c1.66 0 3 1.34 3 3z'/></svg>",
+
+            "lock" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z'/></svg>",
+
+            "globe" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z'/></svg>",
+
+            // === TIME/SCHEDULE ICONS (5) ===
+            "calendar" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z'/></svg>",
+
+            "clock" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z'/></svg>",
+
+            "arrow-right" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z'/></svg>",
+
+            "bell" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z'/></svg>",
+
+            "plus" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/></svg>",
+
+            // Default
+            _ => $"<div style='width: {Size * 0.7}px; height: {Size * 0.7}px; background: {Color}; transform: rotate(45deg); {shadowFilter}'></div>"
+        };
+    }
+}

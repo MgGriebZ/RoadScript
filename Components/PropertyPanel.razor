@@ -85,7 +85,8 @@ else
                                JsonPath="@SelectionState.SelectedPath"
                                OnChange="HandlePropertyChange"
                                OnAdd="HandleAddElement"
-                               OnRemove="HandleRemoveElement" />
+                               OnRemove="HandleRemoveElement"
+                               OnDuplicate="HandleDuplicateElement" />
             }
             else if (SelectionState.ElementType == "lane" && SelectionState.SelectedElement is Lane lane && SelectionState.SelectedPath != null)
             {
@@ -93,7 +94,8 @@ else
                                JsonPath="@SelectionState.SelectedPath"
                                OnChange="HandlePropertyChange"
                                OnAdd="HandleAddElement"
-                               OnRemove="HandleRemoveElement" />
+                               OnRemove="HandleRemoveElement"
+                               OnDuplicate="HandleDuplicateElement" />
             }
             else if (SelectionState.ElementType == "column" && SelectionState.SelectedElement is Column column && SelectionState.SelectedPath != null)
             {
@@ -101,7 +103,8 @@ else
                                  JsonPath="@SelectionState.SelectedPath"
                                  OnChange="HandlePropertyChange"
                                  OnAdd="HandleAddElement"
-                                 OnRemove="HandleRemoveElement" />
+                                 OnRemove="HandleRemoveElement"
+                                 OnDuplicate="HandleDuplicateElement" />
             }
             else if (SelectionState.ElementType == "milestone" && SelectionState.SelectedElement is Milestone milestone && SelectionState.SelectedPath != null)
             {
@@ -109,7 +112,8 @@ else
                                     JsonPath="@SelectionState.SelectedPath"
                                     OnChange="HandlePropertyChange"
                                     OnAdd="HandleAddElement"
-                                    OnRemove="HandleRemoveElement" />
+                                    OnRemove="HandleRemoveElement"
+                                    OnDuplicate="HandleDuplicateElement" />
             }
             else if (SelectionState.ElementType == "title" && SelectionState.SelectedElement is RoadmapData roadmapData && SelectionState.SelectedPath != null)
             {
@@ -180,6 +184,9 @@ else
 
     [Parameter]
     public EventCallback<(string ElementType, string JsonPath)> OnRemoveElement { get; set; }
+
+    [Parameter]
+    public EventCallback<(string ElementType, string JsonPath)> OnDuplicateElement { get; set; }
 
     [Parameter]
     public EventCallback OnHidePanel { get; set; }
@@ -265,6 +272,14 @@ else
         if (OnRemoveElement.HasDelegate && SelectionState.SelectedPath != null)
         {
             await OnRemoveElement.InvokeAsync((elementType, SelectionState.SelectedPath));
+        }
+    }
+
+    private async Task HandleDuplicateElement(string elementType)
+    {
+        if (OnDuplicateElement.HasDelegate && SelectionState.SelectedPath != null)
+        {
+            await OnDuplicateElement.InvokeAsync((elementType, SelectionState.SelectedPath));
         }
     }
 

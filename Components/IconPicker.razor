@@ -1,0 +1,141 @@
+@using RoadScript.Models
+
+@* IconPicker Component - Reusable icon selector with categories *@
+
+<div style="display: flex; flex-direction: column; gap: 12px;">
+    @if (ShowCategories)
+    {
+        <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+            @foreach (var category in _categories)
+            {
+                <button type="button"
+                        @onclick="@(() => _selectedCategory = category)"
+                        style="@GetCategoryButtonStyle(category)">
+                    @category
+                </button>
+            }
+        </div>
+    }
+
+    <div style="display: grid; grid-template-columns: repeat(@ColumnsPerRow, 1fr); gap: 8px;">
+        @foreach (var icon in GetFilteredIcons())
+        {
+            <button type="button"
+                    @onclick="@(() => HandleIconSelect(icon.Value))"
+                    style="@GetIconButtonStyle(icon.Value)"
+                    title="@icon.Name">
+                <Icon IconType="@icon.Value"
+                      Color="@(SelectedIcon == icon.Value ? "#667eea" : Color)"
+                      Size="20"
+                      DropShadow="false" />
+                <span style="font-size: 10px; margin-top: 4px; line-height: 1.2;">@icon.Name</span>
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string SelectedIcon { get; set; } = "";
+
+    [Parameter]
+    public string Color { get; set; } = "#667eea";
+
+    [Parameter]
+    public EventCallback<string> OnIconSelected { get; set; }
+
+    [Parameter]
+    public bool ShowCategories { get; set; } = true;
+
+    [Parameter]
+    public int ColumnsPerRow { get; set; } = 5;
+
+    private string _selectedCategory = "All";
+    private readonly string[] _categories = { "All", "Status", "Milestone", "Work", "Priority", "Time" };
+
+    private readonly List<(string Name, string Value, string Category)> _availableIcons = new()
+    {
+        // Status/State (8 icons)
+        ("Check", "check", "Status"),
+        ("Pause", "pause", "Status"),
+        ("X-Mark", "x-mark", "Status"),
+        ("Circle", "circle", "Status"),
+        ("Half", "half-circle", "Status"),
+        ("Question", "question", "Status"),
+        ("Warning", "triangle", "Status"),
+        ("Square", "square", "Status"),
+
+        // Milestones (5 icons)
+        ("Diamond", "diamond", "Milestone"),
+        ("Star", "star", "Milestone"),
+        ("Flag", "flag", "Milestone"),
+        ("Target", "target", "Milestone"),
+        ("Trophy", "trophy", "Milestone"),
+
+        // Work Type (7 icons)
+        ("Idea", "lightbulb", "Work"),
+        ("Bug", "bug", "Work"),
+        ("Code", "code", "Work"),
+        ("Wrench", "wrench", "Work"),
+        ("Gear", "gear", "Work"),
+        ("Chart", "chart", "Work"),
+        ("Search", "search", "Work"),
+
+        // Priority/Category (5 icons)
+        ("Heart", "heart", "Priority"),
+        ("Bookmark", "bookmark", "Priority"),
+        ("Rocket", "rocket", "Priority"),
+        ("Lock", "lock", "Priority"),
+        ("Globe", "globe", "Priority"),
+
+        // Time/Schedule (5 icons)
+        ("Calendar", "calendar", "Time"),
+        ("Clock", "clock", "Time"),
+        ("Arrow", "arrow-right", "Time"),
+        ("Bell", "bell", "Time"),
+        ("Plus", "plus", "Time")
+    };
+
+    private List<(string Name, string Value, string Category)> GetFilteredIcons()
+    {
+        if (_selectedCategory == "All" || !ShowCategories)
+        {
+            return _availableIcons;
+        }
+
+        return _availableIcons.Where(i => i.Category == _selectedCategory).ToList();
+    }
+
+    private async Task HandleIconSelect(string iconValue)
+    {
+        SelectedIcon = iconValue;
+        if (OnIconSelected.HasDelegate)
+        {
+            await OnIconSelected.InvokeAsync(iconValue);
+        }
+    }
+
+    private string GetCategoryButtonStyle(string category)
+    {
+        var isSelected = _selectedCategory == category;
+        var baseStyle = "padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1px solid ";
+
+        if (isSelected)
+        {
+            return baseStyle + "#667eea; background: rgba(102, 126, 234, 0.15); color: #e0e7ff;";
+        }
+        return baseStyle + "#3a3a4e; background: #2a2a3e; color: #9ca3af;";
+    }
+
+    private string GetIconButtonStyle(string iconValue)
+    {
+        var isSelected = SelectedIcon == iconValue;
+        var baseStyle = "display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: 2px solid ";
+
+        if (isSelected)
+        {
+            return baseStyle + "#667eea; background: rgba(102, 126, 234, 0.15); color: #e0e7ff;";
+        }
+        return baseStyle + "#3a3a4e; background: #2a2a3e; color: #9ca3af;";
+    }
+}

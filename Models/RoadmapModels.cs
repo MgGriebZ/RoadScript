@@ -58,6 +58,10 @@ public class Lane
     [JsonPropertyName("color")]
     public string Color { get; set; } = "#cccccc";
 
+    // NEW: Variable height support (1.0 = default, 2.0 = double, 0.5 = half)
+    [JsonPropertyName("height")]
+    public double? Height { get; set; }
+
     [JsonPropertyName("history")]
     public History? History { get; set; }  // Nullable - not all lanes need history
 
@@ -94,8 +98,16 @@ public class Item
     [JsonPropertyName("spanning")]
     public bool Spanning { get; set; }  // true = dashed border (ongoing work)
 
+    // DEPRECATED (kept for backward compatibility) - use statusIcon instead
     [JsonPropertyName("completed")]
     public bool Completed { get; set; }  // true = item is completed (shows checkmark badge)
+
+    // NEW: Icon-based status system
+    [JsonPropertyName("statusIcon")]
+    public string? StatusIcon { get; set; }  // e.g., "check", "pause", "x-mark"
+
+    [JsonPropertyName("statusColor")]
+    public string? StatusColor { get; set; }  // e.g., "#10b981"
 
     [JsonPropertyName("details")]
     public List<Detail>? Details { get; set; }  // Nullable - items can have no details
@@ -108,4 +120,33 @@ public class Detail
 
     [JsonPropertyName("subs")]
     public List<string>? Subs { get; set; }  // Nullable - not all details have sub-bullets
+}
+
+// Multi-Tab Session Management Models
+
+public class TabSession
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "Untitled Roadmap";
+
+    [JsonPropertyName("lastModified")]
+    public DateTime LastModified { get; set; } = DateTime.UtcNow;
+
+    [JsonPropertyName("data")]
+    public RoadmapData Data { get; set; } = new();
+}
+
+public class SessionManager
+{
+    [JsonPropertyName("activeTabId")]
+    public string ActiveTabId { get; set; } = "";
+
+    [JsonPropertyName("tabs")]
+    public List<TabSession> Tabs { get; set; } = new();
+
+    [JsonPropertyName("maxTabs")]
+    public int MaxTabs { get; set; } = 5;
 }

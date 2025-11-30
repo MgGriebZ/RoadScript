@@ -6,6 +6,7 @@
 @inject IJSRuntime JSRuntime
 @inject EditorInteropService EditorInterop
 @inject SelectionState SelectionState
+@inject StorageService StorageService
 @implements IDisposable
 
 <div class="container-fluid vh-100 d-flex p-0">
@@ -114,7 +115,7 @@
                             var laneIndex = li;
                             <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"lanes[{laneIndex}]", "lane", lane))"
                                  class="@GetElementClass($"lanes[{laneIndex}]")"
-                                 style="@LaneLabelWrapStyle()">
+                                 style="@LaneLabelWrapStyle(lane)">
                                 <div style="display: flex; align-items: flex-start; gap: 12px;">
                                     <div style="@LaneBarStyle(lane.Color)"></div>
                                     <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -167,7 +168,10 @@
                                      class="@GetElementClass($"milestones[{msIndex}]")"
                                      style="@MilestoneStyle(milestone.Position)">
                                     <div style="@MilestoneContainerStyle()">
-                                        @((MarkupString)GetMilestoneIcon(milestone.Icon, milestone.Color))
+                                        <Icon IconType="@(milestone.Icon ?? "diamond")"
+                                              Color="@milestone.Color"
+                                              Size="24"
+                                              DropShadow="true" />
                                         <span style="@MilestoneLabelStyle(milestone.Color)">
                                             @milestone.Label
                                         </span>
@@ -191,7 +195,7 @@
                             {
                                 var lane = _data.Lanes[li];
                                 var laneIdx = li;
-                                <div style="@LaneRowStyle(li)">
+                                <div style="@LaneRowStyle(li, lane)">
                                     @for (int ii = 0; ii < lane.Items.Count; ii++)
                                     {
                                         var item = lane.Items[ii];
@@ -204,8 +208,18 @@
                                                 <h4 style="@ItemTitleStyle()">
                                                     @item.Title
                                                 </h4>
-                                                @if (item.Completed)
+                                                @if (!string.IsNullOrEmpty(item.StatusIcon))
                                                 {
+                                                    <div style="@StatusIconBadgeStyle()">
+                                                        <Icon IconType="@item.StatusIcon"
+                                                              Color="@(item.StatusColor ?? "#10b981")"
+                                                              Size="20"
+                                                              DropShadow="true" />
+                                                    </div>
+                                                }
+                                                else if (item.Completed)
+                                                {
+                                                    @* Backward compatibility: show checkmark for old items *@
                                                     <div style="@CompletedBadgeStyle()">
                                                         ✓
                                                     </div>
@@ -259,6 +273,7 @@
     <PropertyPanel OnPropertyChange="HandlePropertyChange"
                   OnAddElement="HandleAddElement"
                   OnRemoveElement="HandleRemoveElement"
+                  OnDuplicateElement="HandleDuplicateElement"
                   OnHidePanel="ToggleProperties"
                   IsVibeMode="@_isVibeMode"
                   OnToggleTheme="ToggleTheme"
@@ -282,8 +297,9 @@
     private bool _showProperties = true;  // Show/hide properties panel - open by default
     private DotNetObjectReference<Home>? _dotNetRef;
 
-    // LocalStorage key for persisting roadmap data
-    private const string LocalStorageKey = "roadscript_roadmap_data";
+    // Multi-tab session management
+    private SessionManager? _sessionManager;
+    private TabSession? _activeTab;
 
     // Default JSON template - Generic boilerplate for easy customization
     private const string DefaultJson = @"{
@@ -429,14 +445,14 @@
     {
         _editorReady = true;
 
-        // Try to load from localStorage first
-        var savedJson = await LoadFromLocalStorage();
-        _currentJson = savedJson ?? DefaultJson;
+        // Load or initialize session
+        await InitializeSessionAsync();
 
-        // Set editor value to saved or default JSON
-        if (_editor != null && savedJson != null)
+        // Set editor value
+        if (_editor != null && _activeTab != null)
         {
-            await _editor.SetValue(savedJson);
+            _currentJson = JsonSerializer.Serialize(_activeTab.Data, new JsonSerializerOptions { WriteIndented = true });
+            await _editor.SetValue(_currentJson);
         }
 
         ParseJson(_currentJson);
@@ -446,10 +462,40 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Try to load from localStorage first
-        var savedJson = await LoadFromLocalStorage();
-        _currentJson = savedJson ?? DefaultJson;
-        ParseJson(_currentJson);
+        // Load or initialize session
+        await InitializeSessionAsync();
+    }
+
+    private async Task InitializeSessionAsync()
+    {
+        // Load session from storage
+        _sessionManager = await StorageService.LoadSessionAsync();
+
+        if (_sessionManager == null || _sessionManager.Tabs.Count == 0)
+        {
+            // Create default session with one tab
+            _sessionManager = new SessionManager
+            {
+                ActiveTabId = "tab-1",
+                Tabs = new List<TabSession>()
+            };
+
+            var defaultData = JsonSerializer.Deserialize<RoadmapData>(DefaultJson, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true
+            });
+
+            StorageService.AddTab(_sessionManager, "Product Roadmap", defaultData);
+        }
+
+        // Get active tab
+        _activeTab = StorageService.GetActiveTab(_sessionManager);
+        if (_activeTab != null)
+        {
+            _data = _activeTab.Data;
+            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -529,10 +575,12 @@
             ParseJson(value);
             _lastUpdateSuccess = _error == null;
 
-            // Save to localStorage if parsing was successful
-            if (_error == null)
+            // Save to storage if parsing was successful
+            if (_error == null && _sessionManager != null && _activeTab != null)
             {
-                await SaveToLocalStorage(value);
+                _activeTab.Data = _data!;
+                _activeTab.LastModified = DateTime.UtcNow;
+                await StorageService.SaveSessionAsync(_sessionManager);
             }
         }
         catch (Exception ex)
@@ -558,8 +606,9 @@
             ParseJson(DefaultJson);
             _lastUpdateSuccess = true;
 
-            // Clear localStorage when resetting to default
-            await ClearLocalStorage();
+            // Clear storage and create fresh session
+            await StorageService.ClearStorageAsync();
+            await InitializeSessionAsync();
         }
         catch (Exception ex)
         {
@@ -723,10 +772,13 @@
               "padding: 22px 30px; border: 1px solid #d1d5db; position: relative;";
     }
 
-    private string LaneLabelWrapStyle()
+    private string LaneLabelWrapStyle(Lane lane)
     {
         var laneCount = _data?.Lanes.Count ?? 1;
-        return $"height: {100.0 / laneCount}%; display: flex; align-items: center;";
+        var totalHeight = _data?.Lanes.Sum(l => l.Height ?? 1.0) ?? laneCount;
+        var laneHeight = lane.Height ?? 1.0;
+        var heightPercent = (laneHeight / totalHeight) * 100.0;
+        return $"height: {heightPercent}%; display: flex; align-items: center;";
     }
 
     private string LaneBarStyle(string color)
@@ -798,18 +850,6 @@
             ? $"font-size: 15px; font-weight: 700; line-height: 1.3; color: #e0e7ff; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,0.5); background: rgba(30, 30, 46, 0.95); padding: 4px 10px; border-radius: 4px; border-left: 3px solid {color};"
             : $"font-size: 15px; font-weight: 700; line-height: 1.3; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.98); padding: 4px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 3px solid {color};";
 
-    private string GetMilestoneIcon(string? iconType, string color)
-    {
-        return iconType?.ToLower() switch
-        {
-            "star" => $"<svg width='24' height='24' viewBox='0 0 24 24' fill='{color}' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>",
-            "flag" => $"<svg width='24' height='24' viewBox='0 0 24 24' fill='{color}' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><path d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/></svg>",
-            "check" => $"<svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='{color}' stroke-width='3' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><path d='M20 6L9 17l-5-5'/></svg>",
-            "circle" => $"<svg width='20' height='20' viewBox='0 0 24 24' fill='{color}' style='filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));'><circle cx='12' cy='12' r='10'/></svg>",
-            "diamond" => $"<div style='width: 16px; height: 16px; background: {color}; transform: rotate(45deg); box-shadow: 0 2px 4px rgba(0,0,0,0.2);'></div>",
-            _ => $"<div style='width: 16px; height: 16px; background: {color}; transform: rotate(45deg); box-shadow: 0 2px 4px rgba(0,0,0,0.2);'></div>" // Default diamond
-        };
-    }
 
     private string GridColumnStyle(int index)
     {
@@ -829,12 +869,15 @@
         }
     }
 
-    private string LaneRowStyle(int index)
+    private string LaneRowStyle(int index, Lane lane)
     {
         var laneCount = _data?.Lanes.Count ?? 1;
+        var totalHeight = _data?.Lanes.Sum(l => l.Height ?? 1.0) ?? laneCount;
+        var laneHeight = lane.Height ?? 1.0;
+        var heightPercent = (laneHeight / totalHeight) * 100.0;
         var borderColor = _isVibeMode ? "#3a3a4e" : "#e5e7eb";
         var border = index < laneCount - 1 ? $"border-bottom: 1px solid {borderColor};" : "";
-        return $"height: {100.0 / laneCount}%; position: relative; {border}";
+        return $"height: {heightPercent}%; position: relative; {border}";
     }
 
     private string ItemStyle(Item item, string color)
@@ -943,6 +986,9 @@
             ? "margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: #f3f4f6; line-height: 1.25;"
             : "margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: #1f2937; line-height: 1.25;";
 
+    private string StatusIconBadgeStyle() =>
+        "display: flex; align-items: center; justify-content: center; flex-shrink: 0;";
+
     private string CompletedBadgeStyle() =>
         _isVibeMode
             ? "width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); flex-shrink: 0;"
@@ -1050,10 +1096,12 @@
                 _currentJson = updatedJson;
                 ParseJson(updatedJson);
 
-                // Save to localStorage after property change
-                if (_error == null)
+                // Save to storage after property change
+                if (_error == null && _sessionManager != null && _activeTab != null)
                 {
-                    await SaveToLocalStorage(updatedJson);
+                    _activeTab.Data = _data!;
+                    _activeTab.LastModified = DateTime.UtcNow;
+                    await StorageService.SaveSessionAsync(_sessionManager);
                 }
 
                 await InvokeAsync(StateHasChanged);
@@ -1098,9 +1146,23 @@
 
                 case "item":
                     // Add a new item to the current lane
-                    var itemPath = jsonPath.Split(".items[")[0];
-                    var itemLaneIndex = ExtractIndexFromPath(itemPath, "lanes");
-                    var itemIndex = ExtractIndexFromPath(jsonPath, "items");
+                    int itemLaneIndex;
+                    int itemIndex;
+
+                    if (jsonPath.Contains(".items["))
+                    {
+                        // Adding from another item
+                        var itemPath = jsonPath.Split(".items[")[0];
+                        itemLaneIndex = ExtractIndexFromPath(itemPath, "lanes");
+                        itemIndex = ExtractIndexFromPath(jsonPath, "items");
+                    }
+                    else
+                    {
+                        // Adding from lane (no items in path)
+                        itemLaneIndex = ExtractIndexFromPath(jsonPath, "lanes");
+                        itemIndex = -1; // Add at the end
+                    }
+
                     var newItem = new Item
                     {
                         Title = "New Item",
@@ -1108,7 +1170,15 @@
                         Span = 1,
                         Details = new List<Detail>()
                     };
-                    _data.Lanes[itemLaneIndex].Items.Insert(itemIndex + 1, newItem);
+
+                    if (itemIndex >= 0)
+                    {
+                        _data.Lanes[itemLaneIndex].Items.Insert(itemIndex + 1, newItem);
+                    }
+                    else
+                    {
+                        _data.Lanes[itemLaneIndex].Items.Add(newItem);
+                    }
                     break;
 
                 case "column":
@@ -1144,10 +1214,12 @@
                 _currentJson = updatedJson;
                 ParseJson(updatedJson);
 
-                // Save to localStorage
-                if (_error == null)
+                // Save to storage
+                if (_error == null && _sessionManager != null && _activeTab != null)
                 {
-                    await SaveToLocalStorage(updatedJson);
+                    _activeTab.Data = _data;
+                    _activeTab.LastModified = DateTime.UtcNow;
+                    await StorageService.SaveSessionAsync(_sessionManager);
                 }
 
                 await InvokeAsync(StateHasChanged);
@@ -1215,10 +1287,12 @@
                 // Clear selection
                 SelectionState.Clear();
 
-                // Save to localStorage
-                if (_error == null)
+                // Save to storage
+                if (_error == null && _sessionManager != null && _activeTab != null)
                 {
-                    await SaveToLocalStorage(updatedJson);
+                    _activeTab.Data = _data;
+                    _activeTab.LastModified = DateTime.UtcNow;
+                    await StorageService.SaveSessionAsync(_sessionManager);
                 }
 
                 await InvokeAsync(StateHasChanged);
@@ -1238,43 +1312,100 @@
         return match.Success ? int.Parse(match.Groups[1].Value) : 0;
     }
 
-    // === LocalStorage Methods ===
-
-    private async Task<string?> LoadFromLocalStorage()
+    private async Task HandleDuplicateElement((string ElementType, string JsonPath) args)
     {
         try
         {
-            var result = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", LocalStorageKey);
-            return result;
+            if (_data == null) return;
+
+            var (elementType, jsonPath) = args;
+
+            switch (elementType)
+            {
+                case "column":
+                    var columnIndex = ExtractIndexFromPath(jsonPath, "columns");
+                    if (columnIndex < _data.Columns.Count)
+                    {
+                        var originalColumn = _data.Columns[columnIndex];
+                        var duplicatedColumn = StorageService.DeepClone(originalColumn);
+                        duplicatedColumn.Label = $"{originalColumn.Label} (Copy)";
+                        _data.Columns.Insert(columnIndex + 1, duplicatedColumn);
+                    }
+                    break;
+
+                case "lane":
+                    var laneIndex = ExtractIndexFromPath(jsonPath, "lanes");
+                    if (laneIndex < _data.Lanes.Count)
+                    {
+                        var originalLane = _data.Lanes[laneIndex];
+                        var duplicatedLane = StorageService.DeepClone(originalLane);
+                        duplicatedLane.Title = $"{originalLane.Title} (Copy)";
+                        _data.Lanes.Insert(laneIndex + 1, duplicatedLane);
+                    }
+                    break;
+
+                case "item":
+                    int itemLaneIndex;
+                    int itemIndex;
+
+                    if (jsonPath.Contains(".items["))
+                    {
+                        var itemPath = jsonPath.Split(".items[")[0];
+                        itemLaneIndex = ExtractIndexFromPath(itemPath, "lanes");
+                        itemIndex = ExtractIndexFromPath(jsonPath, "items");
+                    }
+                    else
+                    {
+                        itemLaneIndex = ExtractIndexFromPath(jsonPath, "lanes");
+                        itemIndex = -1;
+                    }
+
+                    if (itemLaneIndex < _data.Lanes.Count && itemIndex >= 0 && itemIndex < _data.Lanes[itemLaneIndex].Items.Count)
+                    {
+                        var originalItem = _data.Lanes[itemLaneIndex].Items[itemIndex];
+                        var duplicatedItem = StorageService.DeepClone(originalItem);
+                        duplicatedItem.Title = $"{originalItem.Title} (Copy)";
+                        _data.Lanes[itemLaneIndex].Items.Insert(itemIndex + 1, duplicatedItem);
+                    }
+                    break;
+
+                case "milestone":
+                    var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
+                    if (milestoneIndex < _data.Milestones.Count)
+                    {
+                        var originalMilestone = _data.Milestones[milestoneIndex];
+                        var duplicatedMilestone = StorageService.DeepClone(originalMilestone);
+                        duplicatedMilestone.Label = $"{originalMilestone.Label} (Copy)";
+                        // Offset position by 5% so it doesn't overlap
+                        duplicatedMilestone.Position = Math.Min(originalMilestone.Position + 5, 100);
+                        _data.Milestones.Insert(milestoneIndex + 1, duplicatedMilestone);
+                    }
+                    break;
+            }
+
+            // Serialize and update editor
+            var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+            if (_editor != null)
+            {
+                await _editor.SetValue(updatedJson);
+                _currentJson = updatedJson;
+                ParseJson(updatedJson);
+
+                // Save to storage
+                if (_error == null && _sessionManager != null && _activeTab != null)
+                {
+                    _activeTab.Data = _data;
+                    _activeTab.LastModified = DateTime.UtcNow;
+                    await StorageService.SaveSessionAsync(_sessionManager);
+                }
+
+                await InvokeAsync(StateHasChanged);
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading from localStorage: {ex.Message}");
-            return null;
+            Console.WriteLine($"Error duplicating element: {ex.Message}");
         }
     }
 
-    private async Task SaveToLocalStorage(string json)
-    {
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem", LocalStorageKey, json);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error saving to localStorage: {ex.Message}");
-        }
-    }
-
-    private async Task ClearLocalStorage()
-    {
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", LocalStorageKey);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error clearing localStorage: {ex.Message}");
-        }
-    }
 }

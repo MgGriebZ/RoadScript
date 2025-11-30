@@ -57,13 +57,45 @@
     </div>
 
     <div class="form-group">
-        <label style="display: flex; align-items: center; cursor: pointer;">
-            <input type="checkbox"
-                   checked="@Item.Completed"
-                   @onchange="@(e => OnChange.InvokeAsync(("completed", (bool)(e.Value ?? false))))"
-                   style="margin-right: 8px; cursor: pointer;" />
-            Completed (shows checkmark badge)
-        </label>
+        <label style="margin-bottom: 12px;">Status Icon</label>
+        <div style="background: #252538; padding: 12px; border-radius: 6px; border: 1px solid #3a3a4e;">
+            @if (!string.IsNullOrEmpty(Item.StatusIcon))
+            {
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <Icon IconType="@Item.StatusIcon"
+                          Color="@(Item.StatusColor ?? "#667eea")"
+                          Size="24"
+                          DropShadow="true" />
+                    <span style="color: #d1d5db;">@Item.StatusIcon</span>
+                    <button @onclick="ClearStatusIcon" type="button" class="btn-remove" style="margin-left: auto;">Clear</button>
+                </div>
+            }
+
+            <IconPicker SelectedIcon="@(Item.StatusIcon ?? "")"
+                       Color="@(Item.StatusColor ?? "#667eea")"
+                       OnIconSelected="HandleStatusIconSelected"
+                       ShowCategories="true"
+                       ColumnsPerRow="5" />
+
+            <div style="margin-top: 12px;">
+                <label style="font-size: 11px; margin-bottom: 4px;">Status Color</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="color"
+                           value="@(Item.StatusColor ?? "#667eea")"
+                           @onchange="@(e => OnChange.InvokeAsync(("statusColor", e.Value)))"
+                           style="width: 40px; height: 32px; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; background: #2a2a3e;" />
+                    <input type="text"
+                           value="@(Item.StatusColor ?? "#667eea")"
+                           @onchange="@(e => OnChange.InvokeAsync(("statusColor", e.Value)))"
+                           class="form-control"
+                           placeholder="#667eea"
+                           style="flex: 1; font-size: 12px;" />
+                </div>
+            </div>
+        </div>
+        <div style="font-size: 11px; color: #888; margin-top: 4px;">
+            Choose an icon and color to represent item status (replaces the old checkmark)
+        </div>
     </div>
 
     <div class="form-group">
@@ -139,6 +171,10 @@
             + Add New Item
         </button>
 
+        <button @onclick="DuplicateItem" type="button" style="width: 100%; margin-bottom: 8px; background: #667eea; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+            📋 Duplicate This Item
+        </button>
+
         <button @onclick="RemoveItem" class="btn-danger" type="button" style="width: 100%;">
             Remove This Item
         </button>
@@ -160,6 +196,9 @@
 
     [Parameter]
     public EventCallback<string> OnRemove { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnDuplicate { get; set; }
 
     private double GetMaxPosition()
     {
@@ -227,8 +266,23 @@
         OnAdd.InvokeAsync("item");
     }
 
+    private void DuplicateItem()
+    {
+        OnDuplicate.InvokeAsync("item");
+    }
+
     private void RemoveItem()
     {
         OnRemove.InvokeAsync("item");
+    }
+
+    private async Task HandleStatusIconSelected(string iconValue)
+    {
+        await OnChange.InvokeAsync(("statusIcon", iconValue));
+    }
+
+    private async Task ClearStatusIcon()
+    {
+        await OnChange.InvokeAsync(("statusIcon", ""));
     }
 }
