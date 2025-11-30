@@ -66,44 +66,86 @@
     </div>
 
     <div class="form-group">
-        <label style="margin-bottom: 12px;">Status Icon</label>
-        <div style="background: #252538; padding: 12px; border-radius: 6px; border: 1px solid #3a3a4e;">
-            @if (!string.IsNullOrEmpty(Item.StatusIcon))
-            {
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                    <Icon IconType="@Item.StatusIcon"
-                          Color="@(Item.StatusColor ?? "#667eea")"
-                          Size="24"
-                          DropShadow="true" />
-                    <span style="color: #d1d5db;">@Item.StatusIcon</span>
-                    <button @onclick="ClearStatusIcon" type="button" class="btn-remove" style="margin-left: auto;">Clear</button>
-                </div>
-            }
+        <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox"
+                   checked="@Item.GreyedOut"
+                   @onchange="@(e => OnChange.InvokeAsync(("greyedOut", (bool)(e.Value ?? false))))"
+                   style="margin-right: 8px; cursor: pointer;" />
+            Greyed Out (reduced opacity/shadow effect)
+        </label>
+    </div>
 
-            <IconPicker SelectedIcon="@(Item.StatusIcon ?? "")"
-                       Color="@(Item.StatusColor ?? "#667eea")"
-                       OnIconSelected="HandleStatusIconSelected"
-                       ShowCategories="true"
-                       ColumnsPerRow="5" />
+    <div class="form-group">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox"
+                   checked="@Item.Hidden"
+                   @onchange="@(e => OnChange.InvokeAsync(("hidden", (bool)(e.Value ?? false))))"
+                   style="margin-right: 8px; cursor: pointer;" />
+            Hidden (hide in preview/export mode only)
+        </label>
+    </div>
 
-            <div style="margin-top: 12px;">
-                <label style="font-size: 11px; margin-bottom: 4px;">Status Color</label>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <input type="color"
-                           value="@(Item.StatusColor ?? "#667eea")"
-                           @onchange="@(e => OnChange.InvokeAsync(("statusColor", e.Value)))"
-                           style="width: 40px; height: 32px; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; background: #2a2a3e;" />
-                    <input type="text"
-                           value="@(Item.StatusColor ?? "#667eea")"
-                           @onchange="@(e => OnChange.InvokeAsync(("statusColor", e.Value)))"
-                           class="form-control"
-                           placeholder="#667eea"
-                           style="flex: 1; font-size: 12px;" />
+    <div class="form-group">
+        <label style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" @onclick="ToggleStatusIconPicker">
+            <span>Status Icon</span>
+            <span style="font-size: 18px; transition: transform 0.2s; transform: rotate(@(_statusIconPickerExpanded ? "180deg" : "0deg"));">▼</span>
+        </label>
+
+        @if (!string.IsNullOrEmpty(Item.StatusIcon))
+        {
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding: 8px; background: #252538; border-radius: 6px; border: 1px solid #3a3a4e;">
+                <Icon IconType="@Item.StatusIcon"
+                      Color="@(Item.StatusColor ?? "#667eea")"
+                      Size="20"
+                      DropShadow="true" />
+                <span style="color: #d1d5db; font-size: 12px;">@Item.StatusIcon</span>
+                <button @onclick="ClearStatusIcon" type="button" class="btn-remove" style="margin-left: auto;">Clear</button>
+            </div>
+        }
+
+        @if (_statusIconPickerExpanded)
+        {
+            <div style="background: #252538; padding: 12px; border-radius: 6px; border: 1px solid #3a3a4e; margin-top: 8px;">
+                <IconPicker SelectedIcon="@(Item.StatusIcon ?? "")"
+                           Color="@(Item.StatusColor ?? "#667eea")"
+                           OnIconSelected="HandleStatusIconSelected"
+                           ShowCategories="true"
+                           ColumnsPerRow="5" />
+
+                <div style="margin-top: 12px;">
+                    <label style="font-size: 11px; margin-bottom: 8px;">Status Color</label>
+
+                    @* Preset Color Options *@
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;">
+                        @foreach (var preset in _colorPresets)
+                        {
+                            <button type="button"
+                                    @onclick="@(() => OnChange.InvokeAsync(("statusColor", preset.Value)))"
+                                    title="@preset.Name"
+                                    style="@GetPresetColorButtonStyle(preset.Value, Item.StatusColor)">
+                                <span style="width: 100%; height: 100%; display: block; border-radius: 3px; background: @preset.Value;"></span>
+                            </button>
+                        }
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="color"
+                               value="@(Item.StatusColor ?? "#667eea")"
+                               @onchange="@(e => OnChange.InvokeAsync(("statusColor", e.Value)))"
+                               style="width: 40px; height: 32px; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; background: #2a2a3e;" />
+                        <input type="text"
+                               value="@(Item.StatusColor ?? "#667eea")"
+                               @onchange="@(e => OnChange.InvokeAsync(("statusColor", e.Value)))"
+                               class="form-control"
+                               placeholder="#667eea"
+                               style="flex: 1; font-size: 12px;" />
+                    </div>
                 </div>
             </div>
-        </div>
+        }
+
         <div style="font-size: 11px; color: #888; margin-top: 4px;">
-            Choose an icon and color to represent item status (replaces the old checkmark)
+            Click to @(_statusIconPickerExpanded ? "collapse" : "expand") icon picker
         </div>
     </div>
 
@@ -211,6 +253,38 @@
 
     [Parameter]
     public int ColumnCount { get; set; } = 4;
+
+    private bool _statusIconPickerExpanded = false;
+
+    private void ToggleStatusIconPicker()
+    {
+        _statusIconPickerExpanded = !_statusIconPickerExpanded;
+    }
+
+    private record ColorPreset(string Name, string Value);
+
+    private readonly List<ColorPreset> _colorPresets = new()
+    {
+        new ColorPreset("Teal", "#45B69C"),
+        new ColorPreset("Coral", "#F88379"),
+        new ColorPreset("Lav", "#9999ff"),
+        new ColorPreset("Orange", "#D4652F"),
+        new ColorPreset("Blue", "#87CEEB"),
+        new ColorPreset("Mustard", "#E6B800"),
+        new ColorPreset("Brown", "#4A2C1A"),
+        new ColorPreset("Sage", "#B7C4B7")
+    };
+
+    private string GetPresetColorButtonStyle(string presetColor, string? currentColor)
+    {
+        var isSelected = presetColor.Equals(currentColor, StringComparison.OrdinalIgnoreCase);
+        var border = isSelected
+            ? "border: 2px solid #667eea; box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);"
+            : "border: 1.5px solid rgba(255, 255, 255, 0.2);";
+
+        return $"width: 100%; height: 32px; padding: 2px; cursor: pointer; border-radius: 4px; " +
+               $"background: #1a1a2e; transition: all 0.2s; {border}";
+    }
 
     private double GetMaxPosition()
     {

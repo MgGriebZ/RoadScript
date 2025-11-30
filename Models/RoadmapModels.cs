@@ -109,6 +109,13 @@ public class Item
     [JsonPropertyName("statusColor")]
     public string? StatusColor { get; set; }  // e.g., "#10b981"
 
+    // NEW: Visual display options
+    [JsonPropertyName("greyedOut")]
+    public bool GreyedOut { get; set; }  // true = item appears with reduced opacity/grey shadow
+
+    [JsonPropertyName("hidden")]
+    public bool Hidden { get; set; }  // true = item hidden in preview/export mode only
+
     [JsonPropertyName("details")]
     public List<Detail>? Details { get; set; }  // Nullable - items can have no details
 }

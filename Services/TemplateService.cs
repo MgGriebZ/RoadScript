@@ -53,7 +53,7 @@ public class TemplateService
         data.Subtitle = type switch
         {
             TemplateType.Weekly7Days => "7-day sprint planning and execution",
-            TemplateType.BiWeeklySprint => "2-week sprint cycle with ceremonies and daily standups",
+            TemplateType.BiWeeklySprint => "2-week sprint cycle with ceremonies",
             TemplateType.Quarterly4Quarters => "Strategic initiatives across 4 quarters",
             TemplateType.Yearly12Months => "12-month product development timeline",
             _ => "A visual timeline showcasing features and capabilities"
@@ -109,18 +109,15 @@ public class TemplateService
 
     private static List<Column> GenerateBiWeeklySprintColumns(DateTime startDate)
     {
-        var columns = new List<Column>();
-        var daysOfWeek = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
-
-        // Generate 5 columns for Mon-Fri (representing both weeks via swim lanes)
-        for (int i = 0; i < 5; i++)
+        var columns = new List<Column>
         {
-            columns.Add(new Column
-            {
-                Label = daysOfWeek[i],
-                Sub = ""
-            });
-        }
+            new Column { Label = "Thursday", Sub = "" },
+            new Column { Label = "Friday", Sub = "" },
+            new Column { Label = "Weekend", Sub = "Sat/Sun" },
+            new Column { Label = "Monday", Sub = "" },
+            new Column { Label = "Tuesday", Sub = "" },
+            new Column { Label = "Wednesday", Sub = "3:00PM est" }
+        };
 
         return columns;
     }
@@ -200,7 +197,8 @@ public class TemplateService
                 break;
 
             case TemplateType.BiWeeklySprint:
-                data.Milestones.Add(new Milestone { Position = 50, Label = "Production Deployment Cutoff", Icon = "triangle", Color = "#EF4444" });
+                data.Milestones.Add(new Milestone { Position = 91, Label = "Deployment Cutoff Time", Icon = "triangle", Color = "#EF4444" });
+                data.Milestones.Add(new Milestone { Position = 38, Label = "Release Deployments", Icon = "rocket", Color = "#025f40" });
                 break;
 
             case TemplateType.Quarterly4Quarters:
@@ -241,55 +239,72 @@ public class TemplateService
 
     private static void AddBiWeeklySprintLanes(RoadmapData data)
     {
-        // Daily Standup lane (runs every day)
+        // Week 1 lane
         data.Lanes.Add(new Lane
         {
-            Title = "Daily Standup",
-            Color = "#667eea",
-            Height = 0.5,
-            Items = new List<Item>
-            {
-                new Item { Title = "Daily Sync", Start = 0, Span = 5, Spanning = true, StatusIcon = "clock", StatusColor = "#667eea" }
-            }
-        });
-
-        // Odd Week Ceremonies lane (Week 1 of sprint cycle)
-        data.Lanes.Add(new Lane
-        {
-            Title = "Sprint Ceremonies (Odd Weeks)",
+            Title = "Week 1",
             Color = "#45B69C",
             Height = 1.0,
             Items = new List<Item>
             {
-                new Item { Title = "Stakeholder Prioritization", Start = 1, Span = 1, StatusIcon = "star", StatusColor = "#D4A520" },
-                new Item { Title = "Refinement", Start = 2, Span = 1, StatusIcon = "search", StatusColor = "#9B7ED9" },
-                new Item { Title = "Sprint Planning", Start = 3, Span = 1, StatusIcon = "calendar", StatusColor = "#667eea" },
-                new Item { Title = "Sprint Review", Start = 4, Span = 1, StatusIcon = "flag", StatusColor = "#45B69C" }
+                new Item { Title = "Stakeholder Prioritization", Start = 3, Span = 1, Spanning = true, StatusIcon = "star", StatusColor = "#D4A520" },
+                new Item { Title = "Refinement", Start = 5, Span = 1, Spanning = false, StatusIcon = "search", StatusColor = "#9B7ED9" },
+                new Item { Title = "Sprint Planning", Start = 0, Span = 1, Spanning = false, StatusIcon = "calendar", StatusColor = "#667eea" },
+                new Item { Title = "Sprint Review", Start = 1, Span = 1, Spanning = true, StatusIcon = "flag", StatusColor = "#45B69C" }
             }
         });
 
-        // Even Week Ceremonies lane (Week 2 of sprint cycle)
+        // Week 2 lane
         data.Lanes.Add(new Lane
         {
-            Title = "Sprint Ceremonies (Even Weeks)",
+            Title = "Week 2",
             Color = "#D4A520",
             Height = 1.0,
             Items = new List<Item>
             {
-                new Item { Title = "Refinement", Start = 1, Span = 2, StatusIcon = "search", StatusColor = "#9B7ED9" },
-                new Item { Title = "Retro", Start = 4, Span = 1, StatusIcon = "target", StatusColor = "#D4A520" }
+                new Item { Title = "Refinement", Start = 4, Span = 2, Spanning = false, StatusIcon = "search", StatusColor = "#9B7ED9" },
+                new Item { Title = "Retro", Start = 1, Span = 1, Spanning = false, StatusIcon = "target", StatusColor = "#D4A520" }
             }
         });
 
-        // Development Work lane
+        // IT Development lane
         data.Lanes.Add(new Lane
         {
-            Title = "Development",
+            Title = "IT Development",
             Color = "#4A90D9",
             Height = 0.8,
             Items = new List<Item>
             {
-                new Item { Title = "Sprint Execution", Start = 0, Span = 5, Spanning = true, StatusIcon = "code", StatusColor = "#4A90D9" }
+                new Item
+                {
+                    Title = "Sprint Execution",
+                    Start = 0,
+                    Span = 6,
+                    Spanning = true,
+                    StatusIcon = "code",
+                    StatusColor = "#4A90D9"
+                },
+                new Item
+                {
+                    Title = "Maintenance Window",
+                    Start = 2,
+                    Span = 1,
+                    Spanning = false,
+                    StatusIcon = "wrench",
+                    StatusColor = "#4A90D9",
+                    Details = new List<Detail>
+                    {
+                        new Detail
+                        {
+                            Text = "Saturday",
+                            Subs = new List<string>
+                            {
+                                "3:00PM - 11:59PM est",
+                                "4PM Release Deployment Process Begins"
+                            }
+                        }
+                    }
+                }
             }
         });
     }
@@ -403,7 +418,7 @@ public class TemplateService
         data.Lanes.Add(new Lane
         {
             Title = "Product Development",
-            Color = "#45B69C",
+            Color = "#45B69C",  // Teal
             Items = new List<Item>
             {
                 new Item
@@ -413,7 +428,7 @@ public class TemplateService
                     Span = 4,
                     Spanning = true,
                     StatusIcon = "gear",
-                    StatusColor = "#4A90D9",
+                    StatusColor = "#87CEEB",  // Blue
                     Details = new List<Detail>
                     {
                         new Detail { Text = "Architecture redesign", Subs = new List<string> { "Microservices migration", "API gateway setup", "Service mesh implementation" } },
@@ -428,7 +443,7 @@ public class TemplateService
         data.Lanes.Add(new Lane
         {
             Title = "Strategic Initiatives",
-            Color = "#D4A520",
+            Color = "#E6B800",  // Mustard
             Items = new List<Item>
             {
                 new Item
@@ -437,7 +452,7 @@ public class TemplateService
                     Start = 0,
                     Span = 2,
                     StatusIcon = "globe",
-                    StatusColor = "#45B69C",
+                    StatusColor = "#9999ff",  // Lav
                     Details = new List<Detail>
                     {
                         new Detail { Text = "Market research", Subs = new List<string> { "Competitive analysis", "Customer surveys", "Trend analysis" } },
@@ -450,6 +465,8 @@ public class TemplateService
                     Title = "Customer Success",
                     Start = 2,
                     Span = 2,
+                    StatusIcon = "star",
+                    StatusColor = "#D4652F",  // Orange
                     Details = new List<Detail>
                     {
                         new Detail { Text = "Onboarding optimization", Subs = new List<string> { "Self-service portal", "Interactive tutorials", "Knowledge base" } },
@@ -467,69 +484,69 @@ public class TemplateService
         data.Lanes.Add(new Lane
         {
             Title = "Core Platform",
-            Color = "#45B69C",
+            Color = "#45B69C",  // Teal
             Height = 1.2,
             Items = new List<Item>
             {
-                new Item { Title = "Auth System", Start = 0, Span = 2, StatusIcon = "lock", StatusColor = "#4A90D9", Details = new List<Detail> { new Detail { Text = "OAuth integration" }, new Detail { Text = "SSO support" } } },
-                new Item { Title = "Payment Gateway", Start = 2, Span = 2.5, Details = new List<Detail> { new Detail { Text = "Stripe integration" }, new Detail { Text = "Billing automation" } } },
-                new Item { Title = "Analytics Engine", Start = 4.5, Span = 3, Details = new List<Detail> { new Detail { Text = "Real-time tracking" }, new Detail { Text = "Custom dashboards" } } },
-                new Item { Title = "API V2", Start = 7.5, Span = 2.5, StatusIcon = "code", StatusColor = "#667eea", Details = new List<Detail> { new Detail { Text = "GraphQL endpoint" }, new Detail { Text = "Rate limiting" } } },
-                new Item { Title = "Mobile SDK", Start = 10, Span = 2, Details = new List<Detail> { new Detail { Text = "iOS framework" }, new Detail { Text = "Android library" } } }
+                new Item { Title = "Auth System", Start = 0, Span = 2, StatusIcon = "lock", StatusColor = "#87CEEB", Details = new List<Detail> { new Detail { Text = "OAuth integration" }, new Detail { Text = "SSO support" } } },  // Blue
+                new Item { Title = "Payment Gateway", Start = 2, Span = 2.5, StatusIcon = "card", StatusColor = "#E6B800", Details = new List<Detail> { new Detail { Text = "Stripe integration" }, new Detail { Text = "Billing automation" } } },  // Mustard
+                new Item { Title = "Analytics Engine", Start = 4.5, Span = 3, StatusIcon = "chart", StatusColor = "#9999ff", Details = new List<Detail> { new Detail { Text = "Real-time tracking" }, new Detail { Text = "Custom dashboards" } } },  // Lav
+                new Item { Title = "API V2", Start = 7.5, Span = 2.5, StatusIcon = "code", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "GraphQL endpoint" }, new Detail { Text = "Rate limiting" } } },  // Coral
+                new Item { Title = "Mobile SDK", Start = 10, Span = 2, StatusIcon = "mobile", StatusColor = "#D4652F", Details = new List<Detail> { new Detail { Text = "iOS framework" }, new Detail { Text = "Android library" } } }  // Orange
             }
         });
 
         data.Lanes.Add(new Lane
         {
             Title = "Features",
-            Color = "#4A90D9",
+            Color = "#87CEEB",  // Blue
             Height = 1.3,
             Items = new List<Item>
             {
-                new Item { Title = "Collaboration Tools", Start = 0, Span = 3, Details = new List<Detail> { new Detail { Text = "Team workspaces" }, new Detail { Text = "Real-time sync" }, new Detail { Text = "Comments & mentions" } } },
-                new Item { Title = "Advanced Search", Start = 3, Span = 2, StatusIcon = "search", StatusColor = "#D4A520", Details = new List<Detail> { new Detail { Text = "Full-text search" }, new Detail { Text = "Filters & facets" } } },
-                new Item { Title = "AI Assistant", Start = 5, Span = 4, Details = new List<Detail> { new Detail { Text = "NLP integration" }, new Detail { Text = "Smart suggestions" }, new Detail { Text = "Auto-categorization" } } },
-                new Item { Title = "Reporting Suite", Start = 9, Span = 3, Details = new List<Detail> { new Detail { Text = "Custom reports" }, new Detail { Text = "Scheduled exports" } } }
+                new Item { Title = "Collaboration Tools", Start = 0, Span = 3, StatusIcon = "users", StatusColor = "#9999ff", Details = new List<Detail> { new Detail { Text = "Team workspaces" }, new Detail { Text = "Real-time sync" }, new Detail { Text = "Comments & mentions" } } },  // Lav
+                new Item { Title = "Advanced Search", Start = 3, Span = 2, StatusIcon = "search", StatusColor = "#E6B800", Details = new List<Detail> { new Detail { Text = "Full-text search" }, new Detail { Text = "Filters & facets" } } },  // Mustard
+                new Item { Title = "AI Assistant", Start = 5, Span = 4, StatusIcon = "sparkles", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "NLP integration" }, new Detail { Text = "Smart suggestions" }, new Detail { Text = "Auto-categorization" } } },  // Coral
+                new Item { Title = "Reporting Suite", Start = 9, Span = 3, StatusIcon = "chart", StatusColor = "#B7C4B7", Details = new List<Detail> { new Detail { Text = "Custom reports" }, new Detail { Text = "Scheduled exports" } } }  // Sage
             }
         });
 
         data.Lanes.Add(new Lane
         {
             Title = "Infrastructure",
-            Color = "#9B7ED9",
+            Color = "#9999ff",  // Lav
             Height = 0.9,
             Items = new List<Item>
             {
-                new Item { Title = "Cloud Migration", Start = 0, Span = 4, Spanning = true, StatusIcon = "globe", StatusColor = "#45B69C", Details = new List<Detail> { new Detail { Text = "AWS setup" }, new Detail { Text = "Container orchestration" } } },
-                new Item { Title = "CI/CD Pipeline", Start = 4, Span = 3, Details = new List<Detail> { new Detail { Text = "Automated testing" }, new Detail { Text = "Blue-green deploy" } } },
-                new Item { Title = "Monitoring", Start = 7, Span = 5, Spanning = true, Details = new List<Detail> { new Detail { Text = "APM tools" }, new Detail { Text = "Log aggregation" }, new Detail { Text = "Alerting" } } }
+                new Item { Title = "Cloud Migration", Start = 0, Span = 4, Spanning = true, StatusIcon = "globe", StatusColor = "#45B69C", Details = new List<Detail> { new Detail { Text = "AWS setup" }, new Detail { Text = "Container orchestration" } } },  // Teal
+                new Item { Title = "CI/CD Pipeline", Start = 4, Span = 3, StatusIcon = "rocket", StatusColor = "#D4652F", Details = new List<Detail> { new Detail { Text = "Automated testing" }, new Detail { Text = "Blue-green deploy" } } },  // Orange
+                new Item { Title = "Monitoring", Start = 7, Span = 5, Spanning = true, StatusIcon = "eye", StatusColor = "#87CEEB", Details = new List<Detail> { new Detail { Text = "APM tools" }, new Detail { Text = "Log aggregation" }, new Detail { Text = "Alerting" } } }  // Blue
             }
         });
 
         data.Lanes.Add(new Lane
         {
             Title = "Marketing & Growth",
-            Color = "#D4A520",
+            Color = "#E6B800",  // Mustard
             Height = 0.8,
             Items = new List<Item>
             {
-                new Item { Title = "Brand Refresh", Start = 0, Span = 2, StatusIcon = "star", StatusColor = "#9B7ED9", Details = new List<Detail> { new Detail { Text = "New visual identity" } } },
-                new Item { Title = "Content Strategy", Start = 2, Span = 3, Details = new List<Detail> { new Detail { Text = "Blog & tutorials" }, new Detail { Text = "Video series" } } },
-                new Item { Title = "SEO Campaign", Start = 5, Span = 4, Details = new List<Detail> { new Detail { Text = "Technical SEO" }, new Detail { Text = "Link building" } } },
-                new Item { Title = "Launch Event", Start = 9, Span = 1.5, StatusIcon = "rocket", StatusColor = "#D4A520", Details = new List<Detail> { new Detail { Text = "Product demo" }, new Detail { Text = "Press release" } } }
+                new Item { Title = "Brand Refresh", Start = 0, Span = 2, StatusIcon = "star", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "New visual identity" } } },  // Coral
+                new Item { Title = "Content Strategy", Start = 2, Span = 3, StatusIcon = "document", StatusColor = "#B7C4B7", Details = new List<Detail> { new Detail { Text = "Blog & tutorials" }, new Detail { Text = "Video series" } } },  // Sage
+                new Item { Title = "SEO Campaign", Start = 5, Span = 4, StatusIcon = "search", StatusColor = "#9999ff", Details = new List<Detail> { new Detail { Text = "Technical SEO" }, new Detail { Text = "Link building" } } },  // Lav
+                new Item { Title = "Launch Event", Start = 9, Span = 1.5, StatusIcon = "rocket", StatusColor = "#D4652F", Details = new List<Detail> { new Detail { Text = "Product demo" }, new Detail { Text = "Press release" } } }  // Orange
             }
         });
 
         data.Lanes.Add(new Lane
         {
             Title = "Compliance & Security",
-            Color = "#667eea",
+            Color = "#B7C4B7",  // Sage
             Height = 0.7,
             Items = new List<Item>
             {
-                new Item { Title = "GDPR Compliance", Start = 0, Span = 3, Details = new List<Detail> { new Detail { Text = "Data privacy audit" }, new Detail { Text = "Consent management" } } },
-                new Item { Title = "SOC 2 Certification", Start = 3, Span = 5, Spanning = true, StatusIcon = "lock", StatusColor = "#667eea", Details = new List<Detail> { new Detail { Text = "Security controls" }, new Detail { Text = "Audit preparation" } } },
-                new Item { Title = "Penetration Testing", Start = 8, Span = 2, Details = new List<Detail> { new Detail { Text = "External audit" }, new Detail { Text = "Vulnerability fixes" } } }
+                new Item { Title = "GDPR Compliance", Start = 0, Span = 3, StatusIcon = "shield", StatusColor = "#4A2C1A", Details = new List<Detail> { new Detail { Text = "Data privacy audit" }, new Detail { Text = "Consent management" } } },  // Brown
+                new Item { Title = "SOC 2 Certification", Start = 3, Span = 5, Spanning = true, StatusIcon = "lock", StatusColor = "#87CEEB", Details = new List<Detail> { new Detail { Text = "Security controls" }, new Detail { Text = "Audit preparation" } } },  // Blue
+                new Item { Title = "Penetration Testing", Start = 8, Span = 2, StatusIcon = "shield", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "External audit" }, new Detail { Text = "Vulnerability fixes" } } }  // Coral
             }
         });
     }
