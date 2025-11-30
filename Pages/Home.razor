@@ -736,13 +736,13 @@
         StateHasChanged();
     }
 
-    private void ToggleTheme()
+    private void ToggleTheme(ChangeEventArgs? e = null)
     {
         _isVibeMode = !_isVibeMode;
         StateHasChanged();
     }
 
-    private void ToggleViewMode()
+    private void ToggleViewMode(ChangeEventArgs? e = null)
     {
         _isPreviewMode = !_isPreviewMode;
         // Auto-hide properties panel in preview mode, show in edit mode
