@@ -240,6 +240,17 @@
                                 +
                             </button>
                         }
+
+                        @* Delete tab button (only show if more than 1 tab) *@
+                        @if (_sessionManager.Tabs.Count > 1 && _activeTab != null)
+                        {
+                            <button @onclick="@(() => HandleTabDelete(_activeTab.Id))"
+                                    title="Delete current roadmap tab"
+                                    class="cc-icon-btn"
+                                    style="background: #3c3c3c; color: #f87171; border: 1px solid #555; width: 28px; height: 28px; border-radius: 50%; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; margin-top: 4px;">
+                                ×
+                            </button>
+                        }
                     </div>
                 }
 
@@ -289,6 +300,22 @@
                         class="cc-icon-btn"
                         style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
                     🔄
+                </button>
+
+                @* Quarterly *@
+                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Quarterly4Quarters))"
+                        title="Apply Quarterly Template (4 quarters)"
+                        class="cc-icon-btn"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                    📊
+                </button>
+
+                @* Yearly *@
+                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Yearly12Months))"
+                        title="Apply Yearly Template (12 months)"
+                        class="cc-icon-btn"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                    📆
                 </button>
             </div>
         }
