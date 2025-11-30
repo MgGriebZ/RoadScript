@@ -689,8 +689,11 @@
     {
         _editorReady = true;
 
-        // Load or initialize session
-        await InitializeSessionAsync();
+        // Only initialize session if not already loaded
+        if (_sessionManager == null || _activeTab == null)
+        {
+            await InitializeSessionAsync();
+        }
 
         // Set editor value
         if (_editor != null && _activeTab != null)
@@ -699,7 +702,12 @@
             await _editor.SetValue(_currentJson);
         }
 
-        ParseJson(_currentJson);
+        // Parse JSON if not already parsed (data could be null if editor loads before OnInitializedAsync completes)
+        if (_data == null && !string.IsNullOrEmpty(_currentJson))
+        {
+            ParseJson(_currentJson);
+        }
+
         _lastUpdateSuccess = _error == null;
         await InvokeAsync(StateHasChanged);
     }
@@ -708,6 +716,13 @@
     {
         // Load or initialize session
         await InitializeSessionAsync();
+
+        // Parse the JSON immediately so the UI displays even if editor hasn't loaded
+        if (_data != null && !string.IsNullOrEmpty(_currentJson))
+        {
+            ParseJson(_currentJson);
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task InitializeSessionAsync()
@@ -1511,7 +1526,8 @@
                         _data.Lanes.Insert(moveUpIndex - 1, lane);
 
                         // Update the selection to follow the lane
-                        _selectedPath = $"lanes[{moveUpIndex - 1}]";
+                        var newPath = $"lanes[{moveUpIndex - 1}]";
+                        SelectionState.Select(newPath, "lane", lane);
                     }
                     break;
 
@@ -1525,7 +1541,8 @@
                         _data.Lanes.Insert(moveDownIndex + 1, lane);
 
                         // Update the selection to follow the lane
-                        _selectedPath = $"lanes[{moveDownIndex + 1}]";
+                        var newPath = $"lanes[{moveDownIndex + 1}]";
+                        SelectionState.Select(newPath, "lane", lane);
                     }
                     break;
             }
