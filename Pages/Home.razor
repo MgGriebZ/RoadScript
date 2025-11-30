@@ -895,9 +895,13 @@
     private void ToggleViewMode(ChangeEventArgs? e = null)
     {
         _isPreviewMode = !_isPreviewMode;
-        // Auto-hide properties panel and Command Center in preview mode, show in edit mode
+        // Auto-hide properties panel in preview mode, show in edit mode
         _showProperties = !_isPreviewMode;
-        _showControlPanel = !_isPreviewMode;
+        // Auto-hide Command Center only when entering preview mode (don't auto-show when exiting)
+        if (_isPreviewMode)
+        {
+            _showControlPanel = false;
+        }
         StateHasChanged();
     }
 
