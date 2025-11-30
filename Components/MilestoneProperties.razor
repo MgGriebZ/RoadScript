@@ -28,17 +28,12 @@
 
     <div class="form-group">
         <label>Icon</label>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px;">
-            @foreach (var icon in _availableIcons)
-            {
-                <button type="button"
-                        @onclick="@(() => OnChange.InvokeAsync(("icon", icon.Value)))"
-                        style="@GetIconButtonStyle(icon.Value)"
-                        title="@icon.Name">
-                    @((MarkupString)GetIconPreview(icon.Value))
-                    <span style="font-size: 10px; margin-top: 4px;">@icon.Name</span>
-                </button>
-            }
+        <div style="background: #252538; padding: 12px; border-radius: 6px; border: 1px solid #3a3a4e;">
+            <IconPicker SelectedIcon="@(Milestone.Icon ?? "diamond")"
+                       Color="@Milestone.Color"
+                       OnIconSelected="HandleIconSelected"
+                       ShowCategories="true"
+                       ColumnsPerRow="5" />
         </div>
     </div>
 
@@ -81,6 +76,10 @@
             + Add New Milestone
         </button>
 
+        <button @onclick="DuplicateMilestone" type="button" style="width: 100%; margin-bottom: 8px; background: #667eea; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+            📋 Duplicate This Milestone
+        </button>
+
         <button @onclick="RemoveMilestone" class="btn-danger" type="button" style="width: 100%;">
             Remove This Milestone
         </button>
@@ -103,44 +102,25 @@
     [Parameter]
     public EventCallback<string> OnRemove { get; set; }
 
-    private readonly List<(string Name, string Value)> _availableIcons = new()
-    {
-        ("Diamond", "diamond"),
-        ("Star", "star"),
-        ("Flag", "flag"),
-        ("Check", "check"),
-        ("Circle", "circle")
-    };
+    [Parameter]
+    public EventCallback<string> OnDuplicate { get; set; }
 
-    private string GetIconButtonStyle(string iconValue)
+    private async Task HandleIconSelected(string iconValue)
     {
-        var isSelected = Milestone.Icon == iconValue || (string.IsNullOrEmpty(Milestone.Icon) && iconValue == "diamond");
-        var baseStyle = "display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: 2px solid ";
-
-        if (isSelected)
-        {
-            return baseStyle + "#667eea; background: rgba(102, 126, 234, 0.15); color: #e0e7ff;";
-        }
-        return baseStyle + "#3a3a4e; background: #2a2a3e; color: #9ca3af;";
-    }
-
-    private string GetIconPreview(string iconType)
-    {
-        var color = Milestone.Color;
-        return iconType.ToLower() switch
-        {
-            "star" => $"<svg width='20' height='20' viewBox='0 0 24 24' fill='{color}'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>",
-            "flag" => $"<svg width='20' height='20' viewBox='0 0 24 24' fill='{color}'><path d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/></svg>",
-            "check" => $"<svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='{color}' stroke-width='3'><path d='M20 6L9 17l-5-5'/></svg>",
-            "circle" => $"<svg width='16' height='16' viewBox='0 0 24 24' fill='{color}'><circle cx='12' cy='12' r='10'/></svg>",
-            "diamond" => $"<div style='width: 16px; height: 16px; background: {color}; transform: rotate(45deg);'></div>",
-            _ => $"<div style='width: 16px; height: 16px; background: {color}; transform: rotate(45deg);'></div>"
-        };
+        // Update the milestone directly to ensure immediate UI update
+        Milestone.Icon = iconValue;
+        await OnChange.InvokeAsync(("icon", iconValue));
+        StateHasChanged(); // Force re-render to show selected icon immediately
     }
 
     private void AddMilestone()
     {
         OnAdd.InvokeAsync("milestone");
+    }
+
+    private void DuplicateMilestone()
+    {
+        OnDuplicate.InvokeAsync("milestone");
     }
 
     private void RemoveMilestone()

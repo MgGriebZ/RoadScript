@@ -39,6 +39,10 @@
             + Add New Column
         </button>
 
+        <button @onclick="DuplicateColumn" type="button" style="width: 100%; margin-bottom: 8px; background: #667eea; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+            📋 Duplicate This Column
+        </button>
+
         <button @onclick="RemoveColumn" class="btn-danger" type="button" style="width: 100%;">
             Remove This Column
         </button>
@@ -61,9 +65,17 @@
     [Parameter]
     public EventCallback<string> OnRemove { get; set; }
 
+    [Parameter]
+    public EventCallback<string> OnDuplicate { get; set; }
+
     private void AddColumn()
     {
         OnAdd.InvokeAsync("column");
+    }
+
+    private void DuplicateColumn()
+    {
+        OnDuplicate.InvokeAsync("column");
     }
 
     private void RemoveColumn()
