@@ -47,7 +47,7 @@
             "square" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><rect x='3' y='3' width='18' height='18'/></svg>",
 
             // === MILESTONE ICONS (5) ===
-            "diamond" => $"<div style='width: {Size * 0.7}px; height: {Size * 0.7}px; background: {Color}; transform: rotate(45deg); {shadowFilter}'></div>",
+            "diamond" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M12 2L2 9l10 13L22 9 12 2z'/></svg>",
 
             "star" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>",
 
@@ -94,8 +94,8 @@
 
             "plus" => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/></svg>",
 
-            // Default
-            _ => $"<div style='width: {Size * 0.7}px; height: {Size * 0.7}px; background: {Color}; transform: rotate(45deg); {shadowFilter}'></div>"
+            // Default - fallback to diamond shape
+            _ => $"<svg width='{Size}' height='{Size}' viewBox='0 0 {viewBoxSize} {viewBoxSize}' fill='{Color}' style='{shadowFilter}'><path d='M12 2L2 9l10 13L22 9 12 2z'/></svg>"
         };
     }
 }

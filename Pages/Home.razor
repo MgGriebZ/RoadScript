@@ -350,32 +350,35 @@
                     </div>
                 </div>
             </div>
+            </div>
 
-            @* Footer Bar - Only visible in Edit Mode *@
-            @if (!_isPreviewMode && _activeTab != null)
-            {
-                <div style="@FooterBarStyle()">
-                    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Active Tab:</span>
-                            <span style="font-size: 12px; color: @(_isVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@_activeTab.Name</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Last Modified:</span>
-                            <span style="font-size: 12px; color: @(_isVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@_activeTab.LastModified.ToLocalTime().ToString("MMM d, h:mm tt")</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Columns:</span>
-                            <span style="font-size: 12px; color: @(_isVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@_data.Columns.Count</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Lanes:</span>
-                            <span style="font-size: 12px; color: @(_isVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@_data.Lanes.Count</span>
-                        </div>
+        @* Footer Bar - Full width banner below roadmap, only in Edit Mode *@
+        @if (!_isPreviewMode && _activeTab != null && _data != null)
+        {
+            <div style="@FooterBarStyle()">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Active Tab:</span>
+                        <span style="font-size: 12px; color: @(_isVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@_activeTab.Name</span>
+                    </div>
+                    <div style="height: 16px; width: 1px; background: @(_isVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Last Modified:</span>
+                        <span style="font-size: 12px; color: @(_isVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@_activeTab.LastModified.ToLocalTime().ToString("MMM d, h:mm tt")</span>
+                    </div>
+                    <div style="height: 16px; width: 1px; background: @(_isVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Columns:</span>
+                        <span style="font-size: 12px; color: @(_isVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@_data.Columns.Count</span>
+                    </div>
+                    <div style="height: 16px; width: 1px; background: @(_isVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Lanes:</span>
+                        <span style="font-size: 12px; color: @(_isVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@_data.Lanes.Count</span>
                     </div>
                 </div>
-            }
             </div>
+        }
         }
         else if (_error != null)
         {
@@ -1621,10 +1624,40 @@
 
     private async Task ApplyTemplate(TemplateService.TemplateType templateType)
     {
-        if (_data == null) return;
+        if (_data == null || _activeTab == null || _sessionManager == null) return;
+
+        // Get template name for confirmation
+        var templateName = templateType switch
+        {
+            TemplateService.TemplateType.Weekly7Days => "Weekly (7 Days)",
+            TemplateService.TemplateType.Monthly4Weeks => "Monthly (4 Weeks)",
+            TemplateService.TemplateType.Quarterly4Quarters => "Quarterly (4 Quarters)",
+            TemplateService.TemplateType.Yearly12Months => "Yearly (12 Months)",
+            _ => "Custom"
+        };
+
+        // Get tab name suffix
+        var tabNameSuffix = templateType switch
+        {
+            TemplateService.TemplateType.Weekly7Days => "Weekly Roadmap",
+            TemplateService.TemplateType.Monthly4Weeks => "Monthly Roadmap",
+            TemplateService.TemplateType.Quarterly4Quarters => "Quarterly Roadmap",
+            TemplateService.TemplateType.Yearly12Months => "Yearly Roadmap",
+            _ => "Roadmap"
+        };
+
+        // Show confirmation dialog
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+            $"Do you want to start a new {templateName} roadmap?\n\nThis will replace the current content and cannot be undone.");
+
+        if (!confirmed) return;
 
         // Apply template to current data
         TemplateService.ApplyTemplate(_data, templateType, DateTime.Now);
+
+        // Update tab name to reflect template
+        _activeTab.Name = tabNameSuffix;
+        _activeTab.LastModified = DateTime.UtcNow;
 
         // Update editor and save
         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
@@ -1635,12 +1668,7 @@
         }
 
         // Save to storage
-        if (_sessionManager != null && _activeTab != null)
-        {
-            _activeTab.Data = _data;
-            _activeTab.LastModified = DateTime.UtcNow;
-            await StorageService.SaveSessionAsync(_sessionManager);
-        }
+        await StorageService.SaveSessionAsync(_sessionManager);
 
         await InvokeAsync(StateHasChanged);
     }
@@ -1651,11 +1679,11 @@
     {
         if (_isVibeMode)
         {
-            return "background: rgba(30, 30, 46, 0.95); padding: 12px 20px; border-top: 1px solid #3a3a4e; " +
-                   "box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3); margin-top: 8px; border-radius: 6px;";
+            return "background: rgba(30, 30, 46, 0.98); padding: 10px 24px; border-top: 1px solid #3a3a4e; " +
+                   "width: 100%; flex-shrink: 0;";
         }
-        return "background: rgba(255, 255, 255, 0.98); padding: 12px 20px; border-top: 1px solid #d1d5db; " +
-               "box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1); margin-top: 8px; border-radius: 6px;";
+        return "background: rgba(248, 249, 250, 0.98); padding: 10px 24px; border-top: 1px solid #d1d5db; " +
+               "width: 100%; flex-shrink: 0;";
     }
 
 }
