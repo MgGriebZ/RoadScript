@@ -14,6 +14,7 @@ public class TemplateService
     public enum TemplateType
     {
         Weekly7Days,
+        BiWeeklySprint,
         Monthly4Weeks,
         Quarterly4Quarters,
         Yearly12Months,
@@ -26,6 +27,7 @@ public class TemplateService
     public static string GetTemplateName(TemplateType type) => type switch
     {
         TemplateType.Weekly7Days => "Weekly (7 Days)",
+        TemplateType.BiWeeklySprint => "Bi-Weekly Sprint (5 Days)",
         TemplateType.Monthly4Weeks => "Monthly (4 Weeks)",
         TemplateType.Quarterly4Quarters => "Quarterly (4 Quarters)",
         TemplateType.Yearly12Months => "Yearly (12 Months)",
@@ -42,6 +44,7 @@ public class TemplateService
         data.Title = type switch
         {
             TemplateType.Weekly7Days => "Weekly Sprint Roadmap",
+            TemplateType.BiWeeklySprint => "Bi-Weekly Sprint Roadmap",
             TemplateType.Quarterly4Quarters => "Quarterly Strategic Roadmap",
             TemplateType.Yearly12Months => "Annual Product Roadmap",
             _ => "Product Roadmap"
@@ -50,6 +53,7 @@ public class TemplateService
         data.Subtitle = type switch
         {
             TemplateType.Weekly7Days => "7-day sprint planning and execution",
+            TemplateType.BiWeeklySprint => "2-week sprint cycle with ceremonies and daily standups",
             TemplateType.Quarterly4Quarters => "Strategic initiatives across 4 quarters",
             TemplateType.Yearly12Months => "12-month product development timeline",
             _ => "A visual timeline showcasing features and capabilities"
@@ -77,6 +81,7 @@ public class TemplateService
         return type switch
         {
             TemplateType.Weekly7Days => GenerateWeeklyColumns(start),
+            TemplateType.BiWeeklySprint => GenerateBiWeeklySprintColumns(start),
             TemplateType.Monthly4Weeks => GenerateMonthlyColumns(start),
             TemplateType.Quarterly4Quarters => GenerateQuarterlyColumns(start),
             TemplateType.Yearly12Months => GenerateYearlyColumns(start),
@@ -96,6 +101,24 @@ public class TemplateService
             {
                 Label = daysOfWeek[i],
                 Sub = date.ToString("MMM d")
+            });
+        }
+
+        return columns;
+    }
+
+    private static List<Column> GenerateBiWeeklySprintColumns(DateTime startDate)
+    {
+        var columns = new List<Column>();
+        var daysOfWeek = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+
+        // Generate 5 columns for Mon-Fri (representing both weeks via swim lanes)
+        for (int i = 0; i < 5; i++)
+        {
+            columns.Add(new Column
+            {
+                Label = daysOfWeek[i],
+                Sub = ""
             });
         }
 
@@ -176,6 +199,10 @@ public class TemplateService
                 data.Milestones.Add(new Milestone { Position = 50, Label = "Mid-Sprint Check", Icon = "target", Color = "#667eea" });
                 break;
 
+            case TemplateType.BiWeeklySprint:
+                data.Milestones.Add(new Milestone { Position = 50, Label = "Production Deployment Cutoff", Icon = "triangle", Color = "#EF4444" });
+                break;
+
             case TemplateType.Quarterly4Quarters:
                 data.Milestones.Add(new Milestone { Position = 25, Label = "Q1 Review", Icon = "flag", Color = "#45B69C" });
                 data.Milestones.Add(new Milestone { Position = 75, Label = "Q3 Launch", Icon = "rocket", Color = "#D4A520" });
@@ -198,6 +225,10 @@ public class TemplateService
                 AddWeeklyLanes(data);
                 break;
 
+            case TemplateType.BiWeeklySprint:
+                AddBiWeeklySprintLanes(data);
+                break;
+
             case TemplateType.Quarterly4Quarters:
                 AddQuarterlyLanes(data);
                 break;
@@ -206,6 +237,61 @@ public class TemplateService
                 AddYearlyLanes(data);
                 break;
         }
+    }
+
+    private static void AddBiWeeklySprintLanes(RoadmapData data)
+    {
+        // Daily Standup lane (runs every day)
+        data.Lanes.Add(new Lane
+        {
+            Title = "Daily Standup",
+            Color = "#667eea",
+            Height = 0.5,
+            Items = new List<Item>
+            {
+                new Item { Title = "Daily Sync", Start = 0, Span = 5, Spanning = true, StatusIcon = "clock", StatusColor = "#667eea" }
+            }
+        });
+
+        // Odd Week Ceremonies lane (Week 1 of sprint cycle)
+        data.Lanes.Add(new Lane
+        {
+            Title = "Sprint Ceremonies (Odd Weeks)",
+            Color = "#45B69C",
+            Height = 1.0,
+            Items = new List<Item>
+            {
+                new Item { Title = "Stakeholder Prioritization", Start = 1, Span = 1, StatusIcon = "star", StatusColor = "#D4A520" },
+                new Item { Title = "Refinement", Start = 2, Span = 1, StatusIcon = "search", StatusColor = "#9B7ED9" },
+                new Item { Title = "Sprint Planning", Start = 3, Span = 1, StatusIcon = "calendar", StatusColor = "#667eea" },
+                new Item { Title = "Sprint Review", Start = 4, Span = 1, StatusIcon = "flag", StatusColor = "#45B69C" }
+            }
+        });
+
+        // Even Week Ceremonies lane (Week 2 of sprint cycle)
+        data.Lanes.Add(new Lane
+        {
+            Title = "Sprint Ceremonies (Even Weeks)",
+            Color = "#D4A520",
+            Height = 1.0,
+            Items = new List<Item>
+            {
+                new Item { Title = "Refinement", Start = 1, Span = 2, StatusIcon = "search", StatusColor = "#9B7ED9" },
+                new Item { Title = "Retro", Start = 4, Span = 1, StatusIcon = "target", StatusColor = "#D4A520" }
+            }
+        });
+
+        // Development Work lane
+        data.Lanes.Add(new Lane
+        {
+            Title = "Development",
+            Color = "#4A90D9",
+            Height = 0.8,
+            Items = new List<Item>
+            {
+                new Item { Title = "Sprint Execution", Start = 0, Span = 5, Spanning = true, StatusIcon = "code", StatusColor = "#4A90D9" }
+            }
+        });
     }
 
     private static void AddWeeklyLanes(RoadmapData data)

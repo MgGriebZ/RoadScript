@@ -43,6 +43,7 @@ else
             {
                 <ItemProperties Item="@item"
                                JsonPath="@SelectionState.SelectedPath"
+                               ColumnCount="@ColumnCount"
                                OnChange="HandlePropertyChange"
                                OnAdd="HandleAddElement"
                                OnRemove="HandleRemoveElement"
@@ -131,6 +132,9 @@ else
 
     [Parameter]
     public bool IsCollapsed { get; set; }
+
+    [Parameter]
+    public int ColumnCount { get; set; } = 4;
 
     protected override void OnInitialized()
     {

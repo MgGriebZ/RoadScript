@@ -21,7 +21,16 @@
         </div>
 
         <div class="form-group" style="flex: 1; margin-left: 12px;">
-            <label>Span</label>
+            <label style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Span</span>
+                <label style="display: flex; align-items: center; cursor: pointer; font-size: 11px; font-weight: normal; color: #888;">
+                    <input type="checkbox"
+                           checked="@IsFitToEnd()"
+                           @onchange="@HandleFitToEndToggle"
+                           style="margin-right: 4px; cursor: pointer;" />
+                    Fit to End
+                </label>
+            </label>
             <input type="number"
                    value="@Item.Span"
                    @onchange="@(e => OnChange.InvokeAsync(("span", double.Parse(e.Value?.ToString() ?? "1"))))"
@@ -200,10 +209,31 @@
     [Parameter]
     public EventCallback<string> OnDuplicate { get; set; }
 
+    [Parameter]
+    public int ColumnCount { get; set; } = 4;
+
     private double GetMaxPosition()
     {
-        // Assume 4 columns for now, can be made dynamic later
-        return 4.0;
+        return (double)ColumnCount;
+    }
+
+    private bool IsFitToEnd()
+    {
+        // Check if the current span fits exactly to the end
+        var maxSpan = GetMaxPosition() - Item.Start;
+        return Math.Abs(Item.Span - maxSpan) < 0.01; // Use small epsilon for floating point comparison
+    }
+
+    private async Task HandleFitToEndToggle(ChangeEventArgs e)
+    {
+        var isChecked = (bool)(e.Value ?? false);
+        if (isChecked)
+        {
+            // Calculate span to fit to end
+            var maxSpan = GetMaxPosition() - Item.Start;
+            await OnChange.InvokeAsync(("span", maxSpan));
+        }
+        // If unchecked, do nothing - user can manually adjust
     }
 
     private void AddDetail()
