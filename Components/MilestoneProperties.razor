@@ -41,36 +41,49 @@
     </div>
 
     <div class="form-group">
-        <label style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" @onclick="ToggleMilestoneIconPicker">
-            <span>Icon</span>
-            <span style="font-size: 18px; transition: transform 0.2s; transform: rotate(@(_milestoneIconPickerExpanded ? "180deg" : "0deg"));">▼</span>
-        </label>
+        <label style="margin-bottom: 8px;">Icon</label>
 
-        @if (!string.IsNullOrEmpty(Milestone.Icon))
-        {
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding: 8px; background: #252538; border-radius: 6px; border: 1px solid #3a3a4e;">
-                <Icon IconType="@Milestone.Icon"
-                      Color="@Milestone.Color"
-                      Size="20"
-                      DropShadow="true" />
-                <span style="color: #d1d5db; font-size: 12px;">@Milestone.Icon</span>
-            </div>
-        }
+        @* Integrated Icon Picker - Preview and Dropdown in One Line *@
+        <div style="display: flex; gap: 8px; align-items: stretch;">
+            <button type="button"
+                    @onclick="ToggleMilestoneIconPicker"
+                    style="display: flex; align-items: center; gap: 8px; flex: 1; background: #2a2a3e; border: 1px solid #3a3a4e; border-radius: 4px; padding: 10px 12px; cursor: pointer; transition: all 0.2s; color: #d1d5db; font-size: 12px;">
+                @if (!string.IsNullOrEmpty(Milestone.Icon))
+                {
+                    <Icon IconType="@Milestone.Icon"
+                          Color="@Milestone.Color"
+                          Size="18"
+                          DropShadow="true" />
+                    <span style="flex: 1; text-align: left;">@Milestone.Icon</span>
+                }
+                else
+                {
+                    <span style="flex: 1; text-align: left; color: #888;">Select icon...</span>
+                }
+                <span style="font-size: 12px; transition: transform 0.2s; transform: rotate(@(_milestoneIconPickerExpanded ? "180deg" : "0deg"));">▼</span>
+            </button>
+
+            @if (!string.IsNullOrEmpty(Milestone.Icon))
+            {
+                <button type="button"
+                        @onclick="ClearIcon"
+                        title="Clear icon"
+                        style="background: #3c3c3c; color: #ef4444; border: 1px solid #555; padding: 0; width: 40px; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 16px; font-weight: 600;">
+                    ✕
+                </button>
+            }
+        </div>
 
         @if (_milestoneIconPickerExpanded)
         {
             <div style="background: #252538; padding: 12px; border-radius: 6px; border: 1px solid #3a3a4e; margin-top: 8px;">
                 <IconPicker SelectedIcon="@(Milestone.Icon ?? "diamond")"
                            Color="@Milestone.Color"
-                           OnIconSelected="HandleIconSelected"
+                           OnIconSelected="HandleIconSelectedAndCollapse"
                            ShowCategories="true"
                            ColumnsPerRow="5" />
             </div>
         }
-
-        <div style="font-size: 11px; color: #888; margin-top: 4px;">
-            Click to @(_milestoneIconPickerExpanded ? "collapse" : "expand") icon picker
-        </div>
     </div>
 
     <div class="form-group">
@@ -159,7 +172,11 @@
         new ColorPreset("Blue", "#87CEEB"),
         new ColorPreset("Mustard", "#E6B800"),
         new ColorPreset("Brown", "#4A2C1A"),
-        new ColorPreset("Sage", "#B7C4B7")
+        new ColorPreset("Sage", "#B7C4B7"),
+        new ColorPreset("Red", "#EF4444"),
+        new ColorPreset("Indigo", "#6366F1"),
+        new ColorPreset("Dark Blue", "#1E3A8A"),
+        new ColorPreset("Pink", "#EC4899")
     };
 
     private string GetPresetColorButtonStyle(string presetColor, string currentColor)
@@ -173,12 +190,20 @@
                $"background: #1a1a2e; transition: all 0.2s; {border}";
     }
 
-    private async Task HandleIconSelected(string iconValue)
+    private async Task HandleIconSelectedAndCollapse(string iconValue)
     {
         // Update the milestone directly to ensure immediate UI update
         Milestone.Icon = iconValue;
         await OnChange.InvokeAsync(("icon", iconValue));
+        _milestoneIconPickerExpanded = false; // Auto-collapse on selection
         StateHasChanged(); // Force re-render to show selected icon immediately
+    }
+
+    private async Task ClearIcon()
+    {
+        Milestone.Icon = null;
+        await OnChange.InvokeAsync(("icon", null!));
+        StateHasChanged();
     }
 
     private void AddMilestone()

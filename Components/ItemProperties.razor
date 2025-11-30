@@ -55,60 +55,81 @@
         </div>
     </div>
 
+    @* Item Display Options - Icon-based toggles *@
     <div class="form-group">
-        <label style="display: flex; align-items: center; cursor: pointer;">
-            <input type="checkbox"
-                   checked="@Item.Spanning"
-                   @onchange="@(e => OnChange.InvokeAsync(("spanning", (bool)(e.Value ?? false))))"
-                   style="margin-right: 8px; cursor: pointer;" />
-            Spanning (dashed border)
-        </label>
+        <label style="font-size: 11px; margin-bottom: 8px; color: #888;">Display Options</label>
+        <div style="display: flex; gap: 8px;">
+            @* Spanning Toggle *@
+            <button type="button"
+                    @onclick="@(() => OnChange.InvokeAsync(("spanning", !Item.Spanning)))"
+                    title="Spanning: Dashed border for ongoing work"
+                    style="@GetToggleButtonStyle(Item.Spanning)">
+                <span style="font-size: 18px;">⋯⋯</span>
+                <span style="font-size: 10px; margin-top: 2px;">Spanning</span>
+            </button>
+
+            @* Greyed Out Toggle *@
+            <button type="button"
+                    @onclick="@(() => OnChange.InvokeAsync(("greyedOut", !Item.GreyedOut)))"
+                    title="Greyed Out: Reduced opacity with grey shadow"
+                    style="@GetToggleButtonStyle(Item.GreyedOut)">
+                <span style="font-size: 18px;">◐</span>
+                <span style="font-size: 10px; margin-top: 2px;">Greyed</span>
+            </button>
+
+            @* Hidden Toggle *@
+            <button type="button"
+                    @onclick="@(() => OnChange.InvokeAsync(("hidden", !Item.Hidden)))"
+                    title="Hidden: Hide in preview/export mode only"
+                    style="@GetToggleButtonStyle(Item.Hidden)">
+                <span style="font-size: 18px;">👁</span>
+                <span style="font-size: 10px; margin-top: 2px;">Hidden</span>
+            </button>
+        </div>
     </div>
 
     <div class="form-group">
-        <label style="display: flex; align-items: center; cursor: pointer;">
-            <input type="checkbox"
-                   checked="@Item.GreyedOut"
-                   @onchange="@(e => OnChange.InvokeAsync(("greyedOut", (bool)(e.Value ?? false))))"
-                   style="margin-right: 8px; cursor: pointer;" />
-            Greyed Out (reduced opacity/shadow effect)
-        </label>
-    </div>
+        <label style="font-size: 11px; margin-bottom: 8px; color: #888;">Status Icon</label>
 
-    <div class="form-group">
-        <label style="display: flex; align-items: center; cursor: pointer;">
-            <input type="checkbox"
-                   checked="@Item.Hidden"
-                   @onchange="@(e => OnChange.InvokeAsync(("hidden", (bool)(e.Value ?? false))))"
-                   style="margin-right: 8px; cursor: pointer;" />
-            Hidden (hide in preview/export mode only)
-        </label>
-    </div>
+        @* Integrated Icon Preview - Click to toggle picker *@
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <button type="button"
+                    @onclick="ToggleStatusIconPicker"
+                    title="Click to @(_statusIconPickerExpanded ? "hide" : "choose") icon"
+                    style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #252538; border: 1px solid #3a3a4e; border-radius: 6px; cursor: pointer; transition: all 0.2s; flex: 1;">
+                @if (!string.IsNullOrEmpty(Item.StatusIcon))
+                {
+                    <Icon IconType="@Item.StatusIcon"
+                          Color="@(Item.StatusColor ?? "#667eea")"
+                          Size="20"
+                          DropShadow="true" />
+                    <span style="color: #d1d5db; font-size: 12px; flex: 1;">@Item.StatusIcon</span>
+                }
+                else
+                {
+                    <span style="color: #666; font-size: 12px; flex: 1;">Choose icon...</span>
+                }
+                <span style="font-size: 14px; color: #888; transition: transform 0.2s; transform: rotate(@(_statusIconPickerExpanded ? "180deg" : "0deg"));">▼</span>
+            </button>
 
-    <div class="form-group">
-        <label style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" @onclick="ToggleStatusIconPicker">
-            <span>Status Icon</span>
-            <span style="font-size: 18px; transition: transform 0.2s; transform: rotate(@(_statusIconPickerExpanded ? "180deg" : "0deg"));">▼</span>
-        </label>
-
-        @if (!string.IsNullOrEmpty(Item.StatusIcon))
-        {
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding: 8px; background: #252538; border-radius: 6px; border: 1px solid #3a3a4e;">
-                <Icon IconType="@Item.StatusIcon"
-                      Color="@(Item.StatusColor ?? "#667eea")"
-                      Size="20"
-                      DropShadow="true" />
-                <span style="color: #d1d5db; font-size: 12px;">@Item.StatusIcon</span>
-                <button @onclick="ClearStatusIcon" type="button" class="btn-remove" style="margin-left: auto;">Clear</button>
-            </div>
-        }
+            @if (!string.IsNullOrEmpty(Item.StatusIcon))
+            {
+                <button @onclick="ClearStatusIcon"
+                        @onclick:stopPropagation="true"
+                        type="button"
+                        title="Clear icon"
+                        style="width: 36px; height: 36px; background: #252538; border: 1px solid #3a3a4e; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 18px; transition: all 0.2s;">
+                    ×
+                </button>
+            }
+        </div>
 
         @if (_statusIconPickerExpanded)
         {
-            <div style="background: #252538; padding: 12px; border-radius: 6px; border: 1px solid #3a3a4e; margin-top: 8px;">
+            <div style="background: #252538; padding: 12px; border-radius: 6px; border: 1px solid #3a3a4e; margin-bottom: 8px;">
                 <IconPicker SelectedIcon="@(Item.StatusIcon ?? "")"
                            Color="@(Item.StatusColor ?? "#667eea")"
-                           OnIconSelected="HandleStatusIconSelected"
+                           OnIconSelected="HandleStatusIconSelectedAndCollapse"
                            ShowCategories="true"
                            ColumnsPerRow="5" />
 
@@ -143,10 +164,6 @@
                 </div>
             </div>
         }
-
-        <div style="font-size: 11px; color: #888; margin-top: 4px;">
-            Click to @(_statusIconPickerExpanded ? "collapse" : "expand") icon picker
-        </div>
     </div>
 
     <div class="form-group">
@@ -272,7 +289,11 @@
         new ColorPreset("Blue", "#87CEEB"),
         new ColorPreset("Mustard", "#E6B800"),
         new ColorPreset("Brown", "#4A2C1A"),
-        new ColorPreset("Sage", "#B7C4B7")
+        new ColorPreset("Sage", "#B7C4B7"),
+        new ColorPreset("Red", "#EF4444"),
+        new ColorPreset("Indigo", "#6366F1"),
+        new ColorPreset("Dark Blue", "#1E3A8A"),
+        new ColorPreset("Pink", "#EC4899")
     };
 
     private string GetPresetColorButtonStyle(string presetColor, string? currentColor)
@@ -284,6 +305,28 @@
 
         return $"width: 100%; height: 32px; padding: 2px; cursor: pointer; border-radius: 4px; " +
                $"background: #1a1a2e; transition: all 0.2s; {border}";
+    }
+
+    private string GetToggleButtonStyle(bool isActive)
+    {
+        var background = isActive
+            ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: 1px solid #667eea;"
+            : "background: #252538; color: #888; border: 1px solid #3a3a4e;";
+
+        return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; " +
+               $"gap: 4px; padding: 12px 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; {background}";
+    }
+
+    private async Task HandleStatusIconSelectedAndCollapse(string iconValue)
+    {
+        // Update the item
+        Item.StatusIcon = iconValue;
+        await OnChange.InvokeAsync(("statusIcon", iconValue));
+
+        // Collapse the picker
+        _statusIconPickerExpanded = false;
+
+        StateHasChanged();
     }
 
     private double GetMaxPosition()

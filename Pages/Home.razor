@@ -432,7 +432,7 @@
                                             <div style="@ItemHeaderStyle(hasDetails, item.Span)">
                                                 @if (!string.IsNullOrEmpty(item.StatusIcon))
                                                 {
-                                                    <div style="@StatusIconBadgeStyle(hasDetails)">
+                                                    <div style="@StatusIconBadgeStyle(hasDetails, lane.Color)">
                                                         <Icon IconType="@item.StatusIcon"
                                                               Color="@(item.StatusColor ?? "#10b981")"
                                                               Size="@(hasDetails ? 20 : 24)"
@@ -1297,8 +1297,31 @@
             : $"{margin} font-size: {baseSize}; font-weight: 700; color: #1f2937; line-height: 1.25;";
     }
 
-    private string StatusIconBadgeStyle(bool hasDetails) =>
-        "display: flex; align-items: center; justify-content: center; flex-shrink: 0;";
+    private string StatusIconBadgeStyle(bool hasDetails, string laneColor)
+    {
+        // Add subtle background color matching lane color for better contrast
+        var size = hasDetails ? "28px" : "32px";
+        var padding = hasDetails ? "4px" : "5px";
+
+        if (_isVibeMode)
+        {
+            // Vibrant background with glow effect
+            return $"width: {size}; height: {size}; border-radius: 50%; " +
+                   $"background: {laneColor}25; " +
+                   $"display: flex; align-items: center; justify-content: center; flex-shrink: 0; " +
+                   $"padding: {padding}; " +
+                   $"box-shadow: 0 0 8px {laneColor}30, inset 0 0 12px {laneColor}15;";
+        }
+        else
+        {
+            // Subtle background for lite mode
+            return $"width: {size}; height: {size}; border-radius: 50%; " +
+                   $"background: {laneColor}15; " +
+                   $"display: flex; align-items: center; justify-content: center; flex-shrink: 0; " +
+                   $"padding: {padding}; " +
+                   $"border: 1px solid {laneColor}25;";
+        }
+    }
 
     private string CompletedBadgeStyle() =>
         _isVibeMode
@@ -1401,11 +1424,17 @@
                 change.Value
             );
 
-            if (updatedJson != null && _editor != null)
+            if (updatedJson != null)
             {
-                await _editor.SetValue(updatedJson);
+                // Update current JSON and parse it
                 _currentJson = updatedJson;
                 ParseJson(updatedJson);
+
+                // Update editor if it's available
+                if (_editor != null)
+                {
+                    await _editor.SetValue(updatedJson);
+                }
 
                 // Save to storage after property change
                 if (_error == null && _sessionManager != null && _activeTab != null)
