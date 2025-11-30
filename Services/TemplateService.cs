@@ -201,9 +201,7 @@ public class TemplateService
                 break;
 
             case TemplateType.BiWeeklySprint:
-                data.Milestones.Add(new Milestone { Position = 35, Label = "Sprint Planning", Icon = "calendar", Color = "#667eea" });
-                data.Milestones.Add(new Milestone { Position = 45, Label = "Sprint Review", Icon = "flag", Color = "#45B69C" });
-                data.Milestones.Add(new Milestone { Position = 90, Label = "Sprint Retro", Icon = "target", Color = "#D4A520" });
+                data.Milestones.Add(new Milestone { Position = 50, Label = "CC Deployment Cutoff", Icon = "triangle", Color = "#D4A520" });
                 break;
 
             case TemplateType.Quarterly4Quarters:
@@ -279,6 +277,7 @@ public class TemplateService
             Height = 0.8,
             Items = new List<Item>
             {
+                new Item { Title = "Refinement", Start = 1, Span = 2, StatusIcon = "search", StatusColor = "#9B7ED9" },
                 new Item { Title = "Retro", Start = 4, Span = 1, StatusIcon = "target", StatusColor = "#D4A520" }
             }
         });
