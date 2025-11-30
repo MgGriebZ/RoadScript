@@ -29,7 +29,7 @@
                 </button>
             </div>
 
-            <div style="flex: 1; overflow-y: auto; padding: 16px; background: #252526;">
+            <div style="flex: 1; overflow-y: auto; padding: 16px; background: #252526; display: flex; flex-direction: column;">
                 @* Tab Management Section *@
                 <div style="margin-bottom: 20px;">
                     <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Tab Management</h3>
@@ -48,22 +48,30 @@
                 @* Quick Templates Section *@
                 <div style="margin-bottom: 20px;">
                     <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Quick Templates</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Weekly7Days))"
-                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                            Weekly (7 Days)
-                        </button>
-                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Monthly4Weeks))"
-                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                            Monthly (4 Weeks)
+                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">📅</span>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 600;">Weekly</span>
+                                <span style="font-size: 10px; color: #888;">7 day columns</span>
+                            </div>
                         </button>
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Quarterly4Quarters))"
-                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                            Quarterly (4 Quarters)
+                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">📊</span>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 600;">Quarterly</span>
+                                <span style="font-size: 10px; color: #888;">4 quarter columns</span>
+                            </div>
                         </button>
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Yearly12Months))"
-                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                            Yearly (12 Months)
+                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">📆</span>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 600;">Yearly</span>
+                                <span style="font-size: 10px; color: #888;">12 month columns</span>
+                            </div>
                         </button>
                     </div>
                 </div>
@@ -71,15 +79,42 @@
                 @* View Modes Section *@
                 <div style="margin-bottom: 20px;">
                     <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">View Modes</h3>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
-                            <input type="checkbox" checked="@_isPreviewMode" @onchange="ToggleViewMode" style="width: 16px; height: 16px; cursor: pointer;" />
-                            <span>@(_isPreviewMode ? "👁️ Preview Mode" : "📝 Edit Mode")</span>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 13px;">
-                            <input type="checkbox" checked="@_isVibeMode" @onchange="ToggleTheme" style="width: 16px; height: 16px; cursor: pointer;" />
-                            <span>@(_isVibeMode ? "🌙 Vibe Mode" : "☀️ Lite Mode")</span>
-                        </label>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        @* Edit/Preview Toggle *@
+                        <div>
+                            <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Display Mode</div>
+                            <button @onclick="@(() => ToggleViewMode(null))"
+                                    style="@GetViewModeToggleStyle()">
+                                <div style="display: flex; width: 100%; height: 100%; border-radius: 6px; overflow: hidden;">
+                                    <div style="@GetViewModeOptionStyle(false)">
+                                        <span style="font-size: 18px;">📝</span>
+                                        <span style="font-size: 11px; font-weight: 600;">Edit</span>
+                                    </div>
+                                    <div style="@GetViewModeOptionStyle(true)">
+                                        <span style="font-size: 18px;">👁️</span>
+                                        <span style="font-size: 11px; font-weight: 600;">Preview</span>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+
+                        @* Lite/Vibe Toggle *@
+                        <div>
+                            <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Theme Mode</div>
+                            <button @onclick="@(() => ToggleTheme(null))"
+                                    style="@GetThemeModeToggleStyle()">
+                                <div style="display: flex; width: 100%; height: 100%; border-radius: 6px; overflow: hidden;">
+                                    <div style="@GetThemeModeOptionStyle(false)">
+                                        <span style="font-size: 18px;">☀️</span>
+                                        <span style="font-size: 11px; font-weight: 600;">Lite</span>
+                                    </div>
+                                    <div style="@GetThemeModeOptionStyle(true)">
+                                        <span style="font-size: 18px;">🌙</span>
+                                        <span style="font-size: 11px; font-weight: 600;">Vibe</span>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -92,17 +127,17 @@
                 </div>
 
                 @* Advanced Section (Collapsible JSON Editor) *@
-                <div style="border-top: 1px solid #3a3a4e; padding-top: 16px;">
+                <div style="border-top: 1px solid #3a3a4e; padding-top: 16px; display: flex; flex-direction: column; flex: 1; min-height: 0;">
                     <button @onclick="ToggleAdvancedSection"
-                            style="width: 100%; background: #2a2a3e; color: #ccc; border: 1px solid #3a3a4e; padding: 10px 12px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;">
+                            style="width: 100%; background: #2a2a3e; color: #ccc; border: 1px solid #3a3a4e; padding: 10px 12px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
                         <span>⚙️ Advanced JSON Editor</span>
                         <span style="transform: rotate(@(_showAdvancedSection ? "180deg" : "0deg")); transition: transform 0.2s;">▼</span>
                     </button>
 
                     @if (_showAdvancedSection)
                     {
-                        <div style="margin-top: 12px;">
-                            <div style="background: #1e1e1e; padding: 8px 12px; border-radius: 4px; border: 1px solid #3a3a4e; display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                        <div style="margin-top: 12px; display: flex; flex-direction: column; flex: 1; min-height: 0;">
+                            <div style="background: #1e1e1e; padding: 8px 12px; border-radius: 4px; border: 1px solid #3a3a4e; display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-shrink: 0;">
                                 <button @onclick="UpdatePreview"
                                         disabled="@(!_editorReady)"
                                         style="@UpdateButtonStyle()">
@@ -136,7 +171,7 @@
                                     <span style="color: #f48771; font-size: 11px;">✗</span>
                                 }
                             </div>
-                            <div style="height: 300px; border: 1px solid #3a3a4e; border-radius: 4px; overflow: hidden;">
+                            <div style="flex: 1; border: 1px solid #3a3a4e; border-radius: 4px; overflow: hidden; min-height: 200px;">
                                 <StandaloneCodeEditor @ref="_editor"
                                                       Id="roadscript-json-editor"
                                                       ConstructionOptions="EditorConstructionOptions"
@@ -1684,6 +1719,40 @@
         }
         return "background: rgba(248, 249, 250, 0.98); padding: 10px 24px; border-top: 1px solid #d1d5db; " +
                "width: 100%; flex-shrink: 0;";
+    }
+
+    // === Toggle Button Styles ===
+
+    private string GetViewModeToggleStyle() =>
+        "width: 100%; height: 44px; padding: 4px; background: #1e1e1e; border: 1px solid #3a3a4e; border-radius: 8px; cursor: pointer; transition: all 0.2s;";
+
+    private string GetViewModeOptionStyle(bool isPreview)
+    {
+        var isActive = _isPreviewMode == isPreview;
+        if (isActive)
+        {
+            return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+                   "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 6px; " +
+                   "transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);";
+        }
+        return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+               "background: transparent; color: #666; transition: all 0.2s;";
+    }
+
+    private string GetThemeModeToggleStyle() =>
+        "width: 100%; height: 44px; padding: 4px; background: #1e1e1e; border: 1px solid #3a3a4e; border-radius: 8px; cursor: pointer; transition: all 0.2s;";
+
+    private string GetThemeModeOptionStyle(bool isVibe)
+    {
+        var isActive = _isVibeMode == isVibe;
+        if (isActive)
+        {
+            return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+                   "background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); color: #fff; border-radius: 6px; " +
+                   "transition: all 0.2s; box-shadow: 0 2px 8px rgba(118, 75, 162, 0.4);";
+        }
+        return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+               "background: transparent; color: #666; transition: all 0.2s;";
     }
 
 }

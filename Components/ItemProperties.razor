@@ -278,11 +278,17 @@
 
     private async Task HandleStatusIconSelected(string iconValue)
     {
+        // Update the item directly to ensure immediate UI update
+        Item.StatusIcon = iconValue;
         await OnChange.InvokeAsync(("statusIcon", iconValue));
+        StateHasChanged(); // Force re-render to show selected icon immediately
     }
 
     private async Task ClearStatusIcon()
     {
+        // Update the item directly to ensure immediate UI update
+        Item.StatusIcon = "";
         await OnChange.InvokeAsync(("statusIcon", ""));
+        StateHasChanged(); // Force re-render
     }
 }

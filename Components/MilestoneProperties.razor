@@ -107,7 +107,10 @@
 
     private async Task HandleIconSelected(string iconValue)
     {
+        // Update the milestone directly to ensure immediate UI update
+        Milestone.Icon = iconValue;
         await OnChange.InvokeAsync(("icon", iconValue));
+        StateHasChanged(); // Force re-render to show selected icon immediately
     }
 
     private void AddMilestone()
