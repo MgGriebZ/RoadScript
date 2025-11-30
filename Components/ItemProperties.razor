@@ -64,8 +64,7 @@
                     @onclick="@(() => OnChange.InvokeAsync(("spanning", !Item.Spanning)))"
                     title="Spanning: Dashed border for ongoing work"
                     style="@GetToggleButtonStyle(Item.Spanning)">
-                <span style="font-size: 18px;">⋯⋯</span>
-                <span style="font-size: 10px; margin-top: 2px;">Spanning</span>
+                <span style="font-size: 24px;">⋯⋯</span>
             </button>
 
             @* Greyed Out Toggle *@
@@ -73,8 +72,7 @@
                     @onclick="@(() => OnChange.InvokeAsync(("greyedOut", !Item.GreyedOut)))"
                     title="Greyed Out: Reduced opacity with grey shadow"
                     style="@GetToggleButtonStyle(Item.GreyedOut)">
-                <span style="font-size: 18px;">◐</span>
-                <span style="font-size: 10px; margin-top: 2px;">Greyed</span>
+                <span style="font-size: 24px;">◐</span>
             </button>
 
             @* Hidden Toggle *@
@@ -82,8 +80,7 @@
                     @onclick="@(() => OnChange.InvokeAsync(("hidden", !Item.Hidden)))"
                     title="Hidden: Hide in preview/export mode only"
                     style="@GetToggleButtonStyle(Item.Hidden)">
-                <span style="font-size: 18px;">👁</span>
-                <span style="font-size: 10px; margin-top: 2px;">Hidden</span>
+                <span style="font-size: 24px;">👁</span>
             </button>
         </div>
     </div>
@@ -313,8 +310,8 @@
             ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: 1px solid #667eea;"
             : "background: #252538; color: #888; border: 1px solid #3a3a4e;";
 
-        return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; " +
-               $"gap: 4px; padding: 12px 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; {background}";
+        return $"flex: 1; display: flex; align-items: center; justify-content: center; " +
+               $"padding: 14px 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; {background}";
     }
 
     private async Task HandleStatusIconSelectedAndCollapse(string iconValue)

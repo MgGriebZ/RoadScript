@@ -429,15 +429,14 @@
                                             @{
                                                 var hasDetails = item.Details != null && item.Details.Count > 0;
                                             }
-                                            <div style="@ItemHeaderStyle(hasDetails, item.Span)">
+                                            @* Header with full-width background bar *@
+                                            <div style="@ItemHeaderStyle(hasDetails, item.Span, !string.IsNullOrEmpty(item.StatusIcon), lane.Color)">
                                                 @if (!string.IsNullOrEmpty(item.StatusIcon))
                                                 {
-                                                    <div style="@StatusIconBadgeStyle(hasDetails, lane.Color)">
-                                                        <Icon IconType="@item.StatusIcon"
-                                                              Color="@(item.StatusColor ?? "#10b981")"
-                                                              Size="@(hasDetails ? 20 : 24)"
-                                                              DropShadow="true" />
-                                                    </div>
+                                                    <Icon IconType="@item.StatusIcon"
+                                                          Color="@(item.StatusColor ?? "#10b981")"
+                                                          Size="@(hasDetails ? 20 : 24)"
+                                                          DropShadow="true" />
                                                 }
                                                 else if (item.Completed)
                                                 {
@@ -449,6 +448,11 @@
                                                 <h4 style="@ItemTitleStyle(hasDetails)">
                                                     @item.Title
                                                 </h4>
+                                                @* Hidden indicator in edit mode *@
+                                                @if (item.Hidden && !_isPreviewMode)
+                                                {
+                                                    <span style="margin-left: auto; font-size: 16px; opacity: 0.5;" title="Hidden in preview mode">👁</span>
+                                                }
                                             </div>
                                             <ul style="margin: 0; padding: 0; list-style: none;">
                                                 @if (item.Details != null)
@@ -1277,14 +1281,39 @@
             ? "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;"
             : "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;";
 
-    private string ItemHeaderStyle(bool hasDetails, double span)
+    private string ItemHeaderStyle(bool hasDetails, double span, bool hasStatusIcon, string laneColor)
     {
+        var gap = hasDetails ? "8px" : "10px";
+        var padding = hasDetails ? "8px 12px" : "10px 14px";
+
+        if (hasStatusIcon)
+        {
+            // Full-width background bar matching lane color
+            if (_isVibeMode)
+            {
+                var background = $"background: linear-gradient(135deg, {laneColor}25 0%, {laneColor}15 100%);";
+                var border = $"border-bottom: 2px solid {laneColor}30;";
+                var shadow = $"box-shadow: 0 2px 8px {laneColor}15;";
+                var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
+
+                return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {shadow} {margin}";
+            }
+            else
+            {
+                var background = $"background: {laneColor}08;";
+                var border = $"border-bottom: 1px solid {laneColor}15;";
+                var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
+
+                return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {margin}";
+            }
+        }
+
         if (hasDetails)
-            return "display: flex; align-items: center; gap: 8px;";
+            return $"display: flex; align-items: center; gap: {gap};";
 
         // Dynamic indentation based on span width to prevent text clipping
         var indent = span < 1.5 ? "4px" : "16px";
-        return $"display: flex; align-items: center; gap: 10px; height: 100%; padding-left: {indent};";
+        return $"display: flex; align-items: center; gap: {gap}; height: 100%; padding-left: {indent};";
     }
 
     private string ItemTitleStyle(bool hasDetails)
@@ -1295,32 +1324,6 @@
         return _isVibeMode
             ? $"{margin} font-size: {baseSize}; font-weight: 700; color: #f3f4f6; line-height: 1.25;"
             : $"{margin} font-size: {baseSize}; font-weight: 700; color: #1f2937; line-height: 1.25;";
-    }
-
-    private string StatusIconBadgeStyle(bool hasDetails, string laneColor)
-    {
-        // Add subtle background color matching lane color for better contrast
-        var size = hasDetails ? "28px" : "32px";
-        var padding = hasDetails ? "4px" : "5px";
-
-        if (_isVibeMode)
-        {
-            // Vibrant background with glow effect
-            return $"width: {size}; height: {size}; border-radius: 50%; " +
-                   $"background: {laneColor}25; " +
-                   $"display: flex; align-items: center; justify-content: center; flex-shrink: 0; " +
-                   $"padding: {padding}; " +
-                   $"box-shadow: 0 0 8px {laneColor}30, inset 0 0 12px {laneColor}15;";
-        }
-        else
-        {
-            // Subtle background for lite mode
-            return $"width: {size}; height: {size}; border-radius: 50%; " +
-                   $"background: {laneColor}15; " +
-                   $"display: flex; align-items: center; justify-content: center; flex-shrink: 0; " +
-                   $"padding: {padding}; " +
-                   $"border: 1px solid {laneColor}25;";
-        }
     }
 
     private string CompletedBadgeStyle() =>
