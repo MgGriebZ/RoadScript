@@ -183,6 +183,22 @@ public class StorageService
     }
 
     /// <summary>
+    /// Rename a tab
+    /// </summary>
+    public bool RenameTab(SessionManager session, string tabId, string newName)
+    {
+        var tab = session.Tabs.FirstOrDefault(t => t.Id == tabId);
+        if (tab == null)
+        {
+            return false;
+        }
+
+        tab.Name = newName;
+        tab.LastModified = DateTime.UtcNow;
+        return true;
+    }
+
+    /// <summary>
     /// Duplicate a tab
     /// </summary>
     public TabSession? DuplicateTab(SessionManager session, string tabId)
