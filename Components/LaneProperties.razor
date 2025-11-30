@@ -14,19 +14,33 @@
     </div>
 
     <div class="form-group">
-        <label style="display: flex; justify-content: space-between; align-items: center;">
-            <span>Color</span>
+        <label style="margin-bottom: 8px;">Color</label>
+
+        @* Preset Color Options *@
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;">
+            @foreach (var preset in _colorPresets)
+            {
+                <button type="button"
+                        @onclick="@(() => OnChange.InvokeAsync(("color", preset.Value)))"
+                        title="@preset.Name"
+                        style="@GetPresetColorButtonStyle(preset.Value, Lane.Color)">
+                    <span style="width: 100%; height: 100%; display: block; border-radius: 3px; background: @preset.Value;"></span>
+                </button>
+            }
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
             <input type="color"
                    value="@Lane.Color"
                    @onchange="@(e => OnChange.InvokeAsync(("color", e.Value)))"
-                   style="width: 60px; height: 32px; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; background: #2a2a3e;" />
-        </label>
-        <input type="text"
-               value="@Lane.Color"
-               @onchange="@(e => OnChange.InvokeAsync(("color", e.Value)))"
-               class="form-control"
-               placeholder="#45B69C"
-               pattern="^#[0-9A-Fa-f]{6}$" />
+                   style="width: 60px; height: 40px; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; background: #2a2a3e; padding: 2px;" />
+            <input type="text"
+                   value="@Lane.Color"
+                   @onchange="@(e => OnChange.InvokeAsync(("color", e.Value)))"
+                   class="form-control"
+                   placeholder="#45B69C"
+                   pattern="^#[0-9A-Fa-f]{6}$" />
+        </div>
     </div>
 
     <div class="form-group">
@@ -109,6 +123,16 @@
     <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
         <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Lane Management</label>
 
+        @* Lane Reordering *@
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <button @onclick="MoveLaneUp" type="button" style="flex: 1; background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span style="font-size: 16px;">↑</span> Move Up
+            </button>
+            <button @onclick="MoveLaneDown" type="button" style="flex: 1; background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span style="font-size: 16px;">↓</span> Move Down
+            </button>
+        </div>
+
         <button @onclick="AddItem" class="btn-add" type="button" style="width: 100%; margin-bottom: 8px;">
             + Add Item to This Lane
         </button>
@@ -145,6 +169,35 @@
 
     [Parameter]
     public EventCallback<string> OnDuplicate { get; set; }
+
+    private record ColorPreset(string Name, string Value);
+
+    private readonly List<ColorPreset> _colorPresets = new()
+    {
+        new ColorPreset("Teal", "#45B69C"),
+        new ColorPreset("Coral", "#F88379"),
+        new ColorPreset("Lav", "#9999ff"),
+        new ColorPreset("Orange", "#D4652F"),
+        new ColorPreset("Blue", "#87CEEB"),
+        new ColorPreset("Mustard", "#E6B800"),
+        new ColorPreset("Brown", "#4A2C1A"),
+        new ColorPreset("Sage", "#B7C4B7"),
+        new ColorPreset("Red", "#EF4444"),
+        new ColorPreset("Indigo", "#6366F1"),
+        new ColorPreset("Dark Blue", "#1E3A8A"),
+        new ColorPreset("Pink", "#EC4899")
+    };
+
+    private string GetPresetColorButtonStyle(string presetColor, string currentColor)
+    {
+        var isSelected = presetColor.Equals(currentColor, StringComparison.OrdinalIgnoreCase);
+        var border = isSelected
+            ? "border: 2px solid #667eea; box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);"
+            : "border: 1.5px solid rgba(255, 255, 255, 0.2);";
+
+        return $"width: 100%; height: 32px; padding: 2px; cursor: pointer; border-radius: 4px; " +
+               $"background: #1a1a2e; transition: all 0.2s; {border}";
+    }
 
     private void UpdateHistory(string propertyName, object value)
     {
@@ -201,5 +254,15 @@
     private void RemoveLane()
     {
         OnRemove.InvokeAsync("lane");
+    }
+
+    private void MoveLaneUp()
+    {
+        OnAdd.InvokeAsync("moveLaneUp");
+    }
+
+    private void MoveLaneDown()
+    {
+        OnAdd.InvokeAsync("moveLaneDown");
     }
 }

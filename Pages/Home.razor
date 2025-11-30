@@ -49,19 +49,11 @@
                 <div style="margin-bottom: 20px;">
                     <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Quick Templates</h3>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Weekly7Days))"
-                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 16px;">📅</span>
-                            <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Weekly</span>
-                                <span style="font-size: 10px; color: #888;">7 day columns</span>
-                            </div>
-                        </button>
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.BiWeeklySprint))"
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 16px;">🔄</span>
                             <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Bi-Weekly Sprint</span>
+                                <span style="font-weight: 600;">Sprint (Bi-Weekly)</span>
                                 <span style="font-size: 10px; color: #888;">2-week ceremony cycle</span>
                             </div>
                         </button>
@@ -69,7 +61,7 @@
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 16px;">📊</span>
                             <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Quarterly</span>
+                                <span style="font-weight: 600;">Quarterly (4 Columns)</span>
                                 <span style="font-size: 10px; color: #888;">4 quarter columns</span>
                             </div>
                         </button>
@@ -286,14 +278,6 @@
                 @* Quick Templates - Show only in expanded state for simplicity *@
                 <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
-                @* Template Quick Access - Weekly *@
-                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Weekly7Days))"
-                        title="Apply Weekly Template (7 days)"
-                        class="cc-icon-btn"
-                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                    📅
-                </button>
-
                 @* Bi-Weekly Sprint *@
                 <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.BiWeeklySprint))"
                         title="Apply Bi-Weekly Sprint Template"
@@ -434,22 +418,25 @@
                                     {
                                         var item = lane.Items[ii];
                                         var itemIdx = ii;
-                                        <div @onclick="@(_isPreviewMode ? null : async () => await HandleItemClick(laneIdx, itemIdx, item))"
-                                             @onclick:stopPropagation="@(!_isPreviewMode)"
-                                             class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]")"
-                                             style="@ItemStyle(item, lane.Color)">
+
+                                        @* Skip hidden items in preview mode *@
+                                        @if (!(_isPreviewMode && item.Hidden))
+                                        {
+                                            <div @onclick="@(_isPreviewMode ? null : async () => await HandleItemClick(laneIdx, itemIdx, item))"
+                                                 @onclick:stopPropagation="@(!_isPreviewMode)"
+                                                 class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]")"
+                                                 style="@ItemStyle(item, lane.Color)">
                                             @{
                                                 var hasDetails = item.Details != null && item.Details.Count > 0;
                                             }
-                                            <div style="@ItemHeaderStyle(hasDetails, item.Span)">
+                                            @* Header with full-width background bar - always visible *@
+                                            <div style="@ItemHeaderStyle(hasDetails, item.Span, lane.Color)">
                                                 @if (!string.IsNullOrEmpty(item.StatusIcon))
                                                 {
-                                                    <div style="@StatusIconBadgeStyle(hasDetails)">
-                                                        <Icon IconType="@item.StatusIcon"
-                                                              Color="@(item.StatusColor ?? "#10b981")"
-                                                              Size="@(hasDetails ? 20 : 24)"
-                                                              DropShadow="true" />
-                                                    </div>
+                                                    <Icon IconType="@item.StatusIcon"
+                                                          Color="@(item.StatusColor ?? "#10b981")"
+                                                          Size="@(hasDetails ? 20 : 24)"
+                                                          DropShadow="true" />
                                                 }
                                                 else if (item.Completed)
                                                 {
@@ -461,6 +448,11 @@
                                                 <h4 style="@ItemTitleStyle(hasDetails)">
                                                     @item.Title
                                                 </h4>
+                                                @* Hidden indicator in edit mode *@
+                                                @if (item.Hidden && !_isPreviewMode)
+                                                {
+                                                    <span style="margin-left: auto; font-size: 16px; opacity: 0.5;" title="Hidden in preview mode">👁</span>
+                                                }
                                             </div>
                                             <ul style="margin: 0; padding: 0; list-style: none;">
                                                 @if (item.Details != null)
@@ -489,6 +481,7 @@
                                                 }
                                             </ul>
                                         </div>
+                                        }
                                     }
                                 </div>
                             }
@@ -565,118 +558,111 @@
 
     // Default JSON template - Generic boilerplate for easy customization
     private const string DefaultJson = @"{
-  ""title"": ""Product Roadmap"",
-  ""subtitle"": ""A visual timeline showcasing features and capabilities"",
+  ""title"": ""Bi-Weekly Sprint Roadmap"",
+  ""subtitle"": ""2-week sprint cycle with ceremonies"",
   ""columns"": [
-    { ""label"": ""Week 1"", ""sub"": ""Mon – Fri"" },
-    { ""label"": ""February"", ""sub"": ""2026"" },
-    { ""label"": ""Q2 2026"", ""sub"": ""Apr – Jun"" },
-    { ""label"": ""Phase 4"", ""sub"": ""Launch"" }
+    { ""label"": ""Thursday"", ""sub"": """" },
+    { ""label"": ""Friday"", ""sub"": """" },
+    { ""label"": ""Weekend"", ""sub"": ""Sat/Sun"" },
+    { ""label"": ""Monday"", ""sub"": """" },
+    { ""label"": ""Tuesday"", ""sub"": """" },
+    { ""label"": ""Wednesday"", ""sub"": ""3:00PM est"" }
   ],
   ""milestones"": [
-    { ""position"": 25, ""label"": ""Beta Release"", ""icon"": ""star"", ""color"": ""#667eea"" },
-    { ""position"": 75, ""label"": ""Public Launch"", ""icon"": ""flag"", ""color"": ""#27AE60"" }
+    { ""position"": 91, ""label"": ""Deployment Cutoff Time"", ""icon"": ""triangle"", ""color"": ""#EF4444"" },
+    { ""position"": 38, ""label"": ""Release Deployments"", ""icon"": ""rocket"", ""color"": ""#025f40"" }
   ],
   ""lanes"": [
     {
-      ""title"": ""Product Development"",
+      ""title"": ""Week 1"",
       ""color"": ""#45B69C"",
+      ""height"": 1,
       ""items"": [
         {
-          ""title"": ""Discovery"",
-          ""start"": 0,
-          ""span"": 0.75,
-          ""completed"": true,
-          ""details"": [
-            { ""text"": ""User research"", ""subs"": [""Interviews"", ""Surveys"", ""Analytics review""] },
-            { ""text"": ""Problem validation"" }
-          ]
-        },
-        {
-          ""title"": ""Design Sprint"",
-          ""start"": 1,
-          ""span"": 1,
-          ""completed"": true,
-          ""details"": [
-            { ""text"": ""Wireframes and prototypes"" },
-            { ""text"": ""Usability testing"" }
-          ]
-        },
-        {
-          ""title"": ""MVP Build"",
-          ""start"": 2.25,
-          ""span"": 1.75,
-          ""details"": [
-            { ""text"": ""Core features"", ""subs"": [""Authentication"", ""Dashboard"", ""Data models""] },
-            { ""text"": ""API development"" },
-            { ""text"": ""Testing and QA"" }
-          ]
-        }
-      ]
-    },
-    {
-      ""title"": ""Platform & Infrastructure"",
-      ""color"": ""#4A90D9"",
-      ""history"": {
-        ""startYear"": 2023,
-        ""endYear"": 2027,
-        ""pastPct"": 60
-      },
-      ""items"": [
-        {
-          ""title"": ""Platform Modernization"",
-          ""start"": 0,
-          ""span"": 4,
-          ""spanning"": true,
-          ""details"": [
-            { ""text"": ""Infrastructure as code"" },
-            { ""text"": ""Performance optimization"", ""subs"": [""Caching strategy"", ""Database tuning""] },
-            { ""text"": ""Monitoring and observability"" }
-          ]
-        },
-        {
-          ""title"": ""Security Audit"",
-          ""start"": 2.5,
-          ""span"": 0.75,
-          ""details"": [
-            { ""text"": ""Penetration testing"" },
-            { ""text"": ""Compliance review"" }
-          ]
-        }
-      ]
-    },
-    {
-      ""title"": ""Marketing & Launch"",
-      ""color"": ""#9B7ED9"",
-      ""items"": [
-        {
-          ""title"": ""Brand Strategy"",
-          ""start"": 0.5,
-          ""span"": 1.5,
-          ""completed"": true,
-          ""details"": [
-            { ""text"": ""Market positioning"", ""subs"": [""Competitive analysis"", ""Value proposition""] },
-            { ""text"": ""Visual identity"" }
-          ]
-        },
-        {
-          ""title"": ""Content Creation"",
-          ""start"": 1.5,
-          ""span"": 1,
-          ""details"": [
-            { ""text"": ""Blog posts and tutorials"" },
-            { ""text"": ""Video demos"" }
-          ]
-        },
-        {
-          ""title"": ""Campaign Launch"",
+          ""title"": ""Stakeholder Prioritization"",
           ""start"": 3,
           ""span"": 1,
           ""spanning"": true,
+          ""statusIcon"": ""star"",
+          ""statusColor"": ""#D4A520""
+        },
+        {
+          ""title"": ""Refinement"",
+          ""start"": 5,
+          ""span"": 1,
+          ""spanning"": false,
+          ""statusIcon"": ""search"",
+          ""statusColor"": ""#9B7ED9""
+        },
+        {
+          ""title"": ""Sprint Planning"",
+          ""start"": 0,
+          ""span"": 1,
+          ""spanning"": false,
+          ""statusIcon"": ""calendar"",
+          ""statusColor"": ""#667eea""
+        },
+        {
+          ""title"": ""Sprint Review"",
+          ""start"": 1,
+          ""span"": 1,
+          ""spanning"": true,
+          ""statusIcon"": ""flag"",
+          ""statusColor"": ""#45B69C""
+        }
+      ]
+    },
+    {
+      ""title"": ""Week 2"",
+      ""color"": ""#D4A520"",
+      ""height"": 1,
+      ""items"": [
+        {
+          ""title"": ""Refinement"",
+          ""start"": 4,
+          ""span"": 2,
+          ""spanning"": false,
+          ""statusIcon"": ""search"",
+          ""statusColor"": ""#9B7ED9""
+        },
+        {
+          ""title"": ""Retro"",
+          ""start"": 1,
+          ""span"": 1,
+          ""spanning"": false,
+          ""statusIcon"": ""target"",
+          ""statusColor"": ""#D4A520""
+        }
+      ]
+    },
+    {
+      ""title"": ""IT Development"",
+      ""color"": ""#4A90D9"",
+      ""height"": 0.8,
+      ""items"": [
+        {
+          ""title"": ""Sprint Execution"",
+          ""start"": 0,
+          ""span"": 6,
+          ""spanning"": true,
+          ""statusIcon"": ""code"",
+          ""statusColor"": ""#4A90D9""
+        },
+        {
+          ""title"": ""Maintenance Window"",
+          ""start"": 2,
+          ""span"": 1,
+          ""spanning"": false,
+          ""statusIcon"": ""wrench"",
+          ""statusColor"": ""#4A90D9"",
           ""details"": [
-            { ""text"": ""Social media"", ""subs"": [""Twitter"", ""LinkedIn"", ""YouTube""] },
-            { ""text"": ""Email campaigns"" },
-            { ""text"": ""PR and partnerships"" }
+            {
+              ""text"": ""Saturday"",
+              ""subs"": [
+                ""3:00PM - 11:59PM est"",
+                ""4PM Release Deployment Process Begins""
+              ]
+            }
           ]
         }
       ]
@@ -707,8 +693,11 @@
     {
         _editorReady = true;
 
-        // Load or initialize session
-        await InitializeSessionAsync();
+        // Only initialize session if not already loaded
+        if (_sessionManager == null || _activeTab == null)
+        {
+            await InitializeSessionAsync();
+        }
 
         // Set editor value
         if (_editor != null && _activeTab != null)
@@ -717,7 +706,12 @@
             await _editor.SetValue(_currentJson);
         }
 
-        ParseJson(_currentJson);
+        // Parse JSON if not already parsed (data could be null if editor loads before OnInitializedAsync completes)
+        if (_data == null && !string.IsNullOrEmpty(_currentJson))
+        {
+            ParseJson(_currentJson);
+        }
+
         _lastUpdateSuccess = _error == null;
         await InvokeAsync(StateHasChanged);
     }
@@ -726,6 +720,13 @@
     {
         // Load or initialize session
         await InitializeSessionAsync();
+
+        // Parse the JSON immediately so the UI displays even if editor hasn't loaded
+        if (_data != null && !string.IsNullOrEmpty(_currentJson))
+        {
+            ParseJson(_currentJson);
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task InitializeSessionAsync()
@@ -1170,6 +1171,9 @@
         var leftPct = (item.Start / cols) * 100;
         var widthPct = (item.Span / cols) * 100;
 
+        // Greyed out effect: reduce opacity and add grey filter
+        var greyedOutStyle = item.GreyedOut ? "opacity: 0.5; filter: grayscale(0.6);" : "";
+
         if (_isVibeMode)
         {
             var vibeColor = GetVibeColor(color);
@@ -1183,9 +1187,15 @@
                 ? $"box-shadow: 0 0 20px {vibeColor}40, 0 4px 12px rgba(0,0,0,0.4);"
                 : $"box-shadow: 0 0 15px {vibeColor}30, 0 4px 12px rgba(0,0,0,0.4);";
 
+            // Add deeper shadow if greyed out
+            if (item.GreyedOut)
+            {
+                shadow = $"box-shadow: inset 0 4px 10px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.6);";
+            }
+
             return $"position: absolute; left: calc({leftPct}% + 6px); top: 6px; bottom: 6px; " +
                    $"width: calc({widthPct}% - 12px); {vibeGradient} border-radius: 8px; " +
-                   $"padding: 12px 16px; overflow: hidden; {borderStyle} {shadow}";
+                   $"padding: 12px 16px; overflow: hidden; {borderStyle} {shadow} {greyedOutStyle}";
         }
         else
         {
@@ -1195,9 +1205,15 @@
 
             var shadow = item.Spanning ? "" : "box-shadow: 0 1px 4px rgba(0,0,0,0.08);";
 
+            // Add deeper shadow if greyed out
+            if (item.GreyedOut)
+            {
+                shadow = "box-shadow: inset 0 2px 6px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1);";
+            }
+
             return $"position: absolute; left: calc({leftPct}% + 6px); top: 6px; bottom: 6px; " +
                    $"width: calc({widthPct}% - 12px); background: #fff; border-radius: 6px; " +
-                   $"padding: 12px 16px; overflow: hidden; {borderStyle} {shadow}";
+                   $"padding: 12px 16px; overflow: hidden; {borderStyle} {shadow} {greyedOutStyle}";
         }
     }
 
@@ -1265,14 +1281,29 @@
             ? "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;"
             : "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;";
 
-    private string ItemHeaderStyle(bool hasDetails, double span)
+    private string ItemHeaderStyle(bool hasDetails, double span, string laneColor)
     {
-        if (hasDetails)
-            return "display: flex; align-items: center; gap: 8px;";
+        var gap = hasDetails ? "8px" : "10px";
+        var padding = hasDetails ? "8px 12px" : "10px 14px";
 
-        // Dynamic indentation based on span width to prevent text clipping
-        var indent = span < 1.5 ? "4px" : "16px";
-        return $"display: flex; align-items: center; gap: 10px; height: 100%; padding-left: {indent};";
+        // Always apply full-width background bar matching lane color
+        if (_isVibeMode)
+        {
+            var background = $"background: linear-gradient(135deg, {laneColor}25 0%, {laneColor}15 100%);";
+            var border = $"border-bottom: 2px solid {laneColor}30;";
+            var shadow = $"box-shadow: 0 2px 8px {laneColor}15;";
+            var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
+
+            return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {shadow} {margin}";
+        }
+        else
+        {
+            var background = $"background: {laneColor}08;";
+            var border = $"border-bottom: 1px solid {laneColor}15;";
+            var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
+
+            return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {margin}";
+        }
     }
 
     private string ItemTitleStyle(bool hasDetails)
@@ -1284,9 +1315,6 @@
             ? $"{margin} font-size: {baseSize}; font-weight: 700; color: #f3f4f6; line-height: 1.25;"
             : $"{margin} font-size: {baseSize}; font-weight: 700; color: #1f2937; line-height: 1.25;";
     }
-
-    private string StatusIconBadgeStyle(bool hasDetails) =>
-        "display: flex; align-items: center; justify-content: center; flex-shrink: 0;";
 
     private string CompletedBadgeStyle() =>
         _isVibeMode
@@ -1389,11 +1417,31 @@
                 change.Value
             );
 
-            if (updatedJson != null && _editor != null)
+            if (updatedJson != null)
             {
-                await _editor.SetValue(updatedJson);
+                // Store current selection to refresh it after parsing
+                var selectedPath = SelectionState.SelectedPath;
+                var selectedType = SelectionState.ElementType;
+
+                // Update current JSON and parse it
                 _currentJson = updatedJson;
                 ParseJson(updatedJson);
+
+                // Refresh selection with new object instance from parsed data
+                if (selectedPath != null && selectedType != null && _data != null)
+                {
+                    var refreshedElement = GetElementByPath(selectedPath, selectedType);
+                    if (refreshedElement != null)
+                    {
+                        SelectionState.Select(selectedPath, selectedType, refreshedElement);
+                    }
+                }
+
+                // Update editor if it's available
+                if (_editor != null)
+                {
+                    await _editor.SetValue(updatedJson);
+                }
 
                 // Save to storage after property change
                 if (_error == null && _sessionManager != null && _activeTab != null)
@@ -1503,26 +1551,60 @@
                     };
                     _data.Milestones.Insert(milestoneIndex + 1, newMilestone);
                     break;
+
+                case "moveLaneUp":
+                    // Move lane up in the list
+                    var moveUpIndex = ExtractIndexFromPath(jsonPath, "lanes");
+                    if (moveUpIndex > 0)
+                    {
+                        var lane = _data.Lanes[moveUpIndex];
+                        _data.Lanes.RemoveAt(moveUpIndex);
+                        _data.Lanes.Insert(moveUpIndex - 1, lane);
+
+                        // Update the selection to follow the lane
+                        var newPath = $"lanes[{moveUpIndex - 1}]";
+                        SelectionState.Select(newPath, "lane", lane);
+                    }
+                    break;
+
+                case "moveLaneDown":
+                    // Move lane down in the list
+                    var moveDownIndex = ExtractIndexFromPath(jsonPath, "lanes");
+                    if (moveDownIndex < _data.Lanes.Count - 1)
+                    {
+                        var lane = _data.Lanes[moveDownIndex];
+                        _data.Lanes.RemoveAt(moveDownIndex);
+                        _data.Lanes.Insert(moveDownIndex + 1, lane);
+
+                        // Update the selection to follow the lane
+                        var newPath = $"lanes[{moveDownIndex + 1}]";
+                        SelectionState.Select(newPath, "lane", lane);
+                    }
+                    break;
             }
 
-            // Serialize and update editor
+            // Serialize and update - parse JSON first, then update editor
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+            // Update current JSON and parse it FIRST
+            _currentJson = updatedJson;
+            ParseJson(updatedJson);
+
+            // Then update editor if available
             if (_editor != null)
             {
                 await _editor.SetValue(updatedJson);
-                _currentJson = updatedJson;
-                ParseJson(updatedJson);
-
-                // Save to storage
-                if (_error == null && _sessionManager != null && _activeTab != null)
-                {
-                    _activeTab.Data = _data;
-                    _activeTab.LastModified = DateTime.UtcNow;
-                    await StorageService.SaveSessionAsync(_sessionManager);
-                }
-
-                await InvokeAsync(StateHasChanged);
             }
+
+            // Save to storage
+            if (_error == null && _sessionManager != null && _activeTab != null)
+            {
+                _activeTab.Data = _data;
+                _activeTab.LastModified = DateTime.UtcNow;
+                await StorageService.SaveSessionAsync(_sessionManager);
+            }
+
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
@@ -1575,27 +1657,31 @@
                     break;
             }
 
-            // Serialize and update editor
+            // Serialize and update - parse JSON first, then update editor
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+            // Update current JSON and parse it FIRST
+            _currentJson = updatedJson;
+            ParseJson(updatedJson);
+
+            // Clear selection
+            SelectionState.Clear();
+
+            // Then update editor if available
             if (_editor != null)
             {
                 await _editor.SetValue(updatedJson);
-                _currentJson = updatedJson;
-                ParseJson(updatedJson);
-
-                // Clear selection
-                SelectionState.Clear();
-
-                // Save to storage
-                if (_error == null && _sessionManager != null && _activeTab != null)
-                {
-                    _activeTab.Data = _data;
-                    _activeTab.LastModified = DateTime.UtcNow;
-                    await StorageService.SaveSessionAsync(_sessionManager);
-                }
-
-                await InvokeAsync(StateHasChanged);
             }
+
+            // Save to storage
+            if (_error == null && _sessionManager != null && _activeTab != null)
+            {
+                _activeTab.Data = _data;
+                _activeTab.LastModified = DateTime.UtcNow;
+                await StorageService.SaveSessionAsync(_sessionManager);
+            }
+
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
@@ -1609,6 +1695,70 @@
         var pattern = $@"{arrayName}\[(\d+)\]";
         var match = System.Text.RegularExpressions.Regex.Match(jsonPath, pattern);
         return match.Success ? int.Parse(match.Groups[1].Value) : 0;
+    }
+
+    private object? GetElementByPath(string jsonPath, string elementType)
+    {
+        // Retrieve the element from _data based on the JSON path and type
+        if (_data == null) return null;
+
+        try
+        {
+            return elementType switch
+            {
+                "item" => GetItemByPath(jsonPath),
+                "lane" => GetLaneByPath(jsonPath),
+                "column" => GetColumnByPath(jsonPath),
+                "milestone" => GetMilestoneByPath(jsonPath),
+                "title" => _data,
+                _ => null
+            };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private Item? GetItemByPath(string jsonPath)
+    {
+        var laneIndex = ExtractIndexFromPath(jsonPath, "lanes");
+        var itemIndex = ExtractIndexFromPath(jsonPath, "items");
+        if (laneIndex < _data!.Lanes.Count && itemIndex < _data.Lanes[laneIndex].Items.Count)
+        {
+            return _data.Lanes[laneIndex].Items[itemIndex];
+        }
+        return null;
+    }
+
+    private Lane? GetLaneByPath(string jsonPath)
+    {
+        var laneIndex = ExtractIndexFromPath(jsonPath, "lanes");
+        if (laneIndex < _data!.Lanes.Count)
+        {
+            return _data.Lanes[laneIndex];
+        }
+        return null;
+    }
+
+    private Column? GetColumnByPath(string jsonPath)
+    {
+        var columnIndex = ExtractIndexFromPath(jsonPath, "columns");
+        if (columnIndex < _data!.Columns.Count)
+        {
+            return _data.Columns[columnIndex];
+        }
+        return null;
+    }
+
+    private Milestone? GetMilestoneByPath(string jsonPath)
+    {
+        var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
+        if (milestoneIndex < _data!.Milestones.Count)
+        {
+            return _data.Milestones[milestoneIndex];
+        }
+        return null;
     }
 
     private async Task HandleDuplicateElement((string ElementType, string JsonPath) args)
@@ -1682,24 +1832,28 @@
                     break;
             }
 
-            // Serialize and update editor
+            // Serialize and update - parse JSON first, then update editor
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+            // Update current JSON and parse it FIRST
+            _currentJson = updatedJson;
+            ParseJson(updatedJson);
+
+            // Then update editor if available
             if (_editor != null)
             {
                 await _editor.SetValue(updatedJson);
-                _currentJson = updatedJson;
-                ParseJson(updatedJson);
-
-                // Save to storage
-                if (_error == null && _sessionManager != null && _activeTab != null)
-                {
-                    _activeTab.Data = _data;
-                    _activeTab.LastModified = DateTime.UtcNow;
-                    await StorageService.SaveSessionAsync(_sessionManager);
-                }
-
-                await InvokeAsync(StateHasChanged);
             }
+
+            // Save to storage
+            if (_error == null && _sessionManager != null && _activeTab != null)
+            {
+                _activeTab.Data = _data;
+                _activeTab.LastModified = DateTime.UtcNow;
+                await StorageService.SaveSessionAsync(_sessionManager);
+            }
+
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
