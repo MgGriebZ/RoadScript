@@ -201,7 +201,7 @@ public class TemplateService
                 break;
 
             case TemplateType.BiWeeklySprint:
-                data.Milestones.Add(new Milestone { Position = 50, Label = "CC Deployment Cutoff", Icon = "triangle", Color = "#D4A520" });
+                data.Milestones.Add(new Milestone { Position = 50, Label = "Deployment Scheduling Cutoff Time", Icon = "triangle", Color = "#EF4444" });
                 break;
 
             case TemplateType.Quarterly4Quarters:
@@ -247,7 +247,7 @@ public class TemplateService
         {
             Title = "Daily Standup",
             Color = "#667eea",
-            Height = 0.6,
+            Height = 0.5,
             Items = new List<Item>
             {
                 new Item { Title = "Daily Sync", Start = 0, Span = 5, Spanning = true, StatusIcon = "clock", StatusColor = "#667eea" }
@@ -274,7 +274,7 @@ public class TemplateService
         {
             Title = "Sprint Ceremonies (Even Weeks)",
             Color = "#D4A520",
-            Height = 0.8,
+            Height = 1.0,
             Items = new List<Item>
             {
                 new Item { Title = "Refinement", Start = 1, Span = 2, StatusIcon = "search", StatusColor = "#9B7ED9" },
@@ -287,7 +287,7 @@ public class TemplateService
         {
             Title = "Development",
             Color = "#4A90D9",
-            Height = 1.1,
+            Height = 0.8,
             Items = new List<Item>
             {
                 new Item { Title = "Sprint Execution", Start = 0, Span = 5, Spanning = true, StatusIcon = "code", StatusColor = "#4A90D9" }
