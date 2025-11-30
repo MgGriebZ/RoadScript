@@ -96,11 +96,11 @@
                                 <div style="display: flex; width: 100%; height: 100%; border-radius: 6px; overflow: hidden;">
                                     <div style="@GetViewModeOptionStyle(false)">
                                         <span style="font-size: 24px;">✏️</span>
-                                        <span style="font-size: 13px; font-weight: 600; margin-top: 2px;">Edit</span>
+                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Edit</span>
                                     </div>
                                     <div style="@GetViewModeOptionStyle(true)">
                                         <span style="font-size: 24px;">👁️</span>
-                                        <span style="font-size: 13px; font-weight: 600; margin-top: 2px;">Preview</span>
+                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Preview</span>
                                     </div>
                                 </div>
                             </button>
@@ -114,11 +114,11 @@
                                 <div style="display: flex; width: 100%; height: 100%; border-radius: 6px; overflow: hidden;">
                                     <div style="@GetThemeModeOptionStyle(false)">
                                         <span style="font-size: 24px;">☀️</span>
-                                        <span style="font-size: 13px; font-weight: 600; margin-top: 2px;">Lite</span>
+                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Lite</span>
                                     </div>
                                     <div style="@GetThemeModeOptionStyle(true)">
                                         <span style="font-size: 24px;">🌙</span>
-                                        <span style="font-size: 13px; font-weight: 600; margin-top: 2px;">Vibe</span>
+                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Vibe</span>
                                     </div>
                                 </div>
                             </button>
@@ -227,6 +227,17 @@
                                     title="@tab.Name"
                                     style="@GetTabIndicatorStyle(isActive)">
                                 @(index + 1)
+                            </button>
+                        }
+
+                        @* Add new tab button (only show if under max) *@
+                        @if (_sessionManager.Tabs.Count < _sessionManager.MaxTabs)
+                        {
+                            <button @onclick="HandleTabAdd"
+                                    title="Add new roadmap tab"
+                                    class="cc-icon-btn"
+                                    style="background: linear-gradient(135deg, #f87171 0%, #dc2626 100%); color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(248, 113, 113, 0.4); display: flex; align-items: center; justify-content: center;">
+                                +
                             </button>
                         }
                     </div>
@@ -857,8 +868,9 @@
     private void ToggleViewMode(ChangeEventArgs? e = null)
     {
         _isPreviewMode = !_isPreviewMode;
-        // Auto-hide properties panel in preview mode, show in edit mode
+        // Auto-hide properties panel and Command Center in preview mode, show in edit mode
         _showProperties = !_isPreviewMode;
+        _showControlPanel = !_isPreviewMode;
         StateHasChanged();
     }
 
@@ -1840,11 +1852,11 @@
         var isActive = _isPreviewMode == isPreview;
         if (isActive)
         {
-            return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+            return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
                    "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 6px; " +
                    "transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);";
         }
-        return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+        return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
                "background: transparent; color: #666; transition: all 0.2s;";
     }
 
@@ -1856,11 +1868,11 @@
         var isActive = _isVibeMode == isVibe;
         if (isActive)
         {
-            return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+            return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
                    "background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); color: #fff; border-radius: 6px; " +
                    "transition: all 0.2s; box-shadow: 0 2px 8px rgba(118, 75, 162, 0.4);";
         }
-        return "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; " +
+        return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
                "background: transparent; color: #666; transition: all 0.2s;";
     }
 
