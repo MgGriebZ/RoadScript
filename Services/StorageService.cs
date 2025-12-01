@@ -450,6 +450,46 @@ public class StorageService
     }
 
     /// <summary>
+    /// Add a new folder with a custom initial roadmap template
+    /// </summary>
+    public Folder AddFolder(FolderManager folderManager, string name, RoadmapData initialTemplate, string icon = "folder", string color = "#667eea")
+    {
+        if (folderManager.Folders.Count >= folderManager.MaxFolders)
+        {
+            throw new InvalidOperationException($"Maximum of {folderManager.MaxFolders} folders allowed");
+        }
+
+        var newFolder = new Folder
+        {
+            Id = $"folder-{Guid.NewGuid().ToString("N")[..8]}",
+            Name = name,
+            Icon = icon,
+            Color = color,
+            SessionManager = new SessionManager
+            {
+                ActiveTabId = "tab-1",
+                Tabs = new List<TabSession>
+                {
+                    new TabSession
+                    {
+                        Id = "tab-1",
+                        Name = initialTemplate.Title,
+                        LastModified = DateTime.UtcNow,
+                        Data = initialTemplate
+                    }
+                },
+                MaxTabs = 5
+            },
+            LastModified = DateTime.UtcNow
+        };
+
+        folderManager.Folders.Add(newFolder);
+        folderManager.ActiveFolderId = newFolder.Id;
+
+        return newFolder;
+    }
+
+    /// <summary>
     /// Remove a folder
     /// </summary>
     public bool RemoveFolder(FolderManager folderManager, string folderId)

@@ -601,6 +601,8 @@
     // UI state for folder and template selectors
     private bool _showFolderSelector = false;
     private bool _showTemplateSelector = false;
+    private bool _isCreatingNewFolder = false;
+    private string? _pendingFolderName = null;
 
     // Default JSON template - Generic boilerplate for easy customization
     private const string DefaultJson = @"{
@@ -2000,7 +2002,7 @@
 
     private async Task HandleTemplateSelect(TemplateService.TemplateType templateType)
     {
-        if (_sessionManager == null || _folderManager == null) return;
+        if (_folderManager == null) return;
 
         // Get the appropriate template
         var templateData = templateType switch
@@ -2011,22 +2013,51 @@
             _ => TemplateService.GetScrumSprintCycleTemplate()
         };
 
-        var newTab = StorageService.AddTab(_sessionManager, templateData.Title, templateData);
-        _sessionManager.ActiveTabId = newTab.Id;
-        _activeTab = newTab;
-        _data = newTab.Data;
-        _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
-
-        // Update editor
-        if (_editor != null && _editorReady)
+        // Check if we're creating a new folder or adding a tab to existing folder
+        if (_isCreatingNewFolder && !string.IsNullOrWhiteSpace(_pendingFolderName))
         {
-            await _editor.SetValue(_currentJson);
+            // Create new folder with selected template
+            var newFolder = StorageService.AddFolder(_folderManager, _pendingFolderName, templateData);
+            _activeFolder = newFolder;
+            _sessionManager = newFolder.SessionManager;
+            _activeTab = StorageService.GetActiveTab(_sessionManager);
+
+            if (_activeTab != null)
+            {
+                _data = _activeTab.Data;
+                _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+                // Update editor
+                if (_editor != null && _editorReady)
+                {
+                    await _editor.SetValue(_currentJson);
+                }
+            }
+
+            // Reset folder creation state
+            _isCreatingNewFolder = false;
+            _pendingFolderName = null;
         }
-
-        // Update active folder's last modified time
-        if (_activeFolder != null)
+        else if (_sessionManager != null)
         {
-            _activeFolder.LastModified = DateTime.UtcNow;
+            // Add new tab to existing folder
+            var newTab = StorageService.AddTab(_sessionManager, templateData.Title, templateData);
+            _sessionManager.ActiveTabId = newTab.Id;
+            _activeTab = newTab;
+            _data = newTab.Data;
+            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+            // Update editor
+            if (_editor != null && _editorReady)
+            {
+                await _editor.SetValue(_currentJson);
+            }
+
+            // Update active folder's last modified time
+            if (_activeFolder != null)
+            {
+                _activeFolder.LastModified = DateTime.UtcNow;
+            }
         }
 
         // Save folder manager
@@ -2034,6 +2065,9 @@
         {
             await StorageService.SaveFolderManagerAsync(_folderManager);
         }
+
+        // Close template selector
+        _showTemplateSelector = false;
         SelectionState.Clear();
         await InvokeAsync(StateHasChanged);
     }
@@ -2123,6 +2157,9 @@
     private void CloseTemplateSelector()
     {
         _showTemplateSelector = false;
+        // Reset folder creation state if user cancels
+        _isCreatingNewFolder = false;
+        _pendingFolderName = null;
         StateHasChanged();
     }
 
@@ -2178,29 +2215,11 @@
             return;
         }
 
-        var newFolder = StorageService.AddFolder(_folderManager, folderName);
-        _activeFolder = newFolder;
-        _sessionManager = newFolder.SessionManager;
-        _activeTab = StorageService.GetActiveTab(_sessionManager);
-
-        if (_activeTab != null)
-        {
-            _data = _activeTab.Data;
-            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
-
-            // Update editor
-            if (_editor != null && _editorReady)
-            {
-                await _editor.SetValue(_currentJson);
-            }
-        }
-
-        // Save folder manager
-        if (_folderManager != null)
-        {
-            await StorageService.SaveFolderManagerAsync(_folderManager);
-        }
-        SelectionState.Clear();
+        // Store pending folder name and show template selector
+        _pendingFolderName = folderName;
+        _isCreatingNewFolder = true;
+        _showFolderSelector = false; // Close folder selector
+        _showTemplateSelector = true; // Show template selector
         await InvokeAsync(StateHasChanged);
     }
 
