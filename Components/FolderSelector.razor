@@ -96,9 +96,9 @@
                     @if (_showColorPicker && ActiveFolderId != null)
                     {
                         <div class="color-picker-popup">
-                            <button class="color-option" style="background-color: #E6B800;" @onclick="@(() => { HandleColorChange(\"#E6B800\"); _showColorPicker = false; })" title="Mustard"></button>
-                            <button class="color-option" style="background-color: #F88379;" @onclick="@(() => { HandleColorChange(\"#F88379\"); _showColorPicker = false; })" title="Coral"></button>
-                            <button class="color-option" style="background-color: #EC4899;" @onclick="@(() => { HandleColorChange(\"#EC4899\"); _showColorPicker = false; })" title="Pink"></button>
+                            <button class="color-option mustard" @onclick="@(() => SelectColor("#E6B800"))" title="Mustard"></button>
+                            <button class="color-option coral" @onclick="@(() => SelectColor("#F88379"))" title="Coral"></button>
+                            <button class="color-option pink" @onclick="@(() => SelectColor("#EC4899"))" title="Pink"></button>
                         </div>
                     }
                 </div>
@@ -162,6 +162,12 @@
     private async Task HandleColorChange(string color)
     {
         await OnColorChange.InvokeAsync(color);
+    }
+
+    private async Task SelectColor(string color)
+    {
+        await HandleColorChange(color);
+        _showColorPicker = false;
     }
 
     private int GetActiveFolderIndex()
@@ -579,6 +585,18 @@
         border-radius: 6px;
         cursor: pointer;
         transition: all 0.2s;
+    }
+
+    .color-option.mustard {
+        background-color: #E6B800;
+    }
+
+    .color-option.coral {
+        background-color: #F88379;
+    }
+
+    .color-option.pink {
+        background-color: #EC4899;
     }
 
     .color-option:hover {

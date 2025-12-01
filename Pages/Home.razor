@@ -211,16 +211,30 @@
 
                 <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
-                @* Folder Button *@
-                <button @onclick="ToggleFolderSelector"
-                        title="Project Folders"
-                        class="cc-icon-btn"
-                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 44px; height: 44px; border-radius: 8px; font-size: 24px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: center; position: relative;">
-                    📁
-                    <span style="position: absolute; top: 2px; right: 2px; background: @GetActiveFolderColor(); color: #ffffff; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);">@GetActiveFolderNumber()</span>
-                </button>
+                @* Folder Indicators *@
+                @if (_folderManager != null)
+                {
+                    <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
+                        @for (int i = 0; i < 3; i++)
+                        {
+                            var folderIndex = i;
+                            var hasFolder = folderIndex < _folderManager.Folders.Count;
+                            var folder = hasFolder ? _folderManager.Folders[folderIndex] : null;
+                            var isActive = hasFolder && folder?.Id == _folderManager.ActiveFolderId;
+                            var folderColor = hasFolder ? folder!.Color : "#4a4a5e";
 
-                <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
+                            <button @onclick="@(() => HandleFolderClick(folderIndex))"
+                                    @oncontextmenu="@(() => ToggleFolderSelector())"
+                                    @oncontextmenu:preventDefault="true"
+                                    title="@(hasFolder ? $"Folder {folderIndex + 1}: {folder!.Name}" : $"Folder {folderIndex + 1} (empty)")"
+                                    style="@GetFolderIndicatorStyle(isActive, hasFolder, folderColor)">
+                                <Icon IconType="folder" Size="20" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666"))" />
+                            </button>
+                        }
+                    </div>
+                }
+
+                <div style="width: 32px; height: 2px; background: linear-gradient(90deg, transparent, #667eea, transparent); margin: 8px 0;"></div>
 
                 @* Tab Indicators *@
                 @if (_sessionManager != null)
@@ -1116,6 +1130,25 @@
             return "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4); display: flex; align-items: center; justify-content: center;";
         }
         return "background: #2a2a3e; color: #888; border: 1px solid #3a3a4e; width: 32px; height: 32px; border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;";
+    }
+
+    private string GetFolderIndicatorStyle(bool isActive, bool hasFolder, string folderColor)
+    {
+        if (isActive && hasFolder)
+        {
+            // Active folder - use folder's color with gradient and glow
+            return $"background: linear-gradient(135deg, {folderColor} 0%, {folderColor}dd 100%); color: #fff; border: 2px solid {folderColor}; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px {folderColor}66; display: flex; align-items: center; justify-content: center;";
+        }
+        else if (hasFolder)
+        {
+            // Inactive but exists - muted with folder color hint
+            return $"background: #2a2a3e; color: #888; border: 1px solid {folderColor}44; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.6;";
+        }
+        else
+        {
+            // Empty slot - very muted
+            return "background: #1e1e2e; color: #555; border: 1px dashed #3a3a4e; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.4;";
+        }
     }
 
     private string GetCollapsedToggleStyle(bool isActive)
@@ -2295,6 +2328,23 @@
         SelectionState.Clear();
         _showFolderSelector = false;
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleFolderClick(int folderIndex)
+    {
+        if (_folderManager == null) return;
+
+        // If folder exists at this index, switch to it
+        if (folderIndex < _folderManager.Folders.Count)
+        {
+            var folder = _folderManager.Folders[folderIndex];
+            await HandleFolderSelect(folder.Id);
+        }
+        else
+        {
+            // Empty slot - open folder selector/add new folder
+            ToggleFolderSelector();
+        }
     }
 
     private async Task HandleAddFolder()
