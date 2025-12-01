@@ -41,44 +41,50 @@
     </div>
 
     <div class="form-group">
-        <label style="margin-bottom: 8px;">Position Slider</label>
+        <label style="margin-bottom: 8px;">Position</label>
 
-        @* Quick Position Buttons *@
-        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px;">
+        @* Quick Position Buttons with inline value display *@
+        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px;">
             <button type="button"
                     @onclick="@(() => JumpToStart())"
                     title="Jump to Start (0)"
-                    style="@GetQuickButtonStyle()">
+                    style="@GetQuickButtonStyle() flex-shrink: 0;">
                 <div style="font-size: 10px; font-weight: 600;">⏮ Start</div>
             </button>
             <button type="button"
                     @onclick="@(() => AdjustPosition(-1.0))"
                     title="Big Down (-1 column)"
-                    style="@GetQuickButtonStyle()">
+                    style="@GetQuickButtonStyle() flex-shrink: 0;">
                 <div style="font-size: 18px; line-height: 1;">⏪</div>
             </button>
             <button type="button"
                     @onclick="@(() => AdjustPosition(-0.25))"
                     title="Little Down (-0.25)"
-                    style="@GetQuickButtonStyle()">
+                    style="@GetQuickButtonStyle() flex-shrink: 0;">
                 <div style="font-size: 16px; line-height: 1;">◀</div>
             </button>
+
+            @* Numeric Value Display *@
+            <div style="flex: 1; min-width: 60px; text-align: center; background: #1a1a2e; border: 1px solid #667eea; border-radius: 4px; padding: 8px 12px; font-weight: 600; color: #667eea; font-size: 14px;">
+                @Item.Start.ToString("F2")
+            </div>
+
             <button type="button"
                     @onclick="@(() => AdjustPosition(0.25))"
                     title="Little Up (+0.25)"
-                    style="@GetQuickButtonStyle()">
+                    style="@GetQuickButtonStyle() flex-shrink: 0;">
                 <div style="font-size: 16px; line-height: 1;">▶</div>
             </button>
             <button type="button"
                     @onclick="@(() => AdjustPosition(1.0))"
                     title="Big Up (+1 column)"
-                    style="@GetQuickButtonStyle()">
+                    style="@GetQuickButtonStyle() flex-shrink: 0;">
                 <div style="font-size: 18px; line-height: 1;">⏩</div>
             </button>
             <button type="button"
                     @onclick="@(() => JumpToEnd())"
                     title="Jump to End (max position based on span)"
-                    style="@GetQuickButtonStyle()">
+                    style="@GetQuickButtonStyle() flex-shrink: 0;">
                 <div style="font-size: 10px; font-weight: 600;">End ⏭</div>
             </button>
         </div>
