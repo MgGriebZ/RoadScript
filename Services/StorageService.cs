@@ -416,6 +416,12 @@ public class StorageService
             throw new InvalidOperationException($"Maximum of {folderManager.MaxFolders} folders allowed");
         }
 
+        // Assign unique icon and color based on folder count if defaults are used
+        if (icon == "folder" && color == "#667eea")
+        {
+            (icon, color) = GetFolderDefaults(folderManager.Folders.Count);
+        }
+
         // Create a new folder with a default roadmap using Scrum Sprint Cycle template
         var defaultRoadmap = TemplateService.GetScrumSprintCycleTemplate();
 
@@ -457,6 +463,12 @@ public class StorageService
         if (folderManager.Folders.Count >= folderManager.MaxFolders)
         {
             throw new InvalidOperationException($"Maximum of {folderManager.MaxFolders} folders allowed");
+        }
+
+        // Assign unique icon and color based on folder count if defaults are used
+        if (icon == "folder" && color == "#667eea")
+        {
+            (icon, color) = GetFolderDefaults(folderManager.Folders.Count);
         }
 
         var newFolder = new Folder
@@ -550,5 +562,19 @@ public class StorageService
 
         folder.LastModified = DateTime.UtcNow;
         return true;
+    }
+
+    /// <summary>
+    /// Get default icon and color for a folder based on its index
+    /// </summary>
+    private static (string icon, string color) GetFolderDefaults(int folderIndex)
+    {
+        return folderIndex switch
+        {
+            0 => ("folder", "#667eea"),        // Folder 1: Purple/Blue
+            1 => ("briefcase", "#45B69C"),     // Folder 2: Teal/Green
+            2 => ("bookmark", "#EF6461"),      // Folder 3: Coral/Red
+            _ => ("folder", "#667eea")         // Default fallback
+        };
     }
 }

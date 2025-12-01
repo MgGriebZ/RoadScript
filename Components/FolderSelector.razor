@@ -18,10 +18,14 @@
                     <div class="folder-hex-inner" style="background-color: @folder.Color;">
                         <Icon IconType="@folder.Icon" Size="32" Color="#ffffff" />
                         <div class="folder-name">@folder.Name</div>
-                        <div class="folder-slots">
-                            @for (int i = 0; i < 5; i++)
+                        <div class="folder-roadmaps">
+                            @foreach (var tab in folder.SessionManager.Tabs)
                             {
-                                <span class="slot-dot @(i < folder.SessionManager.Tabs.Count ? "filled" : "empty")"></span>
+                                var stats = GetRoadmapStats(tab.Data);
+                                <div class="roadmap-item">
+                                    <div class="roadmap-name">@tab.Name</div>
+                                    <div class="roadmap-stats">@stats</div>
+                                </div>
                             }
                         </div>
                     </div>
@@ -83,6 +87,19 @@
     private async Task HandleRenameFolder()
     {
         await OnRenameFolder.InvokeAsync();
+    }
+
+    private string GetRoadmapStats(RoadmapData data)
+    {
+        if (data == null) return "0c 0l 0i";
+
+        var columns = data.Columns?.Count ?? 0;
+        var lanes = data.Lanes?.Count ?? 0;
+        var items = data.Lanes?.Sum(l => l.Items?.Count ?? 0) ?? 0;
+        var milestones = data.Milestones?.Count ?? 0;
+        var total = items + milestones;
+
+        return $"{columns}c {lanes}l {total}i";
     }
 }
 
@@ -160,8 +177,9 @@
     }
 
     .folder-hex {
-        width: 140px;
-        height: 160px;
+        width: 180px;
+        height: auto;
+        min-height: 180px;
         cursor: pointer;
         transition: transform 0.2s;
     }
@@ -214,28 +232,41 @@
         color: #999;
     }
 
-    .folder-slots {
+    .folder-roadmaps {
+        width: 100%;
+        margin-top: 12px;
         display: flex;
-        gap: 4px;
-        margin-top: 8px;
-        justify-content: center;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 150px;
+        overflow-y: auto;
     }
 
-    .slot-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        transition: all 0.2s;
+    .roadmap-item {
+        width: 100%;
+        padding: 6px 8px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
     }
 
-    .slot-dot.filled {
-        background: #ffffff;
-        box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+    .roadmap-name {
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
-    .slot-dot.empty {
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+    .roadmap-stats {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 9px;
+        font-weight: 500;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.5px;
     }
 
     .folder-actions {
