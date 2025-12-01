@@ -28,7 +28,7 @@
         <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 12px;">
             <button type="button"
                     @onclick="@(() => ResetSpanToDefault())"
-                    title="Reset span to default (1.0)"
+                    title="Reset span to default (2 columns)"
                     style="width: 38px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 500; padding: 2px; flex-shrink: 0;">
                 <div style="font-size: 16px; font-weight: 600;">↻</div>
             </button>
@@ -453,8 +453,8 @@
     // Quick Span Button Methods
     private void ResetSpanToDefault()
     {
-        // Reset span to default value of 1.0
-        OnChange.InvokeAsync(("span", 1.0));
+        // Reset span to default value of 2.0 (2 columns)
+        OnChange.InvokeAsync(("span", 2.0));
     }
 
     private void SetSpanToEnd()
