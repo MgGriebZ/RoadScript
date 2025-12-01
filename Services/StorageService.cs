@@ -422,7 +422,7 @@ public class StorageService
             (icon, color) = GetFolderDefaults(folderManager.Folders.Count);
         }
 
-        // Create a new folder with a default roadmap using Scrum Sprint Cycle template
+        // Create a new folder with a default roadmap using Daily Planning template
         var defaultRoadmap = TemplateService.GetScrumSprintCycleTemplate();
 
         var newFolder = new Folder
@@ -571,10 +571,10 @@ public class StorageService
     {
         return folderIndex switch
         {
-            0 => ("folder", "#45B69C"),        // Folder 1: Teal/Green
-            1 => ("briefcase", "#EF6461"),     // Folder 2: Coral/Red
-            2 => ("bookmark", "#667eea"),      // Folder 3: Purple/Blue
-            _ => ("folder", "#45B69C")         // Default fallback
+            0 => ("folder", "#E6B800"),        // Folder 1: Mustard
+            1 => ("briefcase", "#F88379"),     // Folder 2: Coral
+            2 => ("bookmark", "#EC4899"),      // Folder 3: Pink
+            _ => ("folder", "#E6B800")         // Default fallback
         };
     }
 }
