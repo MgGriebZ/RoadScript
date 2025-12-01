@@ -18,8 +18,34 @@
                 <div class="folder-hex @(folder.Id == ActiveFolderId ? "active" : "")"
                      @onclick="@(() => HandleFolderSelect(folder.Id))">
                     <div class="folder-hex-inner" style="background-color: @folder.Color;">
-                        <div class="folder-header" style="background-color: @folder.Color;">
-                            <span class="folder-number">Folder @folderNumber</span>
+                        <div class="folder-header" style="background-color: @folder.Color; display: flex; align-items: center; justify-content: space-between; padding: 10px 8px;">
+                            @if (i > 0)
+                            {
+                                <button @onclick="@(e => HandleMoveFolderLeft(folder.Id, e))"
+                                        class="folder-move-btn"
+                                        title="Move left"
+                                        style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; padding: 0;">
+                                    ◀
+                                </button>
+                            }
+                            else
+                            {
+                                <span style="width: 24px;"></span>
+                            }
+                            <span class="folder-number" style="flex: 1; text-align: center;">Folder @folderNumber</span>
+                            @if (i < Folders.Count - 1)
+                            {
+                                <button @onclick="@(e => HandleMoveFolderRight(folder.Id, e))"
+                                        class="folder-move-btn"
+                                        title="Move right"
+                                        style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; padding: 0;">
+                                    ▶
+                                </button>
+                            }
+                            else
+                            {
+                                <span style="width: 24px;"></span>
+                            }
                         </div>
                         <div class="folder-roadmaps">
                             @foreach (var tab in folder.SessionManager.Tabs)
@@ -73,6 +99,8 @@
     [Parameter] public EventCallback OnAddFolder { get; set; }
     [Parameter] public EventCallback OnRemoveFolder { get; set; }
     [Parameter] public EventCallback OnRenameFolder { get; set; }
+    [Parameter] public EventCallback<string> OnMoveFolderLeft { get; set; }
+    [Parameter] public EventCallback<string> OnMoveFolderRight { get; set; }
 
     private async Task HandleFolderSelect(string folderId)
     {
@@ -92,6 +120,18 @@
     private async Task HandleRenameFolder()
     {
         await OnRenameFolder.InvokeAsync();
+    }
+
+    private async Task HandleMoveFolderLeft(string folderId, MouseEventArgs e)
+    {
+        e.StopPropagation(); // Prevent folder selection
+        await OnMoveFolderLeft.InvokeAsync(folderId);
+    }
+
+    private async Task HandleMoveFolderRight(string folderId, MouseEventArgs e)
+    {
+        e.StopPropagation(); // Prevent folder selection
+        await OnMoveFolderRight.InvokeAsync(folderId);
     }
 
     private string GetRoadmapStats(RoadmapData data)
@@ -340,5 +380,15 @@
     .btn-delete:hover:not(:disabled) {
         border-color: #ef4444;
         color: #ef4444;
+    }
+
+    .folder-move-btn:hover {
+        background: rgba(0,0,0,0.4) !important;
+        border-color: rgba(255,255,255,0.5) !important;
+        transform: scale(1.1);
+    }
+
+    .folder-move-btn:active {
+        transform: scale(0.95);
     }
 </style>

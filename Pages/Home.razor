@@ -66,26 +66,17 @@
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumSprintCycle))"
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 16px;">🕐</span>
-                            <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Daily Planning</span>
-                                <span style="font-size: 10px; color: #888;">Daily calendar view and meetings</span>
-                            </div>
+                            <span style="font-weight: 600;">Daily Planning</span>
                         </button>
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ProjectTimelines))"
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 16px;">📅</span>
-                            <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Project Timelines</span>
-                                <span style="font-size: 10px; color: #888;">Quarterly project tracking</span>
-                            </div>
+                            <span style="font-weight: 600;">Project Timelines</span>
                         </button>
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.AnnualRoadmap))"
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 16px;">📊</span>
-                            <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Milestone Map</span>
-                                <span style="font-size: 10px; color: #888;">12-month timeline</span>
-                            </div>
+                            <span style="font-weight: 600;">Milestone Map</span>
                         </button>
                     </div>
                 </div>
@@ -599,7 +590,9 @@
                        OnFolderSelect="HandleFolderSelect"
                        OnAddFolder="HandleAddFolder"
                        OnRemoveFolder="HandleRemoveFolder"
-                       OnRenameFolder="HandleRenameFolder" />
+                       OnRenameFolder="HandleRenameFolder"
+                       OnMoveFolderLeft="HandleMoveFolderLeft"
+                       OnMoveFolderRight="HandleMoveFolderRight" />
     }
 
     @* Template Selector *@
@@ -2309,6 +2302,58 @@
         }
         SelectionState.Clear();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleMoveFolderLeft(string folderId)
+    {
+        if (_folderManager == null) return;
+
+        var folderIndex = _folderManager.Folders.FindIndex(f => f.Id == folderId);
+        if (folderIndex <= 0) return; // Already at leftmost position
+
+        // Swap with the folder to the left
+        var folder = _folderManager.Folders[folderIndex];
+        _folderManager.Folders.RemoveAt(folderIndex);
+        _folderManager.Folders.Insert(folderIndex - 1, folder);
+
+        // Update colors for all folders based on new positions
+        UpdateFolderColorsByPosition();
+
+        // Save folder manager
+        await StorageService.SaveFolderManagerAsync(_folderManager);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleMoveFolderRight(string folderId)
+    {
+        if (_folderManager == null) return;
+
+        var folderIndex = _folderManager.Folders.FindIndex(f => f.Id == folderId);
+        if (folderIndex < 0 || folderIndex >= _folderManager.Folders.Count - 1) return; // Already at rightmost position
+
+        // Swap with the folder to the right
+        var folder = _folderManager.Folders[folderIndex];
+        _folderManager.Folders.RemoveAt(folderIndex);
+        _folderManager.Folders.Insert(folderIndex + 1, folder);
+
+        // Update colors for all folders based on new positions
+        UpdateFolderColorsByPosition();
+
+        // Save folder manager
+        await StorageService.SaveFolderManagerAsync(_folderManager);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateFolderColorsByPosition()
+    {
+        if (_folderManager == null) return;
+
+        // Update colors based on position: Mustard, Coral, Pink
+        var colors = new[] { "#E6B800", "#F88379", "#EC4899" };
+        for (int i = 0; i < _folderManager.Folders.Count; i++)
+        {
+            _folderManager.Folders[i].Color = colors[i % colors.Length];
+        }
     }
 
     private async Task HandleRenameFolder()
