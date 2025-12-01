@@ -2281,6 +2281,9 @@
         // Get template name for confirmation
         var templateName = templateType switch
         {
+            TemplateService.TemplateType.ScrumSprintCycle => "Scrum Sprint Cycle",
+            TemplateService.TemplateType.ProjectTimelines => "Project Timelines",
+            TemplateService.TemplateType.AnnualRoadmap => "Annual Roadmap",
             TemplateService.TemplateType.Weekly7Days => "Weekly (7 Days)",
             TemplateService.TemplateType.Monthly4Weeks => "Monthly (4 Weeks)",
             TemplateService.TemplateType.Quarterly4Quarters => "Quarterly (4 Quarters)",
@@ -2291,6 +2294,9 @@
         // Get tab name suffix
         var tabNameSuffix = templateType switch
         {
+            TemplateService.TemplateType.ScrumSprintCycle => "Scrum Sprint Cycle",
+            TemplateService.TemplateType.ProjectTimelines => "Project Timelines",
+            TemplateService.TemplateType.AnnualRoadmap => "Annual Roadmap",
             TemplateService.TemplateType.Weekly7Days => "Weekly Roadmap",
             TemplateService.TemplateType.Monthly4Weeks => "Monthly Roadmap",
             TemplateService.TemplateType.Quarterly4Quarters => "Quarterly Roadmap",
