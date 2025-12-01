@@ -27,10 +27,10 @@
         @* Quick Span Buttons with inline editable value *@
         <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 12px;">
             <button type="button"
-                    @onclick="@(() => SetSpanToMinimum())"
-                    title="Set span to minimum (from position to start)"
+                    @onclick="@(() => ResetSpanToDefault())"
+                    title="Reset span to default (1.0)"
                     style="width: 38px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 500; padding: 2px; flex-shrink: 0;">
-                <div style="font-size: 9px; font-weight: 600;">⏮</div>
+                <div style="font-size: 16px; font-weight: 600;">↻</div>
             </button>
             <button type="button"
                     @onclick="@(() => AdjustSpan(-1.0))"
@@ -451,12 +451,10 @@
     }
 
     // Quick Span Button Methods
-    private void SetSpanToMinimum()
+    private void ResetSpanToDefault()
     {
-        // Set span to reach back from current position to start (0)
-        var minSpan = Item.Start > 0 ? Item.Start : 0.25;
-        minSpan = Math.Round(Math.Max(0.25, minSpan), 2);
-        OnChange.InvokeAsync(("span", minSpan));
+        // Reset span to default value of 1.0
+        OnChange.InvokeAsync(("span", 1.0));
     }
 
     private void SetSpanToEnd()
