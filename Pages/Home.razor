@@ -595,7 +595,8 @@
                        OnRemoveFolder="HandleRemoveFolder"
                        OnRenameFolder="HandleRenameFolder"
                        OnMoveFolderLeft="HandleMoveFolderLeft"
-                       OnMoveFolderRight="HandleMoveFolderRight" />
+                       OnMoveFolderRight="HandleMoveFolderRight"
+                       OnColorChange="HandleFolderColorChange" />
     }
 
     @* Template Selector *@
@@ -2434,6 +2435,18 @@
         {
             await StorageService.SaveFolderManagerAsync(_folderManager);
         }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleFolderColorChange(string color)
+    {
+        if (_folderManager == null || _activeFolder == null) return;
+
+        // Update the active folder's color
+        _activeFolder.Color = color;
+
+        // Save folder manager
+        await StorageService.SaveFolderManagerAsync(_folderManager);
         await InvokeAsync(StateHasChanged);
     }
 
