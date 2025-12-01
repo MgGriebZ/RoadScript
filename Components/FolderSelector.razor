@@ -16,7 +16,7 @@
                 <div class="folder-hex @(folder.Id == ActiveFolderId ? "active" : "")"
                      @onclick="@(() => HandleFolderSelect(folder.Id))">
                     <div class="folder-hex-inner" style="background-color: @folder.Color;">
-                        <Icon Name="@folder.Icon" Size="32px" Color="#ffffff" />
+                        <Icon IconType="@folder.Icon" Size="32" Color="#ffffff" />
                         <div class="folder-name">@folder.Name</div>
                     </div>
                 </div>
@@ -27,7 +27,7 @@
             {
                 <div class="folder-hex add-folder" @onclick="HandleAddFolder">
                     <div class="folder-hex-inner">
-                        <Icon Name="plus" Size="32px" Color="#999999" />
+                        <Icon IconType="plus" Size="32" Color="#999999" />
                         <div class="folder-name">Add Folder</div>
                     </div>
                 </div>
