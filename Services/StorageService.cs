@@ -10,8 +10,9 @@ namespace RoadScript.Services;
 public class StorageService
 {
     private readonly IJSRuntime _jsRuntime;
-    private const string SessionStorageKey = "roadscript_session_data";
-    private const string LegacyStorageKey = "roadscript_roadmap_data";
+    private const string FolderStorageKey = "roadscript_folder_data";      // New: Folder-based storage
+    private const string SessionStorageKey = "roadscript_session_data";    // Legacy: Multi-tab storage
+    private const string LegacyStorageKey = "roadscript_roadmap_data";     // Legacy: Single roadmap storage
 
     public StorageService(IJSRuntime jsRuntime)
     {
@@ -293,5 +294,287 @@ public class StorageService
         if (bytes < 1024) return $"{bytes} B";
         if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F2} KB";
         return $"{bytes / (1024.0 * 1024):F2} MB";
+    }
+
+    // ========== FOLDER MANAGEMENT METHODS ==========
+
+    /// <summary>
+    /// Load folder manager from localStorage, with automatic migration from legacy formats
+    /// </summary>
+    public async Task<FolderManager?> LoadFolderManagerAsync()
+    {
+        try
+        {
+            // Try to load new folder-based format first
+            var folderJson = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", FolderStorageKey);
+
+            if (!string.IsNullOrEmpty(folderJson))
+            {
+                var folderManager = JsonSerializer.Deserialize<FolderManager>(folderJson, GetJsonOptions());
+                if (folderManager != null && folderManager.Folders.Count > 0)
+                {
+                    // Perform backward compatibility migration for items
+                    MigrateFolderManagerItems(folderManager);
+                    return folderManager;
+                }
+            }
+
+            // No folder format found, try to migrate from session format
+            var session = await LoadSessionAsync();
+            if (session != null)
+            {
+                // Migrate session to folder format
+                var folderManager = new FolderManager
+                {
+                    ActiveFolderId = "folder-1",
+                    Folders = new List<Folder>
+                    {
+                        new Folder
+                        {
+                            Id = "folder-1",
+                            Name = "Project Folder",
+                            Icon = "folder",
+                            Color = "#667eea",
+                            SessionManager = session,
+                            LastModified = DateTime.UtcNow
+                        }
+                    },
+                    MaxFolders = 3
+                };
+
+                // Save in new format
+                await SaveFolderManagerAsync(folderManager);
+
+                return folderManager;
+            }
+
+            // No data found, return null
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading folder manager: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Save folder manager data to localStorage
+    /// </summary>
+    public async Task SaveFolderManagerAsync(FolderManager folderManager)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(folderManager, GetJsonOptions());
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", FolderStorageKey, json);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving folder manager: {ex.Message}");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Migrate item completed flags in all folders
+    /// </summary>
+    private void MigrateFolderManagerItems(FolderManager folderManager)
+    {
+        foreach (var folder in folderManager.Folders)
+        {
+            MigrateItemCompletedToStatusIcon(folder.SessionManager);
+        }
+    }
+
+    /// <summary>
+    /// Get active folder from folder manager
+    /// </summary>
+    public Folder? GetActiveFolder(FolderManager folderManager)
+    {
+        return folderManager.Folders.FirstOrDefault(f => f.Id == folderManager.ActiveFolderId)
+               ?? folderManager.Folders.FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Switch active folder
+    /// </summary>
+    public void SetActiveFolder(FolderManager folderManager, string folderId)
+    {
+        if (folderManager.Folders.Any(f => f.Id == folderId))
+        {
+            folderManager.ActiveFolderId = folderId;
+        }
+    }
+
+    /// <summary>
+    /// Add a new folder
+    /// </summary>
+    public Folder AddFolder(FolderManager folderManager, string name, string icon = "folder", string color = "#667eea")
+    {
+        if (folderManager.Folders.Count >= folderManager.MaxFolders)
+        {
+            throw new InvalidOperationException($"Maximum of {folderManager.MaxFolders} folders allowed");
+        }
+
+        // Assign unique icon and color based on folder count if defaults are used
+        if (icon == "folder" && color == "#667eea")
+        {
+            (icon, color) = GetFolderDefaults(folderManager.Folders.Count);
+        }
+
+        // Create a new folder with a default roadmap using Scrum Sprint Cycle template
+        var defaultRoadmap = TemplateService.GetScrumSprintCycleTemplate();
+
+        var newFolder = new Folder
+        {
+            Id = $"folder-{Guid.NewGuid().ToString("N")[..8]}",
+            Name = name,
+            Icon = icon,
+            Color = color,
+            SessionManager = new SessionManager
+            {
+                ActiveTabId = "tab-1",
+                Tabs = new List<TabSession>
+                {
+                    new TabSession
+                    {
+                        Id = "tab-1",
+                        Name = defaultRoadmap.Title,
+                        LastModified = DateTime.UtcNow,
+                        Data = defaultRoadmap
+                    }
+                },
+                MaxTabs = 5
+            },
+            LastModified = DateTime.UtcNow
+        };
+
+        folderManager.Folders.Add(newFolder);
+        folderManager.ActiveFolderId = newFolder.Id;
+
+        return newFolder;
+    }
+
+    /// <summary>
+    /// Add a new folder with a custom initial roadmap template
+    /// </summary>
+    public Folder AddFolder(FolderManager folderManager, string name, RoadmapData initialTemplate, string icon = "folder", string color = "#667eea")
+    {
+        if (folderManager.Folders.Count >= folderManager.MaxFolders)
+        {
+            throw new InvalidOperationException($"Maximum of {folderManager.MaxFolders} folders allowed");
+        }
+
+        // Assign unique icon and color based on folder count if defaults are used
+        if (icon == "folder" && color == "#667eea")
+        {
+            (icon, color) = GetFolderDefaults(folderManager.Folders.Count);
+        }
+
+        var newFolder = new Folder
+        {
+            Id = $"folder-{Guid.NewGuid().ToString("N")[..8]}",
+            Name = name,
+            Icon = icon,
+            Color = color,
+            SessionManager = new SessionManager
+            {
+                ActiveTabId = "tab-1",
+                Tabs = new List<TabSession>
+                {
+                    new TabSession
+                    {
+                        Id = "tab-1",
+                        Name = initialTemplate.Title,
+                        LastModified = DateTime.UtcNow,
+                        Data = initialTemplate
+                    }
+                },
+                MaxTabs = 5
+            },
+            LastModified = DateTime.UtcNow
+        };
+
+        folderManager.Folders.Add(newFolder);
+        folderManager.ActiveFolderId = newFolder.Id;
+
+        return newFolder;
+    }
+
+    /// <summary>
+    /// Remove a folder
+    /// </summary>
+    public bool RemoveFolder(FolderManager folderManager, string folderId)
+    {
+        var folder = folderManager.Folders.FirstOrDefault(f => f.Id == folderId);
+        if (folder == null || folderManager.Folders.Count <= 1)
+        {
+            return false; // Can't remove last folder
+        }
+
+        folderManager.Folders.Remove(folder);
+
+        // If we removed the active folder, switch to first folder
+        if (folderManager.ActiveFolderId == folderId)
+        {
+            folderManager.ActiveFolderId = folderManager.Folders[0].Id;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Rename a folder
+    /// </summary>
+    public bool RenameFolder(FolderManager folderManager, string folderId, string newName)
+    {
+        var folder = folderManager.Folders.FirstOrDefault(f => f.Id == folderId);
+        if (folder == null)
+        {
+            return false;
+        }
+
+        folder.Name = newName;
+        folder.LastModified = DateTime.UtcNow;
+        return true;
+    }
+
+    /// <summary>
+    /// Update folder icon and color
+    /// </summary>
+    public bool UpdateFolderAppearance(FolderManager folderManager, string folderId, string? icon = null, string? color = null)
+    {
+        var folder = folderManager.Folders.FirstOrDefault(f => f.Id == folderId);
+        if (folder == null)
+        {
+            return false;
+        }
+
+        if (icon != null)
+        {
+            folder.Icon = icon;
+        }
+
+        if (color != null)
+        {
+            folder.Color = color;
+        }
+
+        folder.LastModified = DateTime.UtcNow;
+        return true;
+    }
+
+    /// <summary>
+    /// Get default icon and color for a folder based on its index
+    /// </summary>
+    private static (string icon, string color) GetFolderDefaults(int folderIndex)
+    {
+        return folderIndex switch
+        {
+            0 => ("folder", "#45B69C"),        // Folder 1: Teal/Green
+            1 => ("briefcase", "#EF6461"),     // Folder 2: Coral/Red
+            2 => ("bookmark", "#667eea"),      // Folder 3: Purple/Blue
+            _ => ("folder", "#45B69C")         // Default fallback
+        };
     }
 }

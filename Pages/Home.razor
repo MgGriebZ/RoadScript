@@ -4,6 +4,7 @@
 @using System.Text.Json
 @using Microsoft.JSInterop
 @using RoadScript.Components
+@using RoadScript.Models
 @using RoadScript.Services
 @inject IJSRuntime JSRuntime
 @inject EditorInteropService EditorInterop
@@ -30,14 +31,27 @@
             </div>
 
             <div style="flex: 1; overflow-y: auto; padding: 16px; background: #252526; display: flex; flex-direction: column;">
+                @* Folder Selector Button *@
+                <div style="margin-bottom: 20px; position: relative;">
+                    <button @onclick="ToggleFolderSelector"
+                            title="Project Folders"
+                            style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                        <div style="position: relative;">
+                            <Icon IconType="folder" Size="28" Color="#ffffff" />
+                            <span style="position: absolute; top: -6px; right: -6px; background: @GetActiveFolderColor(); color: #ffffff; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);">@GetActiveFolderNumber()</span>
+                        </div>
+                        <span>Project Folders</span>
+                    </button>
+                </div>
+
                 @* Tab Management Section *@
                 <div style="margin-bottom: 20px;">
-                    <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Tab Management</h3>
+                    <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Roadmaps</h3>
                     @if (_sessionManager != null)
                     {
                         <TabBar Tabs="@_sessionManager.Tabs"
                                ActiveTabId="@_sessionManager.ActiveTabId"
-                               MaxTabs="3"
+                               MaxTabs="5"
                                OnTabSwitch="HandleTabSwitch"
                                OnTabAdd="HandleTabAdd"
                                OnTabDelete="HandleTabDelete"
@@ -49,28 +63,28 @@
                 <div style="margin-bottom: 20px;">
                     <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Quick Templates</h3>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.BiWeeklySprint))"
+                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumSprintCycle))"
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 16px;">🔄</span>
                             <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Sprint (Bi-Weekly)</span>
-                                <span style="font-size: 10px; color: #888;">2-week ceremony cycle</span>
+                                <span style="font-weight: 600;">Scrum Sprint Cycle</span>
+                                <span style="font-size: 10px; color: #888;">2-week sprint ceremonies</span>
                             </div>
                         </button>
-                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Quarterly4Quarters))"
+                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ProjectTimelines))"
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 16px;">📊</span>
                             <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Quarterly (4 Columns)</span>
-                                <span style="font-size: 10px; color: #888;">4 quarter columns</span>
+                                <span style="font-weight: 600;">Project Timelines</span>
+                                <span style="font-size: 10px; color: #888;">Quarterly project planning</span>
                             </div>
                         </button>
-                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Yearly12Months))"
+                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.AnnualRoadmap))"
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 16px;">📆</span>
                             <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Yearly</span>
-                                <span style="font-size: 10px; color: #888;">12 month columns</span>
+                                <span style="font-weight: 600;">Annual Roadmap</span>
+                                <span style="font-size: 10px; color: #888;">12-month timeline</span>
                             </div>
                         </button>
                     </div>
@@ -206,6 +220,17 @@
 
                 <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
+                @* Folder Button *@
+                <button @onclick="ToggleFolderSelector"
+                        title="Project Folders"
+                        class="cc-icon-btn"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 44px; height: 44px; border-radius: 8px; font-size: 24px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: center; position: relative;">
+                    📁
+                    <span style="position: absolute; top: 2px; right: 2px; background: @GetActiveFolderColor(); color: #ffffff; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);">@GetActiveFolderNumber()</span>
+                </button>
+
+                <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
+
                 @* Tab Indicators *@
                 @if (_sessionManager != null)
                 {
@@ -275,28 +300,28 @@
                 @* Spacer to push templates to bottom *@
                 <div style="flex: 1;"></div>
 
-                @* Quick Templates - Show only in expanded state for simplicity *@
+                @* Quick Templates *@
                 <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
-                @* Bi-Weekly Sprint *@
-                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.BiWeeklySprint))"
-                        title="Apply Bi-Weekly Sprint Template"
+                @* Scrum Sprint Cycle *@
+                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumSprintCycle))"
+                        title="Apply Scrum Sprint Cycle Template"
                         class="cc-icon-btn"
                         style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
                     🔄
                 </button>
 
-                @* Quarterly *@
-                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Quarterly4Quarters))"
-                        title="Apply Quarterly Template (4 quarters)"
+                @* Project Timelines *@
+                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ProjectTimelines))"
+                        title="Apply Project Timelines Template"
                         class="cc-icon-btn"
                         style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
                     📊
                 </button>
 
-                @* Yearly *@
-                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Yearly12Months))"
-                        title="Apply Yearly Template (12 months)"
+                @* Annual Roadmap *@
+                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.AnnualRoadmap))"
+                        title="Apply Annual Roadmap Template"
                         class="cc-icon-btn"
                         style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
                     📆
@@ -535,6 +560,25 @@
                   OnHidePanel="ToggleProperties"
                   IsCollapsed="@(!_showProperties)"
                   ColumnCount="@(_data?.Columns.Count ?? 4)" />
+
+    @* Folder Selector *@
+    @if (_folderManager != null)
+    {
+        <FolderSelector IsVisible="@_showFolderSelector"
+                       Folders="@_folderManager.Folders"
+                       ActiveFolderId="@_folderManager.ActiveFolderId"
+                       MaxFolders="@_folderManager.MaxFolders"
+                       OnClose="CloseFolderSelector"
+                       OnFolderSelect="HandleFolderSelect"
+                       OnAddFolder="HandleAddFolder"
+                       OnRemoveFolder="HandleRemoveFolder"
+                       OnRenameFolder="HandleRenameFolder" />
+    }
+
+    @* Template Selector *@
+    <TemplateSelector IsVisible="@_showTemplateSelector"
+                     OnClose="CloseTemplateSelector"
+                     OnTemplateSelect="HandleTemplateSelect" />
 </div>
 
 @code {
@@ -552,9 +596,17 @@
     private bool _showProperties = true;       // Show/hide properties panel - open by default
     private DotNetObjectReference<Home>? _dotNetRef;
 
-    // Multi-tab session management
+    // Multi-tab session management with folder support
+    private FolderManager? _folderManager;
+    private Folder? _activeFolder;
     private SessionManager? _sessionManager;
     private TabSession? _activeTab;
+
+    // UI state for folder and template selectors
+    private bool _showFolderSelector = false;
+    private bool _showTemplateSelector = false;
+    private bool _isCreatingNewFolder = false;
+    private string? _pendingFolderName = null;
 
     // Default JSON template - Generic boilerplate for easy customization
     private const string DefaultJson = @"{
@@ -696,7 +748,7 @@
         // Only initialize session if not already loaded
         if (_sessionManager == null || _activeTab == null)
         {
-            await InitializeSessionAsync();
+            await InitializeFolderManagerAsync();
         }
 
         // Set editor value
@@ -718,8 +770,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Load or initialize session
-        await InitializeSessionAsync();
+        // Load or initialize folder manager
+        await InitializeFolderManagerAsync();
 
         // Parse the JSON immediately so the UI displays even if editor hasn't loaded
         if (_data != null && !string.IsNullOrEmpty(_currentJson))
@@ -729,41 +781,66 @@
         }
     }
 
-    private async Task InitializeSessionAsync()
+    private async Task InitializeFolderManagerAsync()
     {
-        // Load session from storage
-        _sessionManager = await StorageService.LoadSessionAsync();
+        // Load folder manager from storage
+        _folderManager = await StorageService.LoadFolderManagerAsync();
 
-        if (_sessionManager == null || _sessionManager.Tabs.Count == 0)
+        if (_folderManager == null || _folderManager.Folders.Count == 0)
         {
-            // Create default session with one tab (max 3 tabs)
-            _sessionManager = new SessionManager
+            // Create default folder manager with one folder containing one tab
+            var defaultRoadmap = TemplateService.GetScrumSprintCycleTemplate();
+
+            _folderManager = new FolderManager
             {
-                ActiveTabId = "tab-1",
-                Tabs = new List<TabSession>(),
-                MaxTabs = 3
+                ActiveFolderId = "folder-1",
+                Folders = new List<Folder>
+                {
+                    new Folder
+                    {
+                        Id = "folder-1",
+                        Name = "Project Folder",
+                        Icon = "folder",
+                        Color = "#667eea",
+                        SessionManager = new SessionManager
+                        {
+                            ActiveTabId = "tab-1",
+                            Tabs = new List<TabSession>
+                            {
+                                new TabSession
+                                {
+                                    Id = "tab-1",
+                                    Name = defaultRoadmap.Title,
+                                    LastModified = DateTime.UtcNow,
+                                    Data = defaultRoadmap
+                                }
+                            },
+                            MaxTabs = 5
+                        },
+                        LastModified = DateTime.UtcNow
+                    }
+                },
+                MaxFolders = 3
             };
 
-            var defaultData = JsonSerializer.Deserialize<RoadmapData>(DefaultJson, new JsonSerializerOptions
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+
+        // Get active folder and session
+        _activeFolder = StorageService.GetActiveFolder(_folderManager);
+        if (_activeFolder != null)
+        {
+            _sessionManager = _activeFolder.SessionManager;
+            // Ensure MaxTabs is set to 5
+            _sessionManager.MaxTabs = 5;
+
+            // Get active tab
+            _activeTab = StorageService.GetActiveTab(_sessionManager);
+            if (_activeTab != null)
             {
-                PropertyNameCaseInsensitive = true,
-                AllowTrailingCommas = true
-            });
-
-            StorageService.AddTab(_sessionManager, "Product Roadmap", defaultData);
-        }
-        else
-        {
-            // Ensure MaxTabs is set to 3 for existing sessions
-            _sessionManager.MaxTabs = 3;
-        }
-
-        // Get active tab
-        _activeTab = StorageService.GetActiveTab(_sessionManager);
-        if (_activeTab != null)
-        {
-            _data = _activeTab.Data;
-            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+                _data = _activeTab.Data;
+                _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+            }
         }
     }
 
@@ -849,7 +926,10 @@
             {
                 _activeTab.Data = _data!;
                 _activeTab.LastModified = DateTime.UtcNow;
-                await StorageService.SaveSessionAsync(_sessionManager);
+                if (_folderManager != null)
+                {
+                    await StorageService.SaveFolderManagerAsync(_folderManager);
+                }
             }
         }
         catch (Exception ex)
@@ -877,7 +957,7 @@
 
             // Clear storage and create fresh session
             await StorageService.ClearStorageAsync();
-            await InitializeSessionAsync();
+            await InitializeFolderManagerAsync();
         }
         catch (Exception ex)
         {
@@ -1448,7 +1528,10 @@
                 {
                     _activeTab.Data = _data!;
                     _activeTab.LastModified = DateTime.UtcNow;
-                    await StorageService.SaveSessionAsync(_sessionManager);
+                    if (_folderManager != null)
+                {
+                    await StorageService.SaveFolderManagerAsync(_folderManager);
+                }
                 }
 
                 await InvokeAsync(StateHasChanged);
@@ -1601,7 +1684,10 @@
             {
                 _activeTab.Data = _data;
                 _activeTab.LastModified = DateTime.UtcNow;
-                await StorageService.SaveSessionAsync(_sessionManager);
+                if (_folderManager != null)
+                {
+                    await StorageService.SaveFolderManagerAsync(_folderManager);
+                }
             }
 
             await InvokeAsync(StateHasChanged);
@@ -1678,7 +1764,10 @@
             {
                 _activeTab.Data = _data;
                 _activeTab.LastModified = DateTime.UtcNow;
-                await StorageService.SaveSessionAsync(_sessionManager);
+                if (_folderManager != null)
+                {
+                    await StorageService.SaveFolderManagerAsync(_folderManager);
+                }
             }
 
             await InvokeAsync(StateHasChanged);
@@ -1850,7 +1939,10 @@
             {
                 _activeTab.Data = _data;
                 _activeTab.LastModified = DateTime.UtcNow;
-                await StorageService.SaveSessionAsync(_sessionManager);
+                if (_folderManager != null)
+                {
+                    await StorageService.SaveFolderManagerAsync(_folderManager);
+                }
             }
 
             await InvokeAsync(StateHasChanged);
@@ -1865,7 +1957,7 @@
 
     private async Task HandleTabSwitch(string tabId)
     {
-        if (_sessionManager == null) return;
+        if (_sessionManager == null || _folderManager == null) return;
 
         _sessionManager.ActiveTabId = tabId;
         _activeTab = StorageService.GetActiveTab(_sessionManager);
@@ -1881,8 +1973,17 @@
                 await _editor.SetValue(_currentJson);
             }
 
-            // Save session
-            await StorageService.SaveSessionAsync(_sessionManager);
+            // Update active folder's last modified time
+            if (_activeFolder != null)
+            {
+                _activeFolder.LastModified = DateTime.UtcNow;
+            }
+
+            // Save folder manager
+            if (_folderManager != null)
+            {
+                await StorageService.SaveFolderManagerAsync(_folderManager);
+            }
             SelectionState.Clear();
             await InvokeAsync(StateHasChanged);
         }
@@ -1898,34 +1999,86 @@
             return;
         }
 
-        // Create new tab with default data
-        var defaultData = JsonSerializer.Deserialize<RoadmapData>(DefaultJson, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            AllowTrailingCommas = true
-        });
+        // Show template selector modal
+        _showTemplateSelector = true;
+        await InvokeAsync(StateHasChanged);
+    }
 
-        var newTab = StorageService.AddTab(_sessionManager, $"Roadmap {_sessionManager.Tabs.Count + 1}", defaultData);
-        _sessionManager.ActiveTabId = newTab.Id;
-        _activeTab = newTab;
-        _data = newTab.Data;
-        _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+    private async Task HandleTemplateSelect(TemplateService.TemplateType templateType)
+    {
+        if (_folderManager == null) return;
 
-        // Update editor
-        if (_editor != null && _editorReady)
+        // Get the appropriate template
+        var templateData = templateType switch
         {
-            await _editor.SetValue(_currentJson);
+            TemplateService.TemplateType.ScrumSprintCycle => TemplateService.GetScrumSprintCycleTemplate(),
+            TemplateService.TemplateType.ProjectTimelines => TemplateService.GetProjectTimelinesTemplate(),
+            TemplateService.TemplateType.AnnualRoadmap => TemplateService.GetAnnualRoadmapTemplate(),
+            _ => TemplateService.GetScrumSprintCycleTemplate()
+        };
+
+        // Check if we're creating a new folder or adding a tab to existing folder
+        if (_isCreatingNewFolder && !string.IsNullOrWhiteSpace(_pendingFolderName))
+        {
+            // Create new folder with selected template
+            var newFolder = StorageService.AddFolder(_folderManager, _pendingFolderName, templateData);
+            _activeFolder = newFolder;
+            _sessionManager = newFolder.SessionManager;
+            _activeTab = StorageService.GetActiveTab(_sessionManager);
+
+            if (_activeTab != null)
+            {
+                _data = _activeTab.Data;
+                _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+                // Update editor
+                if (_editor != null && _editorReady)
+                {
+                    await _editor.SetValue(_currentJson);
+                }
+            }
+
+            // Reset folder creation state
+            _isCreatingNewFolder = false;
+            _pendingFolderName = null;
+        }
+        else if (_sessionManager != null)
+        {
+            // Add new tab to existing folder
+            var newTab = StorageService.AddTab(_sessionManager, templateData.Title, templateData);
+            _sessionManager.ActiveTabId = newTab.Id;
+            _activeTab = newTab;
+            _data = newTab.Data;
+            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+            // Update editor
+            if (_editor != null && _editorReady)
+            {
+                await _editor.SetValue(_currentJson);
+            }
+
+            // Update active folder's last modified time
+            if (_activeFolder != null)
+            {
+                _activeFolder.LastModified = DateTime.UtcNow;
+            }
         }
 
-        // Save session
-        await StorageService.SaveSessionAsync(_sessionManager);
+        // Save folder manager
+        if (_folderManager != null)
+        {
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+
+        // Close template selector
+        _showTemplateSelector = false;
         SelectionState.Clear();
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleTabDelete(string tabId)
     {
-        if (_sessionManager == null || _sessionManager.Tabs.Count <= 1) return;
+        if (_sessionManager == null || _sessionManager.Tabs.Count <= 1 || _folderManager == null) return;
 
         StorageService.RemoveTab(_sessionManager, tabId);
 
@@ -1944,8 +2097,17 @@
             }
         }
 
-        // Save session
-        await StorageService.SaveSessionAsync(_sessionManager);
+        // Update active folder's last modified time
+        if (_activeFolder != null)
+        {
+            _activeFolder.LastModified = DateTime.UtcNow;
+        }
+
+        // Save folder manager
+        if (_folderManager != null)
+        {
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
         SelectionState.Clear();
         await InvokeAsync(StateHasChanged);
     }
@@ -1964,12 +2126,181 @@
 
     private async Task HandleTabRename((string TabId, string NewName) args)
     {
-        if (_sessionManager == null) return;
+        if (_sessionManager == null || _folderManager == null) return;
 
         StorageService.RenameTab(_sessionManager, args.TabId, args.NewName);
 
-        // Save session
-        await StorageService.SaveSessionAsync(_sessionManager);
+        // Update active folder's last modified time
+        if (_activeFolder != null)
+        {
+            _activeFolder.LastModified = DateTime.UtcNow;
+        }
+
+        // Save folder manager
+        if (_folderManager != null)
+        {
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // === Folder Management Handlers ===
+
+    private void ToggleFolderSelector()
+    {
+        _showFolderSelector = !_showFolderSelector;
+        StateHasChanged();
+    }
+
+    private int GetActiveFolderNumber()
+    {
+        if (_folderManager == null || _activeFolder == null) return 1;
+        var index = _folderManager.Folders.FindIndex(f => f.Id == _activeFolder.Id);
+        return index >= 0 ? index + 1 : 1;
+    }
+
+    private string GetActiveFolderColor()
+    {
+        if (_activeFolder == null) return "#667eea";
+        return _activeFolder.Color;
+    }
+
+    private void CloseFolderSelector()
+    {
+        _showFolderSelector = false;
+        StateHasChanged();
+    }
+
+    private void CloseTemplateSelector()
+    {
+        _showTemplateSelector = false;
+        // Reset folder creation state if user cancels
+        _isCreatingNewFolder = false;
+        _pendingFolderName = null;
+        StateHasChanged();
+    }
+
+    private async Task HandleFolderSelect(string folderId)
+    {
+        if (_folderManager == null) return;
+
+        StorageService.SetActiveFolder(_folderManager, folderId);
+        _activeFolder = StorageService.GetActiveFolder(_folderManager);
+
+        if (_activeFolder != null)
+        {
+            _sessionManager = _activeFolder.SessionManager;
+            _activeTab = StorageService.GetActiveTab(_sessionManager);
+
+            if (_activeTab != null)
+            {
+                _data = _activeTab.Data;
+                _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+                // Update editor
+                if (_editor != null && _editorReady)
+                {
+                    await _editor.SetValue(_currentJson);
+                }
+            }
+        }
+
+        // Save folder manager
+        if (_folderManager != null)
+        {
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+        SelectionState.Clear();
+        _showFolderSelector = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleAddFolder()
+    {
+        if (_folderManager == null) return;
+
+        if (_folderManager.Folders.Count >= _folderManager.MaxFolders)
+        {
+            Console.WriteLine($"Maximum {_folderManager.MaxFolders} folders reached");
+            return;
+        }
+
+        // Auto-generate folder name based on count (no user prompt)
+        var folderName = $"Folder {_folderManager.Folders.Count + 1}";
+
+        // Store pending folder name and show template selector
+        _pendingFolderName = folderName;
+        _isCreatingNewFolder = true;
+        _showFolderSelector = false; // Close folder selector
+        _showTemplateSelector = true; // Show template selector
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleRemoveFolder()
+    {
+        if (_folderManager == null || _activeFolder == null) return;
+
+        if (_folderManager.Folders.Count <= 1)
+        {
+            Console.WriteLine("Cannot remove last folder");
+            return;
+        }
+
+        // Show confirmation dialog
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Delete folder '{_activeFolder.Name}' and all its roadmaps?");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        StorageService.RemoveFolder(_folderManager, _activeFolder.Id);
+        _activeFolder = StorageService.GetActiveFolder(_folderManager);
+
+        if (_activeFolder != null)
+        {
+            _sessionManager = _activeFolder.SessionManager;
+            _activeTab = StorageService.GetActiveTab(_sessionManager);
+
+            if (_activeTab != null)
+            {
+                _data = _activeTab.Data;
+                _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+                // Update editor
+                if (_editor != null && _editorReady)
+                {
+                    await _editor.SetValue(_currentJson);
+                }
+            }
+        }
+
+        // Save folder manager
+        if (_folderManager != null)
+        {
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+        SelectionState.Clear();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleRenameFolder()
+    {
+        if (_folderManager == null || _activeFolder == null) return;
+
+        // Prompt for new name
+        var newName = await JSRuntime.InvokeAsync<string>("prompt", "Enter new folder name:", _activeFolder.Name);
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            return;
+        }
+
+        StorageService.RenameFolder(_folderManager, _activeFolder.Id, newName);
+
+        // Save folder manager
+        if (_folderManager != null)
+        {
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
         await InvokeAsync(StateHasChanged);
     }
 
@@ -1982,6 +2313,9 @@
         // Get template name for confirmation
         var templateName = templateType switch
         {
+            TemplateService.TemplateType.ScrumSprintCycle => "Scrum Sprint Cycle",
+            TemplateService.TemplateType.ProjectTimelines => "Project Timelines",
+            TemplateService.TemplateType.AnnualRoadmap => "Annual Roadmap",
             TemplateService.TemplateType.Weekly7Days => "Weekly (7 Days)",
             TemplateService.TemplateType.Monthly4Weeks => "Monthly (4 Weeks)",
             TemplateService.TemplateType.Quarterly4Quarters => "Quarterly (4 Quarters)",
@@ -1992,6 +2326,9 @@
         // Get tab name suffix
         var tabNameSuffix = templateType switch
         {
+            TemplateService.TemplateType.ScrumSprintCycle => "Scrum Sprint Cycle",
+            TemplateService.TemplateType.ProjectTimelines => "Project Timelines",
+            TemplateService.TemplateType.AnnualRoadmap => "Annual Roadmap",
             TemplateService.TemplateType.Weekly7Days => "Weekly Roadmap",
             TemplateService.TemplateType.Monthly4Weeks => "Monthly Roadmap",
             TemplateService.TemplateType.Quarterly4Quarters => "Quarterly Roadmap",
@@ -2020,8 +2357,17 @@
             await _editor.SetValue(_currentJson);
         }
 
+        // Update active folder's last modified time
+        if (_activeFolder != null)
+        {
+            _activeFolder.LastModified = DateTime.UtcNow;
+        }
+
         // Save to storage
-        await StorageService.SaveSessionAsync(_sessionManager);
+        if (_folderManager != null)
+        {
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
 
         await InvokeAsync(StateHasChanged);
     }

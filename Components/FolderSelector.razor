@@ -1,0 +1,344 @@
+@using RoadScript.Models
+@using RoadScript.Components
+
+@* Folder Selector - Honeycomb-style folder picker for managing project folders *@
+
+<div class="folder-selector-overlay @(IsVisible ? "visible" : "")" @onclick="@(() => OnClose.InvokeAsync())">
+    <div class="folder-selector-content" @onclick:stopPropagation="true">
+        <div class="folder-selector-header">
+            <h3>Project Folders</h3>
+            <button class="close-button" @onclick="@(() => OnClose.InvokeAsync())">×</button>
+        </div>
+
+        <div class="folder-honeycomb">
+            @for (int i = 0; i < Folders.Count; i++)
+            {
+                var folder = Folders[i];
+                var folderNumber = i + 1;
+                <div class="folder-hex @(folder.Id == ActiveFolderId ? "active" : "")"
+                     @onclick="@(() => HandleFolderSelect(folder.Id))">
+                    <div class="folder-hex-inner" style="background-color: @folder.Color;">
+                        <div class="folder-header" style="background-color: @folder.Color;">
+                            <span class="folder-number">Folder @folderNumber</span>
+                        </div>
+                        <div class="folder-roadmaps">
+                            @foreach (var tab in folder.SessionManager.Tabs)
+                            {
+                                var stats = GetRoadmapStats(tab.Data);
+                                var isActive = tab.Id == folder.SessionManager.ActiveTabId;
+                                <div class="roadmap-line @(isActive ? "active-roadmap" : "")">
+                                    @if (isActive)
+                                    {
+                                        <span class="active-indicator" style="background-color: @folder.Color;"></span>
+                                    }
+                                    <span class="roadmap-name">@tab.Name</span>
+                                    <span class="roadmap-stats">@stats</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* Add folder button (if under max limit) *@
+            @if (Folders.Count < MaxFolders)
+            {
+                <div class="folder-hex add-folder" @onclick="HandleAddFolder">
+                    <div class="folder-hex-inner">
+                        <Icon IconType="plus" Size="32" Color="#999999" />
+                        <div class="folder-name">Add Folder</div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (Folders.Count > 0)
+        {
+            <div class="folder-actions">
+                <button class="btn-delete" @onclick="HandleRemoveFolder" disabled="@(Folders.Count <= 1 || ActiveFolderId == null)">
+                    Delete Folder
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public List<Folder> Folders { get; set; } = new();
+    [Parameter] public string? ActiveFolderId { get; set; }
+    [Parameter] public int MaxFolders { get; set; } = 3;
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<string> OnFolderSelect { get; set; }
+    [Parameter] public EventCallback OnAddFolder { get; set; }
+    [Parameter] public EventCallback OnRemoveFolder { get; set; }
+    [Parameter] public EventCallback OnRenameFolder { get; set; }
+
+    private async Task HandleFolderSelect(string folderId)
+    {
+        await OnFolderSelect.InvokeAsync(folderId);
+    }
+
+    private async Task HandleAddFolder()
+    {
+        await OnAddFolder.InvokeAsync();
+    }
+
+    private async Task HandleRemoveFolder()
+    {
+        await OnRemoveFolder.InvokeAsync();
+    }
+
+    private async Task HandleRenameFolder()
+    {
+        await OnRenameFolder.InvokeAsync();
+    }
+
+    private string GetRoadmapStats(RoadmapData data)
+    {
+        if (data == null) return "0 0 0";
+
+        var columns = data.Columns?.Count ?? 0;
+        var lanes = data.Lanes?.Count ?? 0;
+        var items = (data.Lanes?.Sum(l => l.Items?.Count ?? 0) ?? 0) + (data.Milestones?.Count ?? 0);
+
+        return $"{columns} {lanes} {items}";
+    }
+}
+
+<style>
+    .folder-selector-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: none;
+        z-index: 1000;
+    }
+
+    .folder-selector-overlay.visible {
+        display: block;
+    }
+
+    .folder-selector-content {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: #1e1e1e;
+        border: 1px solid #444;
+        border-radius: 12px;
+        padding: 20px;
+        max-width: 680px;
+        width: auto;
+        min-width: 660px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .folder-selector-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .folder-selector-header h3 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .close-button {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 32px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .close-button:hover {
+        color: #ffffff;
+    }
+
+    .folder-honeycomb {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 12px;
+        justify-content: flex-start;
+        margin-bottom: 20px;
+    }
+
+    .folder-hex {
+        width: 200px;
+        height: auto;
+        min-height: 160px;
+        max-height: 280px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .folder-hex:hover {
+        transform: scale(1.05);
+    }
+
+    .folder-hex.active .folder-hex-inner {
+        border: 3px solid #ffffff;
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+    }
+
+    .folder-hex-inner {
+        width: 100%;
+        height: 100%;
+        background: #2a2a2a;
+        border: 2px solid #444;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+
+    .folder-hex.add-folder .folder-hex-inner {
+        background: #1e1e1e;
+        border: 2px dashed #666;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .folder-hex.add-folder:hover .folder-hex-inner {
+        border-color: #999;
+        background: #252525;
+    }
+
+    .folder-hex.add-folder .folder-name {
+        color: #999;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .folder-header {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        filter: brightness(1.1);
+    }
+
+    .folder-number {
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .folder-roadmaps {
+        width: 100%;
+        padding: 10px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 220px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    .roadmap-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 6px;
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 4px;
+        position: relative;
+    }
+
+    .roadmap-line.active-roadmap {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .active-indicator {
+        position: absolute;
+        left: -4px;
+        width: 3px;
+        height: 100%;
+        border-radius: 2px;
+        opacity: 0.8;
+    }
+
+    .roadmap-name {
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+
+    .roadmap-stats {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 11px;
+        font-weight: 500;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 1px;
+        white-space: nowrap;
+    }
+
+    .folder-hex.add-folder .folder-roadmaps {
+        padding: 32px 12px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .folder-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .folder-actions button {
+        padding: 10px 20px;
+        border: 1px solid #444;
+        background: #2a2a2a;
+        color: #ffffff;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .folder-actions button:hover:not(:disabled) {
+        background: #333;
+        border-color: #666;
+    }
+
+    .folder-actions button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-delete:hover:not(:disabled) {
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+</style>

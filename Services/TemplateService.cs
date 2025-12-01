@@ -13,11 +13,14 @@ public class TemplateService
     /// </summary>
     public enum TemplateType
     {
-        Weekly7Days,
-        BiWeeklySprint,
-        Monthly4Weeks,
-        Quarterly4Quarters,
-        Yearly12Months,
+        ScrumSprintCycle,      // Updated: 2-week sprint with ceremonies (static JSON)
+        ProjectTimelines,      // New: Project timelines with quarters (static JSON)
+        AnnualRoadmap,         // New: Annual roadmap (12 months)
+        Weekly7Days,           // Legacy: 7-day sprint planning
+        BiWeeklySprint,        // Legacy: 2-week sprint (5 working days)
+        Monthly4Weeks,         // Legacy: 4-week monthly view
+        Quarterly4Quarters,    // Legacy: 4-quarter strategic planning
+        Yearly12Months,        // Legacy: 12-month annual roadmap
         Custom
     }
 
@@ -26,6 +29,9 @@ public class TemplateService
     /// </summary>
     public static string GetTemplateName(TemplateType type) => type switch
     {
+        TemplateType.ScrumSprintCycle => "Scrum Sprint Cycle",
+        TemplateType.ProjectTimelines => "Project Timelines",
+        TemplateType.AnnualRoadmap => "Annual Roadmap",
         TemplateType.Weekly7Days => "Weekly (7 Days)",
         TemplateType.BiWeeklySprint => "Bi-Weekly Sprint (5 Days)",
         TemplateType.Monthly4Weeks => "Monthly (4 Weeks)",
@@ -40,6 +46,27 @@ public class TemplateService
     /// </summary>
     public static void ApplyTemplate(RoadmapData data, TemplateType type, DateTime startDate)
     {
+        // For new static JSON templates, use pre-defined data
+        if (type == TemplateType.ScrumSprintCycle)
+        {
+            var template = GetScrumSprintCycleTemplate();
+            CopyRoadmapData(template, data);
+            return;
+        }
+        else if (type == TemplateType.ProjectTimelines)
+        {
+            var template = GetProjectTimelinesTemplate();
+            CopyRoadmapData(template, data);
+            return;
+        }
+        else if (type == TemplateType.AnnualRoadmap)
+        {
+            var template = GetAnnualRoadmapTemplate();
+            CopyRoadmapData(template, data);
+            return;
+        }
+
+        // For legacy templates, use the old generation method
         // Update title and subtitle based on template
         data.Title = type switch
         {
@@ -69,6 +96,18 @@ public class TemplateService
         // Add template-specific default content
         AddDefaultMilestones(data, type);
         AddDefaultLanes(data, type);
+    }
+
+    /// <summary>
+    /// Copy roadmap data from template to target
+    /// </summary>
+    private static void CopyRoadmapData(RoadmapData source, RoadmapData target)
+    {
+        target.Title = source.Title;
+        target.Subtitle = source.Subtitle;
+        target.Columns = source.Columns;
+        target.Milestones = source.Milestones;
+        target.Lanes = source.Lanes;
     }
 
     /// <summary>
@@ -549,5 +588,423 @@ public class TemplateService
                 new Item { Title = "Penetration Testing", Start = 8, Span = 2, StatusIcon = "shield", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "External audit" }, new Detail { Text = "Vulnerability fixes" } } }  // Coral
             }
         });
+    }
+
+    /// <summary>
+    /// Get Scrum Sprint Cycle template (static JSON)
+    /// </summary>
+    public static RoadmapData GetScrumSprintCycleTemplate()
+    {
+        return new RoadmapData
+        {
+            Title = "Scrum Sprint Cycle",
+            Subtitle = "2-week sprint cycle with ceremonies",
+            Columns = new List<Column>
+            {
+                new Column { Id = null, Label = "Thursday", Sub = "" },
+                new Column { Id = null, Label = "Friday", Sub = "" },
+                new Column { Id = null, Label = "Weekend", Sub = "Sat/Sun" },
+                new Column { Id = null, Label = "Monday", Sub = "" },
+                new Column { Id = null, Label = "Tuesday", Sub = "" },
+                new Column { Id = null, Label = "Wednesday", Sub = "3:00PM est" }
+            },
+            Milestones = new List<Milestone>
+            {
+                new Milestone { Position = 91, Label = "Deployment Cutoff Time", Icon = "triangle", Color = "#EF4444" },
+                new Milestone { Position = 38, Label = "Production Deployments", Icon = "rocket", Color = "#025f40" }
+            },
+            Lanes = new List<Lane>
+            {
+                new Lane
+                {
+                    Id = null,
+                    Title = "Week 1",
+                    Color = "#9999ff",
+                    Height = 1,
+                    History = null,
+                    Items = new List<Item>
+                    {
+                        new Item { Id = null, Title = "Stakeholder Prioritization", Start = 3, Span = 1, Spanning = true, Completed = false, StatusIcon = "star", StatusColor = "#D4A520", GreyedOut = false, Hidden = false, Details = null },
+                        new Item { Id = null, Title = "Refinement", Start = 5, Span = 1, Spanning = false, Completed = false, StatusIcon = "search", StatusColor = "#45B69C", GreyedOut = false, Hidden = false, Details = null },
+                        new Item { Id = null, Title = "Sprint Planning", Start = 0, Span = 1, Spanning = false, Completed = false, StatusIcon = "calendar", StatusColor = "#45B69C", GreyedOut = false, Hidden = false, Details = null },
+                        new Item { Id = null, Title = "Sprint Review", Start = 1, Span = 1, Spanning = true, Completed = false, StatusIcon = "star", StatusColor = "#E6B800", GreyedOut = false, Hidden = false, Details = null }
+                    }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "Week 2",
+                    Color = "#EC4899",
+                    Height = 1,
+                    History = null,
+                    Items = new List<Item>
+                    {
+                        new Item { Id = null, Title = "Refinement", Start = 4, Span = 2, Spanning = false, Completed = false, StatusIcon = "search", StatusColor = "#45B69C", GreyedOut = false, Hidden = false, Details = null },
+                        new Item { Id = null, Title = "Retro", Start = 1, Span = 1, Spanning = false, Completed = false, StatusIcon = "pause", StatusColor = "#45B69C", GreyedOut = false, Hidden = false, Details = null }
+                    }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "IT Development",
+                    Color = "#1E3A8A",
+                    Height = 0.8,
+                    History = null,
+                    Items = new List<Item>
+                    {
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Sprint Execution",
+                            Start = 0,
+                            Span = 6,
+                            Spanning = true,
+                            Completed = false,
+                            StatusIcon = "code",
+                            StatusColor = "#1E3A8A",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = null
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Maintenance Window",
+                            Start = 2,
+                            Span = 1,
+                            Spanning = false,
+                            Completed = false,
+                            StatusIcon = "wrench",
+                            StatusColor = "#025f40",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail
+                                {
+                                    Text = "Saturday",
+                                    Subs = new List<string>
+                                    {
+                                        "3:00PM - 11:59PM est"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    /// <summary>
+    /// Get Project Timelines template (static JSON)
+    /// </summary>
+    public static RoadmapData GetProjectTimelinesTemplate()
+    {
+        return new RoadmapData
+        {
+            Title = "Software Engineering",
+            Subtitle = "A list of personal projects and timelines, by Matt Griebel",
+            Columns = new List<Column>
+            {
+                new Column { Id = null, Label = "2024", Sub = "" },
+                new Column { Id = null, Label = "Spring", Sub = "2025" },
+                new Column { Id = null, Label = "Summer/Fall", Sub = "2025" },
+                new Column { Id = null, Label = "Winter", Sub = "2025" },
+                new Column { Id = null, Label = "2026", Sub = "and beyond" }
+            },
+            Milestones = new List<Milestone>
+            {
+                new Milestone { Position = 71.5, Label = "RoadScript Launch", Icon = "rocket", Color = "#d27751" },
+                new Milestone { Position = 13.5, Label = "MN Move", Icon = "globe", Color = "#d21aea" },
+                new Milestone { Position = 44.5, Label = "MgGriebZ Launch", Icon = "rocket", Color = "#d27751" }
+            },
+            Lanes = new List<Lane>
+            {
+                new Lane
+                {
+                    Id = null,
+                    Title = "Websites",
+                    Color = "#87CEEB",
+                    Height = 1.75,
+                    History = new History { StartYear = 2025, EndYear = 2026, PastPct = 61 },
+                    Items = new List<Item>
+                    {
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Custom Sites",
+                            Start = 1,
+                            Span = 1,
+                            Spanning = false,
+                            Completed = true,
+                            StatusIcon = "wrench",
+                            StatusColor = "#D4652F",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Tech Stack", Subs = new List<string> { "Azure Hosting/Services", "C# API backend", "React/Vite UI" } },
+                                new Detail { Text = "Glass Shops", Subs = new List<string>() },
+                                new Detail { Text = "Sassy Cakes", Subs = new List<string>() },
+                                new Detail { Text = "Demo/template site", Subs = new List<string> { "Public Repo" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "MgGriebZ .com",
+                            Start = 2.15,
+                            Span = 2.75,
+                            Spanning = true,
+                            Completed = false,
+                            StatusIcon = "bookmark",
+                            StatusColor = "#45B69C",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Personal Collections", Subs = new List<string> { "Family Moments", "Career and Development Milestones", "Media Interests and Hobbies" } },
+                                new Detail { Text = "Shareable Components", Subs = new List<string> { "Web components quickly updated and shared", "React UI + CosmosDB / C# backend" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "RoadScript .NET",
+                            Start = 3.5,
+                            Span = 1.5,
+                            Spanning = true,
+                            Completed = false,
+                            StatusIcon = "code",
+                            StatusColor = "#1E3A8A",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Roadmapping JSON Language", Subs = new List<string>() },
+                                new Detail { Text = "Blazor WASM", Subs = new List<string> { "Azure Hosting", "Public repo" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "MVP Build",
+                            Start = 6.5,
+                            Span = 4,
+                            Spanning = false,
+                            Completed = false,
+                            StatusIcon = "pause",
+                            StatusColor = "#2de6b8",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Core features", Subs = new List<string> { "Authentication", "Dashboard", "Data models" } },
+                                new Detail { Text = "API development", Subs = null },
+                                new Detail { Text = "Testing and QA", Subs = null }
+                            }
+                        }
+                    }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "Apps and Games",
+                    Color = "#EC4899",
+                    Height = 1.25,
+                    History = new History { StartYear = 2024, EndYear = 2026, PastPct = 14 },
+                    Items = new List<Item>
+                    {
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Action Tarot",
+                            Start = 0.5,
+                            Span = 4.5,
+                            Spanning = true,
+                            Completed = false,
+                            StatusIcon = "calendar",
+                            StatusColor = "#45B69C",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Gen-AI Tarot Social Platform", Subs = new List<string> { "Action-Tarot.com", "Azure ADB2C Authentication", "CosmosDB / SWA / App Service" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Sacred Sigils",
+                            Start = 1.75,
+                            Span = 0.75,
+                            Spanning = false,
+                            Completed = false,
+                            StatusIcon = "search",
+                            StatusColor = "#9999ff",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Mobile Symbol Tracing", Subs = new List<string> { "Dart/GO Language", "Android Studio/Simulator" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "FlowForge",
+                            Start = 3,
+                            Span = 2,
+                            Spanning = true,
+                            Completed = false,
+                            StatusIcon = "star",
+                            StatusColor = "#45B69C",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Milestone Puzzle Game", Subs = new List<string> { "Blazor WASM", "Azure ADB2C Authentication", "CosmosDB Scenarios/Leaderboards" } }
+                            }
+                        }
+                    }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "Ideas/Backlog",
+                    Color = "#B7C4B7",
+                    Height = 0.75,
+                    History = null,
+                    Items = new List<Item>
+                    {
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Recipe AI Chat",
+                            Start = 3.75,
+                            Span = 1,
+                            Spanning = false,
+                            Completed = false,
+                            StatusIcon = "bookmark",
+                            StatusColor = "#45B69C",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "MgGriebZ", Subs = new List<string> { "Controller/page updates" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Sigil Images",
+                            Start = 2.25,
+                            Span = 1.25,
+                            Spanning = false,
+                            Completed = false,
+                            StatusIcon = "search",
+                            StatusColor = "#9999ff",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "NanoBanana Images", Subs = new List<string> { "Gemini Pro AI image generations" } }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    /// <summary>
+    /// Get Annual Roadmap template (static JSON) - 12 months
+    /// </summary>
+    public static RoadmapData GetAnnualRoadmapTemplate()
+    {
+        var year = DateTime.Now.Year;
+        var months = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+        return new RoadmapData
+        {
+            Title = "Annual Product Roadmap",
+            Subtitle = "12-month product development timeline",
+            Columns = months.Select(m => new Column { Label = m, Sub = year.ToString() }).ToList(),
+            Milestones = new List<Milestone>
+            {
+                new Milestone { Position = 16, Label = "Phase 1", Icon = "flag", Color = "#45B69C" },
+                new Milestone { Position = 42, Label = "Mid-Year Review", Icon = "target", Color = "#667eea" },
+                new Milestone { Position = 66, Label = "Phase 2", Icon = "rocket", Color = "#D4A520" },
+                new Milestone { Position = 92, Label = "Year End", Icon = "trophy", Color = "#9B7ED9" }
+            },
+            Lanes = new List<Lane>
+            {
+                new Lane
+                {
+                    Title = "Core Platform",
+                    Color = "#45B69C",
+                    Height = 1.2,
+                    Items = new List<Item>
+                    {
+                        new Item { Title = "Auth System", Start = 0, Span = 2, StatusIcon = "lock", StatusColor = "#87CEEB", Details = new List<Detail> { new Detail { Text = "OAuth integration" }, new Detail { Text = "SSO support" } } },
+                        new Item { Title = "Payment Gateway", Start = 2, Span = 2.5, StatusIcon = "card", StatusColor = "#E6B800", Details = new List<Detail> { new Detail { Text = "Stripe integration" }, new Detail { Text = "Billing automation" } } },
+                        new Item { Title = "Analytics Engine", Start = 4.5, Span = 3, StatusIcon = "chart", StatusColor = "#9999ff", Details = new List<Detail> { new Detail { Text = "Real-time tracking" }, new Detail { Text = "Custom dashboards" } } },
+                        new Item { Title = "API V2", Start = 7.5, Span = 2.5, StatusIcon = "code", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "GraphQL endpoint" }, new Detail { Text = "Rate limiting" } } },
+                        new Item { Title = "Mobile SDK", Start = 10, Span = 2, StatusIcon = "mobile", StatusColor = "#D4652F", Details = new List<Detail> { new Detail { Text = "iOS framework" }, new Detail { Text = "Android library" } } }
+                    }
+                },
+                new Lane
+                {
+                    Title = "Features",
+                    Color = "#87CEEB",
+                    Height = 1.3,
+                    Items = new List<Item>
+                    {
+                        new Item { Title = "Collaboration Tools", Start = 0, Span = 3, StatusIcon = "users", StatusColor = "#9999ff", Details = new List<Detail> { new Detail { Text = "Team workspaces" }, new Detail { Text = "Real-time sync" }, new Detail { Text = "Comments & mentions" } } },
+                        new Item { Title = "Advanced Search", Start = 3, Span = 2, StatusIcon = "search", StatusColor = "#E6B800", Details = new List<Detail> { new Detail { Text = "Full-text search" }, new Detail { Text = "Filters & facets" } } },
+                        new Item { Title = "AI Assistant", Start = 5, Span = 4, StatusIcon = "sparkles", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "NLP integration" }, new Detail { Text = "Smart suggestions" }, new Detail { Text = "Auto-categorization" } } },
+                        new Item { Title = "Reporting Suite", Start = 9, Span = 3, StatusIcon = "chart", StatusColor = "#B7C4B7", Details = new List<Detail> { new Detail { Text = "Custom reports" }, new Detail { Text = "Scheduled exports" } } }
+                    }
+                },
+                new Lane
+                {
+                    Title = "Infrastructure",
+                    Color = "#9999ff",
+                    Height = 0.9,
+                    Items = new List<Item>
+                    {
+                        new Item { Title = "Cloud Migration", Start = 0, Span = 4, Spanning = true, StatusIcon = "globe", StatusColor = "#45B69C", Details = new List<Detail> { new Detail { Text = "AWS setup" }, new Detail { Text = "Container orchestration" } } },
+                        new Item { Title = "CI/CD Pipeline", Start = 4, Span = 3, StatusIcon = "rocket", StatusColor = "#D4652F", Details = new List<Detail> { new Detail { Text = "Automated testing" }, new Detail { Text = "Blue-green deploy" } } },
+                        new Item { Title = "Monitoring", Start = 7, Span = 5, Spanning = true, StatusIcon = "eye", StatusColor = "#87CEEB", Details = new List<Detail> { new Detail { Text = "APM tools" }, new Detail { Text = "Log aggregation" }, new Detail { Text = "Alerting" } } }
+                    }
+                },
+                new Lane
+                {
+                    Title = "Marketing & Growth",
+                    Color = "#E6B800",
+                    Height = 0.8,
+                    Items = new List<Item>
+                    {
+                        new Item { Title = "Brand Refresh", Start = 0, Span = 2, StatusIcon = "star", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "New visual identity" } } },
+                        new Item { Title = "Content Strategy", Start = 2, Span = 3, StatusIcon = "document", StatusColor = "#B7C4B7", Details = new List<Detail> { new Detail { Text = "Blog & tutorials" }, new Detail { Text = "Video series" } } },
+                        new Item { Title = "SEO Campaign", Start = 5, Span = 4, StatusIcon = "search", StatusColor = "#9999ff", Details = new List<Detail> { new Detail { Text = "Technical SEO" }, new Detail { Text = "Link building" } } },
+                        new Item { Title = "Launch Event", Start = 9, Span = 1.5, StatusIcon = "rocket", StatusColor = "#D4652F", Details = new List<Detail> { new Detail { Text = "Product demo" }, new Detail { Text = "Press release" } } }
+                    }
+                },
+                new Lane
+                {
+                    Title = "Compliance & Security",
+                    Color = "#B7C4B7",
+                    Height = 0.7,
+                    Items = new List<Item>
+                    {
+                        new Item { Title = "GDPR Compliance", Start = 0, Span = 3, StatusIcon = "shield", StatusColor = "#4A2C1A", Details = new List<Detail> { new Detail { Text = "Data privacy audit" }, new Detail { Text = "Consent management" } } },
+                        new Item { Title = "SOC 2 Certification", Start = 3, Span = 5, Spanning = true, StatusIcon = "lock", StatusColor = "#87CEEB", Details = new List<Detail> { new Detail { Text = "Security controls" }, new Detail { Text = "Audit preparation" } } },
+                        new Item { Title = "Penetration Testing", Start = 8, Span = 2, StatusIcon = "shield", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "External audit" }, new Detail { Text = "Vulnerability fixes" } } }
+                    }
+                }
+            }
+        };
     }
 }
