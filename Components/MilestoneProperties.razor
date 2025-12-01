@@ -1,5 +1,17 @@
 @using RoadScript.Models
 
+<style>
+    /* Hide number input spinner arrows */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+</style>
+
 <div class="property-editor">
     <div class="form-group">
         <label>Milestone Label</label>
@@ -92,18 +104,58 @@
     </div>
 
     <div class="form-group">
-        <label>Position (%)</label>
-        <input type="number"
-               value="@Milestone.Position"
-               @onchange="@(e => OnChange.InvokeAsync(("position", double.Parse(e.Value?.ToString() ?? "0"))))"
-               class="form-control"
-               step="0.1"
-               min="0"
-               max="100" />
-    </div>
+        <label style="margin-bottom: 8px;">Position</label>
 
-    <div class="form-group">
-        <label>Position Slider</label>
+        @* Quick Position Buttons with inline editable value *@
+        <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 12px;">
+            <button type="button"
+                    @onclick="@(() => JumpToStart())"
+                    title="Jump to Start (0%)"
+                    style="width: 38px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 500; padding: 2px; flex-shrink: 0;">
+                <div style="font-size: 9px; font-weight: 600;">⏮</div>
+            </button>
+            <button type="button"
+                    @onclick="@(() => AdjustPosition(-GetColumnPercentage()))"
+                    title="Big Down (-1 column)"
+                    style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
+                <div style="font-size: 16px; line-height: 1;">⏪</div>
+            </button>
+            <button type="button"
+                    @onclick="@(() => AdjustPosition(-0.25))"
+                    title="Little Down (-0.25%)"
+                    style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
+                <div style="font-size: 14px; line-height: 1;">◀</div>
+            </button>
+
+            @* Editable Numeric Value *@
+            <input type="number"
+                   value="@Milestone.Position"
+                   @onchange="@(e => OnChange.InvokeAsync(("position", double.Parse(e.Value?.ToString() ?? "0"))))"
+                   style="flex: 1; min-width: 55px; text-align: center; background: #1a1a2e; border: 1px solid #667eea; border-radius: 4px; padding: 6px 4px; font-weight: 600; color: #667eea; font-size: 13px;"
+                   step="0.5"
+                   min="0"
+                   max="100" />
+
+            <button type="button"
+                    @onclick="@(() => AdjustPosition(0.25))"
+                    title="Little Up (+0.25%)"
+                    style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
+                <div style="font-size: 14px; line-height: 1;">▶</div>
+            </button>
+            <button type="button"
+                    @onclick="@(() => AdjustPosition(GetColumnPercentage()))"
+                    title="Big Up (+1 column)"
+                    style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
+                <div style="font-size: 16px; line-height: 1;">⏩</div>
+            </button>
+            <button type="button"
+                    @onclick="@(() => JumpToEnd())"
+                    title="Jump to End (100%)"
+                    style="width: 38px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 500; padding: 2px; flex-shrink: 0;">
+                <div style="font-size: 9px; font-weight: 600;">⏭</div>
+            </button>
+        </div>
+
         <input type="range"
                value="@Milestone.Position"
                @onchange="@(e => OnChange.InvokeAsync(("position", double.Parse(e.Value?.ToString() ?? "0"))))"
@@ -113,7 +165,6 @@
                class="form-range" />
         <div style="display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-top: 4px;">
             <span>0%</span>
-            <span style="font-weight: 600; color: #667eea;">@Milestone.Position.ToString("F1")%</span>
             <span>100%</span>
         </div>
     </div>
@@ -158,6 +209,9 @@
 
     [Parameter]
     public EventCallback<string> OnDuplicate { get; set; }
+
+    [Parameter]
+    public int ColumnCount { get; set; } = 4;
 
     private bool _milestoneIconPickerExpanded = false;
 
@@ -224,5 +278,39 @@
     private void RemoveMilestone()
     {
         OnRemove.InvokeAsync("milestone");
+    }
+
+    // Quick Position Button Methods
+    private void JumpToStart()
+    {
+        OnChange.InvokeAsync(("position", 0.0));
+    }
+
+    private void JumpToEnd()
+    {
+        OnChange.InvokeAsync(("position", 100.0));
+    }
+
+    private double GetColumnPercentage()
+    {
+        // Calculate percentage width of one column
+        return ColumnCount > 0 ? 100.0 / ColumnCount : 25.0;
+    }
+
+    private void AdjustPosition(double delta)
+    {
+        var newPos = Milestone.Position + delta;
+        // Clamp to valid range (0-100)
+        newPos = Math.Max(0, Math.Min(newPos, 100));
+        // Round to 2 decimal places to avoid floating point precision issues
+        newPos = Math.Round(newPos, 2);
+        OnChange.InvokeAsync(("position", newPos));
+    }
+
+    private string GetQuickButtonStyle()
+    {
+        return "width: 100%; min-height: 36px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; " +
+               "border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; " +
+               "justify-content: center; font-weight: 500; padding: 4px;";
     }
 }

@@ -69,7 +69,8 @@ else
                                     OnChange="HandlePropertyChange"
                                     OnAdd="HandleAddElement"
                                     OnRemove="HandleRemoveElement"
-                                    OnDuplicate="HandleDuplicateElement" />
+                                    OnDuplicate="HandleDuplicateElement"
+                                    ColumnCount="@ColumnCount" />
             }
             else if (SelectionState.ElementType == "title" && SelectionState.SelectedElement is RoadmapData roadmapData && SelectionState.SelectedPath != null)
             {

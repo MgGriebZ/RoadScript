@@ -12,36 +12,36 @@
         </div>
 
         <div class="template-options">
-            @* Scrum Sprint Cycle *@
+            @* Scrum Sprints *@
             <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumSprintCycle))">
                 <div class="template-icon">
-                    <Icon IconType="calendar" Size="48" Color="#9999ff" />
+                    <Icon IconType="clock" Size="48" Color="#9999ff" />
                 </div>
                 <div class="template-info">
-                    <h4>Scrum Sprint Cycle</h4>
-                    <p>2-week sprint cycle with ceremonies, planning, and review sessions</p>
+                    <h4>Scrum Sprints</h4>
+                    <p>Outlook calendar-like view for sprint ceremonies and meetings with expandable detail levels</p>
                 </div>
             </div>
 
             @* Project Timelines *@
             <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.ProjectTimelines))">
                 <div class="template-icon">
-                    <Icon IconType="bookmark" Size="48" Color="#87CEEB" />
+                    <Icon IconType="calendar" Size="48" Color="#87CEEB" />
                 </div>
                 <div class="template-info">
                     <h4>Project Timelines</h4>
-                    <p>Quarterly project planning with multiple timelines and milestones</p>
+                    <p>High-level product/project tracking with quarterly or 3-month segments and dynamic columns</p>
                 </div>
             </div>
 
-            @* Annual Roadmap *@
+            @* Milestone Map *@
             <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.AnnualRoadmap))">
                 <div class="template-icon">
                     <Icon IconType="chart" Size="48" Color="#45B69C" />
                 </div>
                 <div class="template-info">
-                    <h4>Annual Roadmap</h4>
-                    <p>12-month product development roadmap with strategic initiatives</p>
+                    <h4>Milestone Map</h4>
+                    <p>Detailed tracking with many columns (10-12+) for hourly/monthly granularity and milestone markers</p>
                 </div>
             </div>
         </div>

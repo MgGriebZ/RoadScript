@@ -1,5 +1,17 @@
 @using RoadScript.Models
 
+<style>
+    /* Hide number input spinner arrows */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+</style>
+
 <div class="property-editor">
     <div class="form-group">
         <label>Lane Title</label>
@@ -44,21 +56,42 @@
     </div>
 
     <div class="form-group">
-        <label>Lane Height</label>
-        <input type="range"
-               value="@(Lane.Height ?? 1.0)"
-               @onchange="@(e => OnChange.InvokeAsync(("height", double.Parse(e.Value?.ToString() ?? "1.0"))))"
-               min="0.5"
-               max="3.0"
-               step="0.25"
-               class="form-range" />
-        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-top: 4px;">
-            <span>0.5x</span>
-            <span style="font-weight: 600; color: #667eea;">@((Lane.Height ?? 1.0).ToString("F2"))x</span>
-            <span>3.0x</span>
+        <label style="margin-bottom: 8px;">Lane Height</label>
+
+        @* Lane Height Buttons with inline editable value *@
+        <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+            <button type="button"
+                    @onclick="@(() => AdjustHeight(-0.5))"
+                    title="Decrease height (-0.5)"
+                    style="width: 44px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
+                <div style="font-size: 14px; line-height: 1;">◀</div>
+            </button>
+
+            @* Editable Numeric Value *@
+            <input type="number"
+                   value="@(Lane.Height ?? 1.0)"
+                   @onchange="@(e => OnChange.InvokeAsync(("height", double.Parse(e.Value?.ToString() ?? "1.0"))))"
+                   style="flex: 1; min-width: 60px; text-align: center; background: #1a1a2e; border: 1px solid #667eea; border-radius: 4px; padding: 6px 4px; font-weight: 600; color: #667eea; font-size: 13px;"
+                   step="0.25"
+                   min="0.5"
+                   max="3.0" />
+
+            <button type="button"
+                    @onclick="@(() => ResetHeightToDefault())"
+                    title="Reset to default height (1.0)"
+                    style="width: 44px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
+                <div style="font-size: 16px; font-weight: 600;">↻</div>
+            </button>
+
+            <button type="button"
+                    @onclick="@(() => AdjustHeight(0.5))"
+                    title="Increase height (+0.5)"
+                    style="width: 44px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
+                <div style="font-size: 14px; line-height: 1;">▶</div>
+            </button>
         </div>
-        <div style="font-size: 11px; color: #888; margin-top: 4px;">
-            Adjust the vertical height of this lane (1.0 = default)
+        <div style="font-size: 11px; color: #888; text-align: center;">
+            Range: 0.5x to 3.0x (1.0 = default)
         </div>
     </div>
 
@@ -69,23 +102,51 @@
 
             <div class="form-row">
                 <div class="form-group" style="flex: 1;">
-                    <label style="font-size: 11px;">Start Year</label>
-                    <input type="number"
-                           value="@Lane.History.StartYear"
-                           @onchange="@(e => UpdateHistory("startYear", int.Parse(e.Value?.ToString() ?? "2020")))"
+                    <label style="font-size: 11px;">Start Label</label>
+                    <input type="text"
+                           value="@Lane.History.Start"
+                           @onchange="@(e => UpdateHistory("start", e.Value?.ToString()))"
                            class="form-control"
-                           min="2000"
-                           max="2100" />
+                           placeholder="e.g., 2024, Q1, Jan" />
                 </div>
 
                 <div class="form-group" style="flex: 1; margin-left: 12px;">
-                    <label style="font-size: 11px;">End Year</label>
-                    <input type="number"
-                           value="@Lane.History.EndYear"
-                           @onchange="@(e => UpdateHistory("endYear", int.Parse(e.Value?.ToString() ?? "2026")))"
+                    <label style="font-size: 11px;">End Label</label>
+                    <input type="text"
+                           value="@Lane.History.End"
+                           @onchange="@(e => UpdateHistory("end", e.Value?.ToString()))"
                            class="form-control"
-                           min="2000"
-                           max="2100" />
+                           placeholder="e.g., 2026, Q4, Dec" />
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 8px;">
+                <label style="font-size: 11px; margin-bottom: 8px;">Progress Origin</label>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px;">
+                    <button type="button"
+                            @onclick="@(() => UpdateHistory("progressOrigin", "left"))"
+                            title="Start from Left"
+                            style="@GetOriginButtonStyle("left")">
+                        <div style="font-size: 10px; font-weight: 600; margin-bottom: 2px;">Left</div>
+                        <div style="font-size: 18px;">◀━</div>
+                    </button>
+                    <button type="button"
+                            @onclick="@(() => UpdateHistory("progressOrigin", "middle"))"
+                            title="Start from Center"
+                            style="@GetOriginButtonStyle("middle")">
+                        <div style="font-size: 10px; font-weight: 600; margin-bottom: 2px;">Center</div>
+                        <div style="font-size: 18px;">━●━</div>
+                    </button>
+                    <button type="button"
+                            @onclick="@(() => UpdateHistory("progressOrigin", "right"))"
+                            title="Start from Right"
+                            style="@GetOriginButtonStyle("right")">
+                        <div style="font-size: 10px; font-weight: 600; margin-bottom: 2px;">Right</div>
+                        <div style="font-size: 18px;">━▶</div>
+                    </button>
+                </div>
+                <div style="font-size: 11px; color: #888;">
+                    Where the progress percentage begins from
                 </div>
             </div>
 
@@ -199,20 +260,41 @@
                $"background: #1a1a2e; transition: all 0.2s; {border}";
     }
 
-    private void UpdateHistory(string propertyName, object value)
+    private string GetOriginButtonStyle(string origin)
+    {
+        var currentOrigin = Lane.History?.ProgressOrigin ?? "left";
+        var isSelected = origin.Equals(currentOrigin, StringComparison.OrdinalIgnoreCase);
+
+        var background = isSelected
+            ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff;"
+            : "background: #252538; color: #888;";
+
+        var border = isSelected
+            ? "border: 1px solid #667eea;"
+            : "border: 1px solid #3a3a4e;";
+
+        return $"width: 100%; min-height: 60px; padding: 8px; cursor: pointer; border-radius: 4px; " +
+               $"transition: all 0.2s; display: flex; flex-direction: column; align-items: center; " +
+               $"justify-content: center; {background} {border}";
+    }
+
+    private void UpdateHistory(string propertyName, object? value)
     {
         if (Lane.History != null)
         {
             switch (propertyName.ToLower())
             {
-                case "startyear":
-                    Lane.History.StartYear = (int)value;
+                case "start":
+                    Lane.History.Start = value?.ToString();
                     break;
-                case "endyear":
-                    Lane.History.EndYear = (int)value;
+                case "end":
+                    Lane.History.End = value?.ToString();
+                    break;
+                case "progressorigin":
+                    Lane.History.ProgressOrigin = value?.ToString() ?? "left";
                     break;
                 case "pastpct":
-                    Lane.History.PastPct = (int)value;
+                    Lane.History.PastPct = (int)value!;
                     break;
             }
             OnChange.InvokeAsync(("history", Lane.History));
@@ -223,9 +305,10 @@
     {
         Lane.History = new History
         {
-            StartYear = 2020,
-            EndYear = 2026,
-            PastPct = 80
+            Start = "2025",
+            End = "2026",
+            PastPct = 80,
+            ProgressOrigin = "left"
         };
         OnChange.InvokeAsync(("history", Lane.History));
     }
@@ -264,5 +347,23 @@
     private void MoveLaneDown()
     {
         OnAdd.InvokeAsync("moveLaneDown");
+    }
+
+    // Lane Height Button Methods
+    private void AdjustHeight(double delta)
+    {
+        var currentHeight = Lane.Height ?? 1.0;
+        var newHeight = currentHeight + delta;
+        // Clamp to valid range (0.5 to 3.0)
+        newHeight = Math.Max(0.5, Math.Min(newHeight, 3.0));
+        // Round to 2 decimal places
+        newHeight = Math.Round(newHeight, 2);
+        OnChange.InvokeAsync(("height", newHeight));
+    }
+
+    private void ResetHeightToDefault()
+    {
+        // Reset height to default value of 1.0
+        OnChange.InvokeAsync(("height", 1.0));
     }
 }
