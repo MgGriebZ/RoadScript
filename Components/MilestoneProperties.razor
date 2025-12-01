@@ -103,7 +103,48 @@
     </div>
 
     <div class="form-group">
-        <label>Position Slider</label>
+        <label style="margin-bottom: 8px;">Position Slider</label>
+
+        @* Quick Position Buttons *@
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px;">
+            <button type="button"
+                    @onclick="@(() => JumpToStart())"
+                    title="Jump to Start (0%)"
+                    style="@GetQuickButtonStyle()">
+                <div style="font-size: 10px; font-weight: 600;">⏮ Start</div>
+            </button>
+            <button type="button"
+                    @onclick="@(() => AdjustPosition(-0.25))"
+                    title="Big Down (-0.25%)"
+                    style="@GetQuickButtonStyle()">
+                <div style="font-size: 18px; line-height: 1;">⏪</div>
+            </button>
+            <button type="button"
+                    @onclick="@(() => AdjustPosition(-0.1))"
+                    title="Little Down (-0.1%)"
+                    style="@GetQuickButtonStyle()">
+                <div style="font-size: 16px; line-height: 1;">◀</div>
+            </button>
+            <button type="button"
+                    @onclick="@(() => AdjustPosition(0.1))"
+                    title="Little Up (+0.1%)"
+                    style="@GetQuickButtonStyle()">
+                <div style="font-size: 16px; line-height: 1;">▶</div>
+            </button>
+            <button type="button"
+                    @onclick="@(() => AdjustPosition(0.25))"
+                    title="Big Up (+0.25%)"
+                    style="@GetQuickButtonStyle()">
+                <div style="font-size: 18px; line-height: 1;">⏩</div>
+            </button>
+            <button type="button"
+                    @onclick="@(() => JumpToEnd())"
+                    title="Jump to End (100%)"
+                    style="@GetQuickButtonStyle()">
+                <div style="font-size: 10px; font-weight: 600;">End ⏭</div>
+            </button>
+        </div>
+
         <input type="range"
                value="@Milestone.Position"
                @onchange="@(e => OnChange.InvokeAsync(("position", double.Parse(e.Value?.ToString() ?? "0"))))"
@@ -224,5 +265,31 @@
     private void RemoveMilestone()
     {
         OnRemove.InvokeAsync("milestone");
+    }
+
+    // Quick Position Button Methods
+    private void JumpToStart()
+    {
+        OnChange.InvokeAsync(("position", 0.0));
+    }
+
+    private void JumpToEnd()
+    {
+        OnChange.InvokeAsync(("position", 100.0));
+    }
+
+    private void AdjustPosition(double delta)
+    {
+        var newPos = Milestone.Position + delta;
+        // Clamp to valid range (0-100)
+        newPos = Math.Max(0, Math.Min(newPos, 100));
+        OnChange.InvokeAsync(("position", newPos));
+    }
+
+    private string GetQuickButtonStyle()
+    {
+        return "width: 100%; min-height: 36px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; " +
+               "border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; " +
+               "justify-content: center; font-weight: 500; padding: 4px;";
     }
 }

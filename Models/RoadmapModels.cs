@@ -71,14 +71,19 @@ public class Lane
 
 public class History
 {
-    [JsonPropertyName("startYear")]
-    public int StartYear { get; set; }
+    // Freeform text labels (nullable) instead of forced years
+    [JsonPropertyName("start")]
+    public string? Start { get; set; }
 
-    [JsonPropertyName("endYear")]
-    public int EndYear { get; set; }
+    [JsonPropertyName("end")]
+    public string? End { get; set; }
 
     [JsonPropertyName("pastPct")]
     public int PastPct { get; set; }
+
+    // NEW: Progress origin - where the percentage bar begins from
+    [JsonPropertyName("progressOrigin")]
+    public string ProgressOrigin { get; set; } = "left";  // "left", "middle", or "right"
 }
 
 public class Item

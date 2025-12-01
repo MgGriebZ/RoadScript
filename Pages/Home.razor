@@ -369,12 +369,36 @@
                                         {
                                             <div style="display: flex; flex-direction: column; gap: 2px;">
                                                 <div style="@HistoryBarContainerStyle()">
-                                                    <div style="@HistoryPastStyle(lane.Color, lane.History.PastPct)"></div>
-                                                    <div style="@HistoryCurrentStyle(lane.Color, lane.History.PastPct)"></div>
+                                                    @{
+                                                        var origin = lane.History.ProgressOrigin ?? "left";
+                                                        if (origin == "left")
+                                                        {
+                                                            <div style="@HistoryPastStyle(lane.Color, lane.History.PastPct)"></div>
+                                                            <div style="@HistoryCurrentStyle(lane.Color, lane.History.PastPct)"></div>
+                                                        }
+                                                        else if (origin == "middle")
+                                                        {
+                                                            var emptyPct = (100 - lane.History.PastPct) / 2.0;
+                                                            <div style="@HistoryEmptyStyle(emptyPct)"></div>
+                                                            <div style="@HistoryPastStyle(lane.Color, lane.History.PastPct)"></div>
+                                                            <div style="@HistoryCurrentStyle(lane.Color, emptyPct)"></div>
+                                                        }
+                                                        else if (origin == "right")
+                                                        {
+                                                            <div style="@HistoryCurrentStyle(lane.Color, 100 - lane.History.PastPct)"></div>
+                                                            <div style="@HistoryPastStyle(lane.Color, lane.History.PastPct)"></div>
+                                                        }
+                                                    }
                                                 </div>
                                                 <div style="display: flex; justify-content: space-between; width: 90px;">
-                                                    <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.StartYear</span>
-                                                    <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.EndYear</span>
+                                                    @if (!string.IsNullOrWhiteSpace(lane.History.Start))
+                                                    {
+                                                        <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.Start</span>
+                                                    }
+                                                    @if (!string.IsNullOrWhiteSpace(lane.History.End))
+                                                    {
+                                                        <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.End</span>
+                                                    }
                                                 </div>
                                             </div>
                                         }
@@ -559,7 +583,8 @@
                   OnDuplicateElement="HandleDuplicateElement"
                   OnHidePanel="ToggleProperties"
                   IsCollapsed="@(!_showProperties)"
-                  ColumnCount="@(_data?.Columns.Count ?? 4)" />
+                  ColumnCount="@(_data?.Columns.Count ?? 4)"
+                  AllColumns="@(_data?.Columns)" />
 
     @* Folder Selector *@
     @if (_folderManager != null)
@@ -1161,24 +1186,29 @@
             ? "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: #2a2a3e;"
             : "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: #e5e7eb;";
 
-    private string HistoryPastStyle(string color, int pastPct)
+    private string HistoryPastStyle(string color, double pastPct)
     {
         if (_isVibeMode)
         {
             var vibeColor = GetVibeColor(color);
-            return $"width: {pastPct}%; background: repeating-linear-gradient(90deg, {vibeColor} 0px, {vibeColor} 3px, transparent 3px, transparent 6px); opacity: 0.35;";
+            return $"width: {pastPct:F2}%; background: repeating-linear-gradient(90deg, {vibeColor} 0px, {vibeColor} 3px, transparent 3px, transparent 6px); opacity: 0.35;";
         }
-        return $"width: {pastPct}%; background: repeating-linear-gradient(90deg, {color} 0px, {color} 3px, transparent 3px, transparent 6px); opacity: 0.45;";
+        return $"width: {pastPct:F2}%; background: repeating-linear-gradient(90deg, {color} 0px, {color} 3px, transparent 3px, transparent 6px); opacity: 0.45;";
     }
 
-    private string HistoryCurrentStyle(string color, int pastPct)
+    private string HistoryCurrentStyle(string color, double pct)
     {
         if (_isVibeMode)
         {
             var vibeColor = GetVibeColor(color);
-            return $"width: {100 - pastPct}%; background: {vibeColor}; box-shadow: 0 0 8px {vibeColor}60;";
+            return $"width: {pct:F2}%; background: {vibeColor}; box-shadow: 0 0 8px {vibeColor}60;";
         }
-        return $"width: {100 - pastPct}%; background: {color};";
+        return $"width: {pct:F2}%; background: {color};";
+    }
+
+    private string HistoryEmptyStyle(double pct)
+    {
+        return $"width: {pct:F2}%; background: transparent;";
     }
 
     private string ColumnHeaderStyle(int index)

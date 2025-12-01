@@ -57,6 +57,8 @@ else
             {
                 <ColumnProperties Column="@column"
                                  JsonPath="@SelectionState.SelectedPath"
+                                 AllColumns="@AllColumns"
+                                 ColumnIndex="@GetColumnIndex()"
                                  OnChange="HandlePropertyChange"
                                  OnAdd="HandleAddElement"
                                  OnRemove="HandleRemoveElement"
@@ -134,9 +136,25 @@ else
     [Parameter]
     public int ColumnCount { get; set; } = 4;
 
+    [Parameter]
+    public List<Column>? AllColumns { get; set; }
+
     protected override void OnInitialized()
     {
         SelectionState.OnSelectionChanged += StateHasChanged;
+    }
+
+    private int GetColumnIndex()
+    {
+        if (AllColumns == null || string.IsNullOrEmpty(SelectionState.SelectedPath)) return -1;
+
+        // Parse the index from the path like "columns[2]"
+        var match = System.Text.RegularExpressions.Regex.Match(SelectionState.SelectedPath, @"columns\[(\d+)\]");
+        if (match.Success && int.TryParse(match.Groups[1].Value, out var index))
+        {
+            return index;
+        }
+        return -1;
     }
 
     public void Dispose()
