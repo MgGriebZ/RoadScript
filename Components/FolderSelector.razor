@@ -11,19 +11,23 @@
         </div>
 
         <div class="folder-honeycomb">
-            @foreach (var folder in Folders)
+            @for (int i = 0; i < Folders.Count; i++)
             {
-                var stats = GetFolderAggregateStats(folder);
+                var folder = Folders[i];
+                var folderNumber = i + 1;
                 <div class="folder-hex @(folder.Id == ActiveFolderId ? "active" : "")"
                      @onclick="@(() => HandleFolderSelect(folder.Id))">
                     <div class="folder-hex-inner" style="background-color: @folder.Color;">
-                        <div class="folder-icon-small">
-                            <Icon IconType="@folder.Icon" Size="20" Color="#ffffff" />
-                        </div>
-                        <div class="folder-name">@folder.Name</div>
-                        <div class="folder-summary">
-                            <span class="roadmap-count">@folder.SessionManager.Tabs.Count roadmaps</span>
-                            <span class="folder-stats">@stats</span>
+                        <div class="folder-number">@folderNumber</div>
+                        <div class="folder-roadmaps">
+                            @foreach (var tab in folder.SessionManager.Tabs)
+                            {
+                                var stats = GetRoadmapStats(tab.Data);
+                                <div class="roadmap-line">
+                                    <span class="roadmap-name">@tab.Name</span>
+                                    <span class="roadmap-stats">@stats</span>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -86,26 +90,15 @@
         await OnRenameFolder.InvokeAsync();
     }
 
-    private string GetFolderAggregateStats(Folder folder)
+    private string GetRoadmapStats(RoadmapData data)
     {
-        if (folder?.SessionManager?.Tabs == null || folder.SessionManager.Tabs.Count == 0)
-            return "0 0 0";
+        if (data == null) return "0 0 0";
 
-        var totalColumns = 0;
-        var totalLanes = 0;
-        var totalItems = 0;
+        var columns = data.Columns?.Count ?? 0;
+        var lanes = data.Lanes?.Count ?? 0;
+        var items = (data.Lanes?.Sum(l => l.Items?.Count ?? 0) ?? 0) + (data.Milestones?.Count ?? 0);
 
-        foreach (var tab in folder.SessionManager.Tabs)
-        {
-            if (tab.Data != null)
-            {
-                totalColumns += tab.Data.Columns?.Count ?? 0;
-                totalLanes += tab.Data.Lanes?.Count ?? 0;
-                totalItems += (tab.Data.Lanes?.Sum(l => l.Items?.Count ?? 0) ?? 0) + (tab.Data.Milestones?.Count ?? 0);
-            }
-        }
-
-        return $"{totalColumns} {totalLanes} {totalItems}";
+        return $"{columns} {lanes} {items}";
     }
 }
 
@@ -183,8 +176,10 @@
     }
 
     .folder-hex {
-        width: 180px;
-        height: 120px;
+        width: 200px;
+        height: auto;
+        min-height: 140px;
+        max-height: 280px;
         cursor: pointer;
         transition: transform 0.2s;
     }
@@ -223,52 +218,66 @@
         background: #252525;
     }
 
-    .folder-icon-small {
+    .folder-number {
         position: absolute;
-        top: 8px;
-        right: 8px;
-        opacity: 0.5;
-    }
-
-    .folder-name {
+        top: 10px;
+        left: 10px;
+        width: 28px;
+        height: 28px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         color: #ffffff;
         font-size: 16px;
         font-weight: 700;
-        text-align: center;
-        margin-top: 24px;
-        margin-bottom: 16px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        padding: 0 8px;
+        backdrop-filter: blur(4px);
     }
 
-    .folder-hex.add-folder .folder-name {
-        color: #999;
-        margin-top: 32px;
+    .folder-roadmaps {
+        width: 100%;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 240px;
+        overflow-y: auto;
     }
 
-    .folder-summary {
+    .roadmap-line {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 12px;
-        width: 100%;
+        gap: 8px;
+        padding: 6px 8px;
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 4px;
     }
 
-    .roadmap-count {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 13px;
-        font-weight: 500;
-    }
-
-    .folder-stats {
-        color: rgba(255, 255, 255, 0.6);
+    .roadmap-name {
+        color: #ffffff;
         font-size: 12px;
-        font-weight: 400;
-        font-style: italic;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+
+    .roadmap-stats {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 11px;
+        font-weight: 500;
         font-family: 'Courier New', monospace;
         letter-spacing: 1px;
+        white-space: nowrap;
+    }
+
+    .folder-hex.add-folder .folder-roadmaps {
+        padding: 32px 12px;
+        align-items: center;
+        justify-content: center;
     }
 
     .folder-actions {

@@ -38,7 +38,7 @@
                             style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
                         <div style="position: relative;">
                             <Icon IconType="folder" Size="28" Color="#ffffff" />
-                            <span style="position: absolute; top: -6px; right: -6px; background: #ffffff; color: #667eea; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);">@GetActiveFolderNumber()</span>
+                            <span style="position: absolute; top: -6px; right: -6px; background: @GetActiveFolderColor(); color: #ffffff; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);">@GetActiveFolderNumber()</span>
                         </div>
                         <span>Project Folders</span>
                     </button>
@@ -226,7 +226,7 @@
                         class="cc-icon-btn"
                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 44px; height: 44px; border-radius: 8px; font-size: 24px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: center; position: relative;">
                     📁
-                    <span style="position: absolute; top: 2px; right: 2px; background: #ffffff; color: #667eea; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);">@GetActiveFolderNumber()</span>
+                    <span style="position: absolute; top: 2px; right: 2px; background: @GetActiveFolderColor(); color: #ffffff; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);">@GetActiveFolderNumber()</span>
                 </button>
 
                 <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
@@ -2159,6 +2159,12 @@
         return index >= 0 ? index + 1 : 1;
     }
 
+    private string GetActiveFolderColor()
+    {
+        if (_activeFolder == null) return "#667eea";
+        return _activeFolder.Color;
+    }
+
     private void CloseFolderSelector()
     {
         _showFolderSelector = false;
@@ -2219,12 +2225,8 @@
             return;
         }
 
-        // Prompt for folder name
-        var folderName = await JSRuntime.InvokeAsync<string>("prompt", "Enter folder name:", $"Folder {_folderManager.Folders.Count + 1}");
-        if (string.IsNullOrWhiteSpace(folderName))
-        {
-            return;
-        }
+        // Auto-generate folder name based on count (no user prompt)
+        var folderName = $"Folder {_folderManager.Folders.Count + 1}";
 
         // Store pending folder name and show template selector
         _pendingFolderName = folderName;
