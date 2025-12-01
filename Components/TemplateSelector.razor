@@ -1,0 +1,182 @@
+@using RoadScript.Services
+@using static RoadScript.Services.TemplateService
+
+@* Template Selector - Modal for choosing roadmap template *@
+
+<div class="template-selector-overlay @(IsVisible ? "visible" : "")" @onclick="@(() => OnClose.InvokeAsync())">
+    <div class="template-selector-content" @onclick:stopPropagation="true">
+        <div class="template-selector-header">
+            <h3>Choose a Roadmap Template</h3>
+            <button class="close-button" @onclick="@(() => OnClose.InvokeAsync())">×</button>
+        </div>
+
+        <div class="template-options">
+            @* Scrum Sprint Cycle *@
+            <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumSprintCycle))">
+                <div class="template-icon">
+                    <Icon Name="calendar" Size="48px" Color="#9999ff" />
+                </div>
+                <div class="template-info">
+                    <h4>Scrum Sprint Cycle</h4>
+                    <p>2-week sprint cycle with ceremonies, planning, and review sessions</p>
+                </div>
+            </div>
+
+            @* Project Timelines *@
+            <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.ProjectTimelines))">
+                <div class="template-icon">
+                    <Icon Name="bookmark" Size="48px" Color="#87CEEB" />
+                </div>
+                <div class="template-info">
+                    <h4>Project Timelines</h4>
+                    <p>Quarterly project planning with multiple timelines and milestones</p>
+                </div>
+            </div>
+
+            @* Annual Roadmap *@
+            <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.AnnualRoadmap))">
+                <div class="template-icon">
+                    <Icon Name="chart" Size="48px" Color="#45B69C" />
+                </div>
+                <div class="template-info">
+                    <h4>Annual Roadmap</h4>
+                    <p>12-month product development roadmap with strategic initiatives</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<TemplateType> OnTemplateSelect { get; set; }
+
+    private async Task HandleTemplateSelect(TemplateType templateType)
+    {
+        await OnTemplateSelect.InvokeAsync(templateType);
+        await OnClose.InvokeAsync();
+    }
+}
+
+<style>
+    .template-selector-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .template-selector-overlay.visible {
+        display: flex;
+    }
+
+    .template-selector-content {
+        background: #1e1e1e;
+        border: 1px solid #444;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 700px;
+        width: 90%;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .template-selector-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .template-selector-header h3 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .close-button {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 32px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .close-button:hover {
+        color: #ffffff;
+    }
+
+    .template-options {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .template-card {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        background: #2a2a2a;
+        border: 2px solid #444;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .template-card:hover {
+        background: #333;
+        border-color: #667eea;
+        transform: translateX(4px);
+    }
+
+    .template-icon {
+        flex-shrink: 0;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #1e1e1e;
+        border-radius: 12px;
+        border: 2px solid #444;
+    }
+
+    .template-card:hover .template-icon {
+        border-color: #667eea;
+    }
+
+    .template-info {
+        flex: 1;
+    }
+
+    .template-info h4 {
+        margin: 0 0 8px 0;
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .template-info p {
+        margin: 0;
+        color: #999;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+</style>

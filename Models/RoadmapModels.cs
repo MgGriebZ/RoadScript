@@ -157,3 +157,38 @@ public class SessionManager
     [JsonPropertyName("maxTabs")]
     public int MaxTabs { get; set; } = 5;
 }
+
+// Folder-based Organization Models
+
+public class Folder
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "Project Folder";
+
+    [JsonPropertyName("icon")]
+    public string Icon { get; set; } = "folder";  // Icon name for the folder
+
+    [JsonPropertyName("color")]
+    public string Color { get; set; } = "#667eea";  // Folder color
+
+    [JsonPropertyName("sessionManager")]
+    public SessionManager SessionManager { get; set; } = new();
+
+    [JsonPropertyName("lastModified")]
+    public DateTime LastModified { get; set; } = DateTime.UtcNow;
+}
+
+public class FolderManager
+{
+    [JsonPropertyName("activeFolderId")]
+    public string ActiveFolderId { get; set; } = "";
+
+    [JsonPropertyName("folders")]
+    public List<Folder> Folders { get; set; } = new();
+
+    [JsonPropertyName("maxFolders")]
+    public int MaxFolders { get; set; } = 3;
+}
