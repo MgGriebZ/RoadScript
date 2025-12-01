@@ -35,19 +35,6 @@
     <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
         <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Column Management</label>
 
-        @if (AllColumns != null && AllColumns.Count > 1 && ColumnIndex == AllColumns.Count - 1)
-        {
-            <button @onclick="SuggestNextColumn" type="button" style="width: 100%; margin-bottom: 8px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; padding: 10px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
-                ✨ Suggest Next Column
-            </button>
-            @if (!string.IsNullOrEmpty(_suggestionMessage))
-            {
-                <div style="font-size: 11px; color: #10b981; margin-bottom: 8px; padding: 8px; background: rgba(16, 185, 129, 0.1); border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3);">
-                    @_suggestionMessage
-                </div>
-            }
-        }
-
         <button @onclick="AddColumn" class="btn-add" type="button" style="width: 100%; margin-bottom: 8px;">
             + Add New Column
         </button>
@@ -70,12 +57,6 @@
     public string JsonPath { get; set; } = "";
 
     [Parameter]
-    public List<Column>? AllColumns { get; set; }
-
-    [Parameter]
-    public int ColumnIndex { get; set; }
-
-    [Parameter]
     public EventCallback<(string PropertyName, object Value)> OnChange { get; set; }
 
     [Parameter]
@@ -86,13 +67,6 @@
 
     [Parameter]
     public EventCallback<string> OnDuplicate { get; set; }
-
-    private string _suggestionMessage = "";
-
-    private static readonly string[] DaysOfWeek = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
-    private static readonly string[] MonthNames = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
-    private static readonly string[] MonthAbbr = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-    private static readonly string[] QuarterNames = { "Q1", "Q2", "Q3", "Q4" };
 
     private void AddColumn()
     {
@@ -107,81 +81,5 @@
     private void RemoveColumn()
     {
         OnRemove.InvokeAsync("column");
-    }
-
-    private void SuggestNextColumn()
-    {
-        if (AllColumns == null || AllColumns.Count < 2) return;
-
-        var lastColumn = AllColumns[AllColumns.Count - 2]; // Previous column
-        var label = lastColumn.Label;
-        var sub = lastColumn.Sub;
-
-        string suggestedLabel = label;
-        string suggestedSub = sub;
-        _suggestionMessage = "";
-
-        // Try to detect patterns
-        // 1. Day of week pattern
-        var dayIndex = Array.IndexOf(DaysOfWeek, label);
-        if (dayIndex >= 0)
-        {
-            suggestedLabel = DaysOfWeek[(dayIndex + 1) % 7];
-            _suggestionMessage = $"Detected day pattern: {label} → {suggestedLabel}";
-        }
-        // 2. Month name pattern (full)
-        else if (Array.IndexOf(MonthNames, label) >= 0)
-        {
-            var monthIndex = Array.IndexOf(MonthNames, label);
-            suggestedLabel = MonthNames[(monthIndex + 1) % 12];
-            _suggestionMessage = $"Detected month pattern: {label} → {suggestedLabel}";
-        }
-        // 3. Month abbreviation pattern
-        else if (Array.IndexOf(MonthAbbr, label) >= 0)
-        {
-            var monthIndex = Array.IndexOf(MonthAbbr, label);
-            suggestedLabel = MonthAbbr[(monthIndex + 1) % 12];
-            _suggestionMessage = $"Detected month pattern: {label} → {suggestedLabel}";
-        }
-        // 4. Quarter pattern
-        else if (Array.IndexOf(QuarterNames, label) >= 0)
-        {
-            var quarterIndex = Array.IndexOf(QuarterNames, label);
-            suggestedLabel = QuarterNames[(quarterIndex + 1) % 4];
-            _suggestionMessage = $"Detected quarter pattern: {label} → {suggestedLabel}";
-        }
-        // 5. Date pattern (MM/DD/YYYY or similar)
-        else if (DateTime.TryParse(label, out var date))
-        {
-            suggestedLabel = date.AddDays(1).ToString("MM/dd/yyyy");
-            _suggestionMessage = $"Detected date pattern: incremented by 1 day";
-        }
-        // 6. Numeric pattern
-        else if (int.TryParse(label, out var number))
-        {
-            suggestedLabel = (number + 1).ToString();
-            _suggestionMessage = $"Detected number pattern: {label} → {suggestedLabel}";
-        }
-        // 7. Check for year in label
-        else if (System.Text.RegularExpressions.Regex.IsMatch(label, @"\b(20\d{2})\b"))
-        {
-            var match = System.Text.RegularExpressions.Regex.Match(label, @"\b(20\d{2})\b");
-            var year = int.Parse(match.Groups[1].Value);
-            suggestedLabel = label.Replace(match.Groups[1].Value, (year + 1).ToString());
-            _suggestionMessage = $"Detected year in label: incremented year";
-        }
-        else
-        {
-            _suggestionMessage = "No pattern detected. Duplicating last column.";
-        }
-
-        // Update the column
-        OnChange.InvokeAsync(("label", suggestedLabel));
-        if (!string.IsNullOrEmpty(suggestedSub))
-        {
-            OnChange.InvokeAsync(("sub", suggestedSub));
-        }
-
-        StateHasChanged();
     }
 }

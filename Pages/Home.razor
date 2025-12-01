@@ -65,25 +65,25 @@
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumSprintCycle))"
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 16px;">🔄</span>
+                            <span style="font-size: 16px;">🕐</span>
                             <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Scrum Sprint Cycle</span>
-                                <span style="font-size: 10px; color: #888;">2-week sprint ceremonies</span>
+                                <span style="font-weight: 600;">Scrum Sprints</span>
+                                <span style="font-size: 10px; color: #888;">Sprint ceremonies and meetings</span>
                             </div>
                         </button>
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ProjectTimelines))"
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 16px;">📊</span>
+                            <span style="font-size: 16px;">📅</span>
                             <div style="display: flex; flex-direction: column;">
                                 <span style="font-weight: 600;">Project Timelines</span>
-                                <span style="font-size: 10px; color: #888;">Quarterly project planning</span>
+                                <span style="font-size: 10px; color: #888;">Quarterly project tracking</span>
                             </div>
                         </button>
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.AnnualRoadmap))"
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 16px;">📆</span>
+                            <span style="font-size: 16px;">📊</span>
                             <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Annual Roadmap</span>
+                                <span style="font-weight: 600;">Milestone Map</span>
                                 <span style="font-size: 10px; color: #888;">12-month timeline</span>
                             </div>
                         </button>
@@ -303,12 +303,12 @@
                 @* Quick Templates *@
                 <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
-                @* Scrum Sprint Cycle *@
+                @* Scrum Sprints *@
                 <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumSprintCycle))"
-                        title="Apply Scrum Sprint Cycle Template"
+                        title="Apply Scrum Sprints Template"
                         class="cc-icon-btn"
                         style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                    🔄
+                    🕐
                 </button>
 
                 @* Project Timelines *@
@@ -316,15 +316,15 @@
                         title="Apply Project Timelines Template"
                         class="cc-icon-btn"
                         style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                    📊
+                    📅
                 </button>
 
-                @* Annual Roadmap *@
+                @* Milestone Map *@
                 <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.AnnualRoadmap))"
-                        title="Apply Annual Roadmap Template"
+                        title="Apply Milestone Map Template"
                         class="cc-icon-btn"
                         style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                    📆
+                    📊
                 </button>
             </div>
         }
@@ -373,20 +373,23 @@
                                                         var origin = lane.History.ProgressOrigin ?? "left";
                                                         if (origin == "left")
                                                         {
-                                                            <div style="@HistoryPastStyle(lane.Color, lane.History.PastPct)"></div>
-                                                            <div style="@HistoryCurrentStyle(lane.Color, lane.History.PastPct)"></div>
+                                                            // Left: Solid progress bar from left, then empty
+                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.PastPct)"></div>
+                                                            <div style="@HistoryEmptyStyle(100 - lane.History.PastPct)"></div>
                                                         }
                                                         else if (origin == "middle")
                                                         {
+                                                            // Center: Empty on both sides, solid progress in middle
                                                             var emptyPct = (100 - lane.History.PastPct) / 2.0;
                                                             <div style="@HistoryEmptyStyle(emptyPct)"></div>
-                                                            <div style="@HistoryPastStyle(lane.Color, lane.History.PastPct)"></div>
-                                                            <div style="@HistoryCurrentStyle(lane.Color, emptyPct)"></div>
+                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.PastPct)"></div>
+                                                            <div style="@HistoryEmptyStyle(emptyPct)"></div>
                                                         }
                                                         else if (origin == "right")
                                                         {
-                                                            <div style="@HistoryCurrentStyle(lane.Color, 100 - lane.History.PastPct)"></div>
-                                                            <div style="@HistoryPastStyle(lane.Color, lane.History.PastPct)"></div>
+                                                            // Right: Empty first, then solid progress bar from right
+                                                            <div style="@HistoryEmptyStyle(100 - lane.History.PastPct)"></div>
+                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.PastPct)"></div>
                                                         }
                                                     }
                                                 </div>
@@ -1186,18 +1189,9 @@
             ? "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: #2a2a3e;"
             : "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: #e5e7eb;";
 
-    private string HistoryPastStyle(string color, double pastPct)
+    private string HistoryProgressStyle(string color, double pct)
     {
-        if (_isVibeMode)
-        {
-            var vibeColor = GetVibeColor(color);
-            return $"width: {pastPct:F2}%; background: repeating-linear-gradient(90deg, {vibeColor} 0px, {vibeColor} 3px, transparent 3px, transparent 6px); opacity: 0.35;";
-        }
-        return $"width: {pastPct:F2}%; background: repeating-linear-gradient(90deg, {color} 0px, {color} 3px, transparent 3px, transparent 6px); opacity: 0.45;";
-    }
-
-    private string HistoryCurrentStyle(string color, double pct)
-    {
+        // Solid bar representing progress
         if (_isVibeMode)
         {
             var vibeColor = GetVibeColor(color);
@@ -1208,6 +1202,7 @@
 
     private string HistoryEmptyStyle(double pct)
     {
+        // Transparent/empty area for future/unfilled portion
         return $"width: {pct:F2}%; background: transparent;";
     }
 

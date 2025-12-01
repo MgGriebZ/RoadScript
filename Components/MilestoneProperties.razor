@@ -283,6 +283,8 @@
         var newPos = Milestone.Position + delta;
         // Clamp to valid range (0-100)
         newPos = Math.Max(0, Math.Min(newPos, 100));
+        // Round to 2 decimal places to avoid floating point precision issues
+        newPos = Math.Round(newPos, 2);
         OnChange.InvokeAsync(("position", newPos));
     }
 

@@ -400,6 +400,8 @@
         var newPos = Item.Start + delta;
         // Clamp to valid range
         newPos = Math.Max(0, Math.Min(newPos, GetMaxPosition() - Item.Span));
+        // Round to 2 decimal places to avoid floating point precision issues
+        newPos = Math.Round(newPos, 2);
         OnChange.InvokeAsync(("start", newPos));
     }
 
