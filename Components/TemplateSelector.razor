@@ -12,36 +12,36 @@
         </div>
 
         <div class="template-options">
-            @* Scrum Sprints *@
+            @* Daily Planning *@
             <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumSprintCycle))">
-                <div class="template-icon">
-                    <Icon IconType="clock" Size="48" Color="#9999ff" />
+                <div class="template-icon" style="background: linear-gradient(135deg, rgba(153, 153, 255, 0.15) 0%, rgba(153, 153, 255, 0.05) 100%);">
+                    <Icon IconType="calendar" Size="56" Color="#9999ff" />
                 </div>
                 <div class="template-info">
-                    <h4>Scrum Sprints</h4>
-                    <p>Outlook calendar-like view for sprint ceremonies and meetings with expandable detail levels</p>
+                    <h4>Daily Planning</h4>
+                    <p>A quick daily-like view representing something close to an outlook calendar. This template uses typical sprint meetings in an agile Scrum development team. It has a few larger items that are good for adding quick notes or details to re-occurring meetings or projects.</p>
                 </div>
             </div>
 
             @* Project Timelines *@
             <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.ProjectTimelines))">
-                <div class="template-icon">
-                    <Icon IconType="calendar" Size="48" Color="#87CEEB" />
+                <div class="template-icon" style="background: linear-gradient(135deg, rgba(135, 206, 235, 0.15) 0%, rgba(135, 206, 235, 0.05) 100%);">
+                    <Icon IconType="rocket" Size="56" Color="#87CEEB" />
                 </div>
                 <div class="template-info">
                     <h4>Project Timelines</h4>
-                    <p>High-level product/project tracking with quarterly or 3-month segments and dynamic columns</p>
+                    <p>High-level product level tracking which represents larger scales of time. This template uses mggriebz personal portfolio of products including details of core features, deployment dates and easy to adjust roadmap settings.</p>
                 </div>
             </div>
 
             @* Milestone Map *@
             <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.AnnualRoadmap))">
-                <div class="template-icon">
-                    <Icon IconType="chart" Size="48" Color="#45B69C" />
+                <div class="template-icon" style="background: linear-gradient(135deg, rgba(69, 182, 156, 0.15) 0%, rgba(69, 182, 156, 0.05) 100%);">
+                    <Icon IconType="flag" Size="56" Color="#45B69C" />
                 </div>
                 <div class="template-info">
                     <h4>Milestone Map</h4>
-                    <p>Detailed tracking with many columns (10-12+) for hourly/monthly granularity and milestone markers</p>
+                    <p>Hyper detailed target and milestone event tracking. This template uses several columns to represent hourly development cycles with Claude credit token resets and PR merges that track a product lifecycle. It utilizes the expansive icon list and milestone features to help define specific targets/goals.</p>
                 </div>
             </div>
         </div>
@@ -70,22 +70,24 @@
         background: rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(4px);
         display: none;
-        align-items: center;
-        justify-content: center;
         z-index: 1000;
     }
 
     .template-selector-overlay.visible {
-        display: flex;
+        display: block;
     }
 
     .template-selector-content {
+        position: absolute;
+        top: 20px;
+        left: 20px;
         background: #1e1e1e;
         border: 1px solid #444;
         border-radius: 12px;
         padding: 24px;
         max-width: 700px;
-        width: 90%;
+        width: auto;
+        min-width: 650px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
 

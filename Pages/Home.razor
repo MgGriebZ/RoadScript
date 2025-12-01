@@ -67,8 +67,8 @@
                                 style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 10px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 16px;">🕐</span>
                             <div style="display: flex; flex-direction: column;">
-                                <span style="font-weight: 600;">Scrum Sprints</span>
-                                <span style="font-size: 10px; color: #888;">Sprint ceremonies and meetings</span>
+                                <span style="font-weight: 600;">Daily Planning</span>
+                                <span style="font-size: 10px; color: #888;">Daily calendar view and meetings</span>
                             </div>
                         </button>
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ProjectTimelines))"
@@ -303,28 +303,28 @@
                 @* Quick Templates *@
                 <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
-                @* Scrum Sprints *@
+                @* Daily Planning *@
                 <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumSprintCycle))"
-                        title="Apply Scrum Sprints Template"
+                        title="Apply Daily Planning Template"
                         class="cc-icon-btn"
-                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                    🕐
+                        style="background: linear-gradient(135deg, rgba(153, 153, 255, 0.2) 0%, rgba(153, 153, 255, 0.05) 100%); color: #9999ff; border: 1px solid rgba(153, 153, 255, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(153, 153, 255, 0.2);">
+                    <Icon IconType="calendar" Size="24" Color="#9999ff" />
                 </button>
 
                 @* Project Timelines *@
                 <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ProjectTimelines))"
                         title="Apply Project Timelines Template"
                         class="cc-icon-btn"
-                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                    📅
+                        style="background: linear-gradient(135deg, rgba(135, 206, 235, 0.2) 0%, rgba(135, 206, 235, 0.05) 100%); color: #87CEEB; border: 1px solid rgba(135, 206, 235, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(135, 206, 235, 0.2);">
+                    <Icon IconType="rocket" Size="24" Color="#87CEEB" />
                 </button>
 
                 @* Milestone Map *@
                 <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.AnnualRoadmap))"
                         title="Apply Milestone Map Template"
                         class="cc-icon-btn"
-                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                    📊
+                        style="background: linear-gradient(135deg, rgba(69, 182, 156, 0.2) 0%, rgba(69, 182, 156, 0.05) 100%); color: #45B69C; border: 1px solid rgba(69, 182, 156, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(69, 182, 156, 0.2);">
+                    <Icon IconType="flag" Size="24" Color="#45B69C" />
                 </button>
             </div>
         }
@@ -2341,9 +2341,9 @@
         // Get template name for confirmation
         var templateName = templateType switch
         {
-            TemplateService.TemplateType.ScrumSprintCycle => "Scrum Sprint Cycle",
+            TemplateService.TemplateType.ScrumSprintCycle => "Daily Planning",
             TemplateService.TemplateType.ProjectTimelines => "Project Timelines",
-            TemplateService.TemplateType.AnnualRoadmap => "Annual Roadmap",
+            TemplateService.TemplateType.AnnualRoadmap => "Milestone Map",
             TemplateService.TemplateType.Weekly7Days => "Weekly (7 Days)",
             TemplateService.TemplateType.Monthly4Weeks => "Monthly (4 Weeks)",
             TemplateService.TemplateType.Quarterly4Quarters => "Quarterly (4 Quarters)",
@@ -2354,9 +2354,9 @@
         // Get tab name suffix
         var tabNameSuffix = templateType switch
         {
-            TemplateService.TemplateType.ScrumSprintCycle => "Scrum Sprint Cycle",
+            TemplateService.TemplateType.ScrumSprintCycle => "Daily Planning",
             TemplateService.TemplateType.ProjectTimelines => "Project Timelines",
-            TemplateService.TemplateType.AnnualRoadmap => "Annual Roadmap",
+            TemplateService.TemplateType.AnnualRoadmap => "Milestone Map",
             TemplateService.TemplateType.Weekly7Days => "Weekly Roadmap",
             TemplateService.TemplateType.Monthly4Weeks => "Monthly Roadmap",
             TemplateService.TemplateType.Quarterly4Quarters => "Quarterly Roadmap",

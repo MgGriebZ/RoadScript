@@ -29,9 +29,9 @@ public class TemplateService
     /// </summary>
     public static string GetTemplateName(TemplateType type) => type switch
     {
-        TemplateType.ScrumSprintCycle => "Scrum Sprint Cycle",
+        TemplateType.ScrumSprintCycle => "Daily Planning",
         TemplateType.ProjectTimelines => "Project Timelines",
-        TemplateType.AnnualRoadmap => "Annual Roadmap",
+        TemplateType.AnnualRoadmap => "Milestone Map",
         TemplateType.Weekly7Days => "Weekly (7 Days)",
         TemplateType.BiWeeklySprint => "Bi-Weekly Sprint (5 Days)",
         TemplateType.Monthly4Weeks => "Monthly (4 Weeks)",
@@ -591,13 +591,13 @@ public class TemplateService
     }
 
     /// <summary>
-    /// Get Scrum Sprint Cycle template (static JSON)
+    /// Get Daily Planning template (static JSON)
     /// </summary>
     public static RoadmapData GetScrumSprintCycleTemplate()
     {
         return new RoadmapData
         {
-            Title = "Scrum Sprints",
+            Title = "Daily Planning",
             Subtitle = "Made with RoadScript.NET... a MgGriebZ project",
             Columns = new List<Column>
             {
@@ -620,14 +620,95 @@ public class TemplateService
                     Id = null,
                     Title = "Week 1",
                     Color = "#9999ff",
-                    Height = 1,
-                    History = null,
+                    Height = 0.9,
+                    History = new History { Start = "Sprint Start", End = "", PastPct = 50, ProgressOrigin = "left" },
                     Items = new List<Item>
                     {
-                        new Item { Id = null, Title = "Stakeholder Prioritization", Start = 3, Span = 1, Spanning = true, Completed = false, StatusIcon = "star", StatusColor = "#D4A520", GreyedOut = false, Hidden = false, Details = null },
-                        new Item { Id = null, Title = "Refinement", Start = 5, Span = 1, Spanning = false, Completed = false, StatusIcon = "search", StatusColor = "#45B69C", GreyedOut = false, Hidden = false, Details = null },
-                        new Item { Id = null, Title = "Sprint Planning", Start = 0, Span = 1, Spanning = false, Completed = false, StatusIcon = "calendar", StatusColor = "#45B69C", GreyedOut = false, Hidden = false, Details = null },
-                        new Item { Id = null, Title = "Sprint Review", Start = 1, Span = 1, Spanning = true, Completed = false, StatusIcon = "star", StatusColor = "#E6B800", GreyedOut = false, Hidden = false, Details = null }
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Stakeholder Prioritization",
+                            Start = 3,
+                            Span = 1,
+                            Spanning = true,
+                            Completed = false,
+                            StatusIcon = "star",
+                            StatusColor = "#D4A520",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = null
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Refinement",
+                            Start = 5,
+                            Span = 1,
+                            Spanning = false,
+                            Completed = false,
+                            StatusIcon = "search",
+                            StatusColor = "#45B69C",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = null
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Sprint Planning",
+                            Start = 0,
+                            Span = 1,
+                            Spanning = false,
+                            Completed = false,
+                            StatusIcon = "calendar",
+                            StatusColor = "#45B69C",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail
+                                {
+                                    Text = "Team 1",
+                                    Subs = new List<string>
+                                    {
+                                        "Feature X",
+                                        "Task ABC"
+                                    }
+                                },
+                                new Detail
+                                {
+                                    Text = "Team 2",
+                                    Subs = new List<string>
+                                    {
+                                        "QC / Testing"
+                                    }
+                                }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Sprint Review",
+                            Start = 1,
+                            Span = 1,
+                            Spanning = true,
+                            Completed = false,
+                            StatusIcon = "star",
+                            StatusColor = "#E6B800",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail
+                                {
+                                    Text = "RoadScript",
+                                    Subs = new List<string>
+                                    {
+                                        "Template Demo"
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
                 new Lane
@@ -635,12 +716,62 @@ public class TemplateService
                     Id = null,
                     Title = "Week 2",
                     Color = "#EC4899",
-                    Height = 1,
-                    History = null,
+                    Height = 0.9,
+                    History = new History { Start = ".", End = "Sprint End", PastPct = 50, ProgressOrigin = "right" },
                     Items = new List<Item>
                     {
-                        new Item { Id = null, Title = "Refinement", Start = 4, Span = 2, Spanning = false, Completed = false, StatusIcon = "search", StatusColor = "#45B69C", GreyedOut = false, Hidden = false, Details = null },
-                        new Item { Id = null, Title = "Retro", Start = 1, Span = 1, Spanning = false, Completed = false, StatusIcon = "pause", StatusColor = "#45B69C", GreyedOut = false, Hidden = false, Details = null }
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Refinement",
+                            Start = 4,
+                            Span = 2,
+                            Spanning = false,
+                            Completed = false,
+                            StatusIcon = "search",
+                            StatusColor = "#45B69C",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail
+                                {
+                                    Text = "Drag N Drop tech stack",
+                                    Subs = new List<string>()
+                                }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Retro",
+                            Start = 1,
+                            Span = 1,
+                            Spanning = false,
+                            Completed = false,
+                            StatusIcon = "pause",
+                            StatusColor = "#45B69C",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail
+                                {
+                                    Text = "Better requirements",
+                                    Subs = new List<string>()
+                                },
+                                new Detail
+                                {
+                                    Text = "More meetings",
+                                    Subs = new List<string>()
+                                },
+                                new Detail
+                                {
+                                    Text = "Higher pay",
+                                    Subs = new List<string>()
+                                }
+                            }
+                        }
                     }
                 },
                 new Lane
@@ -648,7 +779,7 @@ public class TemplateService
                     Id = null,
                     Title = "IT Development",
                     Color = "#1E3A8A",
-                    Height = 0.8,
+                    Height = 0.6,
                     History = null,
                     Items = new List<Item>
                     {
@@ -715,7 +846,7 @@ public class TemplateService
             },
             Milestones = new List<Milestone>
             {
-                new Milestone { Position = 71.5, Label = "RoadScript.net", Icon = "rocket", Color = "#45B69C" },
+                new Milestone { Position = 77.75, Label = "RoadScript.net", Icon = "rocket", Color = "#45B69C" },
                 new Milestone { Position = 19.5, Label = "Action-Tarot.com", Icon = "rocket", Color = "#45B69C" },
                 new Milestone { Position = 44.5, Label = "MgGriebZ.com", Icon = "rocket", Color = "#45B69C" }
             },
@@ -724,96 +855,10 @@ public class TemplateService
                 new Lane
                 {
                     Id = null,
-                    Title = "Websites",
-                    Color = "#87CEEB",
-                    Height = 1.75,
-                    History = new History { Start = "2025", End = "2026", PastPct = 61, ProgressOrigin = "left" },
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Custom Sites",
-                            Start = 1,
-                            Span = 1,
-                            Spanning = false,
-                            Completed = true,
-                            StatusIcon = "wrench",
-                            StatusColor = "#D4652F",
-                            GreyedOut = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Tech Stack", Subs = new List<string> { "Azure Hosting/Services", "C# API backend", "React/Vite UI" } },
-                                new Detail { Text = "Glass Shops", Subs = new List<string>() },
-                                new Detail { Text = "Sassy Cakes", Subs = new List<string>() },
-                                new Detail { Text = "Demo/template site", Subs = new List<string> { "Public Repo" } }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "MgGriebZ .com",
-                            Start = 2.15,
-                            Span = 2.75,
-                            Spanning = true,
-                            Completed = false,
-                            StatusIcon = "bookmark",
-                            StatusColor = "#F88379",
-                            GreyedOut = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Personal Collections", Subs = new List<string> { "Family Moments", "Career and Development Milestones", "Media Interests and Hobbies" } },
-                                new Detail { Text = "Shareable Components", Subs = new List<string> { "Web components quickly updated and shared", "React UI + CosmosDB / C# backend" } }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "RoadScript .NET",
-                            Start = 3.5,
-                            Span = 1.5,
-                            Spanning = true,
-                            Completed = false,
-                            StatusIcon = "code",
-                            StatusColor = "#1E3A8A",
-                            GreyedOut = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Roadmapping JSON Language", Subs = new List<string>() },
-                                new Detail { Text = "Blazor WASM", Subs = new List<string> { "Azure Hosting", "Public repo" } }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "MVP Build",
-                            Start = 6.5,
-                            Span = 4,
-                            Spanning = false,
-                            Completed = false,
-                            StatusIcon = "pause",
-                            StatusColor = "#2de6b8",
-                            GreyedOut = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Core features", Subs = new List<string> { "Authentication", "Dashboard", "Data models" } },
-                                new Detail { Text = "API development", Subs = null },
-                                new Detail { Text = "Testing and QA", Subs = null }
-                            }
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
                     Title = "Apps and Games",
                     Color = "#EC4899",
                     Height = 1.25,
-                    History = new History { Start = "2024", End = "2026", PastPct = 14, ProgressOrigin = "left" },
+                    History = new History { Start = "2024", End = "ongoing", PastPct = 25, ProgressOrigin = "left" },
                     Items = new List<Item>
                     {
                         new Item
@@ -854,8 +899,8 @@ public class TemplateService
                         {
                             Id = null,
                             Title = "FlowForge",
-                            Start = 3,
-                            Span = 2,
+                            Start = 3.5,
+                            Span = 1.5,
                             Spanning = true,
                             Completed = false,
                             StatusIcon = "star",
@@ -872,18 +917,85 @@ public class TemplateService
                 new Lane
                 {
                     Id = null,
+                    Title = "Websites",
+                    Color = "#87CEEB",
+                    Height = 1.75,
+                    History = new History { Start = "2025", End = "ongoing", PastPct = 75, ProgressOrigin = "left" },
+                    Items = new List<Item>
+                    {
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Custom Sites",
+                            Start = 1,
+                            Span = 1,
+                            Spanning = false,
+                            Completed = true,
+                            StatusIcon = "wrench",
+                            StatusColor = "#D4652F",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Tech Stack", Subs = new List<string> { "Azure Hosting/Services", "C# API backend", "React/Vite UI" } },
+                                new Detail { Text = "Glass Shops", Subs = new List<string>() },
+                                new Detail { Text = "Sassy Cakes", Subs = new List<string>() },
+                                new Detail { Text = "Demo/template site", Subs = new List<string> { "Public Repo" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "MgGriebZ .com",
+                            Start = 2,
+                            Span = 3,
+                            Spanning = true,
+                            Completed = false,
+                            StatusIcon = "bookmark",
+                            StatusColor = "#F88379",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Personal Collections", Subs = new List<string> { "Family Moments", "Career and Development Milestones", "Media Interests and Hobbies" } },
+                                new Detail { Text = "Shareable Components", Subs = new List<string> { "Web components quickly updated and shared", "React UI + CosmosDB / C# backend" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "RoadScript .NET",
+                            Start = 3.75,
+                            Span = 1,
+                            Spanning = false,
+                            Completed = false,
+                            StatusIcon = "code",
+                            StatusColor = "#1E3A8A",
+                            GreyedOut = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Roadmapping JSON Language", Subs = new List<string>() },
+                                new Detail { Text = "Blazor WASM", Subs = new List<string> { "Azure Hosting", "Public repo" } }
+                            }
+                        }
+                    }
+                },
+                new Lane
+                {
+                    Id = null,
                     Title = "Ideas/Backlog",
                     Color = "#B7C4B7",
                     Height = 0.75,
-                    History = null,
+                    History = new History { Start = "never", End = "ending", PastPct = 36, ProgressOrigin = "middle" },
                     Items = new List<Item>
                     {
                         new Item
                         {
                             Id = null,
                             Title = "Recipe AI Chat",
-                            Start = 3.75,
-                            Span = 1,
+                            Start = 3,
+                            Span = 1.25,
                             Spanning = false,
                             Completed = false,
                             StatusIcon = "bookmark",
@@ -899,13 +1011,13 @@ public class TemplateService
                         {
                             Id = null,
                             Title = "Sigil Images",
-                            Start = 2.25,
+                            Start = 1.75,
                             Span = 1.25,
                             Spanning = false,
                             Completed = false,
                             StatusIcon = "search",
                             StatusColor = "#9999ff",
-                            GreyedOut = false,
+                            GreyedOut = true,
                             Hidden = false,
                             Details = new List<Detail>
                             {
@@ -919,7 +1031,7 @@ public class TemplateService
     }
 
     /// <summary>
-    /// Get Annual Roadmap template (static JSON) - 12 months
+    /// Get Milestone Map template (static JSON)
     /// </summary>
     public static RoadmapData GetAnnualRoadmapTemplate()
     {
@@ -964,13 +1076,13 @@ public class TemplateService
                     Title = "Templates",
                     Color = "#F88379",
                     Height = null,
-                    History = null,
+                    History = new History { Start = "Start of day", End = "", PastPct = 6, ProgressOrigin = "left" },
                     Items = new List<Item>
                     {
                         new Item
                         {
                             Id = null,
-                            Title = "Scrum Sprints",
+                            Title = "Daily Planning",
                             Start = 0,
                             Span = 2.75,
                             Spanning = false,
@@ -981,7 +1093,7 @@ public class TemplateService
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Repetitive/Weekly ceremonies", Subs = new List<string>() }
+                                new Detail { Text = "Planning and meeting view", Subs = new List<string> { "Detail note driven", "Scrum ceremonies example" } }
                             }
                         },
                         new Item
@@ -989,16 +1101,16 @@ public class TemplateService
                             Id = null,
                             Title = "Project Timelines",
                             Start = 2.5,
-                            Span = 4,
+                            Span = 3.5,
                             Spanning = false,
                             Completed = false,
-                            StatusIcon = "target",
+                            StatusIcon = "calendar",
                             StatusColor = "#45B69C",
                             GreyedOut = false,
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Quarterly product level planning", Subs = new List<string>() }
+                                new Detail { Text = "Quick overview and timelines", Subs = new List<string>() }
                             }
                         },
                         new Item
@@ -1009,13 +1121,13 @@ public class TemplateService
                             Span = 2.5,
                             Spanning = true,
                             Completed = false,
-                            StatusIcon = null,
-                            StatusColor = null,
+                            StatusIcon = "target",
+                            StatusColor = "#45B69C",
                             GreyedOut = false,
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Hourly/Monthly detail tracking", Subs = new List<string>() }
+                                new Detail { Text = "Specific details/targets", Subs = new List<string>() }
                             }
                         }
                     }
@@ -1026,7 +1138,7 @@ public class TemplateService
                     Title = "UI/UX Improvements",
                     Color = "#87CEEB",
                     Height = null,
-                    History = new History { Start = "2020", End = "2026", PastPct = 80, ProgressOrigin = "left" },
+                    History = new History { Start = "Throughout day", End = "", PastPct = 50, ProgressOrigin = "left" },
                     Items = new List<Item>
                     {
                         new Item
@@ -1052,8 +1164,8 @@ public class TemplateService
                             Id = null,
                             Title = "Folder Modal",
                             Start = 8,
-                            Span = 4,
-                            Spanning = false,
+                            Span = 6,
+                            Spanning = true,
                             Completed = false,
                             StatusIcon = "half-circle",
                             StatusColor = "#6366F1",
@@ -1072,7 +1184,7 @@ public class TemplateService
                     Title = "Technical/Functional",
                     Color = "#E6B800",
                     Height = null,
-                    History = null,
+                    History = new History { Start = "Build --> Test --> Commit --> Deploy", End = "", PastPct = 30, ProgressOrigin = "right" },
                     Items = new List<Item>
                     {
                         new Item
@@ -1097,7 +1209,7 @@ public class TemplateService
                             Id = null,
                             Title = "Command Center Panel",
                             Start = 2,
-                            Span = 3,
+                            Span = 4.25,
                             Spanning = false,
                             Completed = false,
                             StatusIcon = "wrench",
@@ -1118,7 +1230,7 @@ public class TemplateService
                     Title = "Backlog/Ongoing",
                     Color = "#B7C4B7",
                     Height = 0.75,
-                    History = null,
+                    History = new History { Start = "1 Feature", End = "3 tasks", PastPct = 50, ProgressOrigin = "middle" },
                     Items = new List<Item>
                     {
                         new Item
@@ -1135,7 +1247,7 @@ public class TemplateService
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Documentation/ActionTarot", Subs = new List<string>() }
+                                new Detail { Text = "Documentation", Subs = new List<string> { "Action Tarot reading via api" } }
                             }
                         },
                         new Item

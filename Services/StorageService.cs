@@ -422,7 +422,7 @@ public class StorageService
             (icon, color) = GetFolderDefaults(folderManager.Folders.Count);
         }
 
-        // Create a new folder with a default roadmap using Scrum Sprint Cycle template
+        // Create a new folder with a default roadmap using Daily Planning template
         var defaultRoadmap = TemplateService.GetScrumSprintCycleTemplate();
 
         var newFolder = new Folder
