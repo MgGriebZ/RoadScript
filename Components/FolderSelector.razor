@@ -25,7 +25,12 @@
                             @foreach (var tab in folder.SessionManager.Tabs)
                             {
                                 var stats = GetRoadmapStats(tab.Data);
-                                <div class="roadmap-line">
+                                var isActive = tab.Id == folder.SessionManager.ActiveTabId;
+                                <div class="roadmap-line @(isActive ? "active-roadmap" : "")">
+                                    @if (isActive)
+                                    {
+                                        <span class="active-indicator" style="background-color: @folder.Color;"></span>
+                                    }
                                     <span class="roadmap-name">@tab.Name</span>
                                     <span class="roadmap-stats">@stats</span>
                                 </div>
@@ -209,11 +214,21 @@
     .folder-hex.add-folder .folder-hex-inner {
         background: #1e1e1e;
         border: 2px dashed #666;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
     }
 
     .folder-hex.add-folder:hover .folder-hex-inner {
         border-color: #999;
         background: #252525;
+    }
+
+    .folder-hex.add-folder .folder-name {
+        color: #999;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
     }
 
     .folder-header {
@@ -236,10 +251,10 @@
 
     .folder-roadmaps {
         width: 100%;
-        padding: 12px;
+        padding: 10px 8px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
         max-height: 220px;
         overflow-y: auto;
         background: rgba(0, 0, 0, 0.1);
@@ -249,10 +264,24 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 8px;
-        padding: 6px 8px;
+        gap: 6px;
+        padding: 5px 6px;
         background: rgba(0, 0, 0, 0.15);
         border-radius: 4px;
+        position: relative;
+    }
+
+    .roadmap-line.active-roadmap {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .active-indicator {
+        position: absolute;
+        left: -4px;
+        width: 3px;
+        height: 100%;
+        border-radius: 2px;
+        opacity: 0.8;
     }
 
     .roadmap-name {
