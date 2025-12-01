@@ -1201,8 +1201,12 @@
 
     private string HistoryEmptyStyle(double pct)
     {
-        // Transparent/empty area for future/unfilled portion
-        return $"width: {pct:F2}%; background: transparent;";
+        // Dashed/striped pattern for future/unfilled portion
+        if (_isVibeMode)
+        {
+            return $"width: {pct:F2}%; background: repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.15) 4px, rgba(255,255,255,0.15) 8px);";
+        }
+        return $"width: {pct:F2}%; background: repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.2) 4px, rgba(255,255,255,0.2) 8px);";
     }
 
     private string ColumnHeaderStyle(int index)

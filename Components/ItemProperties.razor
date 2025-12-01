@@ -52,26 +52,26 @@
                 <div style="font-size: 10px; font-weight: 600;">⏮ Start</div>
             </button>
             <button type="button"
-                    @onclick="@(() => AdjustPosition(-0.25))"
-                    title="Big Down (-0.25)"
+                    @onclick="@(() => AdjustPosition(-1.0))"
+                    title="Big Down (-1 column)"
                     style="@GetQuickButtonStyle()">
                 <div style="font-size: 18px; line-height: 1;">⏪</div>
             </button>
             <button type="button"
-                    @onclick="@(() => AdjustPosition(-0.1))"
-                    title="Little Down (-0.1)"
+                    @onclick="@(() => AdjustPosition(-0.25))"
+                    title="Little Down (-0.25)"
                     style="@GetQuickButtonStyle()">
                 <div style="font-size: 16px; line-height: 1;">◀</div>
             </button>
             <button type="button"
-                    @onclick="@(() => AdjustPosition(0.1))"
-                    title="Little Up (+0.1)"
+                    @onclick="@(() => AdjustPosition(0.25))"
+                    title="Little Up (+0.25)"
                     style="@GetQuickButtonStyle()">
                 <div style="font-size: 16px; line-height: 1;">▶</div>
             </button>
             <button type="button"
-                    @onclick="@(() => AdjustPosition(0.25))"
-                    title="Big Up (+0.25)"
+                    @onclick="@(() => AdjustPosition(1.0))"
+                    title="Big Up (+1 column)"
                     style="@GetQuickButtonStyle()">
                 <div style="font-size: 18px; line-height: 1;">⏩</div>
             </button>
