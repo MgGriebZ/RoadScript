@@ -238,25 +238,28 @@
                             </button>
                         }
 
+                        @* Spacer for separation *@
+                        <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 8px 0;"></div>
+
                         @* Add new tab button (only show if under max) *@
                         @if (_sessionManager.Tabs.Count < _sessionManager.MaxTabs)
                         {
                             <button @onclick="HandleTabAdd"
                                     title="Add new roadmap tab"
                                     class="cc-icon-btn"
-                                    style="background: linear-gradient(135deg, #f87171 0%, #dc2626 100%); color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(248, 113, 113, 0.4); display: flex; align-items: center; justify-content: center;">
+                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
                                 +
                             </button>
                         }
 
-                        @* Delete tab button (only show if more than 1 tab) *@
-                        @if (_sessionManager.Tabs.Count > 1 && _activeTab != null)
+                        @* Delete tab/folder button *@
+                        @if (_activeTab != null)
                         {
                             <button @onclick="HandleCollapsedTabDelete"
-                                    title="Delete current roadmap tab"
+                                    title="@(_sessionManager.Tabs.Count > 1 ? "Delete current roadmap tab" : "Delete folder (last tab)")"
                                     class="cc-icon-btn"
-                                    style="background: #3c3c3c; color: #f87171; border: 1px solid #555; width: 28px; height: 28px; border-radius: 50%; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; margin-top: 4px;">
-                                ×
+                                    style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444; border: 2px solid #ef4444; width: 36px; height: 36px; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">
+                                🗑️
                             </button>
                         }
                     </div>
@@ -2135,14 +2138,71 @@
 
     private async Task HandleCollapsedTabDelete()
     {
-        if (_activeTab == null || _sessionManager == null) return;
+        if (_activeTab == null || _sessionManager == null || _folderManager == null || _activeFolder == null) return;
 
-        // Show confirmation dialog
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Delete tab '{_activeTab.Name}'?");
-        if (confirmed)
+        // Check if this is the last tab in the folder
+        bool isLastTab = _sessionManager.Tabs.Count == 1;
+
+        // Show appropriate confirmation dialog
+        string confirmMessage = isLastTab
+            ? $"Delete folder '{_activeFolder.Name}' and its last roadmap '{_activeTab.Name}'?"
+            : $"Delete roadmap tab '{_activeTab.Name}'?";
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", confirmMessage);
+        if (!confirmed) return;
+
+        if (isLastTab)
         {
+            // Delete the entire folder (last tab)
+            StorageService.RemoveFolder(_folderManager, _activeFolder.Id);
+
+            // Check if any folders remain
+            if (_folderManager.Folders.Count == 0)
+            {
+                // No folders left - show template selector as fail-safe
+                _activeFolder = null;
+                _sessionManager = null;
+                _activeTab = null;
+                _data = null;
+                _currentJson = null;
+                _showTemplateSelector = true;
+                _isCreatingNewFolder = true;
+                _pendingFolderName = "Folder 1";
+            }
+            else
+            {
+                // Switch to another folder
+                _activeFolder = StorageService.GetActiveFolder(_folderManager);
+                if (_activeFolder != null)
+                {
+                    _sessionManager = _activeFolder.SessionManager;
+                    _activeTab = StorageService.GetActiveTab(_sessionManager);
+
+                    if (_activeTab != null)
+                    {
+                        _data = _activeTab.Data;
+                        _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+                        // Update editor
+                        if (_editor != null && _editorReady)
+                        {
+                            await _editor.SetValue(_currentJson);
+                        }
+                    }
+                }
+            }
+
+            // Save folder manager
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+        else
+        {
+            // Just delete the tab normally
             await HandleTabDelete(_activeTab.Id);
         }
+
+        SelectionState.Clear();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleTabRename((string TabId, string NewName) args)
