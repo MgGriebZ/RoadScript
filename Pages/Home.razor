@@ -586,8 +586,7 @@
                   OnDuplicateElement="HandleDuplicateElement"
                   OnHidePanel="ToggleProperties"
                   IsCollapsed="@(!_showProperties)"
-                  ColumnCount="@(_data?.Columns.Count ?? 4)"
-                  AllColumns="@(_data?.Columns)" />
+                  ColumnCount="@(_data?.Columns.Count ?? 4)" />
 
     @* Folder Selector *@
     @if (_folderManager != null)
