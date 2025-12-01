@@ -18,7 +18,9 @@
                 <div class="folder-hex @(folder.Id == ActiveFolderId ? "active" : "")"
                      @onclick="@(() => HandleFolderSelect(folder.Id))">
                     <div class="folder-hex-inner" style="background-color: @folder.Color;">
-                        <div class="folder-number">@folderNumber</div>
+                        <div class="folder-header" style="background-color: @folder.Color;">
+                            <span class="folder-number">Folder @folderNumber</span>
+                        </div>
                         <div class="folder-roadmaps">
                             @foreach (var tab in folder.SessionManager.Tabs)
                             {
@@ -48,9 +50,6 @@
         @if (Folders.Count > 0)
         {
             <div class="folder-actions">
-                <button class="btn-rename" @onclick="HandleRenameFolder" disabled="@(ActiveFolderId == null)">
-                    Rename Folder
-                </button>
                 <button class="btn-delete" @onclick="HandleRemoveFolder" disabled="@(Folders.Count <= 1 || ActiveFolderId == null)">
                     Delete Folder
                 </button>
@@ -126,10 +125,10 @@
         background: #1e1e1e;
         border: 1px solid #444;
         border-radius: 12px;
-        padding: 24px;
-        max-width: 600px;
+        padding: 20px;
+        max-width: 680px;
         width: auto;
-        min-width: 400px;
+        min-width: 660px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
 
@@ -169,16 +168,16 @@
 
     .folder-honeycomb {
         display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        justify-content: center;
-        margin-bottom: 24px;
+        flex-wrap: nowrap;
+        gap: 12px;
+        justify-content: flex-start;
+        margin-bottom: 20px;
     }
 
     .folder-hex {
         width: 200px;
         height: auto;
-        min-height: 140px;
+        min-height: 160px;
         max-height: 280px;
         cursor: pointer;
         transition: transform 0.2s;
@@ -201,11 +200,10 @@
         border-radius: 16px;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
+        align-items: flex-start;
+        justify-content: flex-start;
+        overflow: hidden;
         transition: all 0.2s;
-        position: relative;
     }
 
     .folder-hex.add-folder .folder-hex-inner {
@@ -218,21 +216,22 @@
         background: #252525;
     }
 
-    .folder-number {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        width: 28px;
-        height: 28px;
-        background: rgba(255, 255, 255, 0.25);
-        border-radius: 50%;
+    .folder-header {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px 12px 0 0;
         display: flex;
         align-items: center;
         justify-content: center;
+        filter: brightness(1.1);
+    }
+
+    .folder-number {
         color: #ffffff;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 700;
-        backdrop-filter: blur(4px);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .folder-roadmaps {
@@ -241,8 +240,9 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
-        max-height: 240px;
+        max-height: 220px;
         overflow-y: auto;
+        background: rgba(0, 0, 0, 0.1);
     }
 
     .roadmap-line {
@@ -306,11 +306,6 @@
     .folder-actions button:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-    }
-
-    .btn-rename:hover:not(:disabled) {
-        border-color: #667eea;
-        color: #667eea;
     }
 
     .btn-delete:hover:not(:disabled) {

@@ -571,10 +571,10 @@ public class StorageService
     {
         return folderIndex switch
         {
-            0 => ("folder", "#667eea"),        // Folder 1: Purple/Blue
-            1 => ("briefcase", "#45B69C"),     // Folder 2: Teal/Green
-            2 => ("bookmark", "#EF6461"),      // Folder 3: Coral/Red
-            _ => ("folder", "#667eea")         // Default fallback
+            0 => ("folder", "#45B69C"),        // Folder 1: Teal/Green
+            1 => ("briefcase", "#EF6461"),     // Folder 2: Coral/Red
+            2 => ("bookmark", "#667eea"),      // Folder 3: Purple/Blue
+            _ => ("folder", "#45B69C")         // Default fallback
         };
     }
 }
