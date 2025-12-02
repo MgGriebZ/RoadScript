@@ -665,23 +665,19 @@ window.RoadScriptInterop = {
      */
     setupAllMilestoneMove: function(dotNetRef) {
         const elements = document.querySelectorAll('.roadmap-milestone-movable');
-        console.log(`[Milestone] Found ${elements.length} milestone elements`);
 
         elements.forEach(element => {
-            // Remove existing listeners to avoid duplicates
-            const oldMouseDown = element._roadscriptMouseDown;
-            if (oldMouseDown) element.removeEventListener('mousedown', oldMouseDown);
+            // Skip if already set up (prevent removing active listeners during re-renders)
+            if (element._roadscriptMilestoneSetup) return;
+            element._roadscriptMilestoneSetup = true;
 
             // Create mousedown listener (cursor is handled by CSS)
             const handleMouseDown = function(e) {
-                console.log('[Milestone] mousedown triggered', e.target);
                 // Handle move (slide entire milestone)
                 e.preventDefault();
                 e.stopPropagation();
 
                 const milestoneIndex = parseInt(element.getAttribute('data-milestone-index'));
-                console.log(`[Milestone] Starting move for index: ${milestoneIndex}, clientX: ${e.clientX}`);
-
                 dotNetRef.invokeMethodAsync('StartMoveMilestone', milestoneIndex, e.clientX);
 
                 const handleGlobalMouseMove = (moveEvent) => {
@@ -689,7 +685,6 @@ window.RoadScriptInterop = {
                 };
 
                 const handleGlobalMouseUp = () => {
-                    console.log('[Milestone] mouseup - ending move');
                     dotNetRef.invokeMethodAsync('EndMoveMilestone');
                     document.removeEventListener('mousemove', handleGlobalMouseMove);
                     document.removeEventListener('mouseup', handleGlobalMouseUp);
@@ -699,12 +694,8 @@ window.RoadScriptInterop = {
                 document.addEventListener('mouseup', handleGlobalMouseUp);
             };
 
-            // Store reference for later removal
-            element._roadscriptMouseDown = handleMouseDown;
-
             // Add mousedown listener
             element.addEventListener('mousedown', handleMouseDown);
-            console.log(`[Milestone] Attached mousedown handler to milestone ${element.getAttribute('data-milestone-index')}`);
         });
     },
 
