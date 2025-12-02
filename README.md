@@ -99,19 +99,19 @@ Get started quickly with 3 production-ready templates:
       "history": {
         "start": "2024",
         "end": "2026",
-        "progressPercentage": 75,
-        "progressOrigin": "left"
+        "percent": 75,
+        "origin": "left"
       },
       "items": [
         {
           "id": "project-1",
           "title": "Core Platform Upgrade",
           "start": 0,
-          "span": 2,
+          "length": 2,
           "spanning": false,
-          "statusIcon": "rocket",
-          "statusColor": "#667eea",
-          "greyedOut": false,
+          "icon": "rocket",
+          "color": "#667eea",
+          "greyed": false,
           "hidden": false,
           "details": [
             {
@@ -127,13 +127,13 @@ Get started quickly with 3 production-ready templates:
     }
   ],
   "columns": [
-    { "id": "q1", "label": "Q1 2026", "subLabel": "Jan – Mar" },
-    { "id": "q2", "label": "Q2 2026", "subLabel": "Apr – Jun" }
+    { "id": "q1", "label": "Q1 2026", "sub": "Jan – Mar" },
+    { "id": "q2", "label": "Q2 2026", "sub": "Apr – Jun" }
   ],
   "milestones": [
     {
-      "position": 25,
-      "label": "Beta Launch",
+      "start": 25,
+      "title": "Beta Launch",
       "icon": "flag",
       "color": "#45B69C"
     }
@@ -163,19 +163,18 @@ Get started quickly with 3 production-ready templates:
 | **History** | | |
 | `history.start` | string | Freeform start label (e.g., "2024", "Q1", "Jan") |
 | `history.end` | string | Freeform end label |
-| `history.progressPercentage` | number | Progress percentage (0-100) |
-| `history.progressOrigin` | string | Bar origin: `"left"`, `"middle"`, or `"right"` |
+| `history.percent` | number | Progress percentage (0-100) |
+| `history.origin` | string | Bar origin: `"left"`, `"middle"`, or `"right"` |
 | **Items** | | |
 | `items[].id` | string | Auto-generated if not provided |
 | `items[].title` | string | Item display name |
 | `items[].start` | number | Starting column position (0-based, supports decimals) |
-| `items[].span` | number | Width in columns (min 0.25, supports decimals) |
+| `items[].length` | number | Width in columns (min 0.25, supports decimals) |
 | `items[].spanning` | boolean | If true, renders with dashed border (ongoing work) |
-| `items[].statusIcon` | string | Icon name (e.g., "check", "rocket", "code", "pause") |
-| `items[].statusColor` | string | Hex color for status badge |
-| `items[].greyedOut` | boolean | If true, reduced opacity with grey filter |
+| `items[].icon` | string | Icon name (e.g., "check", "rocket", "code", "pause") |
+| `items[].color` | string | Hex color for status badge |
+| `items[].greyed` | boolean | If true, reduced opacity with grey filter |
 | `items[].hidden` | boolean | If true, hidden in preview/export mode |
-| `items[].completed` | boolean | **Deprecated** - use `statusIcon` instead |
 | `items[].details` | array | Nested bullet points |
 | **Details** | | |
 | `details[].text` | string | Main bullet text |
@@ -183,10 +182,10 @@ Get started quickly with 3 production-ready templates:
 | **Columns** | | |
 | `columns[].id` | string | Auto-generated if not provided |
 | `columns[].label` | string | Main column label (e.g., "Q1", "Monday") |
-| `columns[].subLabel` | string | Secondary label (e.g., "2026", "Jan 1") |
+| `columns[].sub` | string | Secondary label (e.g., "2026", "Jan 1") - optional/nullable |
 | **Milestones** | | |
-| `milestones[].position` | number | Horizontal position (0-100% of timeline width) |
-| `milestones[].label` | string | Milestone display name |
+| `milestones[].start` | number | Horizontal position (0-100% of timeline width) |
+| `milestones[].title` | string | Milestone display name |
 | `milestones[].icon` | string | Icon name (e.g., "flag", "diamond", "star") |
 | `milestones[].color` | string | Hex color for milestone marker |
 

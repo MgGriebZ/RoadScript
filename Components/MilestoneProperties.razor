@@ -14,10 +14,10 @@
 
 <div class="property-editor">
     <div class="form-group">
-        <label>Milestone Label</label>
+        <label>Milestone Title</label>
         <input type="text"
-               value="@Milestone.Label"
-               @onchange="@(e => OnChange.InvokeAsync(("label", e.Value)))"
+               value="@Milestone.Title"
+               @onchange="@(e => OnChange.InvokeAsync(("title", e.Value)))"
                class="form-control"
                placeholder="Launch Date" />
     </div>
@@ -104,7 +104,7 @@
     </div>
 
     <div class="form-group">
-        <label style="margin-bottom: 8px;">Position</label>
+        <label style="margin-bottom: 8px;">Start Position</label>
 
         @* Quick Position Buttons with inline editable value *@
         <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 12px;">
@@ -129,8 +129,8 @@
 
             @* Editable Numeric Value *@
             <input type="number"
-                   value="@Milestone.Position"
-                   @onchange="@(e => OnChange.InvokeAsync(("position", double.Parse(e.Value?.ToString() ?? "0"))))"
+                   value="@Milestone.Start"
+                   @onchange="@(e => OnChange.InvokeAsync(("start", double.Parse(e.Value?.ToString() ?? "0"))))"
                    style="flex: 1; min-width: 55px; text-align: center; background: #1a1a2e; border: 1px solid #667eea; border-radius: 4px; padding: 6px 4px; font-weight: 600; color: #667eea; font-size: 13px;"
                    step="0.5"
                    min="0"
@@ -157,8 +157,8 @@
         </div>
 
         <input type="range"
-               value="@Milestone.Position"
-               @onchange="@(e => OnChange.InvokeAsync(("position", double.Parse(e.Value?.ToString() ?? "0"))))"
+               value="@Milestone.Start"
+               @onchange="@(e => OnChange.InvokeAsync(("start", double.Parse(e.Value?.ToString() ?? "0"))))"
                min="0"
                max="100"
                step="0.5"
@@ -283,12 +283,12 @@
     // Quick Position Button Methods
     private void JumpToStart()
     {
-        OnChange.InvokeAsync(("position", 0.0));
+        OnChange.InvokeAsync(("start", 0.0));
     }
 
     private void JumpToEnd()
     {
-        OnChange.InvokeAsync(("position", 100.0));
+        OnChange.InvokeAsync(("start", 100.0));
     }
 
     private double GetColumnPercentage()
@@ -299,12 +299,12 @@
 
     private void AdjustPosition(double delta)
     {
-        var newPos = Milestone.Position + delta;
+        var newPos = Milestone.Start + delta;
         // Clamp to valid range (0-100)
         newPos = Math.Max(0, Math.Min(newPos, 100));
         // Round to 2 decimal places to avoid floating point precision issues
         newPos = Math.Round(newPos, 2);
-        OnChange.InvokeAsync(("position", newPos));
+        OnChange.InvokeAsync(("start", newPos));
     }
 
     private string GetQuickButtonStyle()

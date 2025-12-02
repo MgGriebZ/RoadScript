@@ -153,7 +153,7 @@
             <div class="form-group" style="margin-top: 8px;">
                 <label style="font-size: 11px;">Past Percentage</label>
                 <input type="range"
-                       value="@Lane.History.PastPct"
+                       value="@Lane.History.Percent"
                        @onchange="@(e => UpdateHistory("pastPct", int.Parse(e.Value?.ToString() ?? "50")))"
                        min="0"
                        max="100"
@@ -161,7 +161,7 @@
                        class="form-range" />
                 <div style="display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-top: 4px;">
                     <span>0%</span>
-                    <span style="font-weight: 600; color: #667eea;">@Lane.History.PastPct%</span>
+                    <span style="font-weight: 600; color: #667eea;">@Lane.History.Percent%</span>
                     <span>100%</span>
                 </div>
             </div>
@@ -262,7 +262,7 @@
 
     private string GetOriginButtonStyle(string origin)
     {
-        var currentOrigin = Lane.History?.ProgressOrigin ?? "left";
+        var currentOrigin = Lane.History?.Origin ?? "left";
         var isSelected = origin.Equals(currentOrigin, StringComparison.OrdinalIgnoreCase);
 
         var background = isSelected
@@ -291,10 +291,10 @@
                     Lane.History.End = value?.ToString();
                     break;
                 case "progressorigin":
-                    Lane.History.ProgressOrigin = value?.ToString() ?? "left";
+                    Lane.History.Origin = value?.ToString() ?? "left";
                     break;
                 case "pastpct":
-                    Lane.History.PastPct = (int)value!;
+                    Lane.History.Percent = (int)value!;
                     break;
             }
             OnChange.InvokeAsync(("history", Lane.History));
@@ -307,8 +307,8 @@
         {
             Start = "2025",
             End = "2026",
-            PastPct = 80,
-            ProgressOrigin = "left"
+            Percent = 80,
+            Origin = "left"
         };
         OnChange.InvokeAsync(("history", Lane.History));
     }

@@ -22,7 +22,7 @@
     </div>
 
     <div class="form-group">
-        <label style="margin-bottom: 8px;">Span</label>
+        <label style="margin-bottom: 8px;">Length</label>
 
         @* Quick Span Buttons with inline editable value *@
         <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 12px;">
@@ -47,8 +47,8 @@
 
             @* Editable Numeric Value *@
             <input type="number"
-                   value="@Item.Span"
-                   @onchange="@(e => OnChange.InvokeAsync(("span", double.Parse(e.Value?.ToString() ?? "0.25"))))"
+                   value="@Item.Length"
+                   @onchange="@(e => OnChange.InvokeAsync(("length", double.Parse(e.Value?.ToString() ?? "0.25"))))"
                    style="flex: 1; min-width: 55px; text-align: center; background: #1a1a2e; border: 1px solid #667eea; border-radius: 4px; padding: 6px 4px; font-weight: 600; color: #667eea; font-size: 13px;"
                    step="0.25"
                    min="0.25"
@@ -155,9 +155,9 @@
 
             @* Greyed Out Toggle *@
             <button type="button"
-                    @onclick="@(() => OnChange.InvokeAsync(("greyedOut", !Item.GreyedOut)))"
+                    @onclick="@(() => OnChange.InvokeAsync(("greyed", !Item.Greyed)))"
                     title="Greyed Out: Reduced opacity with grey shadow"
-                    style="@GetToggleButtonStyle(Item.GreyedOut)">
+                    style="@GetToggleButtonStyle(Item.Greyed)">
                 <span style="font-size: 24px;">◐</span>
             </button>
 
@@ -180,10 +180,10 @@
                     @onclick="ToggleStatusIconPicker"
                     title="Click to @(_statusIconPickerExpanded ? "hide" : "choose") status icon"
                     style="width: 100%; min-height: 80px; background: #252538; border: 1px solid #3a3a4e; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 16px; position: relative;">
-                @if (!string.IsNullOrEmpty(Item.StatusIcon))
+                @if (!string.IsNullOrEmpty(Item.Icon))
                 {
-                    <Icon IconType="@Item.StatusIcon"
-                          Color="@(Item.StatusColor ?? "#667eea")"
+                    <Icon IconType="@Item.Icon"
+                          Color="@(Item.Color ?? "#667eea")"
                           Size="36"
                           DropShadow="true" />
                 }
@@ -198,7 +198,7 @@
             </button>
 
             @* Clear button overlay in top right corner *@
-            @if (!string.IsNullOrEmpty(Item.StatusIcon))
+            @if (!string.IsNullOrEmpty(Item.Icon))
             {
                 <button @onclick="ClearStatusIcon"
                         @onclick:stopPropagation="true"
@@ -213,8 +213,8 @@
         @if (_statusIconPickerExpanded)
         {
             <div style="background: #252538; padding: 12px; border-radius: 6px; border: 1px solid #3a3a4e; margin-top: 8px;">
-                <IconPicker SelectedIcon="@(Item.StatusIcon ?? "")"
-                           Color="@(Item.StatusColor ?? "#667eea")"
+                <IconPicker SelectedIcon="@(Item.Icon ?? "")"
+                           Color="@(Item.Color ?? "#667eea")"
                            OnIconSelected="HandleStatusIconSelectedAndCollapse"
                            ShowCategories="true"
                            ColumnsPerRow="5" />
@@ -227,9 +227,9 @@
                         @foreach (var preset in _colorPresets)
                         {
                             <button type="button"
-                                    @onclick="@(() => OnChange.InvokeAsync(("statusColor", preset.Value)))"
+                                    @onclick="@(() => OnChange.InvokeAsync(("color", preset.Value)))"
                                     title="@preset.Name"
-                                    style="@GetPresetColorButtonStyle(preset.Value, Item.StatusColor)">
+                                    style="@GetPresetColorButtonStyle(preset.Value, Item.Color)">
                                 <span style="width: 100%; height: 100%; display: block; border-radius: 3px; background: @preset.Value;"></span>
                             </button>
                         }
@@ -237,12 +237,12 @@
 
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <input type="color"
-                               value="@(Item.StatusColor ?? "#667eea")"
-                               @onchange="@(e => OnChange.InvokeAsync(("statusColor", e.Value)))"
+                               value="@(Item.Color ?? "#667eea")"
+                               @onchange="@(e => OnChange.InvokeAsync(("color", e.Value)))"
                                style="width: 40px; height: 32px; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; background: #2a2a3e;" />
                         <input type="text"
-                               value="@(Item.StatusColor ?? "#667eea")"
-                               @onchange="@(e => OnChange.InvokeAsync(("statusColor", e.Value)))"
+                               value="@(Item.Color ?? "#667eea")"
+                               @onchange="@(e => OnChange.InvokeAsync(("color", e.Value)))"
                                class="form-control"
                                placeholder="#667eea"
                                style="flex: 1; font-size: 12px;" />
@@ -406,8 +406,8 @@
     private async Task HandleStatusIconSelectedAndCollapse(string iconValue)
     {
         // Update the item
-        Item.StatusIcon = iconValue;
-        await OnChange.InvokeAsync(("statusIcon", iconValue));
+        Item.Icon = iconValue;
+        await OnChange.InvokeAsync(("icon", iconValue));
 
         // Collapse the picker
         _statusIconPickerExpanded = false;
@@ -424,7 +424,7 @@
     {
         // Check if the current span fits exactly to the end
         var maxSpan = GetMaxPosition() - Item.Start;
-        return Math.Abs(Item.Span - maxSpan) < 0.01; // Use small epsilon for floating point comparison
+        return Math.Abs(Item.Length - maxSpan) < 0.01; // Use small epsilon for floating point comparison
     }
 
     // Quick Position Button Methods
@@ -436,7 +436,7 @@
     private void JumpToEnd()
     {
         // Calculate max position considering the item's span
-        var maxPos = Math.Max(0, GetMaxPosition() - Item.Span);
+        var maxPos = Math.Max(0, GetMaxPosition() - Item.Length);
         OnChange.InvokeAsync(("start", maxPos));
     }
 
@@ -444,7 +444,7 @@
     {
         var newPos = Item.Start + delta;
         // Clamp to valid range
-        newPos = Math.Max(0, Math.Min(newPos, GetMaxPosition() - Item.Span));
+        newPos = Math.Max(0, Math.Min(newPos, GetMaxPosition() - Item.Length));
         // Round to 2 decimal places to avoid floating point precision issues
         newPos = Math.Round(newPos, 2);
         OnChange.InvokeAsync(("start", newPos));
@@ -454,7 +454,7 @@
     private void ResetSpanToDefault()
     {
         // Reset span to default value of 2.0 (2 columns)
-        OnChange.InvokeAsync(("span", 2.0));
+        OnChange.InvokeAsync(("length", 2.0));
     }
 
     private void SetSpanToEnd()
@@ -462,18 +462,18 @@
         // Calculate span to fit to end
         var maxSpan = GetMaxPosition() - Item.Start;
         maxSpan = Math.Round(Math.Max(0.25, maxSpan), 2);
-        OnChange.InvokeAsync(("span", maxSpan));
+        OnChange.InvokeAsync(("length", maxSpan));
     }
 
     private void AdjustSpan(double delta)
     {
-        var newSpan = Item.Span + delta;
+        var newSpan = Item.Length + delta;
         // Ensure span is at least 0.25 and doesn't exceed the available space
         var maxSpan = GetMaxPosition() - Item.Start;
         newSpan = Math.Max(0.25, Math.Min(newSpan, maxSpan));
         // Round to 2 decimal places to avoid floating point precision issues
         newSpan = Math.Round(newSpan, 2);
-        OnChange.InvokeAsync(("span", newSpan));
+        OnChange.InvokeAsync(("length", newSpan));
     }
 
     private string GetQuickButtonStyle()
@@ -490,7 +490,7 @@
         {
             // Calculate span to fit to end
             var maxSpan = GetMaxPosition() - Item.Start;
-            await OnChange.InvokeAsync(("span", maxSpan));
+            await OnChange.InvokeAsync(("length", maxSpan));
         }
         // If unchecked, do nothing - user can manually adjust
     }
@@ -568,16 +568,16 @@
     private async Task HandleStatusIconSelected(string iconValue)
     {
         // Update the item directly to ensure immediate UI update
-        Item.StatusIcon = iconValue;
-        await OnChange.InvokeAsync(("statusIcon", iconValue));
+        Item.Icon = iconValue;
+        await OnChange.InvokeAsync(("icon", iconValue));
         StateHasChanged(); // Force re-render to show selected icon immediately
     }
 
     private async Task ClearStatusIcon()
     {
         // Update the item directly to ensure immediate UI update
-        Item.StatusIcon = "";
-        await OnChange.InvokeAsync(("statusIcon", ""));
+        Item.Icon = "";
+        await OnChange.InvokeAsync(("icon", ""));
         StateHasChanged(); // Force re-render
     }
 }
