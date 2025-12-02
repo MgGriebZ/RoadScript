@@ -566,16 +566,15 @@ window.RoadScriptInterop = {
 
                 if (isLeftEdge) {
                     element.style.cursor = 'col-resize'; // Column resize for left edge (adjusts start position)
-                    element.style.borderLeft = '3px solid rgba(102, 126, 234, 0.6)'; // Visual indicator
-                    element.style.borderRight = '';
+                    // Use box-shadow overlay on left to avoid overriding border
+                    element.style.boxShadow = 'inset 3px 0 0 0 rgba(102, 126, 234, 0.8)';
                 } else if (isRightEdge) {
                     element.style.cursor = 'col-resize'; // Column resize for right edge (adjusts length)
-                    element.style.borderRight = '3px solid rgba(102, 126, 234, 0.6)'; // Visual indicator
-                    element.style.borderLeft = '';
+                    // Use box-shadow overlay on right to avoid overriding border
+                    element.style.boxShadow = 'inset -3px 0 0 0 rgba(102, 126, 234, 0.8)';
                 } else {
                     element.style.cursor = 'move'; // Move cursor for middle area (slides entire item)
-                    element.style.borderLeft = '';
-                    element.style.borderRight = '';
+                    element.style.boxShadow = ''; // Clear box-shadow, restoring original
                 }
             };
 
