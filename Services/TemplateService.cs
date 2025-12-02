@@ -288,10 +288,10 @@ public class TemplateService
             Height = 1.0,
             Items = new List<Item>
             {
-                new Item { Title = "Stakeholder Prioritization", Start = 3, Span = 1, Spanning = true, StatusIcon = "star", StatusColor = "#D4A520" },
-                new Item { Title = "Refinement", Start = 5, Span = 1, Spanning = false, StatusIcon = "search", StatusColor = "#9B7ED9" },
-                new Item { Title = "Sprint Planning", Start = 0, Span = 1, Spanning = false, StatusIcon = "calendar", StatusColor = "#667eea" },
-                new Item { Title = "Sprint Review", Start = 1, Span = 1, Spanning = true, StatusIcon = "flag", StatusColor = "#45B69C" }
+                new Item { Title = "Stakeholder Prioritization", Start = 3, Length = 1, Spanning = true, Icon = "star", Color = "#D4A520" },
+                new Item { Title = "Refinement", Start = 5, Length = 1, Spanning = false, Icon = "search", Color = "#9B7ED9" },
+                new Item { Title = "Sprint Planning", Start = 0, Length = 1, Spanning = false, Icon = "calendar", Color = "#667eea" },
+                new Item { Title = "Sprint Review", Start = 1, Length = 1, Spanning = true, Icon = "flag", Color = "#45B69C" }
             }
         });
 
@@ -303,8 +303,8 @@ public class TemplateService
             Height = 1.0,
             Items = new List<Item>
             {
-                new Item { Title = "Refinement", Start = 4, Span = 2, Spanning = false, StatusIcon = "search", StatusColor = "#9B7ED9" },
-                new Item { Title = "Retro", Start = 1, Span = 1, Spanning = false, StatusIcon = "target", StatusColor = "#D4A520" }
+                new Item { Title = "Refinement", Start = 4, Length = 2, Spanning = false, Icon = "search", Color = "#9B7ED9" },
+                new Item { Title = "Retro", Start = 1, Length = 1, Spanning = false, Icon = "target", Color = "#D4A520" }
             }
         });
 
@@ -529,11 +529,11 @@ public class TemplateService
             Height = 1.2,
             Items = new List<Item>
             {
-                new Item { Title = "Auth System", Start = 0, Span = 2, StatusIcon = "lock", StatusColor = "#87CEEB", Details = new List<Detail> { new Detail { Text = "OAuth integration" }, new Detail { Text = "SSO support" } } },  // Blue
-                new Item { Title = "Payment Gateway", Start = 2, Span = 2.5, StatusIcon = "card", StatusColor = "#E6B800", Details = new List<Detail> { new Detail { Text = "Stripe integration" }, new Detail { Text = "Billing automation" } } },  // Mustard
-                new Item { Title = "Analytics Engine", Start = 4.5, Span = 3, StatusIcon = "chart", StatusColor = "#9999ff", Details = new List<Detail> { new Detail { Text = "Real-time tracking" }, new Detail { Text = "Custom dashboards" } } },  // Lav
-                new Item { Title = "API V2", Start = 7.5, Span = 2.5, StatusIcon = "code", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "GraphQL endpoint" }, new Detail { Text = "Rate limiting" } } },  // Coral
-                new Item { Title = "Mobile SDK", Start = 10, Span = 2, StatusIcon = "mobile", StatusColor = "#D4652F", Details = new List<Detail> { new Detail { Text = "iOS framework" }, new Detail { Text = "Android library" } } }  // Orange
+                new Item { Title = "Auth System", Start = 0, Length = 2, Icon = "lock", Color = "#87CEEB", Details = new List<Detail> { new Detail { Text = "OAuth integration" }, new Detail { Text = "SSO support" } } },  // Blue
+                new Item { Title = "Payment Gateway", Start = 2, Length = 2.5, Icon = "card", Color = "#E6B800", Details = new List<Detail> { new Detail { Text = "Stripe integration" }, new Detail { Text = "Billing automation" } } },  // Mustard
+                new Item { Title = "Analytics Engine", Start = 4.5, Length = 3, Icon = "chart", Color = "#9999ff", Details = new List<Detail> { new Detail { Text = "Real-time tracking" }, new Detail { Text = "Custom dashboards" } } },  // Lav
+                new Item { Title = "API V2", Start = 7.5, Length = 2.5, Icon = "code", Color = "#F88379", Details = new List<Detail> { new Detail { Text = "GraphQL endpoint" }, new Detail { Text = "Rate limiting" } } },  // Coral
+                new Item { Title = "Mobile SDK", Start = 10, Length = 2, Icon = "mobile", Color = "#D4652F", Details = new List<Detail> { new Detail { Text = "iOS framework" }, new Detail { Text = "Android library" } } }  // Orange
             }
         });
 
@@ -544,10 +544,10 @@ public class TemplateService
             Height = 1.3,
             Items = new List<Item>
             {
-                new Item { Title = "Collaboration Tools", Start = 0, Span = 3, StatusIcon = "users", StatusColor = "#9999ff", Details = new List<Detail> { new Detail { Text = "Team workspaces" }, new Detail { Text = "Real-time sync" }, new Detail { Text = "Comments & mentions" } } },  // Lav
-                new Item { Title = "Advanced Search", Start = 3, Span = 2, StatusIcon = "search", StatusColor = "#E6B800", Details = new List<Detail> { new Detail { Text = "Full-text search" }, new Detail { Text = "Filters & facets" } } },  // Mustard
-                new Item { Title = "AI Assistant", Start = 5, Span = 4, StatusIcon = "sparkles", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "NLP integration" }, new Detail { Text = "Smart suggestions" }, new Detail { Text = "Auto-categorization" } } },  // Coral
-                new Item { Title = "Reporting Suite", Start = 9, Span = 3, StatusIcon = "chart", StatusColor = "#B7C4B7", Details = new List<Detail> { new Detail { Text = "Custom reports" }, new Detail { Text = "Scheduled exports" } } }  // Sage
+                new Item { Title = "Collaboration Tools", Start = 0, Length = 3, Icon = "users", Color = "#9999ff", Details = new List<Detail> { new Detail { Text = "Team workspaces" }, new Detail { Text = "Real-time sync" }, new Detail { Text = "Comments & mentions" } } },  // Lav
+                new Item { Title = "Advanced Search", Start = 3, Length = 2, Icon = "search", Color = "#E6B800", Details = new List<Detail> { new Detail { Text = "Full-text search" }, new Detail { Text = "Filters & facets" } } },  // Mustard
+                new Item { Title = "AI Assistant", Start = 5, Length = 4, Icon = "sparkles", Color = "#F88379", Details = new List<Detail> { new Detail { Text = "NLP integration" }, new Detail { Text = "Smart suggestions" }, new Detail { Text = "Auto-categorization" } } },  // Coral
+                new Item { Title = "Reporting Suite", Start = 9, Length = 3, Icon = "chart", Color = "#B7C4B7", Details = new List<Detail> { new Detail { Text = "Custom reports" }, new Detail { Text = "Scheduled exports" } } }  // Sage
             }
         });
 
@@ -558,9 +558,9 @@ public class TemplateService
             Height = 0.9,
             Items = new List<Item>
             {
-                new Item { Title = "Cloud Migration", Start = 0, Span = 4, Spanning = true, StatusIcon = "globe", StatusColor = "#45B69C", Details = new List<Detail> { new Detail { Text = "AWS setup" }, new Detail { Text = "Container orchestration" } } },  // Teal
-                new Item { Title = "CI/CD Pipeline", Start = 4, Span = 3, StatusIcon = "rocket", StatusColor = "#D4652F", Details = new List<Detail> { new Detail { Text = "Automated testing" }, new Detail { Text = "Blue-green deploy" } } },  // Orange
-                new Item { Title = "Monitoring", Start = 7, Span = 5, Spanning = true, StatusIcon = "eye", StatusColor = "#87CEEB", Details = new List<Detail> { new Detail { Text = "APM tools" }, new Detail { Text = "Log aggregation" }, new Detail { Text = "Alerting" } } }  // Blue
+                new Item { Title = "Cloud Migration", Start = 0, Length = 4, Spanning = true, Icon = "globe", Color = "#45B69C", Details = new List<Detail> { new Detail { Text = "AWS setup" }, new Detail { Text = "Container orchestration" } } },  // Teal
+                new Item { Title = "CI/CD Pipeline", Start = 4, Length = 3, Icon = "rocket", Color = "#D4652F", Details = new List<Detail> { new Detail { Text = "Automated testing" }, new Detail { Text = "Blue-green deploy" } } },  // Orange
+                new Item { Title = "Monitoring", Start = 7, Length = 5, Spanning = true, Icon = "eye", Color = "#87CEEB", Details = new List<Detail> { new Detail { Text = "APM tools" }, new Detail { Text = "Log aggregation" }, new Detail { Text = "Alerting" } } }  // Blue
             }
         });
 
@@ -571,10 +571,10 @@ public class TemplateService
             Height = 0.8,
             Items = new List<Item>
             {
-                new Item { Title = "Brand Refresh", Start = 0, Span = 2, StatusIcon = "star", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "New visual identity" } } },  // Coral
-                new Item { Title = "Content Strategy", Start = 2, Span = 3, StatusIcon = "document", StatusColor = "#B7C4B7", Details = new List<Detail> { new Detail { Text = "Blog & tutorials" }, new Detail { Text = "Video series" } } },  // Sage
-                new Item { Title = "SEO Campaign", Start = 5, Span = 4, StatusIcon = "search", StatusColor = "#9999ff", Details = new List<Detail> { new Detail { Text = "Technical SEO" }, new Detail { Text = "Link building" } } },  // Lav
-                new Item { Title = "Launch Event", Start = 9, Span = 1.5, StatusIcon = "rocket", StatusColor = "#D4652F", Details = new List<Detail> { new Detail { Text = "Product demo" }, new Detail { Text = "Press release" } } }  // Orange
+                new Item { Title = "Brand Refresh", Start = 0, Length = 2, Icon = "star", Color = "#F88379", Details = new List<Detail> { new Detail { Text = "New visual identity" } } },  // Coral
+                new Item { Title = "Content Strategy", Start = 2, Length = 3, Icon = "document", Color = "#B7C4B7", Details = new List<Detail> { new Detail { Text = "Blog & tutorials" }, new Detail { Text = "Video series" } } },  // Sage
+                new Item { Title = "SEO Campaign", Start = 5, Length = 4, Icon = "search", Color = "#9999ff", Details = new List<Detail> { new Detail { Text = "Technical SEO" }, new Detail { Text = "Link building" } } },  // Lav
+                new Item { Title = "Launch Event", Start = 9, Length = 1.5, Icon = "rocket", Color = "#D4652F", Details = new List<Detail> { new Detail { Text = "Product demo" }, new Detail { Text = "Press release" } } }  // Orange
             }
         });
 
@@ -585,9 +585,9 @@ public class TemplateService
             Height = 0.7,
             Items = new List<Item>
             {
-                new Item { Title = "GDPR Compliance", Start = 0, Span = 3, StatusIcon = "shield", StatusColor = "#4A2C1A", Details = new List<Detail> { new Detail { Text = "Data privacy audit" }, new Detail { Text = "Consent management" } } },  // Brown
-                new Item { Title = "SOC 2 Certification", Start = 3, Span = 5, Spanning = true, StatusIcon = "lock", StatusColor = "#87CEEB", Details = new List<Detail> { new Detail { Text = "Security controls" }, new Detail { Text = "Audit preparation" } } },  // Blue
-                new Item { Title = "Penetration Testing", Start = 8, Span = 2, StatusIcon = "shield", StatusColor = "#F88379", Details = new List<Detail> { new Detail { Text = "External audit" }, new Detail { Text = "Vulnerability fixes" } } }  // Coral
+                new Item { Title = "GDPR Compliance", Start = 0, Length = 3, Icon = "shield", Color = "#4A2C1A", Details = new List<Detail> { new Detail { Text = "Data privacy audit" }, new Detail { Text = "Consent management" } } },  // Brown
+                new Item { Title = "SOC 2 Certification", Start = 3, Length = 5, Spanning = true, Icon = "lock", Color = "#87CEEB", Details = new List<Detail> { new Detail { Text = "Security controls" }, new Detail { Text = "Audit preparation" } } },  // Blue
+                new Item { Title = "Penetration Testing", Start = 8, Length = 2, Icon = "shield", Color = "#F88379", Details = new List<Detail> { new Detail { Text = "External audit" }, new Detail { Text = "Vulnerability fixes" } } }  // Coral
             }
         });
     }

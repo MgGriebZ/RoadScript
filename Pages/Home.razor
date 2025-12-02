@@ -417,7 +417,7 @@
                                 var msIndex = mi;
                                 <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
                                      class="@GetElementClass($"milestones[{msIndex}]")"
-                                     style="@MilestoneStyle(milestone.Position)">
+                                     style="@MilestoneStyle(milestone.Start)">
                                     <div style="@MilestoneContainerStyle()">
                                         <Icon IconType="@(milestone.Icon ?? "diamond")"
                                               Color="@milestone.Color"
@@ -458,19 +458,13 @@
                                             @{
                                                 var hasDetails = item.Details != null && item.Details.Count > 0;
                                             }
-                                            <div style="@ItemHeaderStyle(hasDetails, item.Span, lane.Color)">
-                                                @if (!string.IsNullOrEmpty(item.StatusIcon))
+                                            <div style="@ItemHeaderStyle(hasDetails, item.Length, lane.Color)">
+                                                @if (!string.IsNullOrEmpty(item.Icon))
                                                 {
-                                                    <Icon IconType="@item.StatusIcon"
-                                                          Color="@(item.StatusColor ?? "#10b981")"
+                                                    <Icon IconType="@item.Icon"
+                                                          Color="@(item.Color ?? "#10b981")"
                                                           Size="@(hasDetails ? 20 : 24)"
                                                           DropShadow="true" />
-                                                }
-                                                else if (item.Completed)
-                                                {
-                                                    <div style="@CompletedBadgeStyle()">
-                                                        ✓
-                                                    </div>
                                                 }
                                                 <h4 style="@ItemTitleStyle(hasDetails)">
                                                     @item.Title
@@ -1238,8 +1232,8 @@
     {
         var cols = _data?.Columns.Count ?? 4;
         var leftPct = (item.Start / cols) * 100;
-        var widthPct = (item.Span / cols) * 100;
-        var greyedOutStyle = item.GreyedOut ? "opacity: 0.5; filter: grayscale(0.6);" : "";
+        var widthPct = (item.Length / cols) * 100;
+        var greyedOutStyle = item.Greyed ? "opacity: 0.5; filter: grayscale(0.6);" : "";
 
         if (_isVibeMode)
         {
@@ -1254,7 +1248,7 @@
                 ? $"box-shadow: 0 0 20px {vibeColor}40, 0 4px 12px rgba(0,0,0,0.4);"
                 : $"box-shadow: 0 0 15px {vibeColor}30, 0 4px 12px rgba(0,0,0,0.4);";
 
-            if (item.GreyedOut)
+            if (item.Greyed)
             {
                 shadow = $"box-shadow: inset 0 4px 10px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.6);";
             }
@@ -1271,7 +1265,7 @@
 
             var shadow = item.Spanning ? "" : "box-shadow: 0 1px 4px rgba(0,0,0,0.08);";
 
-            if (item.GreyedOut)
+            if (item.Greyed)
             {
                 shadow = "box-shadow: inset 0 2px 6px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1);";
             }

@@ -34,8 +34,6 @@ public class StorageService
                 var session = JsonSerializer.Deserialize<SessionManager>(sessionJson, GetJsonOptions());
                 if (session != null && session.Tabs.Count > 0)
                 {
-                    // Perform backward compatibility migration for items
-                    MigrateItemCompletedToStatusIcon(session);
                     return session;
                 }
             }
@@ -63,9 +61,6 @@ public class StorageService
                             }
                         }
                     };
-
-                    // Migrate item completed flags
-                    MigrateItemCompletedToStatusIcon(session);
 
                     // Save in new format and remove legacy key
                     await SaveSessionAsync(session);
@@ -242,28 +237,6 @@ public class StorageService
     }
 
     /// <summary>
-    /// Migrate old "completed" boolean to new "statusIcon" system
-    /// </summary>
-    private void MigrateItemCompletedToStatusIcon(SessionManager session)
-    {
-        foreach (var tab in session.Tabs)
-        {
-            foreach (var lane in tab.Data.Lanes)
-            {
-                foreach (var item in lane.Items)
-                {
-                    // If completed is true but no statusIcon, migrate it
-                    if (item.Completed && string.IsNullOrEmpty(item.StatusIcon))
-                    {
-                        item.StatusIcon = "check";
-                        item.StatusColor = "#10b981"; // Green
-                    }
-                }
-            }
-        }
-    }
-
-    /// <summary>
     /// Get JSON serialization options
     /// </summary>
     private JsonSerializerOptions GetJsonOptions()
@@ -313,8 +286,6 @@ public class StorageService
                 var folderManager = JsonSerializer.Deserialize<FolderManager>(folderJson, GetJsonOptions());
                 if (folderManager != null && folderManager.Folders.Count > 0)
                 {
-                    // Perform backward compatibility migration for items
-                    MigrateFolderManagerItems(folderManager);
                     return folderManager;
                 }
             }
@@ -372,17 +343,6 @@ public class StorageService
         {
             Console.WriteLine($"Error saving folder manager: {ex.Message}");
             throw;
-        }
-    }
-
-    /// <summary>
-    /// Migrate item completed flags in all folders
-    /// </summary>
-    private void MigrateFolderManagerItems(FolderManager folderManager)
-    {
-        foreach (var folder in folderManager.Folders)
-        {
-            MigrateItemCompletedToStatusIcon(folder.SessionManager);
         }
     }
 
