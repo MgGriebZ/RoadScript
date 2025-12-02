@@ -222,13 +222,14 @@
                             var folder = hasFolder ? _folderManager.Folders[folderIndex] : null;
                             var isActive = hasFolder && folder?.Id == _folderManager.ActiveFolderId;
                             var folderColor = hasFolder ? folder!.Color : "#4a4a5e";
+                            var folderIcon = hasFolder ? (folder!.Icon ?? "folder") : "folder";
 
                             <button @onclick="@(() => HandleFolderClick(folderIndex))"
                                     @oncontextmenu="@(() => ToggleFolderSelector())"
                                     @oncontextmenu:preventDefault="true"
                                     title="@(hasFolder ? $"Folder {folderIndex + 1}: {folder!.Name}" : $"Folder {folderIndex + 1} (empty)")"
                                     style="@GetFolderIndicatorStyle(isActive, hasFolder, folderColor)">
-                                <Icon IconType="folder" Size="20" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666"))" />
+                                <Icon IconType="@folderIcon" Size="20" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666"))" />
                             </button>
                         }
                     </div>
@@ -610,7 +611,8 @@
                        OnRenameFolder="HandleRenameFolder"
                        OnMoveFolderLeft="HandleMoveFolderLeft"
                        OnMoveFolderRight="HandleMoveFolderRight"
-                       OnColorChange="HandleFolderColorChange" />
+                       OnColorChange="HandleFolderColorChange"
+                       OnIconChange="HandleFolderIconChange" />
     }
 
     @* Template Selector *@
@@ -2494,6 +2496,18 @@
 
         // Update the active folder's color
         _activeFolder.Color = color;
+
+        // Save folder manager
+        await StorageService.SaveFolderManagerAsync(_folderManager);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleFolderIconChange(string icon)
+    {
+        if (_folderManager == null || _activeFolder == null) return;
+
+        // Update the active folder's icon
+        _activeFolder.Icon = icon;
 
         // Save folder manager
         await StorageService.SaveFolderManagerAsync(_folderManager);
