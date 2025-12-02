@@ -14,7 +14,7 @@ public class RoadmapData
     public List<Column> Columns { get; set; } = new();
 
     [JsonPropertyName("milestones")]
-    public List<Milestone> Milestones { get; set; } = new();
+    public List<Milestone>? Milestones { get; set; }  // Nullable - not all roadmaps need milestones
 
     [JsonPropertyName("lanes")]
     public List<Lane> Lanes { get; set; } = new();
@@ -29,16 +29,16 @@ public class Column
     public string Label { get; set; } = "";
 
     [JsonPropertyName("sub")]
-    public string Sub { get; set; } = "";
+    public string? Sub { get; set; }  // Nullable - not all columns need sub-labels
 }
 
 public class Milestone
 {
-    [JsonPropertyName("position")]
-    public double Position { get; set; }
+    [JsonPropertyName("start")]
+    public double Start { get; set; }
 
-    [JsonPropertyName("label")]
-    public string Label { get; set; } = "";
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = "";
 
     [JsonPropertyName("icon")]
     public string? Icon { get; set; }  // Optional icon: star, flag, diamond, circle, check
@@ -78,12 +78,11 @@ public class History
     [JsonPropertyName("end")]
     public string? End { get; set; }
 
-    [JsonPropertyName("pastPct")]
-    public int PastPct { get; set; }
+    [JsonPropertyName("percent")]
+    public int Percent { get; set; }
 
-    // NEW: Progress origin - where the percentage bar begins from
-    [JsonPropertyName("progressOrigin")]
-    public string ProgressOrigin { get; set; } = "left";  // "left", "middle", or "right"
+    [JsonPropertyName("origin")]
+    public string Origin { get; set; } = "left";  // "left", "middle", or "right"
 }
 
 public class Item
@@ -97,26 +96,20 @@ public class Item
     [JsonPropertyName("start")]
     public double Start { get; set; }
 
-    [JsonPropertyName("span")]
-    public double Span { get; set; } = 1;
+    [JsonPropertyName("length")]
+    public double Length { get; set; } = 1;
 
     [JsonPropertyName("spanning")]
     public bool Spanning { get; set; }  // true = dashed border (ongoing work)
 
-    // DEPRECATED (kept for backward compatibility) - use statusIcon instead
-    [JsonPropertyName("completed")]
-    public bool Completed { get; set; }  // true = item is completed (shows checkmark badge)
+    [JsonPropertyName("icon")]
+    public string? Icon { get; set; }  // e.g., "check", "pause", "x-mark"
 
-    // NEW: Icon-based status system
-    [JsonPropertyName("statusIcon")]
-    public string? StatusIcon { get; set; }  // e.g., "check", "pause", "x-mark"
+    [JsonPropertyName("color")]
+    public string? Color { get; set; }  // e.g., "#10b981"
 
-    [JsonPropertyName("statusColor")]
-    public string? StatusColor { get; set; }  // e.g., "#10b981"
-
-    // NEW: Visual display options
-    [JsonPropertyName("greyedOut")]
-    public bool GreyedOut { get; set; }  // true = item appears with reduced opacity/grey shadow
+    [JsonPropertyName("greyed")]
+    public bool Greyed { get; set; }  // true = item appears with reduced opacity/grey shadow
 
     [JsonPropertyName("hidden")]
     public bool Hidden { get; set; }  // true = item hidden in preview/export mode only

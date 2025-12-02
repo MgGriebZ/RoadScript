@@ -357,23 +357,23 @@
                                             <div style="display: flex; flex-direction: column; gap: 2px;">
                                                 <div style="@HistoryBarContainerStyle()">
                                                     @{
-                                                        var origin = lane.History.ProgressOrigin ?? "left";
+                                                        var origin = lane.History.Origin ?? "left";
                                                         if (origin == "left")
                                                         {
-                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.PastPct)"></div>
-                                                            <div style="@HistoryEmptyStyle(100 - lane.History.PastPct)"></div>
+                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.Percent)"></div>
+                                                            <div style="@HistoryEmptyStyle(100 - lane.History.Percent)"></div>
                                                         }
                                                         else if (origin == "middle")
                                                         {
-                                                            var emptyPct = (100 - lane.History.PastPct) / 2.0;
+                                                            var emptyPct = (100 - lane.History.Percent) / 2.0;
                                                             <div style="@HistoryEmptyStyle(emptyPct)"></div>
-                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.PastPct)"></div>
+                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.Percent)"></div>
                                                             <div style="@HistoryEmptyStyle(emptyPct)"></div>
                                                         }
                                                         else if (origin == "right")
                                                         {
-                                                            <div style="@HistoryEmptyStyle(100 - lane.History.PastPct)"></div>
-                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.PastPct)"></div>
+                                                            <div style="@HistoryEmptyStyle(100 - lane.History.Percent)"></div>
+                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.Percent)"></div>
                                                         }
                                                     }
                                                 </div>
@@ -1536,7 +1536,7 @@
                             {
                                 Title = "New Item",
                                 Start = 0,
-                                Span = 1,
+                                Length = 1,
                                 Details = new List<Detail>()
                             }
                         }
@@ -1564,7 +1564,7 @@
                     {
                         Title = "New Item",
                         Start = 0,
-                        Span = 1,
+                        Length = 1,
                         Details = new List<Detail>()
                     };
 
@@ -1592,11 +1592,12 @@
                     var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
                     var newMilestone = new Milestone
                     {
-                        Label = "New Milestone",
-                        Position = 50,
+                        Title = "New Milestone",
+                        Start = 50,
                         Icon = "diamond",
                         Color = "#667eea"
                     };
+                    _data.Milestones ??= new List<Milestone>();
                     _data.Milestones.Insert(milestoneIndex + 1, newMilestone);
                     break;
 
@@ -1861,8 +1862,8 @@
                     {
                         var originalMilestone = _data.Milestones[milestoneIndex];
                         var duplicatedMilestone = StorageService.DeepClone(originalMilestone);
-                        duplicatedMilestone.Label = $"{originalMilestone.Label} (Copy)";
-                        duplicatedMilestone.Position = Math.Min(originalMilestone.Position + 5, 100);
+                        duplicatedMilestone.Title = $"{originalMilestone.Title} (Copy)";
+                        duplicatedMilestone.Start = Math.Min(originalMilestone.Start + 5, 100);
                         _data.Milestones.Insert(milestoneIndex + 1, duplicatedMilestone);
                     }
                     break;
