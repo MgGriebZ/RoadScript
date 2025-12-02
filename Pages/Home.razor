@@ -216,7 +216,7 @@
                         title="Manage Project Folders"
                         class="cc-icon-btn"
                         style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                    <Icon IconType="gear" Size="20" Color="#999999" />
+                    <Icon IconType="gear" Size="24" Color="#ffffff" />
                 </button>
 
                 @* Folder Indicators *@
@@ -235,7 +235,7 @@
                             <button @onclick="@(() => HandleFolderClick(folderIndex))"
                                     @oncontextmenu="@(() => ToggleFolderSelector())"
                                     @oncontextmenu:preventDefault="true"
-                                    title="@(hasFolder ? $"Folder {folderIndex + 1}: {folder!.Name}" : $"Folder {folderIndex + 1} (empty)")"
+                                    title="@(hasFolder ? folder!.Name : $"Folder {folderIndex + 1} (empty)")"
                                     style="@GetFolderIndicatorStyle(isActive, hasFolder, folderColor)">
                                 <Icon IconType="@folderIcon" Size="20" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666"))" />
                             </button>
