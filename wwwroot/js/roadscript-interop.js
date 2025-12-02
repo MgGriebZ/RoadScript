@@ -339,6 +339,7 @@ window.RoadScriptInterop = {
             // Check if user is typing in an input/textarea (but not Monaco editor)
             const target = e.target;
             const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+            const isMonacoEditor = target.closest('.monaco-editor') !== null;
 
             // Ctrl/Cmd + P - Toggle Preview/Edit mode
             if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
@@ -351,6 +352,41 @@ window.RoadScriptInterop = {
             if ((e.ctrlKey || e.metaKey) && e.key === 't') {
                 e.preventDefault();
                 dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'ToggleTheme');
+                return;
+            }
+
+            // Ctrl/Cmd + Z - Undo (skip in Monaco editor)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !isMonacoEditor) {
+                e.preventDefault();
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Undo');
+                return;
+            }
+
+            // Ctrl/Cmd + Y - Redo (skip in Monaco editor)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'y' && !isMonacoEditor) {
+                e.preventDefault();
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Redo');
+                return;
+            }
+
+            // Ctrl/Cmd + D - Duplicate selected element
+            if ((e.ctrlKey || e.metaKey) && e.key === 'd' && !isInputField) {
+                e.preventDefault();
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Duplicate');
+                return;
+            }
+
+            // Delete - Remove selected element (only if not in input field)
+            if ((e.key === 'Delete' || e.key === 'Del') && !isInputField) {
+                e.preventDefault();
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Delete');
+                return;
+            }
+
+            // Arrow keys - Navigate between items (only if not in input field)
+            if (!isInputField && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+                e.preventDefault();
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', `Navigate${e.key.replace('Arrow', '')}`);
                 return;
             }
 
@@ -503,6 +539,148 @@ window.RoadScriptInterop = {
                 reject(error);
             }
         });
+    },
+
+    /**
+     * Sets up drag-to-resize functionality for all swim lane items
+     * @param {object} dotNetRef - .NET object reference for callbacks
+     */
+    setupAllItemResize: function(dotNetRef) {
+        const elements = document.querySelectorAll('.roadmap-item-resizable');
+        const resizeHandleWidth = 15; // Width of the resize handle area in pixels (increased from 8 to 15)
+
+        elements.forEach(element => {
+            // Remove existing listeners to avoid duplicates
+            const oldMouseMove = element._roadscriptMouseMove;
+            const oldMouseDown = element._roadscriptMouseDown;
+
+            if (oldMouseMove) element.removeEventListener('mousemove', oldMouseMove);
+            if (oldMouseDown) element.removeEventListener('mousedown', oldMouseDown);
+
+            // Create new listeners
+            const handleMouseMove = function(e) {
+                const rect = element.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const isLeftEdge = x <= resizeHandleWidth;
+                const isRightEdge = x >= rect.width - resizeHandleWidth;
+
+                if (isLeftEdge) {
+                    element.style.cursor = 'col-resize'; // Column resize for left edge (adjusts start position)
+                    // Use box-shadow overlay on left to avoid overriding border
+                    element.style.boxShadow = 'inset 3px 0 0 0 rgba(102, 126, 234, 0.8)';
+                } else if (isRightEdge) {
+                    element.style.cursor = 'col-resize'; // Column resize for right edge (adjusts length)
+                    // Use box-shadow overlay on right to avoid overriding border
+                    element.style.boxShadow = 'inset -3px 0 0 0 rgba(102, 126, 234, 0.8)';
+                } else {
+                    element.style.cursor = 'move'; // Move cursor for middle area (slides entire item)
+                    element.style.boxShadow = ''; // Clear box-shadow, restoring original
+                }
+            };
+
+            const handleMouseDown = function(e) {
+                const rect = element.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const isLeftEdge = x <= resizeHandleWidth;
+                const isRightEdge = x >= rect.width - resizeHandleWidth;
+                const isMiddle = !isLeftEdge && !isRightEdge;
+
+                if (isLeftEdge || isRightEdge) {
+                    // Handle resize
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const laneIndex = parseInt(element.getAttribute('data-lane-index'));
+                    const itemIndex = parseInt(element.getAttribute('data-item-index'));
+                    const edge = isLeftEdge ? 'left' : 'right';
+
+                    dotNetRef.invokeMethodAsync('StartResize', laneIndex, itemIndex, edge, e.clientX);
+
+                    const handleGlobalMouseMove = (moveEvent) => {
+                        dotNetRef.invokeMethodAsync('UpdateResize', moveEvent.clientX);
+                    };
+
+                    const handleGlobalMouseUp = () => {
+                        dotNetRef.invokeMethodAsync('EndResize');
+                        document.removeEventListener('mousemove', handleGlobalMouseMove);
+                        document.removeEventListener('mouseup', handleGlobalMouseUp);
+                    };
+
+                    document.addEventListener('mousemove', handleGlobalMouseMove);
+                    document.addEventListener('mouseup', handleGlobalMouseUp);
+                } else if (isMiddle) {
+                    // Handle move (slide entire item)
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const laneIndex = parseInt(element.getAttribute('data-lane-index'));
+                    const itemIndex = parseInt(element.getAttribute('data-item-index'));
+
+                    dotNetRef.invokeMethodAsync('StartMove', laneIndex, itemIndex, e.clientX);
+
+                    const handleGlobalMouseMove = (moveEvent) => {
+                        dotNetRef.invokeMethodAsync('UpdateMove', moveEvent.clientX);
+                    };
+
+                    const handleGlobalMouseUp = () => {
+                        dotNetRef.invokeMethodAsync('EndMove');
+                        document.removeEventListener('mousemove', handleGlobalMouseMove);
+                        document.removeEventListener('mouseup', handleGlobalMouseUp);
+                    };
+
+                    document.addEventListener('mousemove', handleGlobalMouseMove);
+                    document.addEventListener('mouseup', handleGlobalMouseUp);
+                }
+            };
+
+            // Store references for later removal
+            element._roadscriptMouseMove = handleMouseMove;
+            element._roadscriptMouseDown = handleMouseDown;
+
+            // Add new listeners
+            element.addEventListener('mousemove', handleMouseMove);
+            element.addEventListener('mousedown', handleMouseDown);
+        });
+    },
+
+    /**
+     * Opens PNG in new tab instead of downloading
+     * @param {string} elementSelector - CSS selector for the element to capture
+     */
+    exportAsPngNewTab: async function(elementSelector) {
+        try {
+            // Load html2canvas dynamically if not already loaded
+            if (!window.html2canvas) {
+                await this.loadHtml2Canvas();
+            }
+
+            const element = document.querySelector(elementSelector);
+            if (!element) {
+                console.error('Element not found:', elementSelector);
+                return false;
+            }
+
+            // Capture the element
+            const canvas = await window.html2canvas(element, {
+                backgroundColor: null,
+                scale: 2, // Higher quality
+                logging: false,
+                useCORS: true
+            });
+
+            // Open in new tab
+            const dataUrl = canvas.toDataURL('image/png');
+            const newTab = window.open();
+            if (newTab) {
+                newTab.document.write('<img src="' + dataUrl + '" style="max-width: 100%; height: auto;"/>');
+                newTab.document.title = 'Roadmap Export';
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error exporting PNG:', error);
+            return false;
+        }
     }
 };
 

@@ -599,3 +599,9 @@ input[type="color"] {
 .property-panel::-webkit-scrollbar-thumb:hover {
     background: #4a4a5e;
 }
+
+/* Quick Share Icon */
+.quick-share-icon:hover {
+    opacity: 1 !important;
+    transform: scale(1.1);
+}
