@@ -329,6 +329,16 @@
             📋 Duplicate This Item
         </button>
 
+        @* Move Up/Down Buttons for Items *@
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <button @onclick="MoveItemUp" type="button" style="flex: 1; background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                ↑ Move Up
+            </button>
+            <button @onclick="MoveItemDown" type="button" style="flex: 1; background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                ↓ Move Down
+            </button>
+        </div>
+
         <button @onclick="RemoveItem" class="btn-danger" type="button" style="width: 100%;">
             Remove This Item
         </button>
@@ -353,6 +363,9 @@
 
     [Parameter]
     public EventCallback<string> OnDuplicate { get; set; }
+
+    [Parameter]
+    public EventCallback<(string Direction, string JsonPath)> OnMoveItem { get; set; }
 
     [Parameter]
     public int ColumnCount { get; set; } = 4;
@@ -558,6 +571,16 @@
     private void DuplicateItem()
     {
         OnDuplicate.InvokeAsync("item");
+    }
+
+    private void MoveItemUp()
+    {
+        OnMoveItem.InvokeAsync(("up", JsonPath));
+    }
+
+    private void MoveItemDown()
+    {
+        OnMoveItem.InvokeAsync(("down", JsonPath));
     }
 
     private void RemoveItem()

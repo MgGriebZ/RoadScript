@@ -42,7 +42,8 @@ else
                                OnChange="HandlePropertyChange"
                                OnAdd="HandleAddElement"
                                OnRemove="HandleRemoveElement"
-                               OnDuplicate="HandleDuplicateElement" />
+                               OnDuplicate="HandleDuplicateElement"
+                               OnMoveItem="HandleMoveItem" />
             }
             else if (SelectionState.ElementType == "lane" && SelectionState.SelectedElement is Lane lane && SelectionState.SelectedPath != null)
             {
@@ -128,6 +129,9 @@ else
     public EventCallback<(string ElementType, string JsonPath)> OnDuplicateElement { get; set; }
 
     [Parameter]
+    public EventCallback<(string Direction, string JsonPath)> OnMoveItem { get; set; }
+
+    [Parameter]
     public EventCallback OnHidePanel { get; set; }
 
     [Parameter]
@@ -207,6 +211,14 @@ else
         if (OnDuplicateElement.HasDelegate && SelectionState.SelectedPath != null)
         {
             await OnDuplicateElement.InvokeAsync((elementType, SelectionState.SelectedPath));
+        }
+    }
+
+    private async Task HandleMoveItem((string Direction, string JsonPath) args)
+    {
+        if (OnMoveItem.HasDelegate)
+        {
+            await OnMoveItem.InvokeAsync(args);
         }
     }
 
