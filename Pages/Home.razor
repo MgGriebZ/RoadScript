@@ -1136,7 +1136,7 @@
             // Convert pixel delta to column percentage (approximate)
             // Assuming the roadmap container width represents 100% of columns
             var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 2000.0) * percentPerColumn; // Slower movement for larger strokes
+            var deltaPercent = (deltaX / 3000.0) * percentPerColumn; // 3x slower for larger deliberate strokes
 
             if (_resizingEdge == "left")
             {
@@ -1238,7 +1238,7 @@
 
             // Convert pixel delta to column percentage
             var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 2000.0) * percentPerColumn; // Slower movement for larger strokes
+            var deltaPercent = (deltaX / 3000.0) * percentPerColumn; // 3x slower for larger deliberate strokes
 
             // Move the item: adjust start position only, keep length constant
             var newStart = Math.Max(0, _moveOriginalStart + deltaPercent);
@@ -1317,7 +1317,7 @@
 
             // Convert pixel delta to column percentage
             var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 2000.0) * percentPerColumn; // Slower movement for larger strokes
+            var deltaPercent = (deltaX / 3000.0) * percentPerColumn; // 3x slower for larger deliberate strokes
 
             // Move the milestone: adjust start position with boundary constraints
             var newStart = Math.Max(0, _milestoneMoveOriginalStart + deltaPercent);
@@ -1719,7 +1719,7 @@
             : "position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
 
     private string MilestoneStyle(double position) =>
-        $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10;";
+        $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10; padding: 8px; min-width: 40px; cursor: move;";
 
     private string MilestoneContainerStyle() =>
         "display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none;";

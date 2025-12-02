@@ -665,34 +665,22 @@ window.RoadScriptInterop = {
      */
     setupAllMilestoneMove: function(dotNetRef) {
         const elements = document.querySelectorAll('.roadmap-milestone-movable');
+        console.log(`[Milestone] Found ${elements.length} milestone elements`);
 
         elements.forEach(element => {
             // Remove existing listeners to avoid duplicates
-            const oldMouseMove = element._roadscriptMouseMove;
             const oldMouseDown = element._roadscriptMouseDown;
-            const oldMouseLeave = element._roadscriptMouseLeave;
-
-            if (oldMouseMove) element.removeEventListener('mousemove', oldMouseMove);
             if (oldMouseDown) element.removeEventListener('mousedown', oldMouseDown);
-            if (oldMouseLeave) element.removeEventListener('mouseleave', oldMouseLeave);
 
-            // Create new listeners
-            const handleMouseMove = function(e) {
-                // Show move cursor for entire milestone
-                element.style.cursor = 'move';
-            };
-
-            const handleMouseLeave = function(e) {
-                // Clear cursor on leave
-                element.style.cursor = '';
-            };
-
+            // Create mousedown listener (cursor is handled by CSS)
             const handleMouseDown = function(e) {
+                console.log('[Milestone] mousedown triggered', e.target);
                 // Handle move (slide entire milestone)
                 e.preventDefault();
                 e.stopPropagation();
 
                 const milestoneIndex = parseInt(element.getAttribute('data-milestone-index'));
+                console.log(`[Milestone] Starting move for index: ${milestoneIndex}, clientX: ${e.clientX}`);
 
                 dotNetRef.invokeMethodAsync('StartMoveMilestone', milestoneIndex, e.clientX);
 
@@ -701,6 +689,7 @@ window.RoadScriptInterop = {
                 };
 
                 const handleGlobalMouseUp = () => {
+                    console.log('[Milestone] mouseup - ending move');
                     dotNetRef.invokeMethodAsync('EndMoveMilestone');
                     document.removeEventListener('mousemove', handleGlobalMouseMove);
                     document.removeEventListener('mouseup', handleGlobalMouseUp);
@@ -710,15 +699,12 @@ window.RoadScriptInterop = {
                 document.addEventListener('mouseup', handleGlobalMouseUp);
             };
 
-            // Store references for later removal
-            element._roadscriptMouseMove = handleMouseMove;
+            // Store reference for later removal
             element._roadscriptMouseDown = handleMouseDown;
-            element._roadscriptMouseLeave = handleMouseLeave;
 
-            // Add new listeners
-            element.addEventListener('mousemove', handleMouseMove);
+            // Add mousedown listener
             element.addEventListener('mousedown', handleMouseDown);
-            element.addEventListener('mouseleave', handleMouseLeave);
+            console.log(`[Milestone] Attached mousedown handler to milestone ${element.getAttribute('data-milestone-index')}`);
         });
     },
 
