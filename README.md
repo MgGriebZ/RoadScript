@@ -139,9 +139,9 @@ Get started quickly with 3 production-ready templates:
     }
   ]
 }
-````
+```
 
-\</details\>
+</details>
 
 ### Property Reference
 
@@ -167,7 +167,7 @@ Get started quickly with 3 production-ready templates:
 | `history.origin` | string | Bar origin: `"left"`, `"middle"`, or `"right"` |
 | **Items** | | |
 | `items[].id` | string | Auto-generated if not provided |
-| `items[].title` | string | Item display name |
+| `items[].title` | string | Item display name (optional - leave empty for icon-only items) |
 | `items[].start` | number | Starting column position (0-based, supports decimals) |
 | `items[].length` | number | Width in columns (min 0.25, supports decimals) |
 | `items[].spanning` | boolean | If true, renders with dashed border (ongoing work) |
@@ -223,17 +223,17 @@ RoadScript/
 ├── Layout/
 │   └── MainLayout.razor          # App shell
 ├── Models/
-│   └── RoadmapModels.cs          # JSON serialization models
+│   ├── RoadmapModels.cs          # JSON serialization models
+│   └── SelectionState.cs         # UI selection state
 ├── Pages/
 │   └── Home.razor                # Main editor + preview
 ├── Services/
 │   ├── EditorInteropService.cs   # Monaco editor JS interop
-│   ├── SelectionState.cs         # UI selection state
 │   ├── StorageService.cs         # LocalStorage persistence + migration
 │   └── TemplateService.cs        # Template generation
 ├── wwwroot/
 │   ├── css/app.css               # Global styles
-│   ├── roadscript-interop.js     # JavaScript utilities
+│   ├── js/roadscript-interop.js  # JavaScript utilities
 │   └── index.html                # Host page
 ├── App.razor                     # Router configuration
 ├── Program.cs                    # Blazor WASM entry point
@@ -264,7 +264,7 @@ Prerequisites: [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 
 1.  Clone the repository:
     ```bash
-    git clone [https://github.com/yourusername/RoadScript.git](https://github.com/yourusername/RoadScript.git)
+    git clone https://github.com/MgGriebZ/RoadScript.git
     ```
 2.  Navigate to the project folder:
     ```bash
