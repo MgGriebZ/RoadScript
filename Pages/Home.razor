@@ -13,11 +13,9 @@
 @implements IDisposable
 
 <div class="container-fluid vh-100 d-flex p-0">
-    @* Control Center Panel - Always visible *@
     <div class="@(_showControlPanel ? "control-panel control-panel-expanded" : "control-panel control-panel-collapsed")">
         @if (_showControlPanel)
         {
-            @* Expanded Control Center *@
             <div style="background: #1e1e1e; padding: 12px 16px; font-weight: 600; color: #fff; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; flex-direction: column; gap: 2px;">
                     <span style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">RoadScript</span>
@@ -31,7 +29,6 @@
             </div>
 
             <div style="flex: 1; overflow-y: auto; padding: 16px; background: #252526; display: flex; flex-direction: column;">
-                @* Folder Selector Button *@
                 <div style="margin-bottom: 20px; position: relative;">
                     <button @onclick="ToggleFolderSelector"
                             title="Project Folders"
@@ -44,7 +41,6 @@
                     </button>
                 </div>
 
-                @* Tab Management Section *@
                 <div style="margin-bottom: 20px;">
                     <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Roadmaps</h3>
                     @if (_sessionManager != null)
@@ -59,7 +55,6 @@
                     }
                 </div>
 
-                @* Quick Templates Section *@
                 <div style="margin-bottom: 20px;">
                     <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Quick Templates</h3>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -81,11 +76,9 @@
                     </div>
                 </div>
 
-                @* View Modes Section *@
                 <div style="margin-bottom: 20px;">
                     <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Quick Actions</h3>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
-                        @* Edit/Preview Toggle *@
                         <div>
                             <button @onclick="@(() => ToggleViewMode(null))"
                                     title="@(_isPreviewMode ? "Switch to Edit Mode - Enable editing and properties panel" : "Switch to Preview Mode - Clean view for presentations")"
@@ -103,7 +96,6 @@
                             </button>
                         </div>
 
-                        @* Lite/Vibe Toggle *@
                         <div>
                             <button @onclick="@(() => ToggleTheme(null))"
                                     title="@(_isVibeMode ? "Switch to Lite Theme - Light, professional appearance" : "Switch to Vibe Theme - Dark theme with vibrant neon accents")"
@@ -123,7 +115,6 @@
                     </div>
                 </div>
 
-                @* Export PNG Button *@
                 <div style="margin-bottom: 20px;">
                     <button @onclick="ExportAsPng"
                             title="Export your roadmap as a high-quality PNG image for sharing and presentations"
@@ -133,7 +124,6 @@
                     </button>
                 </div>
 
-                @* Advanced Section (Collapsible JSON Editor) *@
                 <div style="border-top: 1px solid #3a3a4e; padding-top: 16px; display: flex; flex-direction: column; flex: 1; min-height: 0;">
                     <button @onclick="ToggleAdvancedSection"
                             title="@(_showAdvancedSection ? "Hide advanced JSON editor" : "Show advanced JSON editor - Edit roadmap data directly as JSON")"
@@ -199,9 +189,7 @@
         }
         else
         {
-            @* Collapsed Command Center - Icon Toolbar *@
             <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 12px 0; height: 100%;">
-                @* Expand Button *@
                 <button @onclick="ToggleControlPanel"
                         title="Expand Command Center"
                         class="cc-icon-btn"
@@ -211,7 +199,6 @@
 
                 <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
-                @* Folder Management Button *@
                 <button @onclick="ToggleFolderSelector"
                         title="Manage Project Folders"
                         class="cc-icon-btn"
@@ -219,7 +206,6 @@
                     <Icon IconType="gear" Size="24" Color="#ffffff" />
                 </button>
 
-                @* Folder Indicators *@
                 @if (_folderManager != null)
                 {
                     <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
@@ -245,7 +231,6 @@
 
                 <div style="width: 32px; height: 2px; background: linear-gradient(90deg, transparent, #667eea, transparent); margin: 8px 0;"></div>
 
-                @* Tab Indicators *@
                 @if (_sessionManager != null)
                 {
                     <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
@@ -261,10 +246,8 @@
                             </button>
                         }
 
-                        @* Spacer for separation *@
                         <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 8px 0;"></div>
 
-                        @* Add new tab button (only show if under max) *@
                         @if (_sessionManager.Tabs.Count < _sessionManager.MaxTabs)
                         {
                             <button @onclick="HandleTabAdd"
@@ -275,7 +258,6 @@
                             </button>
                         }
 
-                        @* Delete tab/folder button *@
                         @if (_activeTab != null)
                         {
                             <button @onclick="HandleCollapsedTabDelete"
@@ -290,7 +272,6 @@
 
                 <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
-                @* Export PNG *@
                 <button @onclick="ExportAsPng"
                         title="Export roadmap as PNG image"
                         class="cc-icon-btn"
@@ -298,7 +279,6 @@
                     📷
                 </button>
 
-                @* Edit/Preview Toggle *@
                 <button @onclick="@(() => ToggleViewMode(null))"
                         title="@(_isPreviewMode ? "Switch to Edit Mode" : "Switch to Preview Mode")"
                         class="cc-icon-btn"
@@ -306,7 +286,6 @@
                     @(_isPreviewMode ? "👁️" : "✏️")
                 </button>
 
-                @* Lite/Vibe Toggle *@
                 <button @onclick="@(() => ToggleTheme(null))"
                         title="@(_isVibeMode ? "Switch to Lite Theme" : "Switch to Vibe Theme")"
                         class="cc-icon-btn"
@@ -314,13 +293,10 @@
                     @(_isVibeMode ? "🌙" : "☀️")
                 </button>
 
-                @* Spacer to push templates to bottom *@
                 <div style="flex: 1;"></div>
 
-                @* Quick Templates *@
                 <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
-                @* Daily Planning *@
                 <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumSprintCycle))"
                         title="Apply Daily Planning Template"
                         class="cc-icon-btn"
@@ -328,7 +304,6 @@
                     <Icon IconType="calendar" Size="24" Color="#9999ff" />
                 </button>
 
-                @* Project Timelines *@
                 <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ProjectTimelines))"
                         title="Apply Project Timelines Template"
                         class="cc-icon-btn"
@@ -336,7 +311,6 @@
                     <Icon IconType="rocket" Size="24" Color="#87CEEB" />
                 </button>
 
-                @* Milestone Map *@
                 <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.AnnualRoadmap))"
                         title="Apply Milestone Map Template"
                         class="cc-icon-btn"
@@ -347,13 +321,11 @@
         }
     </div>
 
-    @* Preview Pane *@
     <div class="preview-pane" style="@PreviewPaneStyle()">
         @if (_data != null)
         {
             <div style="@RoadmapWrapperStyle()">
                 <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
-                @* Header *@
                 <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
                      class="@GetElementClass("title")"
                      style="@TitleContainerStyle()">
@@ -365,9 +337,7 @@
                     </p>
                 </div>
 
-                @* Grid *@
                 <div style="display: flex; height: calc(100% - 66px);">
-                    @* Lane Labels *@
                     <div style="width: 175px; flex-shrink: 0; padding-top: 48px; padding-right: 14px;">
                         @for (int li = 0; li < _data.Lanes.Count; li++)
                         {
@@ -390,13 +360,11 @@
                                                         var origin = lane.History.ProgressOrigin ?? "left";
                                                         if (origin == "left")
                                                         {
-                                                            // Left: Solid progress bar from left, then empty
                                                             <div style="@HistoryProgressStyle(lane.Color, lane.History.PastPct)"></div>
                                                             <div style="@HistoryEmptyStyle(100 - lane.History.PastPct)"></div>
                                                         }
                                                         else if (origin == "middle")
                                                         {
-                                                            // Center: Empty on both sides, solid progress in middle
                                                             var emptyPct = (100 - lane.History.PastPct) / 2.0;
                                                             <div style="@HistoryEmptyStyle(emptyPct)"></div>
                                                             <div style="@HistoryProgressStyle(lane.Color, lane.History.PastPct)"></div>
@@ -404,7 +372,6 @@
                                                         }
                                                         else if (origin == "right")
                                                         {
-                                                            // Right: Empty first, then solid progress bar from right
                                                             <div style="@HistoryEmptyStyle(100 - lane.History.PastPct)"></div>
                                                             <div style="@HistoryProgressStyle(lane.Color, lane.History.PastPct)"></div>
                                                         }
@@ -428,9 +395,7 @@
                         }
                     </div>
 
-                    @* Timeline *@
                     <div style="flex: 1; display: flex; flex-direction: column;">
-                        @* Column Headers *@
                         <div style="@ColumnHeaderContainerStyle()">
                             @for (int i = 0; i < _data.Columns.Count; i++)
                             {
@@ -445,7 +410,6 @@
                             }
                         </div>
 
-                        @* Milestone Scale Row *@
                         <div style="@MilestoneScaleContainerStyle()">
                             @for (int mi = 0; mi < _data.Milestones.Count; mi++)
                             {
@@ -467,9 +431,7 @@
                             }
                         </div>
 
-                        @* Lanes Container *@
                         <div style="flex: 1; position: relative;">
-                            @* Grid Columns Background *@
                             <div style="position: absolute; inset: 0; display: flex; pointer-events: none;">
                                 @for (int i = 0; i < _data.Columns.Count; i++)
                                 {
@@ -477,7 +439,6 @@
                                 }
                             </div>
 
-                            @* Lane Rows *@
                             @for (int li = 0; li < _data.Lanes.Count; li++)
                             {
                                 var lane = _data.Lanes[li];
@@ -488,7 +449,6 @@
                                         var item = lane.Items[ii];
                                         var itemIdx = ii;
 
-                                        @* Skip hidden items in preview mode *@
                                         @if (!(_isPreviewMode && item.Hidden))
                                         {
                                             <div @onclick="@(_isPreviewMode ? null : async () => await HandleItemClick(laneIdx, itemIdx, item))"
@@ -498,7 +458,6 @@
                                             @{
                                                 var hasDetails = item.Details != null && item.Details.Count > 0;
                                             }
-                                            @* Header with full-width background bar - always visible *@
                                             <div style="@ItemHeaderStyle(hasDetails, item.Span, lane.Color)">
                                                 @if (!string.IsNullOrEmpty(item.StatusIcon))
                                                 {
@@ -509,7 +468,6 @@
                                                 }
                                                 else if (item.Completed)
                                                 {
-                                                    @* Backward compatibility: show checkmark for old items *@
                                                     <div style="@CompletedBadgeStyle()">
                                                         ✓
                                                     </div>
@@ -517,7 +475,6 @@
                                                 <h4 style="@ItemTitleStyle(hasDetails)">
                                                     @item.Title
                                                 </h4>
-                                                @* Hidden indicator in edit mode *@
                                                 @if (item.Hidden && !_isPreviewMode)
                                                 {
                                                     <span style="margin-left: auto; font-size: 16px; opacity: 0.5;" title="Hidden in preview mode">👁</span>
@@ -560,7 +517,6 @@
             </div>
             </div>
 
-        @* Footer Bar - Full width banner below roadmap, only in Edit Mode *@
         @if (!_isPreviewMode && _activeTab != null && _data != null)
         {
             <div style="@FooterBarStyle()">
@@ -596,7 +552,6 @@
         }
     </div>
 
-    @* Property Panel - Mode controls removed, now in Control Center *@
     <PropertyPanel OnPropertyChange="HandlePropertyChange"
                   OnAddElement="HandleAddElement"
                   OnRemoveElement="HandleRemoveElement"
@@ -605,7 +560,6 @@
                   IsCollapsed="@(!_showProperties)"
                   ColumnCount="@(_data?.Columns.Count ?? 4)" />
 
-    @* Folder Selector *@
     @if (_folderManager != null)
     {
         <FolderSelector IsVisible="@_showFolderSelector"
@@ -623,7 +577,6 @@
                        OnIconChange="HandleFolderIconChange" />
     }
 
-    @* Template Selector *@
     <TemplateSelector IsVisible="@_showTemplateSelector"
                      OnClose="CloseTemplateSelector"
                      OnTemplateSelect="HandleTemplateSelect" />
@@ -644,19 +597,16 @@
     private bool _showProperties = true;       // Show/hide properties panel - open by default
     private DotNetObjectReference<Home>? _dotNetRef;
 
-    // Multi-tab session management with folder support
     private FolderManager? _folderManager;
     private Folder? _activeFolder;
     private SessionManager? _sessionManager;
     private TabSession? _activeTab;
 
-    // UI state for folder and template selectors
     private bool _showFolderSelector = false;
     private bool _showTemplateSelector = false;
     private bool _isCreatingNewFolder = false;
     private string? _pendingFolderName = null;
 
-    // Default JSON template - Generic boilerplate for easy customization
     private const string DefaultJson = @"{
   ""title"": ""Bi-Weekly Sprint Roadmap"",
   ""subtitle"": ""2-week sprint cycle with ceremonies"",
@@ -793,20 +743,17 @@
     {
         _editorReady = true;
 
-        // Only initialize session if not already loaded
         if (_sessionManager == null || _activeTab == null)
         {
             await InitializeFolderManagerAsync();
         }
 
-        // Set editor value
         if (_editor != null && _activeTab != null)
         {
             _currentJson = JsonSerializer.Serialize(_activeTab.Data, new JsonSerializerOptions { WriteIndented = true });
             await _editor.SetValue(_currentJson);
         }
 
-        // Parse JSON if not already parsed (data could be null if editor loads before OnInitializedAsync completes)
         if (_data == null && !string.IsNullOrEmpty(_currentJson))
         {
             ParseJson(_currentJson);
@@ -818,10 +765,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Load or initialize folder manager
         await InitializeFolderManagerAsync();
 
-        // Parse the JSON immediately so the UI displays even if editor hasn't loaded
         if (_data != null && !string.IsNullOrEmpty(_currentJson))
         {
             ParseJson(_currentJson);
@@ -831,12 +776,10 @@
 
     private async Task InitializeFolderManagerAsync()
     {
-        // Load folder manager from storage
         _folderManager = await StorageService.LoadFolderManagerAsync();
 
         if (_folderManager == null || _folderManager.Folders.Count == 0)
         {
-            // Create default folder manager with one folder containing one tab
             var defaultRoadmap = TemplateService.GetScrumSprintCycleTemplate();
 
             _folderManager = new FolderManager
@@ -874,15 +817,11 @@
             await StorageService.SaveFolderManagerAsync(_folderManager);
         }
 
-        // Get active folder and session
         _activeFolder = StorageService.GetActiveFolder(_folderManager);
         if (_activeFolder != null)
         {
             _sessionManager = _activeFolder.SessionManager;
-            // Ensure MaxTabs is set to 5
             _sessionManager.MaxTabs = 5;
-
-            // Get active tab
             _activeTab = StorageService.GetActiveTab(_sessionManager);
             if (_activeTab != null)
             {
@@ -969,7 +908,6 @@
             ParseJson(value);
             _lastUpdateSuccess = _error == null;
 
-            // Save to storage if parsing was successful
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
                 _activeTab.Data = _data!;
@@ -1003,7 +941,6 @@
             ParseJson(DefaultJson);
             _lastUpdateSuccess = true;
 
-            // Clear storage and create fresh session
             await StorageService.ClearStorageAsync();
             await InitializeFolderManagerAsync();
         }
@@ -1024,9 +961,7 @@
     private void ToggleViewMode(ChangeEventArgs? e = null)
     {
         _isPreviewMode = !_isPreviewMode;
-        // Auto-hide properties panel in preview mode, show in edit mode
         _showProperties = !_isPreviewMode;
-        // Auto-hide Command Center only when entering preview mode (don't auto-show when exiting)
         if (_isPreviewMode)
         {
             _showControlPanel = false;
@@ -1077,14 +1012,10 @@
         }
     }
 
-    // === Button Styles ===
-
     private string UpdateButtonStyle() =>
         _editorReady
             ? "background: #0e639c; color: #fff; border: none; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.2s;"
             : "background: #555; color: #888; border: none; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: not-allowed;";
-
-    // === Theme Toggle UI ===
 
     private string ThemeToggleStyle() =>
         _isVibeMode
@@ -1103,7 +1034,6 @@
 
     private string PreviewPaneStyle()
     {
-        // Use flex: 1 to fill remaining space, no padding needed since no control bar
         if (_isVibeMode)
         {
             return "flex: 1; background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%); overflow: auto; display: flex; flex-direction: column;";
@@ -1131,7 +1061,6 @@
             ? "background: #2a2a3e; color: #d1d5db; border: 1px solid #3a3a4e; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
             : "background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;";
 
-    // === Collapsed Command Center Icon Styles ===
 
     private string GetTabIndicatorStyle(bool isActive)
     {
@@ -1146,17 +1075,14 @@
     {
         if (isActive && hasFolder)
         {
-            // Active folder - use folder's color with gradient and glow
             return $"background: linear-gradient(135deg, {folderColor} 0%, {folderColor}dd 100%); color: #fff; border: 2px solid {folderColor}; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px {folderColor}66; display: flex; align-items: center; justify-content: center;";
         }
         else if (hasFolder)
         {
-            // Inactive but exists - muted with folder color hint
             return $"background: #2a2a3e; color: #888; border: 1px solid {folderColor}44; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.6;";
         }
         else
         {
-            // Empty slot - very muted
             return "background: #1e1e2e; color: #555; border: 1px dashed #3a3a4e; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.4;";
         }
     }
@@ -1170,11 +1096,9 @@
         return "background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 22px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;";
     }
 
-    // === Style Helper Methods ===
 
     private string RoadmapWrapperStyle()
     {
-        // In edit mode, fill available space; in preview mode, center content
         if (_isPreviewMode)
         {
             return "flex: 1; display: flex; justify-content: center; align-items: flex-start; overflow: auto;";
@@ -1187,7 +1111,6 @@
 
     private string RoadmapContainerStyle()
     {
-        // In edit mode, use full width; in preview mode, constrain width for presentation
         var maxWidthStyle = _isPreviewMode ? "max-width: 1700px;" : "";
         var widthStyle = _isPreviewMode ? "width: 100%;" : "width: 100%;";
 
@@ -1230,7 +1153,6 @@
 
     private string HistoryProgressStyle(string color, double pct)
     {
-        // Solid bar representing progress
         if (_isVibeMode)
         {
             var vibeColor = GetVibeColor(color);
@@ -1241,7 +1163,6 @@
 
     private string HistoryEmptyStyle(double pct)
     {
-        // Dashed/striped pattern for future/unfilled portion
         if (_isVibeMode)
         {
             return $"width: {pct:F2}%; background: repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.15) 4px, rgba(255,255,255,0.15) 8px);";
@@ -1318,8 +1239,6 @@
         var cols = _data?.Columns.Count ?? 4;
         var leftPct = (item.Start / cols) * 100;
         var widthPct = (item.Span / cols) * 100;
-
-        // Greyed out effect: reduce opacity and add grey filter
         var greyedOutStyle = item.GreyedOut ? "opacity: 0.5; filter: grayscale(0.6);" : "";
 
         if (_isVibeMode)
@@ -1335,7 +1254,6 @@
                 ? $"box-shadow: 0 0 20px {vibeColor}40, 0 4px 12px rgba(0,0,0,0.4);"
                 : $"box-shadow: 0 0 15px {vibeColor}30, 0 4px 12px rgba(0,0,0,0.4);";
 
-            // Add deeper shadow if greyed out
             if (item.GreyedOut)
             {
                 shadow = $"box-shadow: inset 0 4px 10px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.6);";
@@ -1353,7 +1271,6 @@
 
             var shadow = item.Spanning ? "" : "box-shadow: 0 1px 4px rgba(0,0,0,0.08);";
 
-            // Add deeper shadow if greyed out
             if (item.GreyedOut)
             {
                 shadow = "box-shadow: inset 0 2px 6px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1);";
@@ -1387,7 +1304,6 @@
         return $"position: absolute; left: 0; color: {color}; font-weight: 700;";
     }
 
-    // === Text Style Helpers ===
 
     private string TitleStyle() =>
         _isVibeMode
@@ -1434,7 +1350,6 @@
         var gap = hasDetails ? "8px" : "10px";
         var padding = hasDetails ? "8px 12px" : "10px 14px";
 
-        // Always apply full-width background bar matching lane color
         if (_isVibeMode)
         {
             var background = $"background: linear-gradient(135deg, {laneColor}25 0%, {laneColor}15 100%);";
@@ -1479,8 +1394,6 @@
             ? "position: absolute; left: 14px; color: #6b7280; font-size: 15px;"
             : "position: absolute; left: 14px; color: #9ca3af; font-size: 15px;";
 
-    // === Vibe Mode Color Helpers ===
-
     private string GetVibeColor(string hexColor) =>
         hexColor.ToLower() switch
         {
@@ -1501,11 +1414,8 @@
             _ => "background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%);"
         };
 
-    // === Interactive Editing Methods ===
-
     private string GetElementClass(string jsonPath)
     {
-        // Don't add clickable classes in preview mode
         if (_isPreviewMode) return "";
 
         var baseClass = "clickable-element";
@@ -1553,8 +1463,6 @@
     {
         try
         {
-            // For title, the JsonPath is "title" and the PropertyName is "title" or "subtitle"
-            // So we need to use just the PropertyName, not JsonPath.PropertyName
             var propertyPath = change.JsonPath == "title"
                 ? change.PropertyName
                 : $"{change.JsonPath}.{change.PropertyName}";
@@ -1567,15 +1475,12 @@
 
             if (updatedJson != null)
             {
-                // Store current selection to refresh it after parsing
                 var selectedPath = SelectionState.SelectedPath;
                 var selectedType = SelectionState.ElementType;
 
-                // Update current JSON and parse it
                 _currentJson = updatedJson;
                 ParseJson(updatedJson);
 
-                // Refresh selection with new object instance from parsed data
                 if (selectedPath != null && selectedType != null && _data != null)
                 {
                     var refreshedElement = GetElementByPath(selectedPath, selectedType);
@@ -1585,13 +1490,11 @@
                     }
                 }
 
-                // Update editor if it's available
                 if (_editor != null)
                 {
                     await _editor.SetValue(updatedJson);
                 }
 
-                // Save to storage after property change
                 if (_error == null && _sessionManager != null && _activeTab != null)
                 {
                     _activeTab.Data = _data!;
@@ -1622,7 +1525,6 @@
             switch (elementType)
             {
                 case "lane":
-                    // Add a new lane after the current one
                     var laneIndex = ExtractIndexFromPath(jsonPath, "lanes");
                     var newLane = new Lane
                     {
@@ -1643,20 +1545,17 @@
                     break;
 
                 case "item":
-                    // Add a new item to the current lane
                     int itemLaneIndex;
                     int itemIndex;
 
                     if (jsonPath.Contains(".items["))
                     {
-                        // Adding from another item
                         var itemPath = jsonPath.Split(".items[")[0];
                         itemLaneIndex = ExtractIndexFromPath(itemPath, "lanes");
                         itemIndex = ExtractIndexFromPath(jsonPath, "items");
                     }
                     else
                     {
-                        // Adding from lane (no items in path)
                         itemLaneIndex = ExtractIndexFromPath(jsonPath, "lanes");
                         itemIndex = -1; // Add at the end
                     }
@@ -1680,7 +1579,6 @@
                     break;
 
                 case "column":
-                    // Add a new column after the current one
                     var columnIndex = ExtractIndexFromPath(jsonPath, "columns");
                     var newColumn = new Column
                     {
@@ -1691,7 +1589,6 @@
                     break;
 
                 case "milestone":
-                    // Add a new milestone after the current one
                     var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
                     var newMilestone = new Milestone
                     {
@@ -1704,50 +1601,40 @@
                     break;
 
                 case "moveLaneUp":
-                    // Move lane up in the list
                     var moveUpIndex = ExtractIndexFromPath(jsonPath, "lanes");
                     if (moveUpIndex > 0)
                     {
                         var lane = _data.Lanes[moveUpIndex];
                         _data.Lanes.RemoveAt(moveUpIndex);
                         _data.Lanes.Insert(moveUpIndex - 1, lane);
-
-                        // Update the selection to follow the lane
                         var newPath = $"lanes[{moveUpIndex - 1}]";
                         SelectionState.Select(newPath, "lane", lane);
                     }
                     break;
 
                 case "moveLaneDown":
-                    // Move lane down in the list
                     var moveDownIndex = ExtractIndexFromPath(jsonPath, "lanes");
                     if (moveDownIndex < _data.Lanes.Count - 1)
                     {
                         var lane = _data.Lanes[moveDownIndex];
                         _data.Lanes.RemoveAt(moveDownIndex);
                         _data.Lanes.Insert(moveDownIndex + 1, lane);
-
-                        // Update the selection to follow the lane
                         var newPath = $"lanes[{moveDownIndex + 1}]";
                         SelectionState.Select(newPath, "lane", lane);
                     }
                     break;
             }
 
-            // Serialize and update - parse JSON first, then update editor
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-            // Update current JSON and parse it FIRST
             _currentJson = updatedJson;
             ParseJson(updatedJson);
 
-            // Then update editor if available
             if (_editor != null)
             {
                 await _editor.SetValue(updatedJson);
             }
 
-            // Save to storage
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
                 _activeTab.Data = _data;
@@ -1811,23 +1698,18 @@
                     break;
             }
 
-            // Serialize and update - parse JSON first, then update editor
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-            // Update current JSON and parse it FIRST
             _currentJson = updatedJson;
             ParseJson(updatedJson);
 
-            // Clear selection
             SelectionState.Clear();
 
-            // Then update editor if available
             if (_editor != null)
             {
                 await _editor.SetValue(updatedJson);
             }
 
-            // Save to storage
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
                 _activeTab.Data = _data;
@@ -1848,7 +1730,6 @@
 
     private int ExtractIndexFromPath(string jsonPath, string arrayName)
     {
-        // Extract index from path like "lanes[2]" or "lanes[2].items[1]"
         var pattern = $@"{arrayName}\[(\d+)\]";
         var match = System.Text.RegularExpressions.Regex.Match(jsonPath, pattern);
         return match.Success ? int.Parse(match.Groups[1].Value) : 0;
@@ -1856,7 +1737,6 @@
 
     private object? GetElementByPath(string jsonPath, string elementType)
     {
-        // Retrieve the element from _data based on the JSON path and type
         if (_data == null) return null;
 
         try
@@ -1982,27 +1862,22 @@
                         var originalMilestone = _data.Milestones[milestoneIndex];
                         var duplicatedMilestone = StorageService.DeepClone(originalMilestone);
                         duplicatedMilestone.Label = $"{originalMilestone.Label} (Copy)";
-                        // Offset position by 5% so it doesn't overlap
                         duplicatedMilestone.Position = Math.Min(originalMilestone.Position + 5, 100);
                         _data.Milestones.Insert(milestoneIndex + 1, duplicatedMilestone);
                     }
                     break;
             }
 
-            // Serialize and update - parse JSON first, then update editor
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-            // Update current JSON and parse it FIRST
             _currentJson = updatedJson;
             ParseJson(updatedJson);
 
-            // Then update editor if available
             if (_editor != null)
             {
                 await _editor.SetValue(updatedJson);
             }
 
-            // Save to storage
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
                 _activeTab.Data = _data;
@@ -2021,8 +1896,6 @@
         }
     }
 
-    // === Tab Management Handlers ===
-
     private async Task HandleTabSwitch(string tabId)
     {
         if (_sessionManager == null || _folderManager == null) return;
@@ -2035,19 +1908,16 @@
             _data = _activeTab.Data;
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-            // Update editor if it's loaded
             if (_editor != null && _editorReady)
             {
                 await _editor.SetValue(_currentJson);
             }
 
-            // Update active folder's last modified time
             if (_activeFolder != null)
             {
                 _activeFolder.LastModified = DateTime.UtcNow;
             }
 
-            // Save folder manager
             if (_folderManager != null)
             {
                 await StorageService.SaveFolderManagerAsync(_folderManager);
@@ -2067,7 +1937,6 @@
             return;
         }
 
-        // Show template selector modal
         _showTemplateSelector = true;
         await InvokeAsync(StateHasChanged);
     }
@@ -2076,7 +1945,6 @@
     {
         if (_folderManager == null) return;
 
-        // Get the appropriate template
         var templateData = templateType switch
         {
             TemplateService.TemplateType.ScrumSprintCycle => TemplateService.GetScrumSprintCycleTemplate(),
@@ -2085,10 +1953,8 @@
             _ => TemplateService.GetScrumSprintCycleTemplate()
         };
 
-        // Check if we're creating a new folder or adding a tab to existing folder
         if (_isCreatingNewFolder && !string.IsNullOrWhiteSpace(_pendingFolderName))
         {
-            // Create new folder with selected template
             var newFolder = StorageService.AddFolder(_folderManager, _pendingFolderName, templateData);
             _activeFolder = newFolder;
             _sessionManager = newFolder.SessionManager;
@@ -2099,46 +1965,39 @@
                 _data = _activeTab.Data;
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-                // Update editor
                 if (_editor != null && _editorReady)
                 {
                     await _editor.SetValue(_currentJson);
                 }
             }
 
-            // Reset folder creation state
             _isCreatingNewFolder = false;
             _pendingFolderName = null;
         }
         else if (_sessionManager != null)
         {
-            // Add new tab to existing folder
             var newTab = StorageService.AddTab(_sessionManager, templateData.Title, templateData);
             _sessionManager.ActiveTabId = newTab.Id;
             _activeTab = newTab;
             _data = newTab.Data;
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-            // Update editor
             if (_editor != null && _editorReady)
             {
                 await _editor.SetValue(_currentJson);
             }
 
-            // Update active folder's last modified time
             if (_activeFolder != null)
             {
                 _activeFolder.LastModified = DateTime.UtcNow;
             }
         }
 
-        // Save folder manager
         if (_folderManager != null)
         {
             await StorageService.SaveFolderManagerAsync(_folderManager);
         }
 
-        // Close template selector
         _showTemplateSelector = false;
         SelectionState.Clear();
         await InvokeAsync(StateHasChanged);
@@ -2150,7 +2009,6 @@
 
         StorageService.RemoveTab(_sessionManager, tabId);
 
-        // Switch to first available tab
         if (_sessionManager.Tabs.Count > 0)
         {
             _sessionManager.ActiveTabId = _sessionManager.Tabs[0].Id;
@@ -2158,20 +2016,17 @@
             _data = _activeTab.Data;
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-            // Update editor
             if (_editor != null && _editorReady)
             {
                 await _editor.SetValue(_currentJson);
             }
         }
 
-        // Update active folder's last modified time
         if (_activeFolder != null)
         {
             _activeFolder.LastModified = DateTime.UtcNow;
         }
 
-        // Save folder manager
         if (_folderManager != null)
         {
             await StorageService.SaveFolderManagerAsync(_folderManager);
@@ -2184,10 +2039,8 @@
     {
         if (_activeTab == null || _sessionManager == null || _folderManager == null || _activeFolder == null) return;
 
-        // Check if this is the last tab in the folder
         bool isLastTab = _sessionManager.Tabs.Count == 1;
 
-        // Show appropriate confirmation dialog
         string confirmMessage = isLastTab
             ? $"Delete folder '{_activeFolder.Name}' and its last roadmap '{_activeTab.Name}'?"
             : $"Delete roadmap tab '{_activeTab.Name}'?";
@@ -2197,13 +2050,10 @@
 
         if (isLastTab)
         {
-            // Delete the entire folder (last tab)
             StorageService.RemoveFolder(_folderManager, _activeFolder.Id);
 
-            // Check if any folders remain
             if (_folderManager.Folders.Count == 0)
             {
-                // No folders left - show template selector as fail-safe
                 _activeFolder = null;
                 _sessionManager = null;
                 _activeTab = null;
@@ -2215,7 +2065,6 @@
             }
             else
             {
-                // Switch to another folder
                 _activeFolder = StorageService.GetActiveFolder(_folderManager);
                 if (_activeFolder != null)
                 {
@@ -2227,7 +2076,6 @@
                         _data = _activeTab.Data;
                         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-                        // Update editor
                         if (_editor != null && _editorReady)
                         {
                             await _editor.SetValue(_currentJson);
@@ -2236,12 +2084,10 @@
                 }
             }
 
-            // Save folder manager
             await StorageService.SaveFolderManagerAsync(_folderManager);
         }
         else
         {
-            // Just delete the tab normally
             await HandleTabDelete(_activeTab.Id);
         }
 
@@ -2255,21 +2101,17 @@
 
         StorageService.RenameTab(_sessionManager, args.TabId, args.NewName);
 
-        // Update active folder's last modified time
         if (_activeFolder != null)
         {
             _activeFolder.LastModified = DateTime.UtcNow;
         }
 
-        // Save folder manager
         if (_folderManager != null)
         {
             await StorageService.SaveFolderManagerAsync(_folderManager);
         }
         await InvokeAsync(StateHasChanged);
     }
-
-    // === Folder Management Handlers ===
 
     private void ToggleFolderSelector()
     {
@@ -2299,7 +2141,6 @@
     private void CloseTemplateSelector()
     {
         _showTemplateSelector = false;
-        // Reset folder creation state if user cancels
         _isCreatingNewFolder = false;
         _pendingFolderName = null;
         StateHasChanged();
@@ -2322,7 +2163,6 @@
                 _data = _activeTab.Data;
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-                // Update editor
                 if (_editor != null && _editorReady)
                 {
                     await _editor.SetValue(_currentJson);
@@ -2330,7 +2170,6 @@
             }
         }
 
-        // Save folder manager
         if (_folderManager != null)
         {
             await StorageService.SaveFolderManagerAsync(_folderManager);
@@ -2344,7 +2183,6 @@
     {
         if (_folderManager == null) return;
 
-        // If folder exists at this index, switch to it
         if (folderIndex < _folderManager.Folders.Count)
         {
             var folder = _folderManager.Folders[folderIndex];
@@ -2352,7 +2190,6 @@
         }
         else
         {
-            // Empty slot - open folder selector/add new folder
             ToggleFolderSelector();
         }
     }
@@ -2367,10 +2204,8 @@
             return;
         }
 
-        // Auto-generate folder name based on count (no user prompt)
         var folderName = $"Folder {_folderManager.Folders.Count + 1}";
 
-        // Store pending folder name and show template selector
         _pendingFolderName = folderName;
         _isCreatingNewFolder = true;
         _showFolderSelector = false; // Close folder selector
@@ -2388,7 +2223,6 @@
             return;
         }
 
-        // Show confirmation dialog
         var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Delete folder '{_activeFolder.Name}' and all its roadmaps?");
         if (!confirmed)
         {
@@ -2408,7 +2242,6 @@
                 _data = _activeTab.Data;
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-                // Update editor
                 if (_editor != null && _editorReady)
                 {
                     await _editor.SetValue(_currentJson);
@@ -2416,7 +2249,6 @@
             }
         }
 
-        // Save folder manager
         if (_folderManager != null)
         {
             await StorageService.SaveFolderManagerAsync(_folderManager);
@@ -2432,15 +2264,12 @@
         var folderIndex = _folderManager.Folders.FindIndex(f => f.Id == folderId);
         if (folderIndex <= 0) return; // Already at leftmost position
 
-        // Swap with the folder to the left
         var folder = _folderManager.Folders[folderIndex];
         _folderManager.Folders.RemoveAt(folderIndex);
         _folderManager.Folders.Insert(folderIndex - 1, folder);
 
-        // Update colors for all folders based on new positions
         UpdateFolderColorsByPosition();
 
-        // Save folder manager
         await StorageService.SaveFolderManagerAsync(_folderManager);
         await InvokeAsync(StateHasChanged);
     }
@@ -2452,15 +2281,12 @@
         var folderIndex = _folderManager.Folders.FindIndex(f => f.Id == folderId);
         if (folderIndex < 0 || folderIndex >= _folderManager.Folders.Count - 1) return; // Already at rightmost position
 
-        // Swap with the folder to the right
         var folder = _folderManager.Folders[folderIndex];
         _folderManager.Folders.RemoveAt(folderIndex);
         _folderManager.Folders.Insert(folderIndex + 1, folder);
 
-        // Update colors for all folders based on new positions
         UpdateFolderColorsByPosition();
 
-        // Save folder manager
         await StorageService.SaveFolderManagerAsync(_folderManager);
         await InvokeAsync(StateHasChanged);
     }
@@ -2469,7 +2295,6 @@
     {
         if (_folderManager == null) return;
 
-        // Update colors based on position: Mustard, Coral, Pink
         var colors = new[] { "#E6B800", "#F88379", "#EC4899" };
         for (int i = 0; i < _folderManager.Folders.Count; i++)
         {
@@ -2481,7 +2306,6 @@
     {
         if (_folderManager == null || _activeFolder == null) return;
 
-        // Prompt for new name
         var newName = await JSRuntime.InvokeAsync<string>("prompt", "Enter new folder name:", _activeFolder.Name);
         if (string.IsNullOrWhiteSpace(newName))
         {
@@ -2490,7 +2314,6 @@
 
         StorageService.RenameFolder(_folderManager, _activeFolder.Id, newName);
 
-        // Save folder manager
         if (_folderManager != null)
         {
             await StorageService.SaveFolderManagerAsync(_folderManager);
@@ -2502,10 +2325,8 @@
     {
         if (_folderManager == null || _activeFolder == null) return;
 
-        // Update the active folder's color
         _activeFolder.Color = color;
 
-        // Save folder manager
         await StorageService.SaveFolderManagerAsync(_folderManager);
         await InvokeAsync(StateHasChanged);
     }
@@ -2514,21 +2335,17 @@
     {
         if (_folderManager == null || _activeFolder == null) return;
 
-        // Update the active folder's icon
         _activeFolder.Icon = icon;
 
-        // Save folder manager
         await StorageService.SaveFolderManagerAsync(_folderManager);
         await InvokeAsync(StateHasChanged);
     }
 
-    // === Template Application Handler ===
 
     private async Task ApplyTemplate(TemplateService.TemplateType templateType)
     {
         if (_data == null || _activeTab == null || _sessionManager == null) return;
 
-        // Get template name for confirmation
         var templateName = templateType switch
         {
             TemplateService.TemplateType.ScrumSprintCycle => "Daily Planning",
@@ -2541,7 +2358,6 @@
             _ => "Custom"
         };
 
-        // Get tab name suffix
         var tabNameSuffix = templateType switch
         {
             TemplateService.TemplateType.ScrumSprintCycle => "Daily Planning",
@@ -2554,20 +2370,16 @@
             _ => "Roadmap"
         };
 
-        // Show confirmation dialog
         var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
             $"Do you want to start a new {templateName} roadmap?\n\nThis will replace the current content and cannot be undone.");
 
         if (!confirmed) return;
 
-        // Apply template to current data
         TemplateService.ApplyTemplate(_data, templateType, DateTime.Now);
 
-        // Update tab name to reflect template
         _activeTab.Name = tabNameSuffix;
         _activeTab.LastModified = DateTime.UtcNow;
 
-        // Update editor and save
         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
         if (_editor != null && _editorReady)
@@ -2575,13 +2387,11 @@
             await _editor.SetValue(_currentJson);
         }
 
-        // Update active folder's last modified time
         if (_activeFolder != null)
         {
             _activeFolder.LastModified = DateTime.UtcNow;
         }
 
-        // Save to storage
         if (_folderManager != null)
         {
             await StorageService.SaveFolderManagerAsync(_folderManager);
@@ -2590,7 +2400,6 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    // === Footer Bar Style ===
 
     private string FooterBarStyle()
     {
@@ -2603,7 +2412,6 @@
                "width: 100%; flex-shrink: 0;";
     }
 
-    // === Toggle Button Styles ===
 
     private string GetViewModeToggleStyle() =>
         "width: 100%; height: 44px; padding: 4px; background: #1e1e1e; border: 1px solid #3a3a4e; border-radius: 8px; cursor: pointer; transition: all 0.2s;";
