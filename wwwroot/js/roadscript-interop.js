@@ -569,7 +569,7 @@ window.RoadScriptInterop = {
                 } else if (isRightEdge) {
                     element.style.cursor = 'e-resize'; // East resize for right edge (adjusts length)
                 } else {
-                    element.style.cursor = '';
+                    element.style.cursor = 'move'; // Move cursor for middle area (slides entire item)
                 }
             };
 
@@ -578,8 +578,10 @@ window.RoadScriptInterop = {
                 const x = e.clientX - rect.left;
                 const isLeftEdge = x <= resizeHandleWidth;
                 const isRightEdge = x >= rect.width - resizeHandleWidth;
+                const isMiddle = !isLeftEdge && !isRightEdge;
 
                 if (isLeftEdge || isRightEdge) {
+                    // Handle resize
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -595,6 +597,28 @@ window.RoadScriptInterop = {
 
                     const handleGlobalMouseUp = () => {
                         dotNetRef.invokeMethodAsync('EndResize');
+                        document.removeEventListener('mousemove', handleGlobalMouseMove);
+                        document.removeEventListener('mouseup', handleGlobalMouseUp);
+                    };
+
+                    document.addEventListener('mousemove', handleGlobalMouseMove);
+                    document.addEventListener('mouseup', handleGlobalMouseUp);
+                } else if (isMiddle) {
+                    // Handle move (slide entire item)
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const laneIndex = parseInt(element.getAttribute('data-lane-index'));
+                    const itemIndex = parseInt(element.getAttribute('data-item-index'));
+
+                    dotNetRef.invokeMethodAsync('StartMove', laneIndex, itemIndex, e.clientX);
+
+                    const handleGlobalMouseMove = (moveEvent) => {
+                        dotNetRef.invokeMethodAsync('UpdateMove', moveEvent.clientX);
+                    };
+
+                    const handleGlobalMouseUp = () => {
+                        dotNetRef.invokeMethodAsync('EndMove');
                         document.removeEventListener('mousemove', handleGlobalMouseMove);
                         document.removeEventListener('mouseup', handleGlobalMouseUp);
                     };

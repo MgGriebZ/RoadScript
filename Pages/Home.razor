@@ -633,6 +633,13 @@
     private double _resizeOriginalStart = 0;
     private double _resizeOriginalLength = 0;
 
+    // Drag-to-move state
+    private bool _isMoving = false;
+    private int _movingLaneIndex = -1;
+    private int _movingItemIndex = -1;
+    private double _moveStartX = 0;
+    private double _moveOriginalStart = 0;
+
     private const string DefaultJson = @"{
   ""title"": ""Bi-Weekly Sprint Roadmap"",
   ""subtitle"": ""2-week sprint cycle with ceremonies"",
@@ -1150,6 +1157,79 @@
         if (!_isResizing) return;
 
         _isResizing = false;
+
+        // Update the JSON editor with the new values
+        if (_data != null && _editor != null)
+        {
+            var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            _currentJson = updatedJson;
+            await _editor.SetValue(updatedJson);
+
+            if (_sessionManager != null && _activeTab != null && _folderManager != null)
+            {
+                _activeTab.Data = _data;
+                _activeTab.LastModified = DateTime.UtcNow;
+                await StorageService.SaveFolderManagerAsync(_folderManager);
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public void StartMove(int laneIndex, int itemIndex, double clientX)
+    {
+        if (_data == null || _isPreviewMode) return;
+
+        SaveHistorySnapshot();
+
+        _isMoving = true;
+        _movingLaneIndex = laneIndex;
+        _movingItemIndex = itemIndex;
+        _moveStartX = clientX;
+
+        var item = _data.Lanes[laneIndex].Items[itemIndex];
+        _moveOriginalStart = item.Start;
+    }
+
+    [JSInvokable]
+    public async Task UpdateMove(double clientX)
+    {
+        if (!_isMoving || _data == null) return;
+
+        try
+        {
+            var item = _data.Lanes[_movingLaneIndex].Items[_movingItemIndex];
+            var columnCount = _data.Columns.Count;
+            var deltaX = clientX - _moveStartX;
+
+            // Convert pixel delta to column percentage
+            var percentPerColumn = 100.0 / columnCount;
+            var deltaPercent = (deltaX / 1000.0) * percentPerColumn;
+
+            // Move the item: adjust start position only, keep length constant
+            var newStart = Math.Max(0, _moveOriginalStart + deltaPercent);
+            item.Start = RoundToQuarter(newStart);
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during move: {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public async Task EndMove()
+    {
+        if (!_isMoving) return;
+
+        _isMoving = false;
 
         // Update the JSON editor with the new values
         if (_data != null && _editor != null)
