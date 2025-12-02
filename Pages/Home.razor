@@ -338,7 +338,7 @@
                      class="quick-share-icon"
                      title="Open roadmap as PNG in new tab"
                      style="position: absolute; top: 16px; right: 16px; cursor: pointer; opacity: 0.4; transition: opacity 0.2s, transform 0.2s; z-index: 100; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.2)" : "rgba(0, 0, 0, 0.05)");">
-                    <Icon IconType="share" Size="20" Color="@(_isVibeMode ? "#a5b4fc" : "#6b7280")" />
+                    <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#a5b4fc" : "#6b7280")" />
                 </div>
 
                 <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
@@ -1112,21 +1112,22 @@
 
             if (_resizingEdge == "left")
             {
-                // Moving left edge: adjust start and length
+                // Moving left edge: adjust start position only
                 var newStart = Math.Max(0, _resizeOriginalStart + deltaPercent);
-                var newLength = _resizeOriginalLength - (newStart - _resizeOriginalStart);
+                var snappedStart = RoundToQuarter(newStart);
+                var newLength = _resizeOriginalLength - (snappedStart - _resizeOriginalStart);
 
-                if (newLength > 0.1) // Minimum length
+                if (newLength > 0.25) // Minimum length of 0.25
                 {
-                    item.Start = Math.Round(newStart, 2);
-                    item.Length = Math.Round(newLength, 2);
+                    item.Start = snappedStart;
+                    item.Length = RoundToQuarter(newLength);
                 }
             }
             else if (_resizingEdge == "right")
             {
                 // Moving right edge: adjust length only
-                var newLength = Math.Max(0.1, _resizeOriginalLength + deltaPercent);
-                item.Length = Math.Round(newLength, 2);
+                var newLength = Math.Max(0.25, _resizeOriginalLength + deltaPercent);
+                item.Length = RoundToQuarter(newLength);
             }
 
             await InvokeAsync(StateHasChanged);
@@ -1135,6 +1136,12 @@
         {
             Console.WriteLine($"Error during resize: {ex.Message}");
         }
+    }
+
+    private double RoundToQuarter(double value)
+    {
+        // Round to nearest 0.25 increment
+        return Math.Round(value * 4) / 4;
     }
 
     [JSInvokable]

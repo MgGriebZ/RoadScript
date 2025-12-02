@@ -564,8 +564,10 @@ window.RoadScriptInterop = {
                 const isLeftEdge = x <= resizeHandleWidth;
                 const isRightEdge = x >= rect.width - resizeHandleWidth;
 
-                if (isLeftEdge || isRightEdge) {
-                    element.style.cursor = 'col-resize';
+                if (isLeftEdge) {
+                    element.style.cursor = 'w-resize'; // West resize for left edge (adjusts start position)
+                } else if (isRightEdge) {
+                    element.style.cursor = 'e-resize'; // East resize for right edge (adjusts length)
                 } else {
                     element.style.cursor = '';
                 }
