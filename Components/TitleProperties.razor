@@ -22,6 +22,15 @@
     <div style="margin-top: 16px; padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 6px; font-size: 12px; color: #9ca3af;">
         <strong>Tip:</strong> The title and subtitle appear at the top of your roadmap.
     </div>
+
+    @* Milestone Management Section *@
+    <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
+        <label style="margin-bottom: 12px; font-weight: 600; color: #45B69C;">Milestone Management</label>
+
+        <button @onclick="AddMilestone" class="btn-add" type="button" style="width: 100%; background: linear-gradient(135deg, rgba(69, 182, 156, 0.2) 0%, rgba(69, 182, 156, 0.1) 100%); color: #45B69C; border: 1px solid rgba(69, 182, 156, 0.4); padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+            + Add New Milestone
+        </button>
+    </div>
 </div>
 
 @code {
@@ -36,4 +45,12 @@
 
     [Parameter]
     public EventCallback<(string PropertyName, object Value)> OnChange { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnAdd { get; set; }
+
+    private void AddMilestone()
+    {
+        OnAdd.InvokeAsync("milestone");
+    }
 }
