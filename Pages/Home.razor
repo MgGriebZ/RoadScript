@@ -1041,7 +1041,7 @@
     {
         if (_isVibeMode)
         {
-            return "flex: 1; background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%); overflow: auto; display: flex; flex-direction: column;";
+            return "flex: 1; background: linear-gradient(135deg, #0a0a14 0%, #121220 25%, #1a1a2e 50%, #121220 75%, #0a0a14 100%); overflow: auto; display: flex; flex-direction: column;";
         }
         return "flex: 1; background: #e8eaed; overflow: auto; display: flex; flex-direction: column;";
     }
@@ -1122,10 +1122,10 @@
         if (_isVibeMode)
         {
             return $"{widthStyle} {maxWidthStyle} aspect-ratio: 16/9; " +
-                  "background: linear-gradient(135deg, #1e1e2f 0%, #2a2a3e 100%); " +
+                  "background: linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 50%, #0d0d1a 100%); " +
                   "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
-                  "padding: 22px 30px; border: 1px solid #3a3a4e; position: relative; " +
-                  "box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);";
+                  "padding: 22px 30px; border: 2px solid #667eea; position: relative; " +
+                  "box-shadow: 0 0 40px rgba(102, 126, 234, 0.3), 0 8px 32px rgba(0, 0, 0, 0.6);";
         }
         return $"{widthStyle} {maxWidthStyle} aspect-ratio: 16/9; background: #fafbfc; " +
               "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
@@ -1146,14 +1146,14 @@
         if (_isVibeMode)
         {
             var vibeColor = GetVibeColor(color);
-            return $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {vibeColor}; box-shadow: 0 0 10px {vibeColor}80;";
+            return $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {vibeColor}; box-shadow: 0 0 15px {vibeColor}, 0 0 5px {vibeColor}80;";
         }
         return $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {color};";
     }
 
     private string HistoryBarContainerStyle() =>
         _isVibeMode
-            ? "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: #2a2a3e;"
+            ? "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.1);"
             : "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: #e5e7eb;";
 
     private string HistoryProgressStyle(string color, double pct)
@@ -1161,7 +1161,7 @@
         if (_isVibeMode)
         {
             var vibeColor = GetVibeColor(color);
-            return $"width: {pct:F2}%; background: {vibeColor}; box-shadow: 0 0 8px {vibeColor}60;";
+            return $"width: {pct:F2}%; background: {vibeColor}; box-shadow: 0 0 12px {vibeColor};";
         }
         return $"width: {pct:F2}%; background: {color};";
     }
@@ -1180,9 +1180,9 @@
         if (_isVibeMode)
         {
             var bg = index % 2 == 0
-                ? "background: linear-gradient(180deg, #2a2a3e 0%, #252538 100%);"
-                : "background: linear-gradient(180deg, #252538 0%, #2a2a3e 100%);";
-            var border = index > 0 ? "border-left: 1px solid #3a3a4e;" : "";
+                ? "background: linear-gradient(180deg, rgba(26, 26, 46, 0.95) 0%, rgba(18, 18, 36, 0.95) 100%);"
+                : "background: linear-gradient(180deg, rgba(18, 18, 36, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%);";
+            var border = index > 0 ? "border-left: 1px solid rgba(102, 126, 234, 0.3);" : "";
             return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} {bg}";
         }
         else
@@ -1195,7 +1195,7 @@
 
     private string MilestoneScaleContainerStyle() =>
         _isVibeMode
-            ? "position: relative; height: 40px; border-bottom: 2px solid #3a3a4e; display: flex; align-items: center; background: linear-gradient(180deg, #252538 0%, #2a2a3e 100%);"
+            ? "position: relative; height: 40px; border-bottom: 2px solid rgba(102, 126, 234, 0.4); display: flex; align-items: center; background: linear-gradient(180deg, rgba(18, 18, 36, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);"
             : "position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
 
     private string MilestoneStyle(double position) =>
@@ -1204,10 +1204,15 @@
     private string MilestoneContainerStyle() =>
         "display: flex; flex-direction: column; align-items: center; gap: 4px;";
 
-    private string MilestoneLabelStyle(string color) =>
-        _isVibeMode
-            ? $"font-size: 15px; font-weight: 700; line-height: 1.3; color: #e0e7ff; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,0.5); background: rgba(30, 30, 46, 0.95); padding: 4px 10px; border-radius: 4px; border-left: 3px solid {color};"
-            : $"font-size: 15px; font-weight: 700; line-height: 1.3; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.98); padding: 4px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 3px solid {color};";
+    private string MilestoneLabelStyle(string color)
+    {
+        if (_isVibeMode)
+        {
+            var vibeColor = GetVibeColor(color);
+            return $"font-size: 15px; font-weight: 700; line-height: 1.3; color: {vibeColor}; white-space: nowrap; text-shadow: 0 0 10px {vibeColor}80, 0 1px 3px rgba(0,0,0,0.8); background: rgba(13, 13, 26, 0.95); padding: 4px 10px; border-radius: 4px; border: 1px solid {vibeColor}60; border-left: 3px solid {vibeColor}; box-shadow: 0 0 15px {vibeColor}40;";
+        }
+        return $"font-size: 15px; font-weight: 700; line-height: 1.3; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.98); padding: 4px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 3px solid {color};";
+    }
 
 
     private string GridColumnStyle(int index)
@@ -1215,9 +1220,9 @@
         if (_isVibeMode)
         {
             var bg = index % 2 == 0
-                ? "background: linear-gradient(180deg, #2a2a3e 0%, #252538 100%);"
-                : "background: linear-gradient(180deg, #252538 0%, #2a2a3e 100%);";
-            var border = index > 0 ? "border-left: 1px solid #3a3a4e;" : "";
+                ? "background: linear-gradient(180deg, rgba(26, 26, 46, 0.4) 0%, rgba(18, 18, 36, 0.4) 100%);"
+                : "background: linear-gradient(180deg, rgba(18, 18, 36, 0.4) 0%, rgba(26, 26, 46, 0.4) 100%);";
+            var border = index > 0 ? "border-left: 1px solid rgba(102, 126, 234, 0.15);" : "";
             return $"flex: 1; {border} {bg}";
         }
         else
@@ -1234,7 +1239,7 @@
         var totalHeight = _data?.Lanes.Sum(l => l.Height ?? 1.0) ?? laneCount;
         var laneHeight = lane.Height ?? 1.0;
         var heightPercent = (laneHeight / totalHeight) * 100.0;
-        var borderColor = _isVibeMode ? "#3a3a4e" : "#e5e7eb";
+        var borderColor = _isVibeMode ? "rgba(102, 126, 234, 0.2)" : "#e5e7eb";
         var border = index < laneCount - 1 ? $"border-bottom: 1px solid {borderColor};" : "";
         return $"height: {heightPercent}%; position: relative; {border}";
     }
@@ -1294,7 +1299,7 @@
     {
         if (_isVibeMode)
         {
-            return $"font-size: 18px; color: #d1d5db; line-height: 1.5; padding-left: 14px; position: relative;";
+            return $"font-size: 18px; color: #e5e7eb; line-height: 1.5; padding-left: 14px; position: relative;";
         }
         return $"font-size: 18px; color: #4b5563; line-height: 1.5; padding-left: 14px; position: relative;";
     }
@@ -1304,7 +1309,7 @@
         if (_isVibeMode)
         {
             var vibeColor = GetVibeColor(color);
-            return $"position: absolute; left: 0; color: {vibeColor}; font-weight: 700; text-shadow: 0 0 8px {vibeColor}80;";
+            return $"position: absolute; left: 0; color: {vibeColor}; font-weight: 700; text-shadow: 0 0 12px {vibeColor}, 0 0 4px {vibeColor}80;";
         }
         return $"position: absolute; left: 0; color: {color}; font-weight: 700;";
     }
@@ -1312,12 +1317,12 @@
 
     private string TitleStyle() =>
         _isVibeMode
-            ? "margin: 0; font-size: 36px; font-weight: 700; color: #e0e7ff; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 20px rgba(224, 231, 255, 0.3);"
+            ? "margin: 0; font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 50%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5);"
             : "margin: 0; font-size: 36px; font-weight: 700; color: #1a1a2e; letter-spacing: -0.5px; line-height: 1.2;";
 
     private string SubtitleStyle() =>
         _isVibeMode
-            ? "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #a5b4fc; font-weight: 500;"
+            ? "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #c4b5fd; font-weight: 500; text-shadow: 0 0 8px rgba(196, 181, 253, 0.4);"
             : "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #6b7280; font-weight: 500;";
 
     private string TitleContainerStyle()
@@ -1332,22 +1337,22 @@
 
     private string LaneTitleStyle() =>
         _isVibeMode
-            ? "font-size: 16px; font-weight: 700; color: #d1d5db; line-height: 1.3;"
+            ? "font-size: 16px; font-weight: 700; color: #e5e7eb; line-height: 1.3; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);"
             : "font-size: 16px; font-weight: 700; color: #374151; line-height: 1.3;";
 
     private string ColumnHeaderContainerStyle() =>
         _isVibeMode
-            ? "display: flex; height: 48px; border-bottom: 2px solid #3a3a4e; position: relative;"
+            ? "display: flex; height: 48px; border-bottom: 2px solid rgba(102, 126, 234, 0.4); position: relative; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);"
             : "display: flex; height: 48px; border-bottom: 2px solid #e5e7eb; position: relative;";
 
     private string ColumnLabelStyle() =>
         _isVibeMode
-            ? "font-size: 20px; font-weight: 700; line-height: 1.3; color: #e0e7ff;"
+            ? "font-size: 20px; font-weight: 700; line-height: 1.3; color: #a5b4fc; text-shadow: 0 0 10px rgba(165, 180, 252, 0.5);"
             : "font-size: 20px; font-weight: 700; line-height: 1.3; color: #1f2937;";
 
     private string ColumnSubStyle() =>
         _isVibeMode
-            ? "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;"
+            ? "font-size: 13px; line-height: 1.4; color: #c4b5fd; font-weight: 500;"
             : "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;";
 
     private string ItemHeaderStyle(bool hasDetails, bool hasSubs, bool hasTitle, double span, string laneColor)
@@ -1359,9 +1364,11 @@
 
             if (_isVibeMode)
             {
-                var background = $"background: linear-gradient(135deg, {laneColor}25 0%, {laneColor}15 100%);";
-                var border = $"border-bottom: 2px solid {laneColor}30;";
-                var shadow = $"box-shadow: 0 2px 8px {laneColor}15;";
+                var vibeColor = GetVibeColor(laneColor);
+                var rgb = HexToRgb(vibeColor);
+                var background = $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.25) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.10) 100%);";
+                var border = $"border-bottom: 2px solid rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.4);";
+                var shadow = $"box-shadow: 0 3px 10px rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.2);";
 
                 return $"display: flex; align-items: center; justify-content: center; padding: 14px; {background} {border} {shadow} {iconOnlyMargin}";
             }
@@ -1380,9 +1387,11 @@
 
         if (_isVibeMode)
         {
-            var background = $"background: linear-gradient(135deg, {laneColor}25 0%, {laneColor}15 100%);";
-            var border = $"border-bottom: 2px solid {laneColor}30;";
-            var shadow = $"box-shadow: 0 2px 8px {laneColor}15;";
+            var vibeColor = GetVibeColor(laneColor);
+            var rgb = HexToRgb(vibeColor);
+            var background = $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.25) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.10) 100%);";
+            var border = $"border-bottom: 2px solid rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.4);";
+            var shadow = $"box-shadow: 0 3px 10px rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.2);";
             var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
 
             return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {shadow} {margin}";
@@ -1404,7 +1413,7 @@
         var margin = hasDetails ? "margin: 0 0 8px 0;" : "margin: 0;";
 
         return _isVibeMode
-            ? $"{margin} font-size: {baseSize}; font-weight: 700; color: #f3f4f6; line-height: 1.25;"
+            ? $"{margin} font-size: {baseSize}; font-weight: 700; color: #f9fafb; line-height: 1.25; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);"
             : $"{margin} font-size: {baseSize}; font-weight: 700; color: #1f2937; line-height: 1.25;";
     }
 
@@ -1432,33 +1441,110 @@
 
     private string SubBulletStyle() =>
         _isVibeMode
-            ? "font-size: 15px; color: #9ca3af; line-height: 1.5; padding-left: 22px; position: relative; margin-bottom: 2px;"
+            ? "font-size: 15px; color: #d1d5db; line-height: 1.5; padding-left: 22px; position: relative; margin-bottom: 2px;"
             : "font-size: 15px; color: #6b7280; line-height: 1.5; padding-left: 22px; position: relative; margin-bottom: 2px;";
 
     private string SubBulletDashStyle() =>
         _isVibeMode
-            ? "position: absolute; left: 14px; color: #6b7280; font-size: 15px;"
+            ? "position: absolute; left: 14px; color: #9ca3af; font-size: 15px;"
             : "position: absolute; left: 14px; color: #9ca3af; font-size: 15px;";
 
-    private string GetVibeColor(string hexColor) =>
-        hexColor.ToLower() switch
-        {
-            "#45b69c" => "#00ffcc",
-            "#4a90d9" => "#4da6ff",
-            "#d4a520" => "#ffd700",
-            "#9b7ed9" => "#b794f6",
-            _ => "#00e5ff"
-        };
+    private string GetVibeColor(string hexColor)
+    {
+        var rgb = HexToRgb(hexColor);
+        var hsl = RgbToHsl(rgb.r, rgb.g, rgb.b);
 
-    private string GetVibeGradient(string hexColor) =>
-        hexColor.ToLower() switch
+        // Boost saturation for neon effect (min 80%)
+        hsl.s = Math.Max(0.80, hsl.s * 1.4);
+        hsl.s = Math.Min(1.0, hsl.s);
+
+        // Increase lightness for dark backgrounds (aim for 60-75%)
+        hsl.l = Math.Max(0.60, Math.Min(0.75, hsl.l * 1.3));
+
+        var vibeRgb = HslToRgb(hsl.h, hsl.s, hsl.l);
+        return $"#{vibeRgb.r:X2}{vibeRgb.g:X2}{vibeRgb.b:X2}";
+    }
+
+    private string GetVibeGradient(string hexColor)
+    {
+        var vibeColor = GetVibeColor(hexColor);
+        var rgb = HexToRgb(vibeColor);
+
+        // Create gradient with transparency for layering effect
+        return $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.20) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.08) 100%);";
+    }
+
+    private (int r, int g, int b) HexToRgb(string hex)
+    {
+        hex = hex.TrimStart('#');
+        if (hex.Length == 3)
         {
-            "#45b69c" => "background: linear-gradient(135deg, rgba(0, 255, 204, 0.15) 0%, rgba(0, 229, 255, 0.1) 100%);",
-            "#4a90d9" => "background: linear-gradient(135deg, rgba(77, 166, 255, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%);",
-            "#d4a520" => "background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.1) 100%);",
-            "#9b7ed9" => "background: linear-gradient(135deg, rgba(183, 148, 246, 0.15) 0%, rgba(118, 75, 162, 0.1) 100%);",
-            _ => "background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%);"
-        };
+            hex = $"{hex[0]}{hex[0]}{hex[1]}{hex[1]}{hex[2]}{hex[2]}";
+        }
+
+        var r = Convert.ToInt32(hex.Substring(0, 2), 16);
+        var g = Convert.ToInt32(hex.Substring(2, 2), 16);
+        var b = Convert.ToInt32(hex.Substring(4, 2), 16);
+
+        return (r, g, b);
+    }
+
+    private (double h, double s, double l) RgbToHsl(int r, int g, int b)
+    {
+        double rd = r / 255.0;
+        double gd = g / 255.0;
+        double bd = b / 255.0;
+
+        double max = Math.Max(rd, Math.Max(gd, bd));
+        double min = Math.Min(rd, Math.Min(gd, bd));
+        double delta = max - min;
+
+        double h = 0, s = 0, l = (max + min) / 2.0;
+
+        if (delta != 0)
+        {
+            s = l > 0.5 ? delta / (2.0 - max - min) : delta / (max + min);
+
+            if (max == rd)
+                h = ((gd - bd) / delta + (gd < bd ? 6 : 0)) / 6.0;
+            else if (max == gd)
+                h = ((bd - rd) / delta + 2) / 6.0;
+            else
+                h = ((rd - gd) / delta + 4) / 6.0;
+        }
+
+        return (h, s, l);
+    }
+
+    private (int r, int g, int b) HslToRgb(double h, double s, double l)
+    {
+        double r, g, b;
+
+        if (s == 0)
+        {
+            r = g = b = l;
+        }
+        else
+        {
+            double q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            double p = 2 * l - q;
+            r = HueToRgb(p, q, h + 1.0/3.0);
+            g = HueToRgb(p, q, h);
+            b = HueToRgb(p, q, h - 1.0/3.0);
+        }
+
+        return ((int)(r * 255), (int)(g * 255), (int)(b * 255));
+    }
+
+    private double HueToRgb(double p, double q, double t)
+    {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1.0/6.0) return p + (q - p) * 6 * t;
+        if (t < 1.0/2.0) return q;
+        if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6;
+        return p;
+    }
 
     private string GetElementClass(string jsonPath)
     {
