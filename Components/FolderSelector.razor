@@ -20,7 +20,7 @@
                     <div class="folder-hex-inner" style="background-color: @folder.Color;">
                         <div class="folder-header" style="background-color: @folder.Color; padding: 10px 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
                             <Icon IconType="@(folder.Icon ?? "folder")" Size="16" Color="#ffffff" />
-                            <span class="folder-number">Folder @folderNumber</span>
+                            <span class="folder-number">@folder.Name</span>
                         </div>
                         <div class="folder-roadmaps">
                             @foreach (var tab in folder.SessionManager.Tabs)
@@ -84,41 +84,33 @@
                         </button>
                     </div>
 
-                    @* Icon and Color Controls Inline *@
+                    @* Icon and Color Controls - Side by Side *@
                     <div class="icon-color-row">
-                        @* Icon Picker *@
+                        @* Large Icon Preview *@
                         <div class="inline-control">
                             <label>Icon</label>
-                            <button class="btn-icon-compact"
+                            <button class="btn-icon-large"
                                     @onclick="@(() => _showIconPicker = !_showIconPicker)"
                                     disabled="@(ActiveFolderId == null)"
-                                    title="Choose icon">
-                                <Icon IconType="@(GetActiveFolderIcon() ?? "folder")" Color="@GetActiveFolderColor()" Size="20" />
-                                <span class="dropdown-arrow" style="transform: rotate(@(_showIconPicker ? "180deg" : "0deg"));">▼</span>
+                                    title="Click to choose icon">
+                                <Icon IconType="@(GetActiveFolderIcon() ?? "folder")" Color="@GetActiveFolderColor()" Size="36" />
                             </button>
                         </div>
 
-                        @* Color Presets - Quick Pick *@
+                        @* All Color Presets Grid *@
                         <div class="inline-control" style="flex: 1;">
                             <label>Color</label>
-                            <div class="color-quick-pick">
-                                @foreach (var preset in _colorPresets.Take(6))
+                            <div class="color-grid-inline">
+                                @foreach (var preset in _colorPresets)
                                 {
                                     <button type="button"
                                             @onclick="@(() => SelectColor(preset.Value))"
                                             disabled="@(ActiveFolderId == null)"
                                             title="@preset.Name"
-                                            class="color-swatch @(preset.Value.Equals(GetActiveFolderColor(), StringComparison.OrdinalIgnoreCase) ? "selected" : "")"
+                                            class="color-swatch-inline @(preset.Value.Equals(GetActiveFolderColor(), StringComparison.OrdinalIgnoreCase) ? "selected" : "")"
                                             style="background: @preset.Value;">
                                     </button>
                                 }
-                                <button type="button"
-                                        @onclick="@(() => _showColorPicker = !_showColorPicker)"
-                                        disabled="@(ActiveFolderId == null)"
-                                        class="color-more-btn"
-                                        title="More colors">
-                                    +@(_colorPresets.Count - 6)
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -132,24 +124,6 @@
                                        OnIconSelected="HandleIconChange"
                                        ShowCategories="false"
                                        ColumnsPerRow="5" />
-                        </div>
-                    }
-
-                    @* Expandable Color Picker *@
-                    @if (_showColorPicker && ActiveFolderId != null)
-                    {
-                        <div class="expandable-panel">
-                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
-                                @foreach (var preset in _colorPresets)
-                                {
-                                    <button type="button"
-                                            @onclick="@(() => SelectColor(preset.Value))"
-                                            title="@preset.Name"
-                                            style="@GetPresetColorButtonStyle(preset.Value)">
-                                        <span style="width: 100%; height: 100%; display: block; border-radius: 3px; background: @preset.Value;"></span>
-                                    </button>
-                                }
-                            </div>
                         </div>
                     }
                 </div>
@@ -179,7 +153,6 @@
     [Parameter] public EventCallback<string> OnColorChange { get; set; }
     [Parameter] public EventCallback<string> OnIconChange { get; set; }
 
-    private bool _showColorPicker = false;
     private bool _showIconPicker = false;
 
     private async Task HandleFolderSelect(string folderId)
@@ -220,7 +193,6 @@
     private async Task SelectColor(string color)
     {
         await HandleColorChange(color);
-        _showColorPicker = false;
     }
 
     private async Task HandleIconChange(string icon)
@@ -602,75 +574,54 @@
         font-weight: 600;
     }
 
-    .btn-icon-compact {
-        width: 60px;
-        height: 50px;
+    .btn-icon-large {
+        width: 80px;
+        height: 80px;
         background: #252538;
         border: 1px solid #3a3a4e;
         border-radius: 6px;
         cursor: pointer;
         transition: all 0.2s;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 4px;
-        position: relative;
     }
 
-    .btn-icon-compact:hover:not(:disabled) {
+    .btn-icon-large:hover:not(:disabled) {
         border-color: #667eea;
         background: #2a2a3e;
+        transform: scale(1.02);
     }
 
-    .dropdown-arrow {
-        font-size: 8px;
-        color: #666;
-        transition: transform 0.2s;
+    .btn-icon-large:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
     }
 
-    .color-quick-pick {
-        display: flex;
-        gap: 4px;
-        flex-wrap: wrap;
+    .color-grid-inline {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
     }
 
-    .color-swatch {
-        width: 28px;
-        height: 28px;
+    .color-swatch-inline {
+        width: 100%;
+        aspect-ratio: 1;
+        min-height: 32px;
         border: 2px solid #3a3a4e;
         border-radius: 4px;
         cursor: pointer;
         transition: all 0.2s;
     }
 
-    .color-swatch.selected {
+    .color-swatch-inline.selected {
         border-color: #667eea;
         box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);
     }
 
-    .color-swatch:hover:not(:disabled) {
-        transform: scale(1.1);
+    .color-swatch-inline:hover:not(:disabled) {
+        transform: scale(1.05);
         border-color: #ffffff;
-    }
-
-    .color-more-btn {
-        width: 28px;
-        height: 28px;
-        border: 1px dashed #555;
-        background: #2a2a2a;
-        color: #888;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 10px;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-
-    .color-more-btn:hover:not(:disabled) {
-        border-color: #667eea;
-        color: #667eea;
-        background: rgba(102, 126, 234, 0.1);
     }
 
     .expandable-panel {
