@@ -602,222 +602,255 @@ public class TemplateService
             Title = "Daily Planning",
             Subtitle = "Made with RoadScript.NET... a MgGriebZ project",
             Columns = new List<Column>
-            {
-                new Column { Id = null, Label = "Thursday", Sub = "" },
-                new Column { Id = null, Label = "Friday", Sub = "" },
-                new Column { Id = null, Label = "Weekend", Sub = "Sat/Sun" },
-                new Column { Id = null, Label = "Monday", Sub = "" },
-                new Column { Id = null, Label = "Tuesday", Sub = "" },
-                new Column { Id = null, Label = "Wednesday", Sub = "3:00PM est" }
-            },
+        {
+            new Column { Id = null, Label = "Monday", Sub = "" },
+            new Column { Id = null, Label = "Tuesday", Sub = "" },
+            new Column { Id = null, Label = "Wednesday", Sub = "" },
+            new Column { Id = null, Label = "Thursday", Sub = "" },
+            new Column { Id = null, Label = "Friday", Sub = "" }
+        },
             Milestones = new List<Milestone>
-            {
-                new Milestone { Start = 91, Title = "Deployment Cutoff Time", Icon = "triangle", Color = "#EF4444" },
-                new Milestone { Start = 38, Title = "Production Deployments", Icon = "rocket", Color = "#025f40" }
-            },
+        {
+            new Milestone { Start = 55, Title = "Deployment Cutoff", Icon = "triangle", Color = "#EF4444" }
+        },
             Lanes = new List<Lane>
+        {
+            new Lane
             {
-                new Lane
+                Id = null,
+                Title = "Week 1",
+                Color = "#9999ff",
+                Height = 1.0,
+                History = new History
                 {
-                    Id = null,
-                    Title = "Week 1",
-                    Color = "#9999ff",
-                    Height = 0.9,
-                    History = new History { Start = "Sprint Start", End = "", Percent = 50, Origin = "left" },
-                    Items = new List<Item>
+                    Start = "<->",
+                    End = "Sprint Starts",
+                    Percent = 25,
+                    Origin = "right"
+                },
+                Items = new List<Item>
+                {
+                    new Item
                     {
-                        new Item
+                        Id = null,
+                        Title = "Planning",
+                        Start = 3,
+                        Length = 1,
+                        Spanning = true,
+                        Icon = "chart",
+                        Color = "#45B69C",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>()
+                    },
+                    new Item
+                    {
+                        Id = null,
+                        Title = "Review",
+                        Start = 4,
+                        Length = 1,
+                        Spanning = false,
+                        Icon = "trophy",
+                        Color = "#6366F1",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>()
+                    },
+                    new Item
+                    {
+                        Id = null,
+                        Title = "Refinement",
+                        Start = 1,
+                        Length = 2,
+                        Spanning = true,
+                        Icon = "search",
+                        Color = "#4A2C1A",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>
                         {
-                            Id = null,
-                            Title = "Stakeholder Prioritization",
-                            Start = 3,
-                            Length = 1,
-                            Spanning = true,
-                            Icon = "star",
-                            Color = "#D4A520",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = null
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Refinement",
-                            Start = 5,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "search",
-                            Color = "#45B69C",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = null
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Sprint Planning",
-                            Start = 0,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "calendar",
-                            Color = "#45B69C",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
+                            new Detail
                             {
-                                new Detail
-                                {
-                                    Text = "Team 1",
-                                    Subs = new List<string>
-                                    {
-                                        "Feature X",
-                                        "Task ABC"
-                                    }
-                                },
-                                new Detail
-                                {
-                                    Text = "Team 2",
-                                    Subs = new List<string>
-                                    {
-                                        "QC / Testing"
-                                    }
-                                }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Sprint Review",
-                            Start = 1,
-                            Length = 1,
-                            Spanning = true,
-                            Icon = "star",
-                            Color = "#E6B800",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail
-                                {
-                                    Text = "RoadScript",
-                                    Subs = new List<string>
-                                    {
-                                        "Template Demo"
-                                    }
-                                }
+                                Text = "Task Notes",
+                                Subs = new List<string> { "Details" }
                             }
                         }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "Week 2",
-                    Color = "#EC4899",
-                    Height = 0.9,
-                    History = new History { Start = ".", End = "Sprint End", Percent = 50, Origin = "right" },
-                    Items = new List<Item>
+                    },
+                    new Item
                     {
-                        new Item
+                        Id = null,
+                        Title = "Prioritization",
+                        Start = 0,
+                        Length = 1,
+                        Spanning = false,
+                        Icon = "star",
+                        Color = "#E6B800",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>
                         {
-                            Id = null,
-                            Title = "Refinement",
-                            Start = 4,
-                            Length = 2,
-                            Spanning = false,
-                            Icon = "search",
-                            Color = "#45B69C",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail
-                                {
-                                    Text = "Drag N Drop tech stack",
-                                    Subs = new List<string>()
-                                }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Retro",
-                            Start = 1,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "pause",
-                            Color = "#45B69C",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail
-                                {
-                                    Text = "Better requirements",
-                                    Subs = new List<string>()
-                                },
-                                new Detail
-                                {
-                                    Text = "More meetings",
-                                    Subs = new List<string>()
-                                },
-                                new Detail
-                                {
-                                    Text = "Higher pay",
-                                    Subs = new List<string>()
-                                }
-                            }
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "IT Development",
-                    Color = "#1E3A8A",
-                    Height = 0.6,
-                    History = null,
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Sprint Execution",
-                            Start = 0,
-                            Length = 6,
-                            Spanning = true,
-                            Icon = "code",
-                            Color = "#1E3A8A",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = null
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Maintenance Window",
-                            Start = 2,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "wrench",
-                            Color = "#025f40",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail
-                                {
-                                    Text = "Saturday",
-                                    Subs = new List<string>
-                                    {
-                                        "3:00PM - 11:59PM est"
-                                    }
-                                }
-                            }
+                            new Detail { Text = "Task 123", Subs = new List<string>() },
+                            new Detail { Text = "Task 456", Subs = new List<string>() }
                         }
                     }
                 }
+            },
+            new Lane
+            {
+                Id = null,
+                Title = "Week 2",
+                Color = "#F88379",
+                Height = 1.0,
+                History = new History
+                {
+                    Start = "Full week sprint work",
+                    End = "",
+                    Percent = 100,
+                    Origin = "left"
+                },
+                Items = new List<Item>
+                {
+                    new Item
+                    {
+                        Id = null,
+                        Title = "Retro",
+                        Start = 4,
+                        Length = 1,
+                        Spanning = false,
+                        Icon = "pause",
+                        Color = "#EC4899",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>()
+                    },
+                    new Item
+                    {
+                        Id = null,
+                        Title = "Refinement",
+                        Start = 2,
+                        Length = 1,
+                        Spanning = false,
+                        Icon = "search",
+                        Color = "#4A2C1A",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>()
+                    }
+                }
+            },
+            new Lane
+            {
+                Id = null,
+                Title = "Week 3",
+                Color = "#6366F1",
+                Height = 1.0,
+                History = new History
+                {
+                    Start = "Sprint ends",
+                    End = "",
+                    Percent = 75,
+                    Origin = "left"
+                },
+                Items = new List<Item>
+                {
+                    new Item
+                    {
+                        Id = null,
+                        Title = "",
+                        Start = 3,
+                        Length = 1,
+                        Spanning = false,
+                        Icon = "chart",
+                        Color = "#45B69C",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>()
+                    },
+                    new Item
+                    {
+                        Id = null,
+                        Title = "",
+                        Start = 0,
+                        Length = 1,
+                        Spanning = false,
+                        Icon = "star",
+                        Color = "#E6B800",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>()
+                    },
+                    new Item
+                    {
+                        Id = null,
+                        Title = "",
+                        Start = 1,
+                        Length = 2,
+                        Spanning = false,
+                        Icon = "search",
+                        Color = "#4A2C1A",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>()
+                    },
+                    new Item
+                    {
+                        Id = null,
+                        Title = "",
+                        Start = 4,
+                        Length = 1,
+                        Spanning = false,
+                        Icon = "trophy",
+                        Color = "#6366F1",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>()
+                    }
+                }
+            },
+            new Lane
+            {
+                Id = null,
+                Title = "Week 4",
+                Color = "#EC4899",
+                Height = null,
+                History = new History
+                {
+                    Start = "<->",
+                    End = "Repeat",
+                    Percent = 0,
+                    Origin = "left"
+                },
+                Items = new List<Item>
+                {
+                    new Item
+                    {
+                        Id = null,
+                        Title = "",
+                        Start = 2,
+                        Length = 1,
+                        Spanning = false,
+                        Icon = "search",
+                        Color = "#4A2C1A",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>()
+                    },
+                    new Item
+                    {
+                        Id = null,
+                        Title = "",
+                        Start = 4,
+                        Length = 1,
+                        Spanning = false,
+                        Icon = "pause",
+                        Color = "#EC4899",
+                        Greyed = false,
+                        Hidden = false,
+                        Details = new List<Detail>()
+                    }
+                }
             }
+        }
         };
     }
 
