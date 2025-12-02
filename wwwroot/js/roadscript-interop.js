@@ -547,7 +547,7 @@ window.RoadScriptInterop = {
      */
     setupAllItemResize: function(dotNetRef) {
         const elements = document.querySelectorAll('.roadmap-item-resizable');
-        const resizeHandleWidth = 8; // Width of the resize handle area in pixels
+        const resizeHandleWidth = 15; // Width of the resize handle area in pixels (increased from 8 to 15)
 
         elements.forEach(element => {
             // Remove existing listeners to avoid duplicates
@@ -565,11 +565,17 @@ window.RoadScriptInterop = {
                 const isRightEdge = x >= rect.width - resizeHandleWidth;
 
                 if (isLeftEdge) {
-                    element.style.cursor = 'w-resize'; // West resize for left edge (adjusts start position)
+                    element.style.cursor = 'col-resize'; // Column resize for left edge (adjusts start position)
+                    element.style.borderLeft = '3px solid rgba(102, 126, 234, 0.6)'; // Visual indicator
+                    element.style.borderRight = '';
                 } else if (isRightEdge) {
-                    element.style.cursor = 'e-resize'; // East resize for right edge (adjusts length)
+                    element.style.cursor = 'col-resize'; // Column resize for right edge (adjusts length)
+                    element.style.borderRight = '3px solid rgba(102, 126, 234, 0.6)'; // Visual indicator
+                    element.style.borderLeft = '';
                 } else {
                     element.style.cursor = 'move'; // Move cursor for middle area (slides entire item)
+                    element.style.borderLeft = '';
+                    element.style.borderRight = '';
                 }
             };
 
