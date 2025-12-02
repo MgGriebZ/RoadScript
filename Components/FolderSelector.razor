@@ -18,8 +18,9 @@
                 <div class="folder-hex @(folder.Id == ActiveFolderId ? "active" : "")"
                      @onclick="@(() => HandleFolderSelect(folder.Id))">
                     <div class="folder-hex-inner" style="background-color: @folder.Color;">
-                        <div class="folder-header" style="background-color: @folder.Color; padding: 10px 12px;">
-                            <span class="folder-number">Folder @folderNumber</span>
+                        <div class="folder-header" style="background-color: @folder.Color; padding: 10px 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <Icon IconType="@(folder.Icon ?? "folder")" Size="16" Color="#ffffff" />
+                            <span class="folder-number">@folder.Name</span>
                         </div>
                         <div class="folder-roadmaps">
                             @foreach (var tab in folder.SessionManager.Tabs)
@@ -55,50 +56,74 @@
         @if (Folders.Count > 0)
         {
             <div class="folder-actions">
-                @* Folder reorder controls *@
-                <div class="folder-controls">
-                    <button class="btn-move-left"
-                            @onclick="@(() => HandleMoveFolderLeft(ActiveFolderId))"
-                            disabled="@(GetActiveFolderIndex() <= 0 || ActiveFolderId == null)"
-                            title="Move folder left">
-                        <span class="arrow-icon">◀</span>
-                    </button>
+                @* Active Folder Controls - Compact Inline Layout *@
+                <div class="folder-controls-compact">
+                    @* Active Folder Name with Edit and Arrows *@
+                    <div class="folder-name-row">
+                        <button class="btn-move-arrow"
+                                @onclick="@(() => HandleMoveFolderLeft(ActiveFolderId))"
+                                disabled="@(GetActiveFolderIndex() <= 0 || ActiveFolderId == null)"
+                                title="Move folder left">
+                            ◀
+                        </button>
 
-                    <div class="active-folder-indicator">
-                        <span class="folder-label">Active Folder:</span>
-                        <span class="folder-info">Folder @(GetActiveFolderIndex() + 1)</span>
+                        <button class="btn-edit-name-inline"
+                                @onclick="HandleRenameFolder"
+                                disabled="@(ActiveFolderId == null)"
+                                title="Click to edit folder name">
+                            <Icon IconType="@(GetActiveFolderIcon() ?? "folder")" Size="18" Color="@GetActiveFolderColor()" />
+                            <span class="folder-name-text">@(GetActiveFolderName())</span>
+                            <Icon IconType="edit" Size="14" Color="#888" />
+                        </button>
+
+                        <button class="btn-move-arrow"
+                                @onclick="@(() => HandleMoveFolderRight(ActiveFolderId))"
+                                disabled="@(GetActiveFolderIndex() >= Folders.Count - 1 || ActiveFolderId == null)"
+                                title="Move folder right">
+                            ▶
+                        </button>
                     </div>
 
-                    <button class="btn-move-right"
-                            @onclick="@(() => HandleMoveFolderRight(ActiveFolderId))"
-                            disabled="@(GetActiveFolderIndex() >= Folders.Count - 1 || ActiveFolderId == null)"
-                            title="Move folder right">
-                        <span class="arrow-icon">▶</span>
-                    </button>
-                </div>
+                    @* Icon and Color Controls - Side by Side *@
+                    <div class="icon-color-row">
+                        @* Large Icon Preview *@
+                        <div class="inline-control">
+                            <label>Icon</label>
+                            <button class="btn-icon-large"
+                                    @onclick="@(() => _showIconPicker = !_showIconPicker)"
+                                    disabled="@(ActiveFolderId == null)"
+                                    title="Click to choose icon">
+                                <Icon IconType="@(GetActiveFolderIcon() ?? "folder")" Color="@GetActiveFolderColor()" Size="36" />
+                            </button>
+                        </div>
 
-                @* Edit and color controls *@
-                <div class="edit-controls">
-                    <button class="btn-edit-name"
-                            @onclick="HandleRenameFolder"
-                            disabled="@(ActiveFolderId == null)"
-                            title="Edit folder name">
-                        <Icon IconType="edit" Size="20" Color="#fbbf24" />
-                    </button>
+                        @* All Color Presets Grid *@
+                        <div class="inline-control" style="flex: 1;">
+                            <label>Color</label>
+                            <div class="color-grid-inline">
+                                @foreach (var preset in _colorPresets)
+                                {
+                                    <button type="button"
+                                            @onclick="@(() => SelectColor(preset.Value))"
+                                            disabled="@(ActiveFolderId == null)"
+                                            title="@preset.Name"
+                                            class="color-swatch-inline @(preset.Value.Equals(GetActiveFolderColor(), StringComparison.OrdinalIgnoreCase) ? "selected" : "")"
+                                            style="background: @preset.Value;">
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
 
-                    <button class="btn-color-picker"
-                            @onclick="@(() => _showColorPicker = !_showColorPicker)"
-                            disabled="@(ActiveFolderId == null)"
-                            title="Change folder color">
-                        <Icon IconType="palette" Size="20" Color="#a78bfa" />
-                    </button>
-
-                    @if (_showColorPicker && ActiveFolderId != null)
+                    @* Expandable Icon Picker *@
+                    @if (_showIconPicker && ActiveFolderId != null)
                     {
-                        <div class="color-picker-popup">
-                            <button class="color-option mustard" @onclick="@(() => SelectColor("#E6B800"))" title="Mustard"></button>
-                            <button class="color-option coral" @onclick="@(() => SelectColor("#F88379"))" title="Coral"></button>
-                            <button class="color-option pink" @onclick="@(() => SelectColor("#EC4899"))" title="Pink"></button>
+                        <div class="expandable-panel">
+                            <IconPicker SelectedIcon="@(GetActiveFolderIcon() ?? "folder")"
+                                       Color="@GetActiveFolderColor()"
+                                       OnIconSelected="HandleIconChange"
+                                       ShowCategories="false"
+                                       ColumnsPerRow="5" />
                         </div>
                     }
                 </div>
@@ -126,8 +151,9 @@
     [Parameter] public EventCallback<string> OnMoveFolderLeft { get; set; }
     [Parameter] public EventCallback<string> OnMoveFolderRight { get; set; }
     [Parameter] public EventCallback<string> OnColorChange { get; set; }
+    [Parameter] public EventCallback<string> OnIconChange { get; set; }
 
-    private bool _showColorPicker = false;
+    private bool _showIconPicker = false;
 
     private async Task HandleFolderSelect(string folderId)
     {
@@ -167,7 +193,33 @@
     private async Task SelectColor(string color)
     {
         await HandleColorChange(color);
-        _showColorPicker = false;
+    }
+
+    private async Task HandleIconChange(string icon)
+    {
+        await OnIconChange.InvokeAsync(icon);
+        _showIconPicker = false;
+    }
+
+    private string? GetActiveFolderName()
+    {
+        if (string.IsNullOrEmpty(ActiveFolderId)) return "No folder selected";
+        var folder = Folders.FirstOrDefault(f => f.Id == ActiveFolderId);
+        return folder?.Name ?? "Unknown";
+    }
+
+    private string? GetActiveFolderIcon()
+    {
+        if (string.IsNullOrEmpty(ActiveFolderId)) return null;
+        var folder = Folders.FirstOrDefault(f => f.Id == ActiveFolderId);
+        return folder?.Icon;
+    }
+
+    private string GetActiveFolderColor()
+    {
+        if (string.IsNullOrEmpty(ActiveFolderId)) return "#667eea";
+        var folder = Folders.FirstOrDefault(f => f.Id == ActiveFolderId);
+        return folder?.Color ?? "#667eea";
     }
 
     private int GetActiveFolderIndex()
@@ -185,6 +237,36 @@
         var items = (data.Lanes?.Sum(l => l.Items?.Count ?? 0) ?? 0) + (data.Milestones?.Count ?? 0);
 
         return $"{columns} {lanes} {items}";
+    }
+
+    private record ColorPreset(string Name, string Value);
+
+    private readonly List<ColorPreset> _colorPresets = new()
+    {
+        new ColorPreset("Teal", "#45B69C"),
+        new ColorPreset("Coral", "#F88379"),
+        new ColorPreset("Lav", "#9999ff"),
+        new ColorPreset("Orange", "#D4652F"),
+        new ColorPreset("Blue", "#87CEEB"),
+        new ColorPreset("Mustard", "#E6B800"),
+        new ColorPreset("Brown", "#4A2C1A"),
+        new ColorPreset("Sage", "#B7C4B7"),
+        new ColorPreset("Red", "#EF4444"),
+        new ColorPreset("Indigo", "#6366F1"),
+        new ColorPreset("Dark Blue", "#1E3A8A"),
+        new ColorPreset("Pink", "#EC4899")
+    };
+
+    private string GetPresetColorButtonStyle(string presetColor)
+    {
+        var currentColor = GetActiveFolderColor();
+        var isSelected = presetColor.Equals(currentColor, StringComparison.OrdinalIgnoreCase);
+        var border = isSelected
+            ? "border: 2px solid #667eea; box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);"
+            : "border: 1.5px solid rgba(255, 255, 255, 0.2);";
+
+        return $"width: 100%; height: 32px; padding: 2px; cursor: pointer; border-radius: 4px; " +
+               $"background: #1a1a2e; transition: all 0.2s; {border}";
     }
 }
 
@@ -393,86 +475,161 @@
 
     .folder-actions {
         display: flex;
-        gap: 20px;
-        justify-content: center;
-        align-items: center;
+        flex-direction: column;
+        gap: 12px;
         margin-top: 20px;
     }
 
-    .folder-controls {
+    .folder-controls-compact {
         display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 12px 20px;
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
         background: #2a2a2a;
         border: 1px solid #444;
-        border-radius: 10px;
+        border-radius: 8px;
     }
 
-    .btn-move-left,
-    .btn-move-right {
-        width: 48px;
-        height: 48px;
-        border: 2px solid #667eea;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.1) 100%);
-        color: #667eea;
-        border-radius: 8px;
+    .folder-name-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-move-arrow {
+        width: 36px;
+        height: 36px;
+        border: 1px solid #555;
+        background: #3c3c3c;
+        color: #999;
+        border-radius: 6px;
         cursor: pointer;
-        font-size: 20px;
+        font-size: 16px;
         font-weight: 700;
         transition: all 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 0;
+        flex-shrink: 0;
     }
 
-    .btn-move-left:hover:not(:disabled),
-    .btn-move-right:hover:not(:disabled) {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.2) 100%);
-        border-color: #764ba2;
-        transform: scale(1.05);
+    .btn-move-arrow:hover:not(:disabled) {
+        background: #4a4a4a;
+        border-color: #667eea;
+        color: #667eea;
     }
 
-    .btn-move-left:active:not(:disabled),
-    .btn-move-right:active:not(:disabled) {
-        transform: scale(0.95);
-    }
-
-    .btn-move-left:disabled,
-    .btn-move-right:disabled {
+    .btn-move-arrow:disabled {
         opacity: 0.3;
         cursor: not-allowed;
-        border-color: #444;
-        background: #2a2a2a;
-        color: #666;
     }
 
-    .arrow-icon {
-        font-size: 20px;
+    .btn-edit-name-inline {
+        flex: 1;
+        min-height: 36px;
+        padding: 8px 12px;
+        background: #1e1e2e;
+        border: 1px solid #3a3a4e;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 600;
     }
 
-    .active-folder-indicator {
+    .btn-edit-name-inline:hover:not(:disabled) {
+        border-color: #fbbf24;
+        background: rgba(251, 191, 36, 0.05);
+    }
+
+    .folder-name-text {
+        flex: 1;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .icon-color-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .inline-control {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        padding: 0 16px;
-        min-width: 140px;
+        gap: 6px;
     }
 
-    .folder-label {
-        color: #999;
-        font-size: 11px;
+    .inline-control label {
+        font-size: 10px;
+        color: #888;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         font-weight: 600;
     }
 
-    .folder-info {
-        color: #ffffff;
-        font-size: 16px;
-        font-weight: 700;
+    .btn-icon-large {
+        width: 80px;
+        height: 80px;
+        background: #252538;
+        border: 1px solid #3a3a4e;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-icon-large:hover:not(:disabled) {
+        border-color: #667eea;
+        background: #2a2a3e;
+        transform: scale(1.02);
+    }
+
+    .btn-icon-large:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .color-grid-inline {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+    }
+
+    .color-swatch-inline {
+        width: 100%;
+        aspect-ratio: 1;
+        min-height: 18px;
+        border: 2px solid #3a3a4e;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .color-swatch-inline.selected {
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);
+    }
+
+    .color-swatch-inline:hover:not(:disabled) {
+        transform: scale(1.05);
+        border-color: #ffffff;
+    }
+
+    .expandable-panel {
+        padding: 12px;
+        background: #252538;
+        border: 1px solid #3a3a4e;
+        border-radius: 6px;
+        margin-top: 4px;
     }
 
     .btn-delete {
@@ -505,107 +662,5 @@
     .btn-delete:disabled {
         opacity: 0.3;
         cursor: not-allowed;
-    }
-
-    .edit-controls {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        position: relative;
-    }
-
-    .btn-edit-name,
-    .btn-color-picker {
-        width: 48px;
-        height: 48px;
-        border: 2px solid #444;
-        background: #2a2a2a;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-    }
-
-    .btn-edit-name {
-        border-color: #fbbf24;
-        background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
-    }
-
-    .btn-edit-name:hover:not(:disabled) {
-        background: linear-gradient(135deg, rgba(251, 191, 36, 0.3) 0%, rgba(245, 158, 11, 0.2) 100%);
-        border-color: #f59e0b;
-        transform: scale(1.05);
-    }
-
-    .btn-color-picker {
-        border-color: #a78bfa;
-        background: linear-gradient(135deg, rgba(167, 139, 250, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%);
-    }
-
-    .btn-color-picker:hover:not(:disabled) {
-        background: linear-gradient(135deg, rgba(167, 139, 250, 0.3) 0%, rgba(139, 92, 246, 0.2) 100%);
-        border-color: #8b5cf6;
-        transform: scale(1.05);
-    }
-
-    .btn-edit-name:active:not(:disabled),
-    .btn-color-picker:active:not(:disabled) {
-        transform: scale(0.95);
-    }
-
-    .btn-edit-name:disabled,
-    .btn-color-picker:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-        border-color: #444;
-        background: #2a2a2a;
-    }
-
-    .color-picker-popup {
-        position: absolute;
-        top: -60px;
-        left: 60px;
-        display: flex;
-        gap: 8px;
-        padding: 10px;
-        background: #1e1e1e;
-        border: 2px solid #444;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        z-index: 100;
-    }
-
-    .color-option {
-        width: 40px;
-        height: 40px;
-        border: 3px solid #444;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .color-option.mustard {
-        background-color: #E6B800;
-    }
-
-    .color-option.coral {
-        background-color: #F88379;
-    }
-
-    .color-option.pink {
-        background-color: #EC4899;
-    }
-
-    .color-option:hover {
-        transform: scale(1.1);
-        border-color: #ffffff;
-        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
-    }
-
-    .color-option:active {
-        transform: scale(0.95);
     }
 </style>
