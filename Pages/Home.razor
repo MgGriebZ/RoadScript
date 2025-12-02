@@ -211,6 +211,14 @@
 
                 <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
+                @* Folder Management Button *@
+                <button @onclick="ToggleFolderSelector"
+                        title="Manage Project Folders"
+                        class="cc-icon-btn"
+                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                    <Icon IconType="gear" Size="20" Color="#999999" />
+                </button>
+
                 @* Folder Indicators *@
                 @if (_folderManager != null)
                 {
