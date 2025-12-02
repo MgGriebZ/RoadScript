@@ -660,6 +660,69 @@ window.RoadScriptInterop = {
     },
 
     /**
+     * Sets up drag-to-move functionality for all milestones
+     * @param {object} dotNetRef - .NET object reference for callbacks
+     */
+    setupAllMilestoneMove: function(dotNetRef) {
+        const elements = document.querySelectorAll('.roadmap-milestone-movable');
+
+        elements.forEach(element => {
+            // Remove existing listeners to avoid duplicates
+            const oldMouseMove = element._roadscriptMouseMove;
+            const oldMouseDown = element._roadscriptMouseDown;
+            const oldMouseLeave = element._roadscriptMouseLeave;
+
+            if (oldMouseMove) element.removeEventListener('mousemove', oldMouseMove);
+            if (oldMouseDown) element.removeEventListener('mousedown', oldMouseDown);
+            if (oldMouseLeave) element.removeEventListener('mouseleave', oldMouseLeave);
+
+            // Create new listeners
+            const handleMouseMove = function(e) {
+                // Show move cursor for entire milestone
+                element.style.cursor = 'move';
+            };
+
+            const handleMouseLeave = function(e) {
+                // Clear cursor on leave
+                element.style.cursor = '';
+            };
+
+            const handleMouseDown = function(e) {
+                // Handle move (slide entire milestone)
+                e.preventDefault();
+                e.stopPropagation();
+
+                const milestoneIndex = parseInt(element.getAttribute('data-milestone-index'));
+
+                dotNetRef.invokeMethodAsync('StartMoveMilestone', milestoneIndex, e.clientX);
+
+                const handleGlobalMouseMove = (moveEvent) => {
+                    dotNetRef.invokeMethodAsync('UpdateMoveMilestone', moveEvent.clientX);
+                };
+
+                const handleGlobalMouseUp = () => {
+                    dotNetRef.invokeMethodAsync('EndMoveMilestone');
+                    document.removeEventListener('mousemove', handleGlobalMouseMove);
+                    document.removeEventListener('mouseup', handleGlobalMouseUp);
+                };
+
+                document.addEventListener('mousemove', handleGlobalMouseMove);
+                document.addEventListener('mouseup', handleGlobalMouseUp);
+            };
+
+            // Store references for later removal
+            element._roadscriptMouseMove = handleMouseMove;
+            element._roadscriptMouseDown = handleMouseDown;
+            element._roadscriptMouseLeave = handleMouseLeave;
+
+            // Add new listeners
+            element.addEventListener('mousemove', handleMouseMove);
+            element.addEventListener('mousedown', handleMouseDown);
+            element.addEventListener('mouseleave', handleMouseLeave);
+        });
+    },
+
+    /**
      * Opens PNG in new tab instead of downloading
      * @param {string} elementSelector - CSS selector for the element to capture
      */
