@@ -86,7 +86,7 @@
                     <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Quick Actions</h3>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <div>
-                            <button @onclick="@(() => ToggleViewMode(null))"
+                            <button @onclick="@(async () => await ToggleViewMode(null))"
                                     title="@(_isPreviewMode ? "Switch to Edit Mode - Enable editing and properties panel" : "Switch to Preview Mode - Clean view for presentations")"
                                     style="@GetViewModeToggleStyle()">
                                 <div style="display: flex; width: 100%; height: 100%; border-radius: 6px; overflow: hidden;">
@@ -231,47 +231,46 @@
                                     style="@GetFolderIndicatorStyle(isActive, hasFolder, folderColor)">
                                 <Icon IconType="@folderIcon" Size="20" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666"))" />
                             </button>
-                        }
-                    </div>
-                }
 
-                <div style="width: 32px; height: 2px; background: linear-gradient(90deg, transparent, #667eea, transparent); margin: 8px 0;"></div>
+                            @* Show tabs only for the active folder *@
+                            @if (isActive && _sessionManager != null)
+                            {
+                                <div style="display: flex; flex-direction: column; gap: 4px; align-items: center; margin-top: 2px;">
+                                    @for (int j = 0; j < _sessionManager.Tabs.Count; j++)
+                                    {
+                                        var tab = _sessionManager.Tabs[j];
+                                        var tabIndex = j;
+                                        var isActiveTab = tab.Id == _sessionManager.ActiveTabId;
+                                        <button @onclick="@(() => HandleTabSwitch(tab.Id))"
+                                                title="@tab.Name"
+                                                style="@GetTabIndicatorStyle(isActiveTab)">
+                                            @(tabIndex + 1)
+                                        </button>
+                                    }
 
-                @if (_sessionManager != null)
-                {
-                    <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
-                        @for (int i = 0; i < _sessionManager.Tabs.Count; i++)
-                        {
-                            var tab = _sessionManager.Tabs[i];
-                            var index = i;
-                            var isActive = tab.Id == _sessionManager.ActiveTabId;
-                            <button @onclick="@(() => HandleTabSwitch(tab.Id))"
-                                    title="@tab.Name"
-                                    style="@GetTabIndicatorStyle(isActive)">
-                                @(index + 1)
-                            </button>
-                        }
+                                    <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
-                        <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 8px 0;"></div>
+                                    @if (_sessionManager.Tabs.Count < _sessionManager.MaxTabs)
+                                    {
+                                        <button @onclick="HandleTabAdd"
+                                                title="Add new roadmap tab"
+                                                class="cc-icon-btn"
+                                                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
+                                            +
+                                        </button>
+                                    }
 
-                        @if (_sessionManager.Tabs.Count < _sessionManager.MaxTabs)
-                        {
-                            <button @onclick="HandleTabAdd"
-                                    title="Add new roadmap tab"
-                                    class="cc-icon-btn"
-                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
-                                +
-                            </button>
-                        }
-
-                        @if (_activeTab != null)
-                        {
-                            <button @onclick="HandleCollapsedTabDelete"
-                                    title="@(_sessionManager.Tabs.Count > 1 ? "Delete current roadmap tab" : "Delete folder (last tab)")"
-                                    class="cc-icon-btn"
-                                    style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444; border: 2px solid #ef4444; width: 36px; height: 36px; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">
-                                🗑️
-                            </button>
+                                    @if (_activeTab != null)
+                                    {
+                                        <button @onclick="HandleCollapsedTabDelete"
+                                                title="@(_sessionManager.Tabs.Count > 1 ? "Delete current roadmap tab" : "Delete folder (last tab)")"
+                                                class="cc-icon-btn"
+                                                style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444; border: 2px solid #ef4444; width: 36px; height: 36px; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">
+                                            🗑️
+                                        </button>
+                                    }
+                                </div>
+                            }
                         }
                     </div>
                 }
@@ -285,7 +284,7 @@
                     📷
                 </button>
 
-                <button @onclick="@(() => ToggleViewMode(null))"
+                <button @onclick="@(async () => await ToggleViewMode(null))"
                         title="@(_isPreviewMode ? "Switch to Edit Mode" : "Switch to Preview Mode")"
                         class="cc-icon-btn"
                         style="@GetCollapsedToggleStyle(_isPreviewMode)">
@@ -893,7 +892,7 @@
         switch (action)
         {
             case "TogglePreview":
-                ToggleViewMode();
+                await ToggleViewMode();
                 break;
             case "ToggleTheme":
                 ToggleTheme();
@@ -1380,7 +1379,7 @@
         StateHasChanged();
     }
 
-    private void ToggleViewMode(ChangeEventArgs? e = null)
+    private async Task ToggleViewMode(ChangeEventArgs? e = null)
     {
         _isPreviewMode = !_isPreviewMode;
         _showProperties = !_isPreviewMode;
@@ -1389,6 +1388,8 @@
             _showControlPanel = false;
             // Auto-deselect any active elements when entering preview mode
             SelectionState.Clear();
+            // Clear any lingering hover effects for pristine preview
+            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.clearAllHoverEffects");
         }
         StateHasChanged();
     }

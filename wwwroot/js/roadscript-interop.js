@@ -413,6 +413,22 @@ window.RoadScriptInterop = {
     },
 
     /**
+     * Clears all hover effects and inline styles from roadmap items
+     * Useful when entering preview mode to ensure pristine view
+     */
+    clearAllHoverEffects: function() {
+        // Clear hover effects from resizable items
+        const items = document.querySelectorAll('.roadmap-item-resizable');
+        items.forEach(item => {
+            item.style.cursor = '';
+            item.style.boxShadow = '';
+        });
+
+        // Clear any other active hover states
+        document.body.style.cursor = '';
+    },
+
+    /**
      * Downloads JSON content as a file
      * @param {string} jsonContent - The JSON content to download
      * @param {string} filename - Name of the file to download
