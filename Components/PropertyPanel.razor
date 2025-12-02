@@ -39,10 +39,16 @@ else
                 <ItemProperties Item="@item"
                                JsonPath="@SelectionState.SelectedPath"
                                ColumnCount="@ColumnCount"
+                               ItemIndex="@GetItemIndex()"
+                               ItemCount="@GetItemCount()"
+                               LaneIndex="@GetLaneIndex()"
+                               LaneCount="@LaneCount"
                                OnChange="HandlePropertyChange"
                                OnAdd="HandleAddElement"
                                OnRemove="HandleRemoveElement"
-                               OnDuplicate="HandleDuplicateElement" />
+                               OnDuplicate="HandleDuplicateElement"
+                               OnMoveItem="HandleMoveItem"
+                               OnMoveLane="HandleMoveLane" />
             }
             else if (SelectionState.ElementType == "lane" && SelectionState.SelectedElement is Lane lane && SelectionState.SelectedPath != null)
             {
@@ -128,6 +134,12 @@ else
     public EventCallback<(string ElementType, string JsonPath)> OnDuplicateElement { get; set; }
 
     [Parameter]
+    public EventCallback<(string Direction, string JsonPath)> OnMoveItem { get; set; }
+
+    [Parameter]
+    public EventCallback<(string Direction, string JsonPath)> OnMoveLane { get; set; }
+
+    [Parameter]
     public EventCallback OnHidePanel { get; set; }
 
     [Parameter]
@@ -135,6 +147,18 @@ else
 
     [Parameter]
     public int ColumnCount { get; set; } = 4;
+
+    [Parameter]
+    public int LaneCount { get; set; } = 1;
+
+    [Parameter]
+    public int ItemCount { get; set; } = 1;
+
+    [Parameter]
+    public int ItemIndex { get; set; } = 0;
+
+    [Parameter]
+    public int LaneIndex { get; set; } = 0;
 
     protected override void OnInitialized()
     {
@@ -208,6 +232,37 @@ else
         {
             await OnDuplicateElement.InvokeAsync((elementType, SelectionState.SelectedPath));
         }
+    }
+
+    private async Task HandleMoveItem((string Direction, string JsonPath) args)
+    {
+        if (OnMoveItem.HasDelegate)
+        {
+            await OnMoveItem.InvokeAsync(args);
+        }
+    }
+
+    private async Task HandleMoveLane((string Direction, string JsonPath) args)
+    {
+        if (OnMoveLane.HasDelegate)
+        {
+            await OnMoveLane.InvokeAsync(args);
+        }
+    }
+
+    private int GetItemIndex()
+    {
+        return ItemIndex;
+    }
+
+    private int GetItemCount()
+    {
+        return ItemCount;
+    }
+
+    private int GetLaneIndex()
+    {
+        return LaneIndex;
     }
 
     private async Task HandleExpandPanel()

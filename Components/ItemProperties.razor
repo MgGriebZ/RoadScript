@@ -329,6 +329,49 @@
             📋 Duplicate This Item
         </button>
 
+        @* Position Indicator *@
+        <div style="background: #252538; border: 1px solid #3a3a4e; border-radius: 4px; padding: 8px 12px; margin-bottom: 10px; text-align: center;">
+            <div style="font-size: 11px; color: #888; margin-bottom: 4px;">Position in Lane</div>
+            <div style="font-size: 16px; font-weight: 600; color: #667eea;">@(ItemIndex + 1) <span style="color: #666; font-weight: 400;">of</span> @ItemCount</div>
+        </div>
+
+        @* Move Up/Down Buttons for Items (Reorder within lane) *@
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <button @onclick="MoveItemUp"
+                    disabled="@(ItemIndex == 0)"
+                    type="button"
+                    style="@GetMoveButtonStyle(ItemIndex > 0)">
+                ↑ Move Up
+            </button>
+            <button @onclick="MoveItemDown"
+                    disabled="@(ItemIndex >= ItemCount - 1)"
+                    type="button"
+                    style="@GetMoveButtonStyle(ItemIndex < ItemCount - 1)">
+                ↓ Move Down
+            </button>
+        </div>
+
+        @* Jump Between Lanes Section *@
+        <div style="background: #1a1a2e; border: 1px solid #3a3a4e; border-radius: 6px; padding: 10px; margin-bottom: 8px;">
+            <div style="font-size: 11px; color: #888; margin-bottom: 8px; text-align: center;">Jump to Lane</div>
+            <div style="display: flex; gap: 6px;">
+                <button @onclick="MoveLaneUp"
+                        disabled="@(LaneIndex == 0)"
+                        type="button"
+                        title="Move to lane above"
+                        style="@GetLaneJumpButtonStyle(LaneIndex > 0)">
+                    <span style="font-size: 16px;">⬆️</span>
+                </button>
+                <button @onclick="MoveLaneDown"
+                        disabled="@(LaneIndex >= LaneCount - 1)"
+                        type="button"
+                        title="Move to lane below"
+                        style="@GetLaneJumpButtonStyle(LaneIndex < LaneCount - 1)">
+                    <span style="font-size: 16px;">⬇️</span>
+                </button>
+            </div>
+        </div>
+
         <button @onclick="RemoveItem" class="btn-danger" type="button" style="width: 100%;">
             Remove This Item
         </button>
@@ -355,7 +398,25 @@
     public EventCallback<string> OnDuplicate { get; set; }
 
     [Parameter]
+    public EventCallback<(string Direction, string JsonPath)> OnMoveItem { get; set; }
+
+    [Parameter]
+    public EventCallback<(string Direction, string JsonPath)> OnMoveLane { get; set; }
+
+    [Parameter]
     public int ColumnCount { get; set; } = 4;
+
+    [Parameter]
+    public int ItemIndex { get; set; } = 0;
+
+    [Parameter]
+    public int ItemCount { get; set; } = 1;
+
+    [Parameter]
+    public int LaneIndex { get; set; } = 0;
+
+    [Parameter]
+    public int LaneCount { get; set; } = 1;
 
     private bool _statusIconPickerExpanded = false;
 
@@ -558,6 +619,50 @@
     private void DuplicateItem()
     {
         OnDuplicate.InvokeAsync("item");
+    }
+
+    private void MoveItemUp()
+    {
+        OnMoveItem.InvokeAsync(("up", JsonPath));
+    }
+
+    private void MoveItemDown()
+    {
+        OnMoveItem.InvokeAsync(("down", JsonPath));
+    }
+
+    private void MoveLaneUp()
+    {
+        OnMoveLane.InvokeAsync(("up", JsonPath));
+    }
+
+    private void MoveLaneDown()
+    {
+        OnMoveLane.InvokeAsync(("down", JsonPath));
+    }
+
+    private string GetMoveButtonStyle(bool isEnabled)
+    {
+        if (isEnabled)
+        {
+            return "flex: 1; background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;";
+        }
+        else
+        {
+            return "flex: 1; background: #2a2a3e; color: #555; border: 1px solid #3a3a4e; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: not-allowed; opacity: 0.4;";
+        }
+    }
+
+    private string GetLaneJumpButtonStyle(bool isEnabled)
+    {
+        if (isEnabled)
+        {
+            return "flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 10px; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);";
+        }
+        else
+        {
+            return "flex: 1; background: #2a2a3e; color: #555; border: 1px solid #3a3a4e; padding: 10px; border-radius: 4px; cursor: not-allowed; opacity: 0.3; display: flex; align-items: center; justify-content: center;";
+        }
     }
 
     private void RemoveItem()
