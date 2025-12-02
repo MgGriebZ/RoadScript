@@ -332,6 +332,15 @@
         {
             <div style="@RoadmapWrapperStyle()">
                 <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
+
+                @* Quick Share Icon *@
+                <div @onclick="QuickShareAsPng"
+                     class="quick-share-icon"
+                     title="Open roadmap as PNG in new tab"
+                     style="position: absolute; top: 16px; right: 16px; cursor: pointer; opacity: 0.4; transition: opacity 0.2s, transform 0.2s; z-index: 100; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.2)" : "rgba(0, 0, 0, 0.05)");">
+                    <Icon IconType="share" Size="20" Color="@(_isVibeMode ? "#a5b4fc" : "#6b7280")" />
+                </div>
+
                 <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
                      class="@GetElementClass("title")"
                      style="@TitleContainerStyle()">
@@ -457,10 +466,13 @@
 
                                         @if (!(_isPreviewMode && item.Hidden))
                                         {
-                                            <div @onclick="@(_isPreviewMode ? null : async () => await HandleItemClick(laneIdx, itemIdx, item))"
+                                            <div id="@($"item-{laneIdx}-{itemIdx}")"
+                                                 @onclick="@(_isPreviewMode ? null : async () => await HandleItemClick(laneIdx, itemIdx, item))"
                                                  @onclick:stopPropagation="@(!_isPreviewMode)"
-                                                 class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]")"
-                                                 style="@ItemStyle(item, lane.Color)">
+                                                 class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]") roadmap-item-resizable"
+                                                 style="@ItemStyle(item, lane.Color)"
+                                                 data-lane-index="@laneIdx"
+                                                 data-item-index="@itemIdx">
                                             @{
                                                 var hasDetails = item.Details != null && item.Details.Count > 0;
                                                 var hasSubs = hasDetails && item.Details.Any(d => d.Subs != null && d.Subs.Count > 0);
@@ -611,6 +623,15 @@
     private bool _showTemplateSelector = false;
     private bool _isCreatingNewFolder = false;
     private string? _pendingFolderName = null;
+
+    // Drag-to-resize state
+    private bool _isResizing = false;
+    private int _resizingLaneIndex = -1;
+    private int _resizingItemIndex = -1;
+    private string _resizingEdge = ""; // "left" or "right"
+    private double _resizeStartX = 0;
+    private double _resizeOriginalStart = 0;
+    private double _resizeOriginalLength = 0;
 
     private const string DefaultJson = @"{
   ""title"": ""Bi-Weekly Sprint Roadmap"",
@@ -843,6 +864,19 @@
             _dotNetRef = DotNetObjectReference.Create(this);
             await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupKeyboardShortcuts", _dotNetRef);
         }
+
+        // Setup resize handlers for all items (runs on every render to handle new items)
+        if (!_isPreviewMode && _dotNetRef != null && _data != null)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupAllItemResize", _dotNetRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error setting up item resize: {ex.Message}");
+            }
+        }
     }
 
     [JSInvokable]
@@ -860,7 +894,277 @@
                 SelectionState.Clear();
                 await InvokeAsync(StateHasChanged);
                 break;
+            case "Undo":
+                await HandleUndo();
+                break;
+            case "Redo":
+                await HandleRedo();
+                break;
+            case "Duplicate":
+                await HandleDuplicateShortcut();
+                break;
+            case "Delete":
+                await HandleDeleteShortcut();
+                break;
+            case "NavigateLeft":
+            case "NavigateRight":
+            case "NavigateUp":
+            case "NavigateDown":
+                await HandleNavigation(action.Replace("Navigate", ""));
+                break;
         }
+    }
+
+    private void SaveHistorySnapshot()
+    {
+        if (!string.IsNullOrEmpty(_currentJson))
+        {
+            SelectionState.PushHistory(_currentJson);
+        }
+    }
+
+    private async Task HandleUndo()
+    {
+        try
+        {
+            var previousJson = SelectionState.Undo();
+            if (previousJson != null && _editor != null)
+            {
+                _currentJson = previousJson;
+                ParseJson(previousJson);
+                await _editor.SetValue(previousJson);
+
+                if (_error == null && _sessionManager != null && _activeTab != null)
+                {
+                    _activeTab.Data = _data!;
+                    _activeTab.LastModified = DateTime.UtcNow;
+                    if (_folderManager != null)
+                    {
+                        await StorageService.SaveFolderManagerAsync(_folderManager);
+                    }
+                }
+
+                SelectionState.Clear();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during undo: {ex.Message}");
+        }
+    }
+
+    private async Task HandleRedo()
+    {
+        try
+        {
+            var nextJson = SelectionState.Redo();
+            if (nextJson != null && _editor != null)
+            {
+                _currentJson = nextJson;
+                ParseJson(nextJson);
+                await _editor.SetValue(nextJson);
+
+                if (_error == null && _sessionManager != null && _activeTab != null)
+                {
+                    _activeTab.Data = _data!;
+                    _activeTab.LastModified = DateTime.UtcNow;
+                    if (_folderManager != null)
+                    {
+                        await StorageService.SaveFolderManagerAsync(_folderManager);
+                    }
+                }
+
+                SelectionState.Clear();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during redo: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDuplicateShortcut()
+    {
+        if (SelectionState.IsSelected && SelectionState.ElementType != null && SelectionState.SelectedPath != null)
+        {
+            SaveHistorySnapshot();
+            await HandleDuplicateElement((SelectionState.ElementType, SelectionState.SelectedPath));
+        }
+    }
+
+    private async Task HandleDeleteShortcut()
+    {
+        if (SelectionState.IsSelected && SelectionState.ElementType != null && SelectionState.SelectedPath != null)
+        {
+            SaveHistorySnapshot();
+            await HandleRemoveElement((SelectionState.ElementType, SelectionState.SelectedPath));
+        }
+    }
+
+    private async Task HandleNavigation(string direction)
+    {
+        if (_data == null || !SelectionState.IsSelected) return;
+
+        try
+        {
+            var selectedPath = SelectionState.SelectedPath;
+            var elementType = SelectionState.ElementType;
+
+            if (elementType == "item" && selectedPath != null)
+            {
+                var laneIndex = ExtractIndexFromPath(selectedPath, "lanes");
+                var itemIndex = ExtractIndexFromPath(selectedPath, "items");
+
+                int newLaneIndex = laneIndex;
+                int newItemIndex = itemIndex;
+
+                switch (direction)
+                {
+                    case "Left":
+                        newItemIndex = itemIndex > 0 ? itemIndex - 1 : itemIndex;
+                        break;
+                    case "Right":
+                        newItemIndex = itemIndex < _data.Lanes[laneIndex].Items.Count - 1 ? itemIndex + 1 : itemIndex;
+                        break;
+                    case "Up":
+                        newLaneIndex = laneIndex > 0 ? laneIndex - 1 : laneIndex;
+                        newItemIndex = Math.Min(newItemIndex, _data.Lanes[newLaneIndex].Items.Count - 1);
+                        break;
+                    case "Down":
+                        newLaneIndex = laneIndex < _data.Lanes.Count - 1 ? laneIndex + 1 : laneIndex;
+                        newItemIndex = Math.Min(newItemIndex, _data.Lanes[newLaneIndex].Items.Count - 1);
+                        break;
+                }
+
+                if (newLaneIndex != laneIndex || newItemIndex != itemIndex)
+                {
+                    var newItem = _data.Lanes[newLaneIndex].Items[newItemIndex];
+                    var newPath = $"lanes[{newLaneIndex}].items[{newItemIndex}]";
+                    SelectionState.Select(newPath, "item", newItem);
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+            else if (elementType == "lane" && selectedPath != null)
+            {
+                var laneIndex = ExtractIndexFromPath(selectedPath, "lanes");
+                int newLaneIndex = laneIndex;
+
+                switch (direction)
+                {
+                    case "Up":
+                        newLaneIndex = laneIndex > 0 ? laneIndex - 1 : laneIndex;
+                        break;
+                    case "Down":
+                        newLaneIndex = laneIndex < _data.Lanes.Count - 1 ? laneIndex + 1 : laneIndex;
+                        break;
+                }
+
+                if (newLaneIndex != laneIndex)
+                {
+                    var newLane = _data.Lanes[newLaneIndex];
+                    var newPath = $"lanes[{newLaneIndex}]";
+                    SelectionState.Select(newPath, "lane", newLane);
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during navigation: {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public void StartResize(int laneIndex, int itemIndex, string edge, double clientX)
+    {
+        if (_data == null || _isPreviewMode) return;
+
+        SaveHistorySnapshot();
+
+        _isResizing = true;
+        _resizingLaneIndex = laneIndex;
+        _resizingItemIndex = itemIndex;
+        _resizingEdge = edge;
+        _resizeStartX = clientX;
+
+        var item = _data.Lanes[laneIndex].Items[itemIndex];
+        _resizeOriginalStart = item.Start;
+        _resizeOriginalLength = item.Length;
+    }
+
+    [JSInvokable]
+    public async Task UpdateResize(double clientX)
+    {
+        if (!_isResizing || _data == null) return;
+
+        try
+        {
+            var item = _data.Lanes[_resizingLaneIndex].Items[_resizingItemIndex];
+            var columnCount = _data.Columns.Count;
+            var deltaX = clientX - _resizeStartX;
+
+            // Convert pixel delta to column percentage (approximate)
+            // Assuming the roadmap container width represents 100% of columns
+            var percentPerColumn = 100.0 / columnCount;
+            var deltaPercent = (deltaX / 1000.0) * percentPerColumn; // Rough approximation
+
+            if (_resizingEdge == "left")
+            {
+                // Moving left edge: adjust start and length
+                var newStart = Math.Max(0, _resizeOriginalStart + deltaPercent);
+                var newLength = _resizeOriginalLength - (newStart - _resizeOriginalStart);
+
+                if (newLength > 0.1) // Minimum length
+                {
+                    item.Start = Math.Round(newStart, 2);
+                    item.Length = Math.Round(newLength, 2);
+                }
+            }
+            else if (_resizingEdge == "right")
+            {
+                // Moving right edge: adjust length only
+                var newLength = Math.Max(0.1, _resizeOriginalLength + deltaPercent);
+                item.Length = Math.Round(newLength, 2);
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during resize: {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public async Task EndResize()
+    {
+        if (!_isResizing) return;
+
+        _isResizing = false;
+
+        // Update the JSON editor with the new values
+        if (_data != null && _editor != null)
+        {
+            var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            _currentJson = updatedJson;
+            await _editor.SetValue(updatedJson);
+
+            if (_sessionManager != null && _activeTab != null && _folderManager != null)
+            {
+                _activeTab.Data = _data;
+                _activeTab.LastModified = DateTime.UtcNow;
+                await StorageService.SaveFolderManagerAsync(_folderManager);
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ExportAsPng()
@@ -873,6 +1177,18 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error exporting PNG: {ex.Message}");
+        }
+    }
+
+    private async Task QuickShareAsPng()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.exportAsPngNewTab", ".roadmap-container");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error opening PNG in new tab: {ex.Message}");
         }
     }
 
@@ -1595,6 +1911,8 @@
     {
         try
         {
+            SaveHistorySnapshot();
+
             var propertyPath = change.JsonPath == "title"
                 ? change.PropertyName
                 : $"{change.JsonPath}.{change.PropertyName}";
@@ -1651,6 +1969,8 @@
         try
         {
             if (_data == null) return;
+
+            SaveHistorySnapshot();
 
             var (elementType, jsonPath) = args;
 
@@ -1791,6 +2111,8 @@
         try
         {
             if (_data == null) return;
+
+            SaveHistorySnapshot();
 
             var (elementType, jsonPath) = args;
 
@@ -1936,6 +2258,8 @@
         try
         {
             if (_data == null) return;
+
+            SaveHistorySnapshot();
 
             var (elementType, jsonPath) = args;
 
