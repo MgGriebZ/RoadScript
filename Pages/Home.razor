@@ -212,6 +212,19 @@
                     <Icon IconType="gear" Size="24" Color="#ffffff" />
                 </button>
 
+                @* Delete Button - Static below gear icon *@
+                @if (_activeTab != null && _sessionManager != null)
+                {
+                    <button @onclick="HandleCollapsedTabDelete"
+                            title="@(_sessionManager.Tabs.Count > 1 ? "Delete current roadmap tab" : "Delete folder (last tab)")"
+                            class="cc-icon-btn"
+                            style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444; border: 2px solid #ef4444; width: 44px; height: 44px; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">
+                        🗑️
+                    </button>
+                }
+
+                <div style="width: 32px; height: 2px; background: linear-gradient(90deg, transparent, #667eea, transparent); margin: 8px 0;"></div>
+
                 @if (_folderManager != null)
                 {
                     <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
@@ -248,25 +261,15 @@
                                         </button>
                                     }
 
-                                    <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
-
                                     @if (_sessionManager.Tabs.Count < _sessionManager.MaxTabs)
                                     {
+                                        <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
+
                                         <button @onclick="HandleTabAdd"
                                                 title="Add new roadmap tab"
                                                 class="cc-icon-btn"
                                                 style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
                                             +
-                                        </button>
-                                    }
-
-                                    @if (_activeTab != null)
-                                    {
-                                        <button @onclick="HandleCollapsedTabDelete"
-                                                title="@(_sessionManager.Tabs.Count > 1 ? "Delete current roadmap tab" : "Delete folder (last tab)")"
-                                                class="cc-icon-btn"
-                                                style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444; border: 2px solid #ef4444; width: 36px; height: 36px; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">
-                                            🗑️
                                         </button>
                                     }
                                 </div>
@@ -1133,7 +1136,7 @@
             // Convert pixel delta to column percentage (approximate)
             // Assuming the roadmap container width represents 100% of columns
             var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 1000.0) * percentPerColumn; // Rough approximation
+            var deltaPercent = (deltaX / 2000.0) * percentPerColumn; // Slower movement for larger strokes
 
             if (_resizingEdge == "left")
             {
@@ -1235,7 +1238,7 @@
 
             // Convert pixel delta to column percentage
             var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 1000.0) * percentPerColumn;
+            var deltaPercent = (deltaX / 2000.0) * percentPerColumn; // Slower movement for larger strokes
 
             // Move the item: adjust start position only, keep length constant
             var newStart = Math.Max(0, _moveOriginalStart + deltaPercent);
@@ -1314,7 +1317,7 @@
 
             // Convert pixel delta to column percentage
             var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 1000.0) * percentPerColumn;
+            var deltaPercent = (deltaX / 2000.0) * percentPerColumn; // Slower movement for larger strokes
 
             // Move the milestone: adjust start position with boundary constraints
             var newStart = Math.Max(0, _milestoneMoveOriginalStart + deltaPercent);
@@ -1719,7 +1722,7 @@
         $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10;";
 
     private string MilestoneContainerStyle() =>
-        "display: flex; flex-direction: column; align-items: center; gap: 4px;";
+        "display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none;";
 
     private string MilestoneLabelStyle(string color)
     {
