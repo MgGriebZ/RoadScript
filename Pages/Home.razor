@@ -461,7 +461,7 @@
                                     {
                                         @* Large centered icon (no title) *@
                                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 100%;">
-                                            <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="@(hasSub ? "24" : "28")" DropShadow="true" />
+                                            <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="@(hasSub ? 24 : 28)" DropShadow="true" />
                                             @if (hasSub)
                                             {
                                                 <span style="@ColumnSubStyle()">@col.Sub</span>
