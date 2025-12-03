@@ -90,6 +90,18 @@ Get started quickly with 3 production-ready templates:
 {
   "title": "2026 Product Roadmap",
   "subtitle": "Platform Modernization & Client Experience",
+  "columns": [
+    { "id": "q1", "label": "Q1 2026", "sub": "Jan – Mar" },
+    { "id": "q2", "label": "Q2 2026", "sub": "Apr – Jun" }
+  ],
+  "milestones": [
+    {
+      "start": 25,
+      "title": "Beta Launch",
+      "icon": "flag",
+      "color": "#45B69C"
+    }
+  ],
   "lanes": [
     {
       "id": "team-alpha",
@@ -124,18 +136,6 @@ Get started quickly with 3 production-ready templates:
           ]
         }
       ]
-    }
-  ],
-  "columns": [
-    { "id": "q1", "label": "Q1 2026", "sub": "Jan – Mar" },
-    { "id": "q2", "label": "Q2 2026", "sub": "Apr – Jun" }
-  ],
-  "milestones": [
-    {
-      "start": 25,
-      "title": "Beta Launch",
-      "icon": "flag",
-      "color": "#45B69C"
     }
   ]
 }
@@ -195,51 +195,74 @@ Get started quickly with 3 production-ready templates:
 
 ## Use Case: Git Commit Tracking
 
-The **Milestone Map** template can visualize git activity with hourly granularity. Use lanes for branches, items for commits, and milestones for key events.
+The **Milestone Map** template can visualize git activity with hourly granularity. Use lanes for work categories, items for commits, and milestones for key events.
 
 **Example mapping:**
 ```json
 {
-  "title": "Dev Activity - Jan 15, 2025",
+  "title": "ClaudeCommits",
+  "subtitle": "Made with RoadScript.NET... a MgGriebZ project on Dec 3, 2025",
   "columns": [
-    { "label": "9 AM" },
-    { "label": "11 AM" },
-    { "label": "1 PM" },
-    { "label": "3 PM" },
-    { "label": "5 PM" }
+    { "label": "9AM" },
+    { "label": "10AM" },
+    { "label": "11AM" },
+    { "label": "12PM" },
+    { "label": "1PM" }
   ],
   "milestones": [
-    { "start": 22, "title": "Standup", "icon": "calendar", "color": "#667eea" },
-    { "start": 78, "title": "Deploy", "icon": "rocket", "color": "#10b981" }
+    { "start": 15, "title": "Claude Prompt", "icon": "bug", "color": "#D4652F" },
+    { "start": 42, "title": "PR Merge", "icon": "rocket", "color": "#45B69C" }
   ],
   "lanes": [
     {
-      "title": "feature/auth",
-      "color": "#45B69C",
-      "icon": "code",
+      "title": "UI/UX Polish",
+      "color": "#87CEEB",
       "history": {
-        "startIcon": "clock",
-        "endIcon": "check",
-        "percent": 85,
+        "start": "75%",
+        "percent": 80,
         "origin": "left"
       },
       "items": [
         {
-          "title": "JWT refactor",
-          "start": 0.5,
-          "length": 1,
-          "icon": "wrench",
-          "color": "#667eea",
+          "title": "#4287f08",
+          "start": 0.25,
+          "length": 1.5,
+          "icon": "search",
+          "color": "#45B69C",
           "details": [
-            { "text": "Commit #a7f3c21 by @alice", "subs": ["Update middleware", "Add tests"] }
+            { "text": "History Rendering", "subs": ["Start/Stop icon formats"] }
           ]
         },
         {
-          "title": "Merge to main",
-          "start": 6,
-          "length": 0.5,
-          "icon": "check",
-          "color": "#10b981"
+          "title": "#f352ac6",
+          "start": 1.75,
+          "length": 1.25,
+          "icon": "search",
+          "color": "#45B69C",
+          "details": [
+            { "text": "README.md", "subs": ["simplify git tracking json section"] }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Technical/Functional",
+      "color": "#E6B800",
+      "history": {
+        "end": "25%",
+        "percent": 23,
+        "origin": "right"
+      },
+      "items": [
+        {
+          "title": "#9157879",
+          "start": 0,
+          "length": 3,
+          "icon": "wrench",
+          "color": "#EF4444",
+          "details": [
+            { "text": "State Management", "subs": ["command center rendering"] }
+          ]
         }
       ]
     }
