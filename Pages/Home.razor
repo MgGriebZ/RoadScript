@@ -439,14 +439,47 @@
                                 <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"columns[{colIndex}]", "column", col))"
                                      class="@GetElementClass($"columns[{colIndex}]")"
                                      style="@ColumnHeaderStyle(i)">
-                                    @if (!string.IsNullOrEmpty(col.Icon))
+                                    @{
+                                        var hasTitle = !string.IsNullOrWhiteSpace(col.Label);
+                                        var hasSub = !string.IsNullOrWhiteSpace(col.Sub);
+                                        var hasIcon = !string.IsNullOrEmpty(col.Icon);
+                                    }
+
+                                    @if (hasIcon && hasTitle)
                                     {
-                                        <div style="margin-bottom: 2px;">
-                                            <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="16" DropShadow="true" />
+                                        @* Icon inline with title *@
+                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                            <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="14" DropShadow="true" />
+                                            <span style="@ColumnLabelStyle()">@col.Label</span>
+                                        </div>
+                                        @if (hasSub)
+                                        {
+                                            <span style="@ColumnSubStyle()">@col.Sub</span>
+                                        }
+                                    }
+                                    else if (hasIcon && !hasTitle)
+                                    {
+                                        @* Large centered icon (no title) *@
+                                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 100%;">
+                                            <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="@(hasSub ? "24" : "28")" DropShadow="true" />
+                                            @if (hasSub)
+                                            {
+                                                <span style="@ColumnSubStyle()">@col.Sub</span>
+                                            }
                                         </div>
                                     }
-                                    <span style="@ColumnLabelStyle()">@col.Label</span>
-                                    <span style="@ColumnSubStyle()">@col.Sub</span>
+                                    else
+                                    {
+                                        @* No icon - standard text layout *@
+                                        @if (hasTitle)
+                                        {
+                                            <span style="@ColumnLabelStyle()">@col.Label</span>
+                                        }
+                                        @if (hasSub)
+                                        {
+                                            <span style="@ColumnSubStyle()">@col.Sub</span>
+                                        }
+                                    }
                                 </div>
                             }
                         </div>
