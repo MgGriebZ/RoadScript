@@ -201,7 +201,7 @@ The **Milestone Map** template can visualize git activity with hourly granularit
 ```json
 {
   "title": "ClaudeCommits - Dec 2, 2025",
-  "subtitle": "Made with RoadScript.NET... a MgGriebZ project",
+  "subtitle": "Made with RoadScript.NET, on Dec 2, 2025.... by MgGriebZ",
   "columns": [
     { "label": "Late Night", "sub": "12AM-2AM" },
     { "label": "8AM" },

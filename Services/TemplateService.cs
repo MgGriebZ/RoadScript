@@ -1058,7 +1058,7 @@ public class TemplateService
         return new RoadmapData
         {
             Title = "ClaudeCommits",
-            Subtitle = $"Made with RoadScript.NET... a MgGriebZ project on {today}",
+            Subtitle = $"Made with RoadScript.NET, on {today}.... by MgGriebZ",
             Columns = new List<Column>
             {
                 new Column { Id = null, Label = "Late Night", Sub = "12AM-2AM", Icon = null, Color = null },
