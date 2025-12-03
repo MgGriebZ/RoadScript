@@ -1046,17 +1046,16 @@
             await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupKeyboardShortcuts", _dotNetRef);
         }
 
-        // Setup resize/move handlers for all items and milestones (runs on every render to handle new items)
+        // Setup resize/move handlers for all items (runs on every render to handle new items)
         if (!_isPreviewMode && _dotNetRef != null && _data != null)
         {
             try
             {
                 await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupAllItemResize", _dotNetRef);
-                await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupAllMilestoneMove", _dotNetRef);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error setting up item resize/milestone move: {ex.Message}");
+                Console.WriteLine($"Error setting up item resize: {ex.Message}");
             }
         }
     }
