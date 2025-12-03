@@ -321,38 +321,54 @@
     <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
         <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Item Management</label>
 
-        <button @onclick="AddItem" class="btn-add" type="button" style="width: 100%; margin-bottom: 8px;">
-            + Add New Item
-        </button>
-
-        <button @onclick="DuplicateItem" type="button" style="width: 100%; margin-bottom: 8px; background: #667eea; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-            📋 Duplicate This Item
-        </button>
-
-        @* Position Indicator *@
-        <div style="background: #252538; border: 1px solid #3a3a4e; border-radius: 4px; padding: 8px 12px; margin-bottom: 10px; text-align: center;">
-            <div style="font-size: 11px; color: #888; margin-bottom: 4px;">Position in Lane</div>
-            <div style="font-size: 16px; font-weight: 600; color: #667eea;">@(ItemIndex + 1) <span style="color: #666; font-weight: 400;">of</span> @ItemCount</div>
-        </div>
-
-        @* Move Up/Down Buttons for Items (Reorder within lane) *@
-        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        @* Inline Item Controls: UP | ADD | DUPE | [Position Text] | DOWN | TRASH *@
+        <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 12px;">
             <button @onclick="MoveItemUp"
                     disabled="@(ItemIndex == 0)"
                     type="button"
-                    style="@GetMoveButtonStyle(ItemIndex > 0)">
-                ↑ Move Up
+                    title="Move item up"
+                    style="@GetInlineUpDownButtonStyle(ItemIndex > 0)">
+                ↑
             </button>
+
+            <button @onclick="AddItem"
+                    type="button"
+                    title="Add new item"
+                    style="width: 52px; height: 44px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);">
+                +
+            </button>
+
+            <button @onclick="DuplicateItem"
+                    type="button"
+                    title="Duplicate this item"
+                    style="width: 44px; height: 44px; background: #667eea; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);">
+                ♻️
+            </button>
+
+            @* Position Indicator (inline, flexible width) *@
+            <div style="flex: 1; background: #252538; border: 1px solid #3a3a4e; border-radius: 6px; padding: 6px 8px; text-align: center; min-width: 60px;">
+                <div style="font-size: 10px; color: #888; line-height: 1;">Position</div>
+                <div style="font-size: 13px; font-weight: 600; color: #667eea; line-height: 1.2; margin-top: 2px;">@(ItemIndex + 1)<span style="color: #666; font-weight: 400; font-size: 11px;"> of </span>@ItemCount</div>
+            </div>
+
             <button @onclick="MoveItemDown"
                     disabled="@(ItemIndex >= ItemCount - 1)"
                     type="button"
-                    style="@GetMoveButtonStyle(ItemIndex < ItemCount - 1)">
-                ↓ Move Down
+                    title="Move item down"
+                    style="@GetInlineUpDownButtonStyle(ItemIndex < ItemCount - 1)">
+                ↓
+            </button>
+
+            <button @onclick="RemoveItem"
+                    type="button"
+                    title="Remove this item"
+                    style="width: 44px; height: 44px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444; border: 2px solid #ef4444; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                🗑️
             </button>
         </div>
 
         @* Jump Between Lanes Section *@
-        <div style="background: #1a1a2e; border: 1px solid #3a3a4e; border-radius: 6px; padding: 10px; margin-bottom: 8px;">
+        <div style="background: #1a1a2e; border: 1px solid #3a3a4e; border-radius: 6px; padding: 10px; margin-bottom: 0;">
             <div style="font-size: 11px; color: #888; margin-bottom: 8px; text-align: center;">Jump to Lane</div>
             <div style="display: flex; gap: 6px;">
                 <button @onclick="MoveLaneUp"
@@ -371,10 +387,6 @@
                 </button>
             </div>
         </div>
-
-        <button @onclick="RemoveItem" class="btn-danger" type="button" style="width: 100%;">
-            Remove This Item
-        </button>
     </div>
 </div>
 
@@ -641,15 +653,15 @@
         OnMoveLane.InvokeAsync(("down", JsonPath));
     }
 
-    private string GetMoveButtonStyle(bool isEnabled)
+    private string GetInlineUpDownButtonStyle(bool isEnabled)
     {
         if (isEnabled)
         {
-            return "flex: 1; background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;";
+            return "width: 44px; height: 44px; background: #3c3c3c; color: #ccc; border: 1px solid #555; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;";
         }
         else
         {
-            return "flex: 1; background: #2a2a3e; color: #555; border: 1px solid #3a3a4e; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: not-allowed; opacity: 0.4;";
+            return "width: 44px; height: 44px; background: #2a2a3e; color: #555; border: 1px solid #3a3a4e; border-radius: 6px; cursor: not-allowed; opacity: 0.3; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;";
         }
     }
 

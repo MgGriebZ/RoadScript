@@ -366,9 +366,15 @@
                                 <div style="display: flex; align-items: flex-start; gap: 12px;">
                                     <div style="@LaneBarStyle(lane.Color)"></div>
                                     <div style="display: flex; flex-direction: column; gap: 6px;">
-                                        <span style="@LaneTitleStyle()">
-                                            @((MarkupString)lane.Title.Replace("&", "&amp;<br/>"))
-                                        </span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            @if (!string.IsNullOrEmpty(lane.Icon))
+                                            {
+                                                <Icon IconType="@lane.Icon" Color="@lane.Color" Size="18" DropShadow="true" />
+                                            }
+                                            <span style="@LaneTitleStyle()">
+                                                @((MarkupString)lane.Title.Replace("&", "&amp;<br/>"))
+                                            </span>
+                                        </div>
                                         @if (lane.History != null)
                                         {
                                             <div style="display: flex; flex-direction: column; gap: 2px;">
@@ -397,11 +403,23 @@
                                                 <div style="display: flex; justify-content: space-between; width: 90px;">
                                                     @if (!string.IsNullOrWhiteSpace(lane.History.Start))
                                                     {
-                                                        <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.Start</span>
+                                                        <div style="display: flex; align-items: center; gap: 3px;">
+                                                            @if (!string.IsNullOrEmpty(lane.History.StartIcon))
+                                                            {
+                                                                <Icon IconType="@lane.History.StartIcon" Color="@lane.Color" Size="10" DropShadow="false" />
+                                                            }
+                                                            <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.Start</span>
+                                                        </div>
                                                     }
                                                     @if (!string.IsNullOrWhiteSpace(lane.History.End))
                                                     {
-                                                        <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.End</span>
+                                                        <div style="display: flex; align-items: center; gap: 3px;">
+                                                            @if (!string.IsNullOrEmpty(lane.History.EndIcon))
+                                                            {
+                                                                <Icon IconType="@lane.History.EndIcon" Color="@lane.Color" Size="10" DropShadow="false" />
+                                                            }
+                                                            <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.End</span>
+                                                        </div>
                                                     }
                                                 </div>
                                             </div>
@@ -421,6 +439,12 @@
                                 <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"columns[{colIndex}]", "column", col))"
                                      class="@GetElementClass($"columns[{colIndex}]")"
                                      style="@ColumnHeaderStyle(i)">
+                                    @if (!string.IsNullOrEmpty(col.Icon))
+                                    {
+                                        <div style="margin-bottom: 2px;">
+                                            <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="16" DropShadow="true" />
+                                        </div>
+                                    }
                                     <span style="@ColumnLabelStyle()">@col.Label</span>
                                     <span style="@ColumnSubStyle()">@col.Sub</span>
                                 </div>
