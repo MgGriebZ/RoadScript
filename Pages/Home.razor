@@ -429,35 +429,39 @@
                             {
                                 var milestone = _data.Milestones[mi];
                                 var msIndex = mi;
-                                <div id="@($"milestone-{msIndex}")"
-                                     @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
-                                     @onclick:stopPropagation="@(!_isPreviewMode)"
-                                     class="@GetElementClass($"milestones[{msIndex}]")"
-                                     style="@MilestoneStyle(milestone.Start)">
-                                    @if (!_isPreviewMode)
-                                    {
-                                        <div style="@MilestoneButtonsStyle()">
-                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, -100))" @onclick:stopPropagation="true" title="Jump to start" style="@MilestoneButtonStyle()"><span style="font-size: 9px; font-weight: 600;">⏮</span></button>
-                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, -GetColumnPercentage()))" @onclick:stopPropagation="true" title="Previous column" style="@MilestoneButtonStyle()"><span style="font-size: 14px;">⏪</span></button>
-                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, -0.25))" @onclick:stopPropagation="true" title="Decrease" style="@MilestoneButtonStyle()"><span style="font-size: 12px;">◀</span></button>
-                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, 0.25))" @onclick:stopPropagation="true" title="Increase" style="@MilestoneButtonStyle()"><span style="font-size: 12px;">▶</span></button>
-                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, GetColumnPercentage()))" @onclick:stopPropagation="true" title="Next column" style="@MilestoneButtonStyle()"><span style="font-size: 14px;">⏩</span></button>
-                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, 100))" @onclick:stopPropagation="true" title="Jump to end" style="@MilestoneButtonStyle()"><span style="font-size: 9px; font-weight: 600;">⏭</span></button>
-                                        </div>
-                                    }
-                                    <div style="@MilestoneContainerStyle()">
-                                        <Icon IconType="@(milestone.Icon ?? "diamond")"
-                                              Color="@milestone.Color"
-                                              Size="24"
-                                              DropShadow="true" />
-                                        @if (!string.IsNullOrWhiteSpace(milestone.Title))
+
+                                @if (!string.IsNullOrEmpty(milestone.Icon))
+                                {
+                                    <div id="@($"milestone-{msIndex}")"
+                                         @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
+                                         @onclick:stopPropagation="@(!_isPreviewMode)"
+                                         class="@GetElementClass($"milestones[{msIndex}]")"
+                                         style="@MilestoneStyle(milestone.Start)">
+                                        @if (!_isPreviewMode)
                                         {
-                                            <span style="@MilestoneLabelStyle(milestone.Color)">
-                                                @milestone.Title
-                                            </span>
+                                            <div style="@MilestoneButtonsStyle()">
+                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, -100))" @onclick:stopPropagation="true" title="Jump to start" style="@MilestoneButtonStyle()"><span style="font-size: 9px; font-weight: 600;">⏮</span></button>
+                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, -GetColumnPercentage()))" @onclick:stopPropagation="true" title="Previous column" style="@MilestoneButtonStyle()"><span style="font-size: 14px;">⏪</span></button>
+                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, -0.25))" @onclick:stopPropagation="true" title="Decrease" style="@MilestoneButtonStyle()"><span style="font-size: 12px;">◀</span></button>
+                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, 0.25))" @onclick:stopPropagation="true" title="Increase" style="@MilestoneButtonStyle()"><span style="font-size: 12px;">▶</span></button>
+                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, GetColumnPercentage()))" @onclick:stopPropagation="true" title="Next column" style="@MilestoneButtonStyle()"><span style="font-size: 14px;">⏩</span></button>
+                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, 100))" @onclick:stopPropagation="true" title="Jump to end" style="@MilestoneButtonStyle()"><span style="font-size: 9px; font-weight: 600;">⏭</span></button>
+                                            </div>
                                         }
+                                        <div style="@MilestoneContainerStyle()">
+                                            <Icon IconType="@milestone.Icon"
+                                                  Color="@milestone.Color"
+                                                  Size="24"
+                                                  DropShadow="true" />
+                                            @if (!string.IsNullOrWhiteSpace(milestone.Title))
+                                            {
+                                                <span style="@MilestoneLabelStyle(milestone.Color)">
+                                                    @milestone.Title
+                                                </span>
+                                            }
+                                        </div>
                                     </div>
-                                </div>
+                                }
                             }
                         </div>
 
