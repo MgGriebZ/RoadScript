@@ -498,24 +498,34 @@
                                                     }
                                                 </div>
                                                 <div style="display: flex; justify-content: space-between; width: 90px;">
-                                                    @if (!string.IsNullOrWhiteSpace(lane.History.Start))
+                                                    @{
+                                                        var hasStartContent = !string.IsNullOrEmpty(lane.History.StartIcon) || !string.IsNullOrWhiteSpace(lane.History.Start);
+                                                        var hasEndContent = !string.IsNullOrEmpty(lane.History.EndIcon) || !string.IsNullOrWhiteSpace(lane.History.End);
+                                                    }
+                                                    @if (hasStartContent)
                                                     {
                                                         <div style="display: flex; align-items: center; gap: 3px;">
                                                             @if (!string.IsNullOrEmpty(lane.History.StartIcon))
                                                             {
                                                                 <Icon IconType="@lane.History.StartIcon" Color="@lane.Color" Size="10" DropShadow="false" />
                                                             }
-                                                            <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.Start</span>
+                                                            @if (!string.IsNullOrWhiteSpace(lane.History.Start))
+                                                            {
+                                                                <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.Start</span>
+                                                            }
                                                         </div>
                                                     }
-                                                    @if (!string.IsNullOrWhiteSpace(lane.History.End))
+                                                    @if (hasEndContent)
                                                     {
-                                                        <div style="display: flex; align-items: center; gap: 3px;">
+                                                        <div style="display: flex; align-items: center; gap: 3px; margin-left: auto;">
                                                             @if (!string.IsNullOrEmpty(lane.History.EndIcon))
                                                             {
                                                                 <Icon IconType="@lane.History.EndIcon" Color="@lane.Color" Size="10" DropShadow="false" />
                                                             }
-                                                            <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.End</span>
+                                                            @if (!string.IsNullOrWhiteSpace(lane.History.End))
+                                                            {
+                                                                <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.End</span>
+                                                            }
                                                         </div>
                                                     }
                                                 </div>
