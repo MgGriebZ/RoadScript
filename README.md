@@ -224,28 +224,37 @@ The **Milestone Map** template can visualize git activity with hourly granularit
       "history": { "start": "All day", "percent": 85, "origin": "left" },
       "items": [
         {
-          "title": "#02b540c",
+          "title": "Schema Refactoring",
           "start": 0,
-          "length": 0.75,
+          "length": 1,
           "icon": "code",
           "color": "#9999ff",
-          "details": [{ "text": "Reorganize JSON schema", "subs": ["cleaner property names"] }]
+          "details": [
+            { "text": "#02b540c - Reorganize JSON schema", "subs": ["cleaner property names"] },
+            { "text": "#3da8cfd - Fix property references" },
+            { "text": "#aceff53 - Command center improvements", "subs": ["milestones, swim lanes"] }
+          ]
         },
         {
-          "title": "#656cd23",
+          "title": "Vibe Mode Overhaul",
           "start": 1.25,
           "length": 1,
           "icon": "lightbulb",
           "color": "#9B7ED9",
-          "details": [{ "text": "Vibe mode visual redesign", "subs": ["dynamic color system"] }]
+          "details": [
+            { "text": "#656cd23 - Complete visual redesign", "subs": ["dynamic color system"] }
+          ]
         },
         {
-          "title": "#5c0fc80",
+          "title": "Template & UI Updates",
           "start": 4,
-          "length": 0.75,
-          "icon": "calendar",
-          "color": "#E6B800",
-          "details": [{ "text": "Gemini daily template update" }]
+          "length": 3.5,
+          "icon": "star",
+          "color": "#45B69C",
+          "details": [
+            { "text": "#5c0fc80 - Gemini daily template update" },
+            { "text": "#205158f - Hover cleanup", "subs": ["Command Center reorganization"] }
+          ]
         }
       ]
     },
@@ -255,28 +264,42 @@ The **Milestone Map** template can visualize git activity with hourly granularit
       "history": { "end": "Heavy lifting", "percent": 75, "origin": "right" },
       "items": [
         {
-          "title": "#577cc2a",
+          "title": "Drag & Drop System",
           "start": 1.5,
-          "length": 1,
+          "length": 1.5,
+          "spanning": true,
           "icon": "code",
           "color": "#667eea",
-          "details": [{ "text": "Core features", "subs": ["keyboard shortcuts, drag-to-resize, quick share"] }]
+          "details": [
+            { "text": "#577cc2a - Core features", "subs": ["keyboard shortcuts", "drag-to-resize", "quick share"] },
+            { "text": "#99d98dd - Refinement", "subs": ["cursors, 0.25 snapping"] },
+            { "text": "#7a24f5e - Drag-to-move", "subs": ["slide entire items"] },
+            { "text": "#d3f25fd - UX improvements", "subs": ["15px edge zones"] },
+            { "text": "#2160d39 - Box-shadow overlays" }
+          ]
         },
         {
-          "title": "#7a24f5e",
-          "start": 2,
-          "length": 0.75,
-          "icon": "wrench",
-          "color": "#EF4444",
-          "details": [{ "text": "Drag-to-move items", "subs": ["slide entire items by dragging middle"] }]
+          "title": "Item Management",
+          "start": 6.5,
+          "length": 1.75,
+          "icon": "star",
+          "color": "#45B69C",
+          "details": [
+            { "text": "#0063991 - Three refinements", "subs": ["preview auto-deselect", "boundary constraints"] },
+            { "text": "#ca61684 - Enhanced management", "subs": ["milestone drag"] },
+            { "text": "#05eac33 - Box-shadow fix" }
+          ]
         },
         {
-          "title": "#c3dc7e1",
-          "start": 6.75,
-          "length": 0.75,
+          "title": "Milestone Drag Fixes",
+          "start": 8.5,
+          "length": 1,
           "icon": "wrench",
           "color": "#EF4444",
-          "details": [{ "text": "Fix milestone drag", "subs": ["prevent listener removal"] }]
+          "details": [
+            { "text": "#e20ec30 - Slow down drag", "subs": ["3x slower", "debug logging"] },
+            { "text": "#c3dc7e1 - Fix listener removal" }
+          ]
         }
       ]
     },

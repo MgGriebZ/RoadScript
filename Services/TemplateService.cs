@@ -1102,9 +1102,9 @@ public class TemplateService
                         new Item
                         {
                             Id = null,
-                            Title = "#02b540c",
+                            Title = "Schema Refactoring",
                             Start = 0,
-                            Length = 0.75,
+                            Length = 1,
                             Spanning = false,
                             Icon = "code",
                             Color = "#9999ff",
@@ -1112,45 +1112,15 @@ public class TemplateService
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Reorganize JSON schema", Subs = new List<string> { "cleaner property names" } }
+                                new Detail { Text = "#02b540c - Reorganize JSON schema", Subs = new List<string> { "cleaner property names" } },
+                                new Detail { Text = "#3da8cfd - Fix property references", Subs = new List<string>() },
+                                new Detail { Text = "#aceff53 - Command center improvements", Subs = new List<string> { "milestones, swim lanes" } }
                             }
                         },
                         new Item
                         {
                             Id = null,
-                            Title = "#3da8cfd",
-                            Start = 0.15,
-                            Length = 0.5,
-                            Spanning = false,
-                            Icon = "wrench",
-                            Color = "#EF4444",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Fix property references", Subs = new List<string>() }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#aceff53",
-                            Start = 0.35,
-                            Length = 0.6,
-                            Spanning = false,
-                            Icon = "star",
-                            Color = "#45B69C",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Command center, milestones, swim lanes", Subs = new List<string>() }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#656cd23",
+                            Title = "Vibe Mode Overhaul",
                             Start = 1.25,
                             Length = 1,
                             Spanning = false,
@@ -1160,39 +1130,24 @@ public class TemplateService
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Vibe mode visual redesign", Subs = new List<string> { "dynamic color system" } }
+                                new Detail { Text = "#656cd23 - Complete visual redesign", Subs = new List<string> { "dynamic color system", "enhanced contrast" } }
                             }
                         },
                         new Item
                         {
                             Id = null,
-                            Title = "#5c0fc80",
+                            Title = "Template & UI Updates",
                             Start = 4,
-                            Length = 0.75,
+                            Length = 3.5,
                             Spanning = false,
-                            Icon = "calendar",
-                            Color = "#E6B800",
+                            Icon = "star",
+                            Color = "#45B69C",
                             Greyed = false,
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Gemini daily template update", Subs = new List<string>() }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#205158f",
-                            Start = 7.25,
-                            Length = 0.75,
-                            Spanning = false,
-                            Icon = "wrench",
-                            Color = "#667eea",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Hover cleanup and Command Center reorganization", Subs = new List<string>() }
+                                new Detail { Text = "#5c0fc80 - Gemini daily template update", Subs = new List<string>() },
+                                new Detail { Text = "#205158f - Hover cleanup", Subs = new List<string> { "Command Center reorganization" } }
                             }
                         }
                     }
@@ -1218,105 +1173,29 @@ public class TemplateService
                         new Item
                         {
                             Id = null,
-                            Title = "#577cc2a",
+                            Title = "Drag & Drop System",
                             Start = 1.5,
-                            Length = 1,
-                            Spanning = false,
+                            Length = 1.5,
+                            Spanning = true,
                             Icon = "code",
                             Color = "#667eea",
                             Greyed = false,
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Core features", Subs = new List<string> { "keyboard shortcuts, drag-to-resize, quick share" } }
+                                new Detail { Text = "#577cc2a - Core features", Subs = new List<string> { "keyboard shortcuts", "drag-to-resize", "quick share" } },
+                                new Detail { Text = "#99d98dd - Refinement", Subs = new List<string> { "cursors, 0.25 snapping" } },
+                                new Detail { Text = "#7a24f5e - Drag-to-move", Subs = new List<string> { "slide entire items" } },
+                                new Detail { Text = "#d3f25fd - UX improvements", Subs = new List<string> { "15px edge zones, visual indicators" } },
+                                new Detail { Text = "#2160d39 - Box-shadow overlays", Subs = new List<string>() }
                             }
                         },
                         new Item
                         {
                             Id = null,
-                            Title = "#99d98dd",
-                            Start = 1.75,
-                            Length = 0.5,
-                            Spanning = false,
-                            Icon = "wrench",
-                            Color = "#EF4444",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Drag-to-resize refinement", Subs = new List<string> { "cursors, 0.25 snapping" } }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#7a24f5e",
-                            Start = 2,
-                            Length = 0.75,
-                            Spanning = false,
-                            Icon = "wrench",
-                            Color = "#EF4444",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Drag-to-move items", Subs = new List<string> { "slide entire items by dragging middle" } }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#d3f25fd",
-                            Start = 2.25,
-                            Length = 0.5,
-                            Spanning = false,
-                            Icon = "star",
-                            Color = "#9999ff",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Resize UX improvements", Subs = new List<string> { "larger edge zones (15px), visual indicators" } }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#2160d39",
-                            Start = 2.5,
-                            Length = 0.5,
-                            Spanning = false,
-                            Icon = "wrench",
-                            Color = "#EF4444",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Box-shadow overlays for edge indicators", Subs = new List<string>() }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#0063991",
+                            Title = "Item Management",
                             Start = 6.5,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "code",
-                            Color = "#667eea",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Three refinements", Subs = new List<string> { "preview auto-deselect, boundary constraints, move buttons" } }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#ca61684",
-                            Start = 7.5,
-                            Length = 0.75,
+                            Length = 1.75,
                             Spanning = false,
                             Icon = "star",
                             Color = "#45B69C",
@@ -1324,31 +1203,17 @@ public class TemplateService
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Enhanced item management", Subs = new List<string> { "milestone drag functionality" } }
+                                new Detail { Text = "#0063991 - Three refinements", Subs = new List<string> { "preview auto-deselect", "boundary constraints", "move buttons" } },
+                                new Detail { Text = "#ca61684 - Enhanced management", Subs = new List<string> { "milestone drag functionality" } },
+                                new Detail { Text = "#05eac33 - Box-shadow fix", Subs = new List<string>() }
                             }
                         },
                         new Item
                         {
                             Id = null,
-                            Title = "#05eac33",
-                            Start = 7.75,
-                            Length = 0.5,
-                            Spanning = false,
-                            Icon = "wrench",
-                            Color = "#EF4444",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Box-shadow overlays fix", Subs = new List<string>() }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#e20ec30",
+                            Title = "Milestone Drag Fixes",
                             Start = 8.5,
-                            Length = 0.5,
+                            Length = 1,
                             Spanning = false,
                             Icon = "wrench",
                             Color = "#EF4444",
@@ -1356,23 +1221,8 @@ public class TemplateService
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Slow down drag movement", Subs = new List<string> { "3x slower, debug logging" } }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#c3dc7e1",
-                            Start = 8.75,
-                            Length = 0.75,
-                            Spanning = false,
-                            Icon = "wrench",
-                            Color = "#EF4444",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Fix milestone drag", Subs = new List<string> { "prevent listener removal during re-renders" } }
+                                new Detail { Text = "#e20ec30 - Slow down drag movement", Subs = new List<string> { "3x slower", "debug logging" } },
+                                new Detail { Text = "#c3dc7e1 - Fix listener removal", Subs = new List<string> { "prevent removal during re-renders" } }
                             }
                         }
                     }
