@@ -30,6 +30,12 @@ public class Column
 
     [JsonPropertyName("sub")]
     public string? Sub { get; set; }  // Nullable - not all columns need sub-labels
+
+    [JsonPropertyName("icon")]
+    public string? Icon { get; set; }  // Optional icon for column header
+
+    [JsonPropertyName("color")]
+    public string? Color { get; set; }  // Optional color for column header
 }
 
 public class Milestone
@@ -58,6 +64,9 @@ public class Lane
     [JsonPropertyName("color")]
     public string Color { get; set; } = "#cccccc";
 
+    [JsonPropertyName("icon")]
+    public string? Icon { get; set; }  // Optional icon for lane header
+
     // NEW: Variable height support (1.0 = default, 2.0 = double, 0.5 = half)
     [JsonPropertyName("height")]
     public double? Height { get; set; }
@@ -77,6 +86,12 @@ public class History
 
     [JsonPropertyName("end")]
     public string? End { get; set; }
+
+    [JsonPropertyName("startIcon")]
+    public string? StartIcon { get; set; }  // Optional icon for history start
+
+    [JsonPropertyName("endIcon")]
+    public string? EndIcon { get; set; }  // Optional icon for history end
 
     [JsonPropertyName("percent")]
     public int Percent { get; set; }

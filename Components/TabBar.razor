@@ -1,7 +1,5 @@
 @using RoadScript.Models
 
-@* TabBar Component - Manages up to 3 roadmap tabs *@
-
 <div style="@ContainerStyle()">
     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
         @for (int i = 0; i < Tabs.Count; i++)
@@ -124,7 +122,6 @@
 
     private string GetTabLabel(TabSession tab, int index)
     {
-        // Show truncated tab name if it's too long, otherwise show full name
         var maxLength = 12;
         var name = string.IsNullOrWhiteSpace(tab.Name) ? $"Tab {index + 1}" : tab.Name;
         return name.Length > maxLength ? name.Substring(0, maxLength) + "..." : name;

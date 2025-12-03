@@ -659,50 +659,6 @@ window.RoadScriptInterop = {
         });
     },
 
-    /**
-     * Sets up drag-to-move functionality for all milestones
-     * @param {object} dotNetRef - .NET object reference for callbacks
-     */
-    setupAllMilestoneMove: function(dotNetRef) {
-        const elements = document.querySelectorAll('.roadmap-milestone-movable');
-
-        elements.forEach(element => {
-            // Skip if already set up (prevent removing active listeners during re-renders)
-            if (element._roadscriptMilestoneSetup) return;
-            element._roadscriptMilestoneSetup = true;
-
-            // Create mousedown listener (cursor is handled by CSS)
-            const handleMouseDown = function(e) {
-                // Handle move (slide entire milestone)
-                e.preventDefault();
-                e.stopPropagation();
-
-                const milestoneIndex = parseInt(element.getAttribute('data-milestone-index'));
-                dotNetRef.invokeMethodAsync('StartMoveMilestone', milestoneIndex, e.clientX);
-
-                const handleGlobalMouseMove = (moveEvent) => {
-                    dotNetRef.invokeMethodAsync('UpdateMoveMilestone', moveEvent.clientX);
-                };
-
-                const handleGlobalMouseUp = () => {
-                    dotNetRef.invokeMethodAsync('EndMoveMilestone');
-                    document.removeEventListener('mousemove', handleGlobalMouseMove);
-                    document.removeEventListener('mouseup', handleGlobalMouseUp);
-                };
-
-                document.addEventListener('mousemove', handleGlobalMouseMove);
-                document.addEventListener('mouseup', handleGlobalMouseUp);
-            };
-
-            // Add mousedown listener
-            element.addEventListener('mousedown', handleMouseDown);
-        });
-    },
-
-    /**
-     * Opens PNG in new tab instead of downloading
-     * @param {string} elementSelector - CSS selector for the element to capture
-     */
     exportAsPngNewTab: async function(elementSelector) {
         try {
             // Load html2canvas dynamically if not already loaded

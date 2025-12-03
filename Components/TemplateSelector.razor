@@ -2,8 +2,6 @@
 @using RoadScript.Components
 @using static RoadScript.Services.TemplateService
 
-@* Template Selector - Modal for choosing roadmap template *@
-
 <div class="template-selector-overlay @(IsVisible ? "visible" : "")" @onclick="@(() => OnClose.InvokeAsync())">
     <div class="template-selector-content" @onclick:stopPropagation="true">
         <div class="template-selector-header">
@@ -12,7 +10,6 @@
         </div>
 
         <div class="template-options">
-            @* Daily Planning *@
             <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumSprintCycle))">
                 <div class="template-icon" style="background: linear-gradient(135deg, rgba(153, 153, 255, 0.15) 0%, rgba(153, 153, 255, 0.05) 100%);">
                     <Icon IconType="calendar" Size="56" Color="#9999ff" />
@@ -23,7 +20,6 @@
                 </div>
             </div>
 
-            @* Project Timelines *@
             <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.ProjectTimelines))">
                 <div class="template-icon" style="background: linear-gradient(135deg, rgba(135, 206, 235, 0.15) 0%, rgba(135, 206, 235, 0.05) 100%);">
                     <Icon IconType="rocket" Size="56" Color="#87CEEB" />
@@ -34,7 +30,6 @@
                 </div>
             </div>
 
-            @* Milestone Map *@
             <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.AnnualRoadmap))">
                 <div class="template-icon" style="background: linear-gradient(135deg, rgba(69, 182, 156, 0.15) 0%, rgba(69, 182, 156, 0.05) 100%);">
                     <Icon IconType="flag" Size="56" Color="#45B69C" />

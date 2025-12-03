@@ -1,8 +1,6 @@
 @using RoadScript.Models
 @using RoadScript.Components
 
-@* Folder Selector - Honeycomb-style folder picker for managing project folders *@
-
 <div class="folder-selector-overlay @(IsVisible ? "visible" : "")" @onclick="@(() => OnClose.InvokeAsync())">
     <div class="folder-selector-content" @onclick:stopPropagation="true">
         <div class="folder-selector-header">
@@ -41,7 +39,6 @@
                 </div>
             }
 
-            @* Add folder button (if under max limit) *@
             @if (Folders.Count < MaxFolders)
             {
                 <div class="folder-hex add-folder" @onclick="HandleAddFolder">
@@ -56,9 +53,7 @@
         @if (Folders.Count > 0)
         {
             <div class="folder-actions">
-                @* Active Folder Controls - Compact Inline Layout *@
                 <div class="folder-controls-compact">
-                    @* Active Folder Name with Edit and Arrows *@
                     <div class="folder-name-row">
                         <button class="btn-move-arrow"
                                 @onclick="@(() => HandleMoveFolderLeft(ActiveFolderId))"
@@ -84,9 +79,7 @@
                         </button>
                     </div>
 
-                    @* Icon and Color Controls - Side by Side *@
                     <div class="icon-color-row">
-                        @* Large Icon Preview *@
                         <div class="inline-control">
                             <label>Icon</label>
                             <button class="btn-icon-large"
@@ -97,7 +90,6 @@
                             </button>
                         </div>
 
-                        @* All Color Presets Grid *@
                         <div class="inline-control" style="flex: 1;">
                             <label>Color</label>
                             <div class="color-grid-inline">
@@ -115,7 +107,6 @@
                         </div>
                     </div>
 
-                    @* Expandable Icon Picker *@
                     @if (_showIconPicker && ActiveFolderId != null)
                     {
                         <div class="expandable-panel">
@@ -128,7 +119,6 @@
                     }
                 </div>
 
-                @* Delete button *@
                 <button class="btn-delete" @onclick="HandleRemoveFolder" disabled="@(Folders.Count <= 1 || ActiveFolderId == null)">
                     <span style="font-size: 18px; margin-right: 8px;">🗑️</span>
                     Delete Folder
