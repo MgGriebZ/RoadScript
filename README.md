@@ -207,7 +207,7 @@ Get started quickly with 3 production-ready templates:
 ## Technical Architecture
 
 ### Drag and Move System
-**Milestone Dragging**: Milestones use `.roadmap-milestone-movable` class with `data-milestone-index` attribute. JavaScript handler prevents listener removal during re-renders using `_roadscriptMilestoneSetup` flag. Movement includes 3x drag slowdown (`deltaX / 3000.0 * percentPerColumn`) for precision. Values snap to 0.25 increments via `RoundToQuarter` method.
+**Milestone Positioning**: Milestones display 6 inline position adjustment buttons in edit mode (⏮ ⏪ ◀ ▶ ⏩ ⏭). Jump to start/end or adjust by column/quarter increments. `AdjustMilestonePosition()` updates position with bounds checking (0-100%), rounds to 2 decimals, saves history snapshot, and syncs editor/storage. Hidden in preview mode.
 
 **Item Resizing/Moving**: Items use `.roadmap-item-resizable` class with edge detection (15px threshold via `getBoundingClientRect`). Three cursors: `col-resize` for edges, `move` for middle. Edge indicators use `box-shadow` overlays to preserve original borders. History snapshots saved on drag start for undo/redo support.
 

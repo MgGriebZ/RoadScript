@@ -432,9 +432,19 @@
                                 <div id="@($"milestone-{msIndex}")"
                                      @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
                                      @onclick:stopPropagation="@(!_isPreviewMode)"
-                                     class="@GetElementClass($"milestones[{msIndex}]") roadmap-milestone-movable"
-                                     style="@MilestoneStyle(milestone.Start)"
-                                     data-milestone-index="@msIndex">
+                                     class="@GetElementClass($"milestones[{msIndex}]")"
+                                     style="@MilestoneStyle(milestone.Start)">
+                                    @if (!_isPreviewMode)
+                                    {
+                                        <div style="@MilestoneButtonsStyle()">
+                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, -100))" @onclick:stopPropagation="true" title="Jump to start" style="@MilestoneButtonStyle()"><span style="font-size: 9px; font-weight: 600;">⏮</span></button>
+                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, -GetColumnPercentage()))" @onclick:stopPropagation="true" title="Previous column" style="@MilestoneButtonStyle()"><span style="font-size: 14px;">⏪</span></button>
+                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, -0.25))" @onclick:stopPropagation="true" title="Decrease" style="@MilestoneButtonStyle()"><span style="font-size: 12px;">◀</span></button>
+                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, 0.25))" @onclick:stopPropagation="true" title="Increase" style="@MilestoneButtonStyle()"><span style="font-size: 12px;">▶</span></button>
+                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, GetColumnPercentage()))" @onclick:stopPropagation="true" title="Next column" style="@MilestoneButtonStyle()"><span style="font-size: 14px;">⏩</span></button>
+                                            <button @onclick="@(() => AdjustMilestonePosition(msIndex, 100))" @onclick:stopPropagation="true" title="Jump to end" style="@MilestoneButtonStyle()"><span style="font-size: 9px; font-weight: 600;">⏭</span></button>
+                                        </div>
+                                    }
                                     <div style="@MilestoneContainerStyle()">
                                         <Icon IconType="@(milestone.Icon ?? "diamond")"
                                               Color="@milestone.Color"
@@ -649,11 +659,6 @@
     private double _moveStartX = 0;
     private double _moveOriginalStart = 0;
 
-    private bool _isMovingMilestone = false;
-    private int _movingMilestoneIndex = -1;
-    private double _milestoneMoveStartX = 0;
-    private double _milestoneMoveOriginalStart = 0;
-
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
         var defaultTemplate = TemplateService.GetScrumSprintCycleTemplate();
@@ -785,11 +790,10 @@
             try
             {
                 await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupAllItemResize", _dotNetRef);
-                await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupAllMilestoneMove", _dotNetRef);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error setting up item resize/milestone move: {ex.Message}");
+                Console.WriteLine($"Error setting up item resize: {ex.Message}");
             }
         }
     }
@@ -1140,80 +1144,6 @@
         if (!_isMoving) return;
 
         _isMoving = false;
-
-        if (_data != null && _editor != null)
-        {
-            var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
-            _currentJson = updatedJson;
-            await _editor.SetValue(updatedJson);
-
-            if (_sessionManager != null && _activeTab != null && _folderManager != null)
-            {
-                _activeTab.Data = _data;
-                _activeTab.LastModified = DateTime.UtcNow;
-                await StorageService.SaveFolderManagerAsync(_folderManager);
-            }
-        }
-
-        await InvokeAsync(StateHasChanged);
-    }
-
-    [JSInvokable]
-    public void StartMoveMilestone(int milestoneIndex, double clientX)
-    {
-        if (_data == null || _isPreviewMode) return;
-
-        SaveHistorySnapshot();
-
-        _isMovingMilestone = true;
-        _movingMilestoneIndex = milestoneIndex;
-        _milestoneMoveStartX = clientX;
-
-        var milestone = _data.Milestones[milestoneIndex];
-        _milestoneMoveOriginalStart = milestone.Start;
-    }
-
-    [JSInvokable]
-    public async Task UpdateMoveMilestone(double clientX)
-    {
-        if (!_isMovingMilestone || _data == null) return;
-
-        try
-        {
-            var milestone = _data.Milestones[_movingMilestoneIndex];
-            var columnCount = _data.Columns.Count;
-            var deltaX = clientX - _milestoneMoveStartX;
-
-            var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 3000.0) * percentPerColumn;
-
-            var newStart = Math.Max(0, _milestoneMoveOriginalStart + deltaPercent);
-            var snappedStart = RoundToQuarter(newStart);
-
-            if (snappedStart <= columnCount)
-            {
-                milestone.Start = snappedStart;
-            }
-
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error during milestone move: {ex.Message}");
-        }
-    }
-
-    [JSInvokable]
-    public async Task EndMoveMilestone()
-    {
-        if (!_isMovingMilestone) return;
-
-        _isMovingMilestone = false;
 
         if (_data != null && _editor != null)
         {
@@ -1593,7 +1523,17 @@
             : "position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
 
     private string MilestoneStyle(double position) =>
-        $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10; padding: 8px; min-width: 40px; cursor: move;";
+        $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10; padding: 8px; min-width: 40px;";
+
+    private string MilestoneButtonsStyle() =>
+        _isVibeMode
+            ? "display: flex; gap: 2px; margin-bottom: 4px; pointer-events: auto; background: rgba(13, 13, 26, 0.95); border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 6px; padding: 2px;"
+            : "display: flex; gap: 2px; margin-bottom: 4px; pointer-events: auto; background: rgba(255, 255, 255, 0.98); border: 1px solid #e5e7eb; border-radius: 6px; padding: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);";
+
+    private string MilestoneButtonStyle() =>
+        _isVibeMode
+            ? "width: 24px; height: 24px; background: rgba(102, 126, 234, 0.2); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;"
+            : "width: 24px; height: 24px; background: #f8f9fa; color: #667eea; border: 1px solid #e5e7eb; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;";
 
     private string MilestoneContainerStyle() =>
         "display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none;";
@@ -3159,6 +3099,47 @@
         }
         return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
                "background: transparent; color: #666; transition: all 0.2s;";
+    }
+
+    private double GetColumnPercentage()
+    {
+        var columnCount = _data?.Columns.Count ?? 4;
+        return columnCount > 0 ? 100.0 / columnCount : 25.0;
+    }
+
+    private async Task AdjustMilestonePosition(int milestoneIndex, double delta)
+    {
+        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+
+        SaveHistorySnapshot();
+
+        var milestone = _data.Milestones[milestoneIndex];
+        var newPos = milestone.Start + delta;
+        newPos = Math.Max(0, Math.Min(newPos, 100));
+        newPos = Math.Round(newPos, 2);
+        milestone.Start = newPos;
+
+        var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        _currentJson = updatedJson;
+
+        if (_editor != null)
+        {
+            await _editor.SetValue(updatedJson);
+        }
+
+        if (_sessionManager != null && _activeTab != null && _folderManager != null)
+        {
+            _activeTab.Data = _data;
+            _activeTab.LastModified = DateTime.UtcNow;
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+
+        await InvokeAsync(StateHasChanged);
     }
 
 }
