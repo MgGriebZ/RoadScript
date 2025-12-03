@@ -29,30 +29,127 @@
             </div>
 
             <div style="flex: 1; overflow-y: auto; padding: 16px; background: #252526; display: flex; flex-direction: column;">
-                <div style="margin-bottom: 20px; position: relative;">
-                    <button @onclick="ToggleFolderSelector"
-                            title="Project Folders"
-                            style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
-                        <div style="position: relative;">
-                            <Icon IconType="folder" Size="28" Color="#ffffff" />
-                            <span style="position: absolute; top: -6px; right: -6px; background: @GetActiveFolderColor(); color: #ffffff; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);">@GetActiveFolderNumber()</span>
-                        </div>
-                        <span>Project Folders</span>
-                    </button>
-                </div>
-
+                @* Visual Folder & Roadmap Selector *@
                 <div style="margin-bottom: 20px;">
-                    <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Roadmaps</h3>
-                    @if (_sessionManager != null)
-                    {
-                        <TabBar Tabs="@_sessionManager.Tabs"
-                               ActiveTabId="@_sessionManager.ActiveTabId"
-                               MaxTabs="5"
-                               OnTabSwitch="HandleTabSwitch"
-                               OnTabAdd="HandleTabAdd"
-                               OnTabDelete="HandleTabDelete"
-                               OnTabRename="HandleTabRename" />
-                    }
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Workspace</h3>
+                        <button @onclick="ToggleFolderSelector"
+                                title="Advanced folder management"
+                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                            <Icon IconType="gear" Size="18" Color="#ccc" />
+                        </button>
+                    </div>
+
+                    @* 3 Static Folder Slots *@
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        @for (int i = 0; i < 3; i++)
+                        {
+                            var folderIndex = i;
+                            var hasFolder = folderIndex < (_folderManager?.Folders.Count ?? 0);
+                            var folder = hasFolder ? _folderManager!.Folders[folderIndex] : null;
+                            var isActive = hasFolder && folder?.Id == _folderManager?.ActiveFolderId;
+                            var folderColor = hasFolder ? folder!.Color : "#3a3a4e";
+                            var folderIcon = hasFolder ? (folder!.Icon ?? "folder") : "folder";
+
+                            <div style="flex: 1; position: relative;">
+                                <button @onclick="@(async () => { if (hasFolder) await HandleFolderSelect(folder!.Id); else ToggleFolderSelector(); })"
+                                        title="@(hasFolder ? folder!.Name : "Empty slot - click to add folder")"
+                                        style="@GetFolderCardStyle(isActive, hasFolder, folderColor)">
+                                    <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px 8px;">
+                                        @* Large folder icon *@
+                                        <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            <Icon IconType="@folderIcon" Size="32" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#555555"))" DropShadow="@isActive" />
+                                        </div>
+
+                                        @* Folder name *@
+                                        <div style="font-size: 11px; font-weight: 600; color: @(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666")); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; text-align: center;">
+                                            @(hasFolder ? folder!.Name : $"Slot {i + 1}")
+                                        </div>
+
+                                        @* Tab count badge *@
+                                        @if (hasFolder)
+                                        {
+                                            var tabCount = folder!.SessionManager?.Tabs.Count ?? 0;
+                                            <div style="font-size: 9px; color: #888; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px;">
+                                                @tabCount tab@(tabCount != 1 ? "s" : "")
+                                            </div>
+                                        }
+                                    </div>
+                                </button>
+
+                                @* Delete button overlay for active folder *@
+                                @if (isActive && hasFolder && (_folderManager?.Folders.Count ?? 0) > 1)
+                                {
+                                    <button @onclick="HandleRemoveFolder"
+                                            @onclick:stopPropagation="true"
+                                            title="Delete this folder"
+                                            style="position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; background: rgba(0,0,0,0.7); color: #ef4444; border: 1px solid #ef4444; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; transition: all 0.2s; z-index: 1;">
+                                        🗑️
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    @* Roadmaps for Active Folder - Number-based tabs *@
+                    <div style="background: #1e1e2e; border: 1px solid #3a3a4e; border-radius: 6px; padding: 12px;">
+                        <div style="font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 10px; padding: 0 4px;">
+                            Roadmaps (@(GetActiveFolderName()))
+                        </div>
+
+                        @if (_sessionManager != null)
+                        {
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">
+                                @for (int i = 0; i < _sessionManager.Tabs.Count; i++)
+                                {
+                                    var tab = _sessionManager.Tabs[i];
+                                    var tabIndex = i;
+                                    var isActiveTab = tab.Id == _sessionManager.ActiveTabId;
+
+                                    <button @onclick="@(() => HandleTabSwitch(tab.Id))"
+                                            title="@tab.Name"
+                                            style="@GetRoadmapTabStyle(isActiveTab)">
+                                        <div style="font-size: 16px; font-weight: 700; margin-bottom: 2px;">@(tabIndex + 1)</div>
+                                        <div style="font-size: 9px; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px;">@tab.Name</div>
+                                    </button>
+                                }
+
+                                @* Add roadmap button *@
+                                @if (_sessionManager.Tabs.Count < 5)
+                                {
+                                    <button @onclick="HandleTabAdd"
+                                            title="Add new roadmap"
+                                            style="min-width: 60px; height: 60px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.1) 100%); color: #10b981; border: 1px dashed rgba(16, 185, 129, 0.5); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-weight: 600;">
+                                        <span style="font-size: 20px;">+</span>
+                                        <span style="font-size: 9px;">New</span>
+                                    </button>
+                                }
+                            </div>
+
+                            @* Active Roadmap Name Editor *@
+                            @if (_activeTab != null)
+                            {
+                                <div style="display: flex; gap: 6px; align-items: center; padding-top: 10px; border-top: 1px solid #3a3a4e;">
+                                    <input type="text"
+                                           value="@_activeTab.Name"
+                                           @onchange="@(async (e) => await HandleTabRename((_activeTab.Id, e.Value?.ToString() ?? "Untitled")))"
+                                           placeholder="Roadmap name..."
+                                           style="flex: 1; background: #252538; color: #e0e7ff; border: 1px solid #3a3a4e; border-radius: 6px; padding: 8px 12px; font-size: 13px; font-weight: 500; outline: none; transition: all 0.2s;"
+                                           onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 2px rgba(102, 126, 234, 0.1)'"
+                                           onblur="this.style.borderColor='#3a3a4e'; this.style.boxShadow='none'" />
+
+                                    @if (_sessionManager.Tabs.Count > 1)
+                                    {
+                                        <button @onclick="@(async () => await HandleTabDelete(_activeTab.Id))"
+                                                title="Delete this roadmap"
+                                                style="width: 44px; height: 44px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700;">
+                                            🗑️
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
                 </div>
 
                 <div style="margin-bottom: 20px;">
@@ -212,6 +309,7 @@
                     <Icon IconType="gear" Size="24" Color="#ffffff" />
                 </button>
 
+                @* Delete Button - Static below gear icon *@
                 @if (_activeTab != null && _sessionManager != null)
                 {
                     <button @onclick="HandleCollapsedTabDelete"
@@ -244,6 +342,7 @@
                                 <Icon IconType="@folderIcon" Size="20" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666"))" />
                             </button>
 
+                            @* Show tabs only for the active folder *@
                             @if (isActive && _sessionManager != null)
                             {
                                 <div style="display: flex; flex-direction: column; gap: 4px; align-items: center; margin-top: 2px;">
@@ -333,6 +432,7 @@
             <div style="@RoadmapWrapperStyle()">
                 <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
 
+                @* Quick Share Icon *@
                 <div @onclick="QuickShareAsPng"
                      class="quick-share-icon"
                      title="Open roadmap as PNG in new tab"
@@ -363,9 +463,15 @@
                                 <div style="display: flex; align-items: flex-start; gap: 12px;">
                                     <div style="@LaneBarStyle(lane.Color)"></div>
                                     <div style="display: flex; flex-direction: column; gap: 6px;">
-                                        <span style="@LaneTitleStyle()">
-                                            @((MarkupString)lane.Title.Replace("&", "&amp;<br/>"))
-                                        </span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            @if (!string.IsNullOrEmpty(lane.Icon))
+                                            {
+                                                <Icon IconType="@lane.Icon" Color="@lane.Color" Size="18" DropShadow="true" />
+                                            }
+                                            <span style="@LaneTitleStyle()">
+                                                @((MarkupString)lane.Title.Replace("&", "&amp;<br/>"))
+                                            </span>
+                                        </div>
                                         @if (lane.History != null)
                                         {
                                             <div style="display: flex; flex-direction: column; gap: 2px;">
@@ -394,11 +500,23 @@
                                                 <div style="display: flex; justify-content: space-between; width: 90px;">
                                                     @if (!string.IsNullOrWhiteSpace(lane.History.Start))
                                                     {
-                                                        <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.Start</span>
+                                                        <div style="display: flex; align-items: center; gap: 3px;">
+                                                            @if (!string.IsNullOrEmpty(lane.History.StartIcon))
+                                                            {
+                                                                <Icon IconType="@lane.History.StartIcon" Color="@lane.Color" Size="10" DropShadow="false" />
+                                                            }
+                                                            <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.Start</span>
+                                                        </div>
                                                     }
                                                     @if (!string.IsNullOrWhiteSpace(lane.History.End))
                                                     {
-                                                        <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.End</span>
+                                                        <div style="display: flex; align-items: center; gap: 3px;">
+                                                            @if (!string.IsNullOrEmpty(lane.History.EndIcon))
+                                                            {
+                                                                <Icon IconType="@lane.History.EndIcon" Color="@lane.Color" Size="10" DropShadow="false" />
+                                                            }
+                                                            <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.End</span>
+                                                        </div>
                                                     }
                                                 </div>
                                             </div>
@@ -418,8 +536,47 @@
                                 <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"columns[{colIndex}]", "column", col))"
                                      class="@GetElementClass($"columns[{colIndex}]")"
                                      style="@ColumnHeaderStyle(i)">
-                                    <span style="@ColumnLabelStyle()">@col.Label</span>
-                                    <span style="@ColumnSubStyle()">@col.Sub</span>
+                                    @{
+                                        var hasTitle = !string.IsNullOrWhiteSpace(col.Label);
+                                        var hasSub = !string.IsNullOrWhiteSpace(col.Sub);
+                                        var hasIcon = !string.IsNullOrEmpty(col.Icon);
+                                    }
+
+                                    @if (hasIcon && hasTitle)
+                                    {
+                                        @* Icon inline with title *@
+                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                            <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="14" DropShadow="true" />
+                                            <span style="@ColumnLabelStyle()">@col.Label</span>
+                                        </div>
+                                        @if (hasSub)
+                                        {
+                                            <span style="@ColumnSubStyle()">@col.Sub</span>
+                                        }
+                                    }
+                                    else if (hasIcon && !hasTitle)
+                                    {
+                                        @* Large centered icon (no title) *@
+                                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 100%;">
+                                            <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="@(hasSub ? 24 : 28)" DropShadow="true" />
+                                            @if (hasSub)
+                                            {
+                                                <span style="@ColumnSubStyle()">@col.Sub</span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @* No icon - standard text layout *@
+                                        @if (hasTitle)
+                                        {
+                                            <span style="@ColumnLabelStyle()">@col.Label</span>
+                                        }
+                                        @if (hasSub)
+                                        {
+                                            <span style="@ColumnSubStyle()">@col.Sub</span>
+                                        }
+                                    }
                                 </div>
                             }
                         </div>
@@ -429,39 +586,25 @@
                             {
                                 var milestone = _data.Milestones[mi];
                                 var msIndex = mi;
-
-                                @if (!string.IsNullOrEmpty(milestone.Icon))
-                                {
-                                    <div id="@($"milestone-{msIndex}")"
-                                         @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
-                                         @onclick:stopPropagation="@(!_isPreviewMode)"
-                                         class="@GetElementClass($"milestones[{msIndex}]")"
-                                         style="@MilestoneStyle(milestone.Start)">
-                                        @if (!_isPreviewMode)
+                                <div id="@($"milestone-{msIndex}")"
+                                     @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
+                                     @onclick:stopPropagation="@(!_isPreviewMode)"
+                                     class="@GetElementClass($"milestones[{msIndex}]") roadmap-milestone-movable"
+                                     style="@MilestoneStyle(milestone.Start)"
+                                     data-milestone-index="@msIndex">
+                                    <div style="@MilestoneContainerStyle()">
+                                        <Icon IconType="@(milestone.Icon ?? "diamond")"
+                                              Color="@milestone.Color"
+                                              Size="24"
+                                              DropShadow="true" />
+                                        @if (!string.IsNullOrWhiteSpace(milestone.Title))
                                         {
-                                            <div style="@MilestoneButtonsStyle()">
-                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, -100))" @onclick:stopPropagation="true" title="Jump to start" style="@MilestoneButtonStyle()"><span style="font-size: 9px; font-weight: 600;">⏮</span></button>
-                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, -GetColumnPercentage()))" @onclick:stopPropagation="true" title="Previous column" style="@MilestoneButtonStyle()"><span style="font-size: 14px;">⏪</span></button>
-                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, -0.25))" @onclick:stopPropagation="true" title="Decrease" style="@MilestoneButtonStyle()"><span style="font-size: 12px;">◀</span></button>
-                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, 0.25))" @onclick:stopPropagation="true" title="Increase" style="@MilestoneButtonStyle()"><span style="font-size: 12px;">▶</span></button>
-                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, GetColumnPercentage()))" @onclick:stopPropagation="true" title="Next column" style="@MilestoneButtonStyle()"><span style="font-size: 14px;">⏩</span></button>
-                                                <button @onclick="@(() => AdjustMilestonePosition(msIndex, 100))" @onclick:stopPropagation="true" title="Jump to end" style="@MilestoneButtonStyle()"><span style="font-size: 9px; font-weight: 600;">⏭</span></button>
-                                            </div>
+                                            <span style="@MilestoneLabelStyle(milestone.Color)">
+                                                @milestone.Title
+                                            </span>
                                         }
-                                        <div style="@MilestoneContainerStyle()">
-                                            <Icon IconType="@milestone.Icon"
-                                                  Color="@milestone.Color"
-                                                  Size="24"
-                                                  DropShadow="true" />
-                                            @if (!string.IsNullOrWhiteSpace(milestone.Title))
-                                            {
-                                                <span style="@MilestoneLabelStyle(milestone.Color)">
-                                                    @milestone.Title
-                                                </span>
-                                            }
-                                        </div>
                                     </div>
-                                }
+                                </div>
                             }
                         </div>
 
@@ -633,10 +776,10 @@
     private string _currentJson = "";
     private bool _isVibeMode = false;
     private bool _editorReady = false;
-    private bool _isPreviewMode = false;
+    private bool _isPreviewMode = false;       // Toggle between Edit Mode and Preview Mode
     private bool _showControlPanel = false;
-    private bool _showAdvancedSection = false;
-    private bool _showProperties = true;
+    private bool _showAdvancedSection = false; // Show/hide Advanced JSON editor section - collapsed by default
+    private bool _showProperties = true;       // Show/hide properties panel - open by default
     private DotNetObjectReference<Home>? _dotNetRef;
 
     private FolderManager? _folderManager;
@@ -649,33 +792,147 @@
     private bool _isCreatingNewFolder = false;
     private string? _pendingFolderName = null;
 
+    // Drag-to-resize state
     private bool _isResizing = false;
     private int _resizingLaneIndex = -1;
     private int _resizingItemIndex = -1;
-    private string _resizingEdge = "";
+    private string _resizingEdge = ""; // "left" or "right"
     private double _resizeStartX = 0;
     private double _resizeOriginalStart = 0;
     private double _resizeOriginalLength = 0;
 
+    // Drag-to-move state
     private bool _isMoving = false;
     private int _movingLaneIndex = -1;
     private int _movingItemIndex = -1;
     private double _moveStartX = 0;
     private double _moveOriginalStart = 0;
 
+    // Milestone drag-to-move state
+    private bool _isMovingMilestone = false;
+    private int _movingMilestoneIndex = -1;
+    private double _milestoneMoveStartX = 0;
+    private double _milestoneMoveOriginalStart = 0;
+
+    private const string DefaultJson = @"{
+  ""title"": ""Bi-Weekly Sprint Roadmap"",
+  ""subtitle"": ""2-week sprint cycle with ceremonies"",
+  ""columns"": [
+    { ""label"": ""Thursday"", ""sub"": """" },
+    { ""label"": ""Friday"", ""sub"": """" },
+    { ""label"": ""Weekend"", ""sub"": ""Sat/Sun"" },
+    { ""label"": ""Monday"", ""sub"": """" },
+    { ""label"": ""Tuesday"", ""sub"": """" },
+    { ""label"": ""Wednesday"", ""sub"": ""3:00PM est"" }
+  ],
+  ""milestones"": [
+    { ""position"": 91, ""label"": ""Deployment Cutoff Time"", ""icon"": ""triangle"", ""color"": ""#EF4444"" },
+    { ""position"": 38, ""label"": ""Release Deployments"", ""icon"": ""rocket"", ""color"": ""#025f40"" }
+  ],
+  ""lanes"": [
+    {
+      ""title"": ""Week 1"",
+      ""color"": ""#45B69C"",
+      ""height"": 1,
+      ""items"": [
+        {
+          ""title"": ""Stakeholder Prioritization"",
+          ""start"": 3,
+          ""span"": 1,
+          ""spanning"": true,
+          ""statusIcon"": ""star"",
+          ""statusColor"": ""#D4A520""
+        },
+        {
+          ""title"": ""Refinement"",
+          ""start"": 5,
+          ""span"": 1,
+          ""spanning"": false,
+          ""statusIcon"": ""search"",
+          ""statusColor"": ""#9B7ED9""
+        },
+        {
+          ""title"": ""Sprint Planning"",
+          ""start"": 0,
+          ""span"": 1,
+          ""spanning"": false,
+          ""statusIcon"": ""calendar"",
+          ""statusColor"": ""#667eea""
+        },
+        {
+          ""title"": ""Sprint Review"",
+          ""start"": 1,
+          ""span"": 1,
+          ""spanning"": true,
+          ""statusIcon"": ""flag"",
+          ""statusColor"": ""#45B69C""
+        }
+      ]
+    },
+    {
+      ""title"": ""Week 2"",
+      ""color"": ""#D4A520"",
+      ""height"": 1,
+      ""items"": [
+        {
+          ""title"": ""Refinement"",
+          ""start"": 4,
+          ""span"": 2,
+          ""spanning"": false,
+          ""statusIcon"": ""search"",
+          ""statusColor"": ""#9B7ED9""
+        },
+        {
+          ""title"": ""Retro"",
+          ""start"": 1,
+          ""span"": 1,
+          ""spanning"": false,
+          ""statusIcon"": ""target"",
+          ""statusColor"": ""#D4A520""
+        }
+      ]
+    },
+    {
+      ""title"": ""IT Development"",
+      ""color"": ""#4A90D9"",
+      ""height"": 0.8,
+      ""items"": [
+        {
+          ""title"": ""Sprint Execution"",
+          ""start"": 0,
+          ""span"": 6,
+          ""spanning"": true,
+          ""statusIcon"": ""code"",
+          ""statusColor"": ""#4A90D9""
+        },
+        {
+          ""title"": ""Maintenance Window"",
+          ""start"": 2,
+          ""span"": 1,
+          ""spanning"": false,
+          ""statusIcon"": ""wrench"",
+          ""statusColor"": ""#4A90D9"",
+          ""details"": [
+            {
+              ""text"": ""Saturday"",
+              ""subs"": [
+                ""3:00PM - 11:59PM est"",
+                ""4PM Release Deployment Process Begins""
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}";
+
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
-        var defaultTemplate = TemplateService.GetScrumSprintCycleTemplate();
-        var defaultJson = JsonSerializer.Serialize(defaultTemplate, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
-
         return new StandaloneEditorConstructionOptions
         {
             Language = "json",
-            Value = defaultJson,
+            Value = DefaultJson,
             Theme = "vs-dark",
             Minimap = new EditorMinimapOptions { Enabled = false },
             AutomaticLayout = true,
@@ -789,15 +1046,17 @@
             await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupKeyboardShortcuts", _dotNetRef);
         }
 
+        // Setup resize/move handlers for all items and milestones (runs on every render to handle new items)
         if (!_isPreviewMode && _dotNetRef != null && _data != null)
         {
             try
             {
                 await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupAllItemResize", _dotNetRef);
+                await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupAllMilestoneMove", _dotNetRef);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error setting up item resize: {ex.Message}");
+                Console.WriteLine($"Error setting up item resize/milestone move: {ex.Message}");
             }
         }
     }
@@ -1028,15 +1287,19 @@
             var columnCount = _data.Columns.Count;
             var deltaX = clientX - _resizeStartX;
 
+            // Convert pixel delta to column percentage (approximate)
+            // Assuming the roadmap container width represents 100% of columns
             var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 3000.0) * percentPerColumn;
+            var deltaPercent = (deltaX / 3000.0) * percentPerColumn; // 3x slower for larger deliberate strokes
 
             if (_resizingEdge == "left")
             {
+                // Moving left edge: adjust start position only
                 var newStart = Math.Max(0, _resizeOriginalStart + deltaPercent);
                 var snappedStart = RoundToQuarter(newStart);
                 var newLength = _resizeOriginalLength - (snappedStart - _resizeOriginalStart);
 
+                // Ensure item doesn't exceed column boundaries
                 if (newLength > 0.25 && snappedStart + newLength <= columnCount)
                 {
                     item.Start = snappedStart;
@@ -1045,9 +1308,11 @@
             }
             else if (_resizingEdge == "right")
             {
+                // Moving right edge: adjust length only
                 var newLength = Math.Max(0.25, _resizeOriginalLength + deltaPercent);
                 var snappedLength = RoundToQuarter(newLength);
 
+                // Ensure item doesn't exceed column boundaries
                 if (item.Start + snappedLength <= columnCount)
                 {
                     item.Length = snappedLength;
@@ -1064,6 +1329,7 @@
 
     private double RoundToQuarter(double value)
     {
+        // Round to nearest 0.25 increment
         return Math.Round(value * 4) / 4;
     }
 
@@ -1074,6 +1340,7 @@
 
         _isResizing = false;
 
+        // Update the JSON editor with the new values
         if (_data != null && _editor != null)
         {
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
@@ -1123,12 +1390,15 @@
             var columnCount = _data.Columns.Count;
             var deltaX = clientX - _moveStartX;
 
+            // Convert pixel delta to column percentage
             var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 3000.0) * percentPerColumn;
+            var deltaPercent = (deltaX / 3000.0) * percentPerColumn; // 3x slower for larger deliberate strokes
 
+            // Move the item: adjust start position only, keep length constant
             var newStart = Math.Max(0, _moveOriginalStart + deltaPercent);
             var snappedStart = RoundToQuarter(newStart);
 
+            // Ensure item doesn't exceed column boundaries
             if (snappedStart + item.Length <= columnCount)
             {
                 item.Start = snappedStart;
@@ -1149,6 +1419,86 @@
 
         _isMoving = false;
 
+        // Update the JSON editor with the new values
+        if (_data != null && _editor != null)
+        {
+            var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            _currentJson = updatedJson;
+            await _editor.SetValue(updatedJson);
+
+            if (_sessionManager != null && _activeTab != null && _folderManager != null)
+            {
+                _activeTab.Data = _data;
+                _activeTab.LastModified = DateTime.UtcNow;
+                await StorageService.SaveFolderManagerAsync(_folderManager);
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // Milestone drag-to-move methods
+    [JSInvokable]
+    public void StartMoveMilestone(int milestoneIndex, double clientX)
+    {
+        if (_data == null || _isPreviewMode) return;
+
+        SaveHistorySnapshot();
+
+        _isMovingMilestone = true;
+        _movingMilestoneIndex = milestoneIndex;
+        _milestoneMoveStartX = clientX;
+
+        var milestone = _data.Milestones[milestoneIndex];
+        _milestoneMoveOriginalStart = milestone.Start;
+    }
+
+    [JSInvokable]
+    public async Task UpdateMoveMilestone(double clientX)
+    {
+        if (!_isMovingMilestone || _data == null) return;
+
+        try
+        {
+            var milestone = _data.Milestones[_movingMilestoneIndex];
+            var columnCount = _data.Columns.Count;
+            var deltaX = clientX - _milestoneMoveStartX;
+
+            // Convert pixel delta to column percentage
+            var percentPerColumn = 100.0 / columnCount;
+            var deltaPercent = (deltaX / 3000.0) * percentPerColumn; // 3x slower for larger deliberate strokes
+
+            // Move the milestone: adjust start position with boundary constraints
+            var newStart = Math.Max(0, _milestoneMoveOriginalStart + deltaPercent);
+            var snappedStart = RoundToQuarter(newStart);
+
+            // Ensure milestone doesn't exceed column boundaries
+            if (snappedStart <= columnCount)
+            {
+                milestone.Start = snappedStart;
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during milestone move: {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public async Task EndMoveMilestone()
+    {
+        if (!_isMovingMilestone) return;
+
+        _isMovingMilestone = false;
+
+        // Update the JSON editor with the new values
         if (_data != null && _editor != null)
         {
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
@@ -1227,7 +1577,7 @@
 
         try
         {
-            await Task.Delay(50);
+            await Task.Delay(50); // Brief delay for visual feedback
             var value = await _editor.GetValue();
             _currentJson = value;
             ParseJson(value);
@@ -1261,16 +1611,9 @@
 
         try
         {
-            var defaultTemplate = TemplateService.GetScrumSprintCycleTemplate();
-            var defaultJson = JsonSerializer.Serialize(defaultTemplate, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
-            await _editor.SetValue(defaultJson);
-            _currentJson = defaultJson;
-            ParseJson(defaultJson);
+            await _editor.SetValue(DefaultJson);
+            _currentJson = DefaultJson;
+            ParseJson(DefaultJson);
             _lastUpdateSuccess = true;
 
             await StorageService.ClearStorageAsync();
@@ -1297,6 +1640,9 @@
         if (_isPreviewMode)
         {
             _showControlPanel = false;
+            // Auto-deselect any active elements when entering preview mode
+            SelectionState.Clear();
+            // Clear any lingering hover effects for pristine preview
             await JSRuntime.InvokeVoidAsync("RoadScriptInterop.clearAllHoverEffects");
         }
         StateHasChanged();
@@ -1527,17 +1873,7 @@
             : "position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
 
     private string MilestoneStyle(double position) =>
-        $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10; padding: 8px; min-width: 40px;";
-
-    private string MilestoneButtonsStyle() =>
-        _isVibeMode
-            ? "display: flex; gap: 2px; margin-bottom: 4px; pointer-events: auto; background: rgba(13, 13, 26, 0.95); border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 6px; padding: 2px;"
-            : "display: flex; gap: 2px; margin-bottom: 4px; pointer-events: auto; background: rgba(255, 255, 255, 0.98); border: 1px solid #e5e7eb; border-radius: 6px; padding: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);";
-
-    private string MilestoneButtonStyle() =>
-        _isVibeMode
-            ? "width: 24px; height: 24px; background: rgba(102, 126, 234, 0.2); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;"
-            : "width: 24px; height: 24px; background: #f8f9fa; color: #667eea; border: 1px solid #e5e7eb; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;";
+        $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10; padding: 8px; min-width: 40px; cursor: move;";
 
     private string MilestoneContainerStyle() =>
         "display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none;";
@@ -1552,6 +1888,21 @@
         return $"font-size: 15px; font-weight: 700; line-height: 1.3; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.98); padding: 4px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 3px solid {color};";
     }
 
+    private string MilestoneButtonsStyle() =>
+        _isVibeMode
+            ? "display: flex; gap: 2px; margin-bottom: 4px; pointer-events: auto; background: rgba(13, 13, 26, 0.95); border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 6px; padding: 2px;"
+            : "display: flex; gap: 2px; margin-bottom: 4px; pointer-events: auto; background: rgba(255, 255, 255, 0.98); border: 1px solid #e5e7eb; border-radius: 6px; padding: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);";
+
+    private string MilestoneButtonStyle() =>
+        _isVibeMode
+            ? "width: 24px; height: 24px; background: rgba(102, 126, 234, 0.2); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;"
+            : "width: 24px; height: 24px; background: #f8f9fa; color: #667eea; border: 1px solid #e5e7eb; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;";
+
+    private double GetColumnPercentage()
+    {
+        var columnCount = _data?.Columns.Count ?? 4;
+        return columnCount > 0 ? 100.0 / columnCount : 25.0;
+    }
 
     private string GridColumnStyle(int index)
     {
@@ -1718,6 +2069,7 @@
 
     private string ItemHeaderStyle(bool hasDetails, bool hasSubs, bool hasTitle, double span, string laneColor)
     {
+        // Icon-only items: center and expand the icon
         if (!hasTitle)
         {
             var iconOnlyMargin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
@@ -1741,6 +2093,7 @@
             }
         }
 
+        // Adjust gap and padding based on details and subs
         var gap = hasDetails ? (hasSubs ? "7px" : "8px") : "10px";
         var padding = hasDetails ? (hasSubs ? "7px 11px" : "8px 12px") : "10px 14px";
 
@@ -1767,6 +2120,7 @@
 
     private string ItemTitleStyle(bool hasDetails, bool hasSubs)
     {
+        // Adjust font size based on details and subs
         var baseSize = hasDetails ? (hasSubs ? "21px" : "22px") : "24px";
         var margin = hasDetails ? "margin: 0 0 8px 0;" : "margin: 0;";
 
@@ -1777,11 +2131,13 @@
 
     private int GetIconSize(bool hasDetails, bool hasSubs, bool hasTitle)
     {
+        // Icon-only items get larger icon that scales with container
         if (!hasTitle)
         {
             return hasDetails ? 32 : 48;
         }
 
+        // Regular items with text
         if (hasDetails)
         {
             return hasSubs ? 18 : 20;
@@ -1810,9 +2166,11 @@
         var rgb = HexToRgb(hexColor);
         var hsl = RgbToHsl(rgb.r, rgb.g, rgb.b);
 
+        // Boost saturation for neon effect (min 80%)
         hsl.s = Math.Max(0.80, hsl.s * 1.4);
         hsl.s = Math.Min(1.0, hsl.s);
 
+        // Increase lightness for dark backgrounds (aim for 60-75%)
         hsl.l = Math.Max(0.60, Math.Min(0.75, hsl.l * 1.3));
 
         var vibeRgb = HslToRgb(hsl.h, hsl.s, hsl.l);
@@ -1824,6 +2182,7 @@
         var vibeColor = GetVibeColor(hexColor);
         var rgb = HexToRgb(vibeColor);
 
+        // Create gradient with transparency for layering effect
         return $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.20) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.08) 100%);";
     }
 
@@ -2046,7 +2405,7 @@
                     else
                     {
                         itemLaneIndex = ExtractIndexFromPath(jsonPath, "lanes");
-                        itemIndex = -1;
+                        itemIndex = -1; // Add at the end
                     }
 
                     var newItem = new Item
@@ -2307,14 +2666,20 @@
 
             if (direction == "up" && itemIndex > 0)
             {
+                // Swap with previous item in same lane
                 (lane.Items[itemIndex], lane.Items[itemIndex - 1]) = (lane.Items[itemIndex - 1], lane.Items[itemIndex]);
+                // Update selection to follow the moved item
                 SelectionState.Select($"lanes[{laneIndex}].items[{itemIndex - 1}]", "item", lane.Items[itemIndex - 1]);
             }
             else if (direction == "down" && itemIndex < lane.Items.Count - 1)
             {
+                // Swap with next item in same lane
                 (lane.Items[itemIndex], lane.Items[itemIndex + 1]) = (lane.Items[itemIndex + 1], lane.Items[itemIndex]);
+                // Update selection to follow the moved item
                 SelectionState.Select($"lanes[{laneIndex}].items[{itemIndex + 1}]", "item", lane.Items[itemIndex + 1]);
             }
+
+            // Update JSON
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -2374,14 +2739,19 @@
 
             if (targetLaneIndex >= 0 && targetLaneIndex < _data.Lanes.Count)
             {
+                // Remove item from source lane
                 sourceLane.Items.RemoveAt(itemIndex);
 
+                // Add item to end of target lane
                 var targetLane = _data.Lanes[targetLaneIndex];
                 targetLane.Items.Add(item);
                 var newItemIndex = targetLane.Items.Count - 1;
 
+                // Update selection to follow the moved item
                 SelectionState.Select($"lanes[{targetLaneIndex}].items[{newItemIndex}]", "item", item);
             }
+
+            // Update JSON
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -2554,6 +2924,41 @@
         {
             Console.WriteLine($"Error duplicating element: {ex.Message}");
         }
+    }
+
+    private async Task AdjustMilestonePosition(int milestoneIndex, double delta)
+    {
+        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+
+        SaveHistorySnapshot();
+
+        var milestone = _data.Milestones[milestoneIndex];
+        var newPos = milestone.Start + delta;
+        newPos = Math.Max(0, Math.Min(newPos, 100));
+        newPos = Math.Round(newPos, 2);
+        milestone.Start = newPos;
+
+        var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        _currentJson = updatedJson;
+
+        if (_editor != null)
+        {
+            await _editor.SetValue(updatedJson);
+        }
+
+        if (_sessionManager != null && _activeTab != null && _folderManager != null)
+        {
+            _activeTab.Data = _data;
+            _activeTab.LastModified = DateTime.UtcNow;
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleTabSwitch(string tabId)
@@ -2792,6 +3197,53 @@
         return _activeFolder.Color;
     }
 
+    private int GetActiveFolderIndex()
+    {
+        if (_folderManager == null || _activeFolder == null) return 0;
+        return _folderManager.Folders.FindIndex(f => f.Id == _activeFolder.Id);
+    }
+
+    private string GetActiveFolderName()
+    {
+        if (_activeFolder == null) return "No Folder";
+        return _activeFolder.Name;
+    }
+
+    private string? GetActiveFolderIcon()
+    {
+        return _activeFolder?.Icon;
+    }
+
+    private string GetFolderCardStyle(bool isActive, bool hasFolder, string folderColor)
+    {
+        var baseStyle = "width: 100%; min-height: 100px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex;";
+
+        if (isActive)
+        {
+            return $"{baseStyle} background: {folderColor}; border: 2px solid #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 20px {folderColor}80; transform: translateY(-2px);";
+        }
+        else if (hasFolder)
+        {
+            return $"{baseStyle} background: rgba(42, 42, 62, 0.6); border: 2px solid {folderColor}40; box-shadow: 0 2px 6px rgba(0,0,0,0.2);";
+        }
+        else
+        {
+            return $"{baseStyle} background: #2a2a2e; border: 2px dashed #3a3a4e; box-shadow: none;";
+        }
+    }
+
+    private string GetRoadmapTabStyle(bool isActive)
+    {
+        if (isActive)
+        {
+            return "min-width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); transform: scale(1.05);";
+        }
+        else
+        {
+            return "min-width: 60px; height: 60px; background: rgba(102, 126, 234, 0.1); color: #9ca3af; border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center;";
+        }
+    }
+
     private void CloseFolderSelector()
     {
         _showFolderSelector = false;
@@ -2868,8 +3320,8 @@
 
         _pendingFolderName = folderName;
         _isCreatingNewFolder = true;
-        _showFolderSelector = false;
-        _showTemplateSelector = true;
+        _showFolderSelector = false; // Close folder selector
+        _showTemplateSelector = true; // Show template selector
         await InvokeAsync(StateHasChanged);
     }
 
@@ -2922,7 +3374,7 @@
         if (_folderManager == null) return;
 
         var folderIndex = _folderManager.Folders.FindIndex(f => f.Id == folderId);
-        if (folderIndex <= 0) return;
+        if (folderIndex <= 0) return; // Already at leftmost position
 
         var folder = _folderManager.Folders[folderIndex];
         _folderManager.Folders.RemoveAt(folderIndex);
@@ -2939,7 +3391,7 @@
         if (_folderManager == null) return;
 
         var folderIndex = _folderManager.Folders.FindIndex(f => f.Id == folderId);
-        if (folderIndex < 0 || folderIndex >= _folderManager.Folders.Count - 1) return;
+        if (folderIndex < 0 || folderIndex >= _folderManager.Folders.Count - 1) return; // Already at rightmost position
 
         var folder = _folderManager.Folders[folderIndex];
         _folderManager.Folders.RemoveAt(folderIndex);
@@ -3103,47 +3555,6 @@
         }
         return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
                "background: transparent; color: #666; transition: all 0.2s;";
-    }
-
-    private double GetColumnPercentage()
-    {
-        var columnCount = _data?.Columns.Count ?? 4;
-        return columnCount > 0 ? 100.0 / columnCount : 25.0;
-    }
-
-    private async Task AdjustMilestonePosition(int milestoneIndex, double delta)
-    {
-        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
-
-        SaveHistorySnapshot();
-
-        var milestone = _data.Milestones[milestoneIndex];
-        var newPos = milestone.Start + delta;
-        newPos = Math.Max(0, Math.Min(newPos, 100));
-        newPos = Math.Round(newPos, 2);
-        milestone.Start = newPos;
-
-        var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
-
-        _currentJson = updatedJson;
-
-        if (_editor != null)
-        {
-            await _editor.SetValue(updatedJson);
-        }
-
-        if (_sessionManager != null && _activeTab != null && _folderManager != null)
-        {
-            _activeTab.Data = _data;
-            _activeTab.LastModified = DateTime.UtcNow;
-            await StorageService.SaveFolderManagerAsync(_folderManager);
-        }
-
-        await InvokeAsync(StateHasChanged);
     }
 
 }
