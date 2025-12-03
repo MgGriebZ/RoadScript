@@ -1054,256 +1054,263 @@ public class TemplateService
     /// </summary>
     public static RoadmapData GetAnnualRoadmapTemplate()
     {
+        var today = DateTime.Now.ToString("MMM d, yyyy");
         return new RoadmapData
         {
             Title = "Milestone Map",
-            Subtitle = "Made with RoadScript.NET... a MgGriebZ project",
+            Subtitle = $"Made with RoadScript.NET, on {today}.... by MgGriebZ",
             Columns = new List<Column>
             {
-                new Column { Id = null, Label = "9AM", Sub = "" },
-                new Column { Id = null, Label = "10AM", Sub = "" },
-                new Column { Id = null, Label = "11AM", Sub = "" },
-                new Column { Id = null, Label = "Lunch", Sub = "12PM - 2PM" },
-                new Column { Id = null, Label = "3PM", Sub = "" },
-                new Column { Id = null, Label = "4PM", Sub = "" },
-                new Column { Id = null, Label = "5PM", Sub = "" },
-                new Column { Id = null, Label = "6PM", Sub = "" },
-                new Column { Id = null, Label = "7PM", Sub = "Bathtime" },
-                new Column { Id = null, Label = "8PM", Sub = "" },
-                new Column { Id = null, Label = "9PM", Sub = "" },
-                new Column { Id = null, Label = "10PM", Sub = "" },
-                new Column { Id = null, Label = "11PM", Sub = "" },
-                new Column { Id = null, Label = "Midnight", Sub = "12AM+" }
+                new Column { Id = null, Label = "Late Night", Sub = "12AM-2AM", Icon = null, Color = null },
+                new Column { Id = null, Label = "8AM", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "9AM", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "10AM", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "11AM", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "12PM", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "1PM", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "2PM", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "3PM", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "4PM", Sub = "", Icon = null, Color = null }
             },
             Milestones = new List<Milestone>
             {
-                new Milestone { Start = 10, Title = "Merge", Icon = "rocket", Color = "#45B69C" },
-                new Milestone { Start = 28.5, Title = "Token Reset", Icon = "bug", Color = "#D4652F" },
-                new Milestone { Start = 0.5, Title = "Token Reset", Icon = "bug", Color = "#D4652F" },
-                new Milestone { Start = 57.5, Title = "Token Reset", Icon = "bug", Color = "#D4652F" },
-                new Milestone { Start = 93, Title = "Token Reset", Icon = "bug", Color = "#D4652F" },
-                new Milestone { Start = 18, Title = "Merge", Icon = "rocket", Color = "#45B69C" },
-                new Milestone { Start = 46, Title = "Merge", Icon = "rocket", Color = "#45B69C" },
-                new Milestone { Start = 86, Title = "Merge", Icon = "rocket", Color = "#45B69C" },
-                new Milestone { Start = 79, Title = "Limit Reached", Icon = "triangle", Color = "#EF4444" }
+                new Milestone { Start = 0, Title = "Previous Session", Icon = "bug", Color = "#B7C4B7" },
+                new Milestone { Start = 20, Title = "Token Reset", Icon = "bug", Color = "#D4652F" },
+                new Milestone { Start = 50, Title = "", Icon = "bug", Color = "#D4652F" },
+                new Milestone { Start = 37.75, Title = "Token Limit", Icon = "triangle", Color = "#EF4444" },
+                new Milestone { Start = 100, Title = "", Icon = "bug", Color = "#D4652F" },
+                new Milestone { Start = 28, Title = "#27", Icon = "rocket", Color = "#45B69C" },
+                new Milestone { Start = 44, Title = "#28", Icon = "rocket", Color = "#45B69C" },
+                new Milestone { Start = 92, Title = "#29", Icon = "rocket", Color = "#45B69C" }
             },
             Lanes = new List<Lane>
             {
                 new Lane
                 {
                     Id = null,
-                    Title = "Templates",
-                    Color = "#F88379",
+                    Title = "UI / UX Web Components",
+                    Color = "#EC4899",
+                    Icon = "heart",
                     Height = null,
-                    History = new History { Start = "Start of day", End = "", Percent = 6, Origin = "left" },
+                    History = new History
+                    {
+                        Start = "3 Items",
+                        End = "5",
+                        StartIcon = "star",
+                        EndIcon = "target",
+                        Percent = 79,
+                        Origin = "left"
+                    },
                     Items = new List<Item>
                     {
                         new Item
                         {
                             Id = null,
-                            Title = "Daily Planning",
+                            Title = "Schema Refactoring",
                             Start = 0,
-                            Length = 2.75,
+                            Length = 1.5,
                             Spanning = false,
-                            Icon = "clock",
-                            Color = "#45B69C",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Planning and meeting view", Subs = new List<string> { "Detail note driven", "Scrum ceremonies example" } }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Project Timelines",
-                            Start = 2.5,
-                            Length = 3.5,
-                            Spanning = false,
-                            Icon = "calendar",
-                            Color = "#45B69C",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Quick overview and timelines", Subs = new List<string>() }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Milestone Map",
-                            Start = 11.5,
-                            Length = 2.5,
-                            Spanning = true,
-                            Icon = "target",
-                            Color = "#45B69C",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Specific details/targets", Subs = new List<string>() }
-                            }
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "UI/UX Improvements",
-                    Color = "#87CEEB",
-                    Height = null,
-                    History = new History { Start = "Throughout day", End = "", Percent = 50, Origin = "left" },
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Properties Panel",
-                            Start = 1.25,
-                            Length = 5,
-                            Spanning = false,
-                            Icon = "question",
+                            Icon = "code",
                             Color = "#9999ff",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Icon menu/dropdown", Subs = new List<string>() },
-                                new Detail { Text = "GreyedOut/Hidden options", Subs = new List<string>() }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Folder Modal",
-                            Start = 8,
-                            Length = 6,
-                            Spanning = true,
-                            Icon = "half-circle",
-                            Color = "#6366F1",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Quick folder selection", Subs = new List<string> { "5 Roadmap per folder upgrade" } }
-                            }
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "Technical/Functional",
-                    Color = "#E6B800",
-                    Height = null,
-                    History = new History { Start = "Build --> Test --> Commit --> Deploy", End = "", Percent = 30, Origin = "right" },
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Folder System",
-                            Start = 6.25,
-                            Length = 6,
-                            Spanning = false,
-                            Icon = "wrench",
-                            Color = "#EF4444",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "3 Folder / 5 Roadmap System", Subs = new List<string> { "Command Center UX  updates", "State management bug fixes" } }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Command Center Panel",
-                            Start = 2,
-                            Length = 4.25,
-                            Spanning = false,
-                            Icon = "wrench",
-                            Color = "#EF4444",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Rendering/bug fixes", Subs = new List<string>() },
-                                new Detail { Text = "Icon/button consolidation", Subs = new List<string>() }
-                            }
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "Backlog/Ongoing",
-                    Color = "#B7C4B7",
-                    Height = 0.75,
-                    History = new History { Start = "1 Feature", End = "3 tasks", Percent = 50, Origin = "middle" },
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "API Integration",
-                            Start = 0,
-                            Length = 3,
-                            Spanning = false,
-                            Icon = null,
-                            Color = null,
                             Greyed = true,
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Documentation", Subs = new List<string> { "Action Tarot reading via api" } }
+                                new Detail { Text = "#02b540c", Subs = new List<string>() },
+                                new Detail { Text = "#3da8cfd", Subs = new List<string>() },
+                                new Detail { Text = "#aceff53", Subs = new List<string>() }
                             }
                         },
                         new Item
                         {
                             Id = null,
-                            Title = "Drag'N'Drop Mode",
-                            Start = 3,
+                            Title = "Vibe Mode Overhaul",
+                            Start = 1.25,
+                            Length = 1.75,
+                            Spanning = false,
+                            Icon = "lightbulb",
+                            Color = "#EF4444",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "#656cd23", Subs = new List<string>() }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Template & UI Updates",
+                            Start = 4,
+                            Length = 3.5,
+                            Spanning = false,
+                            Icon = "star",
+                            Color = "#E6B800",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "#5c0fc80", Subs = new List<string>() },
+                                new Detail { Text = "#205158f ", Subs = new List<string>() }
+                            }
+                        }
+                    }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "Technical / Functional",
+                    Color = "#4A2C1A",
+                    Icon = "wrench",
+                    Height = null,
+                    History = new History
+                    {
+                        Start = "3 Items",
+                        End = "10",
+                        StartIcon = "star",
+                        EndIcon = "target",
+                        Percent = 23,
+                        Origin = "left"
+                    },
+                    Items = new List<Item>
+                    {
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Drag & Drop System",
+                            Start = 1,
+                            Length = 2.25,
+                            Spanning = true,
+                            Icon = "code",
+                            Color = "#EC4899",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "#577cc2a", Subs = new List<string>() },
+                                new Detail { Text = "#99d98dd", Subs = new List<string> { "compile errors" } },
+                                new Detail { Text = "#7a24f5e", Subs = new List<string>() },
+                                new Detail { Text = "#d3f25fd", Subs = new List<string>() },
+                                new Detail { Text = "#2160d39", Subs = new List<string>() }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Item Management",
+                            Start = 4.25,
                             Length = 3,
                             Spanning = false,
-                            Icon = "lock",
+                            Icon = "gear",
+                            Color = "#1E3A8A",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "#0063991", Subs = new List<string>() },
+                                new Detail { Text = "#ca61684", Subs = new List<string>() },
+                                new Detail { Text = "#05eac33", Subs = new List<string>() }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Milestone Drag Fixes",
+                            Start = 7.25,
+                            Length = 2,
+                            Spanning = false,
+                            Icon = "wrench",
+                            Color = "#D4652F",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "#e20ec30", Subs = new List<string>() },
+                                new Detail { Text = "#c3dc7e1", Subs = new List<string>() }
+                            }
+                        }
+                    }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "Deployments",
+                    Color = "#45B69C",
+                    Icon = null,
+                    Height = 0.5,
+                    History = new History
+                    {
+                        Start = "",
+                        End = "3 new PR",
+                        StartIcon = "rocket",
+                        EndIcon = null,
+                        Percent = 82,
+                        Origin = "right"
+                    },
+                    Items = new List<Item>
+                    {
+                        new Item
+                        {
+                            Id = null,
+                            Title = "PR #26",
+                            Start = 0,
+                            Length = 1.5,
+                            Spanning = false,
+                            Icon = "rocket",
+                            Color = "#45B69C",
+                            Greyed = true,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "JSON structure reorganization", Subs = new List<string>() }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "PR #27",
+                            Start = 1.5,
+                            Length = 2,
+                            Spanning = false,
+                            Icon = "rocket",
                             Color = "#45B69C",
                             Greyed = false,
                             Hidden = false,
-                            Details = new List<Detail>()
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "JSON Cleanup",
-                            Start = 7,
-                            Length = 3,
-                            Spanning = false,
-                            Icon = "",
-                            Color = "#4A2C1A",
-                            Greyed = false,
-                            Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Property/Component UI consolidation", Subs = new List<string>() }
+                                new Detail { Text = "Template icons / vibe mode", Subs = new List<string>() }
                             }
                         },
                         new Item
                         {
                             Id = null,
-                            Title = "Vibe Mode Fix",
-                            Start = 10.75,
+                            Title = "PR #28",
+                            Start = 3.5,
                             Length = 2.5,
                             Spanning = false,
-                            Icon = null,
-                            Color = null,
+                            Icon = "rocket",
+                            Color = "#45B69C",
                             Greyed = false,
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail { Text = "Contrast/dark mode overhaul", Subs = new List<string>() }
+                                new Detail { Text = "Core UX features", Subs = new List<string> { "drag-to-resize, keyboard shortcuts" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "PR #29",
+                            Start = 6.5,
+                            Length = 3.5,
+                            Spanning = false,
+                            Icon = "rocket",
+                            Color = "#45B69C",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Enhanced item management", Subs = new List<string> { "milestone drag, refinements" } }
                             }
                         }
                     }

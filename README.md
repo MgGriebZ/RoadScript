@@ -90,6 +90,18 @@ Get started quickly with 3 production-ready templates:
 {
   "title": "2026 Product Roadmap",
   "subtitle": "Platform Modernization & Client Experience",
+  "columns": [
+    { "id": "q1", "label": "Q1 2026", "sub": "Jan – Mar" },
+    { "id": "q2", "label": "Q2 2026", "sub": "Apr – Jun" }
+  ],
+  "milestones": [
+    {
+      "start": 25,
+      "title": "Beta Launch",
+      "icon": "flag",
+      "color": "#45B69C"
+    }
+  ],
   "lanes": [
     {
       "id": "team-alpha",
@@ -124,18 +136,6 @@ Get started quickly with 3 production-ready templates:
           ]
         }
       ]
-    }
-  ],
-  "columns": [
-    { "id": "q1", "label": "Q1 2026", "sub": "Jan – Mar" },
-    { "id": "q2", "label": "Q2 2026", "sub": "Apr – Jun" }
-  ],
-  "milestones": [
-    {
-      "start": 25,
-      "title": "Beta Launch",
-      "icon": "flag",
-      "color": "#45B69C"
     }
   ]
 }
@@ -195,51 +195,142 @@ Get started quickly with 3 production-ready templates:
 
 ## Use Case: Git Commit Tracking
 
-The **Milestone Map** template can visualize git activity with hourly granularity. Use lanes for branches, items for commits, and milestones for key events.
+The **Milestone Map** template can visualize git activity with hourly granularity. Use lanes for work categories, items for commits, and milestones for key events. Perfect for tracking a full day of development work.
 
-**Example mapping:**
+**Example mapping (full day view):**
 ```json
 {
-  "title": "Dev Activity - Jan 15, 2025",
+  "title": "ClaudeCommits - Dec 2, 2025",
+  "subtitle": "Made with RoadScript.NET, on Dec 2, 2025.... by MgGriebZ",
   "columns": [
-    { "label": "9 AM" },
-    { "label": "11 AM" },
-    { "label": "1 PM" },
-    { "label": "3 PM" },
-    { "label": "5 PM" }
+    { "label": "Late Night", "sub": "12AM-2AM" },
+    { "label": "8AM" },
+    { "label": "9AM" },
+    { "label": "10AM" },
+    { "label": "1PM" },
+    { "label": "2PM" },
+    { "label": "3PM" },
+    { "label": "4PM" }
   ],
   "milestones": [
-    { "start": 22, "title": "Standup", "icon": "calendar", "color": "#667eea" },
-    { "start": 78, "title": "Deploy", "icon": "rocket", "color": "#10b981" }
+    { "start": 4.5, "title": "Session Start", "icon": "bug", "color": "#D4652F" },
+    { "start": 28, "title": "PR #27", "icon": "rocket", "color": "#45B69C" },
+    { "start": 92, "title": "PR #29", "icon": "rocket", "color": "#45B69C" }
   ],
   "lanes": [
     {
-      "title": "feature/auth",
-      "color": "#45B69C",
-      "icon": "code",
-      "history": {
-        "startIcon": "clock",
-        "endIcon": "check",
-        "percent": 85,
-        "origin": "left"
-      },
+      "title": "UI/UX Polish",
+      "color": "#87CEEB",
+      "history": { "start": "All day", "percent": 85, "origin": "left" },
       "items": [
         {
-          "title": "JWT refactor",
-          "start": 0.5,
+          "title": "Schema Refactoring",
+          "start": 0,
           "length": 1,
-          "icon": "wrench",
-          "color": "#667eea",
+          "icon": "code",
+          "color": "#9999ff",
           "details": [
-            { "text": "Commit #a7f3c21 by @alice", "subs": ["Update middleware", "Add tests"] }
+            { "text": "#02b540c - Reorganize JSON schema", "subs": ["cleaner property names"] },
+            { "text": "#3da8cfd - Fix property references" },
+            { "text": "#aceff53 - Command center improvements", "subs": ["milestones, swim lanes"] }
           ]
         },
         {
-          "title": "Merge to main",
-          "start": 6,
-          "length": 0.5,
-          "icon": "check",
-          "color": "#10b981"
+          "title": "Vibe Mode Overhaul",
+          "start": 1.25,
+          "length": 1,
+          "icon": "lightbulb",
+          "color": "#9B7ED9",
+          "details": [
+            { "text": "#656cd23 - Complete visual redesign", "subs": ["dynamic color system"] }
+          ]
+        },
+        {
+          "title": "Template & UI Updates",
+          "start": 4,
+          "length": 3.5,
+          "icon": "star",
+          "color": "#45B69C",
+          "details": [
+            { "text": "#5c0fc80 - Gemini daily template update" },
+            { "text": "#205158f - Hover cleanup", "subs": ["Command Center reorganization"] }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Technical/Functional",
+      "color": "#E6B800",
+      "history": { "end": "Heavy lifting", "percent": 75, "origin": "right" },
+      "items": [
+        {
+          "title": "Drag & Drop System",
+          "start": 1.5,
+          "length": 1.5,
+          "spanning": true,
+          "icon": "code",
+          "color": "#667eea",
+          "details": [
+            { "text": "#577cc2a - Core features", "subs": ["keyboard shortcuts", "drag-to-resize", "quick share"] },
+            { "text": "#99d98dd - Refinement", "subs": ["cursors, 0.25 snapping"] },
+            { "text": "#7a24f5e - Drag-to-move", "subs": ["slide entire items"] },
+            { "text": "#d3f25fd - UX improvements", "subs": ["15px edge zones"] },
+            { "text": "#2160d39 - Box-shadow overlays" }
+          ]
+        },
+        {
+          "title": "Item Management",
+          "start": 6.5,
+          "length": 1.75,
+          "icon": "star",
+          "color": "#45B69C",
+          "details": [
+            { "text": "#0063991 - Three refinements", "subs": ["preview auto-deselect", "boundary constraints"] },
+            { "text": "#ca61684 - Enhanced management", "subs": ["milestone drag"] },
+            { "text": "#05eac33 - Box-shadow fix" }
+          ]
+        },
+        {
+          "title": "Milestone Drag Fixes",
+          "start": 8.5,
+          "length": 1,
+          "icon": "wrench",
+          "color": "#EF4444",
+          "details": [
+            { "text": "#e20ec30 - Slow down drag", "subs": ["3x slower", "debug logging"] },
+            { "text": "#c3dc7e1 - Fix listener removal" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Deployments",
+      "color": "#667eea",
+      "history": { "start": "4 PRs merged", "percent": 100, "origin": "left" },
+      "items": [
+        {
+          "title": "PR #26",
+          "start": 0,
+          "length": 1.5,
+          "icon": "rocket",
+          "color": "#45B69C",
+          "details": [{ "text": "JSON structure reorganization" }]
+        },
+        {
+          "title": "PR #27",
+          "start": 1.5,
+          "length": 1.5,
+          "icon": "rocket",
+          "color": "#45B69C",
+          "details": [{ "text": "Template icons and vibe mode" }]
+        },
+        {
+          "title": "PR #29",
+          "start": 5.5,
+          "length": 2,
+          "icon": "rocket",
+          "color": "#45B69C",
+          "details": [{ "text": "Enhanced item management" }]
         }
       ]
     }
