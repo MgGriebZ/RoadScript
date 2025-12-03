@@ -193,169 +193,53 @@ Get started quickly with 3 production-ready templates:
 
 ---
 
-## Use Case: Git Commit Tracking with Milestone Maps
+## Use Case: Git Commit Tracking
 
-RoadScript's **Milestone Map** template is ideal for visualizing git activity with hourly granularity. Track commits, merges, and deployments throughout a workday using lanes for branches/developers and items for individual commits.
+The **Milestone Map** template can visualize git activity with hourly granularity. Use lanes for branches, items for commits, and milestones for key events.
 
-### Example: Developer Activity Dashboard
-
+**Example mapping:**
 ```json
 {
-  "title": "Dev Team Activity - Jan 15, 2025",
-  "subtitle": "Feature Branch → Staging → Production Pipeline",
+  "title": "Dev Activity - Jan 15, 2025",
   "columns": [
-    { "label": "9 AM", "sub": "Morning" },
-    { "label": "10 AM" },
+    { "label": "9 AM" },
     { "label": "11 AM" },
-    { "label": "12 PM", "sub": "Lunch" },
-    { "label": "1 PM", "sub": "Afternoon" },
-    { "label": "2 PM" },
+    { "label": "1 PM" },
     { "label": "3 PM" },
-    { "label": "4 PM" },
-    { "label": "5 PM", "sub": "Deploy Window" }
+    { "label": "5 PM" }
   ],
   "milestones": [
-    {
-      "start": 22,
-      "title": "Daily Standup",
-      "icon": "calendar",
-      "color": "#667eea"
-    },
-    {
-      "start": 78,
-      "title": "Production Deploy",
-      "icon": "rocket",
-      "color": "#10b981"
-    }
+    { "start": 22, "title": "Standup", "icon": "calendar", "color": "#667eea" },
+    { "start": 78, "title": "Deploy", "icon": "rocket", "color": "#10b981" }
   ],
   "lanes": [
     {
-      "title": "feature/auth-refactor",
+      "title": "feature/auth",
       "color": "#45B69C",
       "icon": "code",
       "history": {
-        "start": "9:00 AM",
         "startIcon": "clock",
-        "end": "4:30 PM",
         "endIcon": "check",
         "percent": 85,
         "origin": "left"
       },
       "items": [
         {
-          "title": "Auth middleware update",
-          "start": 0.25,
-          "length": 0.75,
+          "title": "JWT refactor",
+          "start": 0.5,
+          "length": 1,
           "icon": "wrench",
           "color": "#667eea",
           "details": [
-            {
-              "text": "Commit #a7f3c21 by @alice",
-              "subs": [
-                "Refactor JWT validation",
-                "Add refresh token flow",
-                "Update test suite"
-              ]
-            }
+            { "text": "Commit #a7f3c21 by @alice", "subs": ["Update middleware", "Add tests"] }
           ]
         },
         {
-          "title": "Session handling fix",
-          "start": 2.5,
-          "length": 1,
-          "icon": "bug",
-          "color": "#ef4444",
-          "details": [
-            {
-              "text": "Commit #b8e4d32 by @alice",
-              "subs": [
-                "Fix race condition in logout",
-                "Add session cleanup job"
-              ]
-            }
-          ]
-        },
-        {
-          "title": "Merge to staging",
+          "title": "Merge to main",
           "start": 6,
           "length": 0.5,
           "icon": "check",
-          "color": "#10b981",
-          "details": [
-            {
-              "text": "PR #142 merged by @bob"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "main branch",
-      "color": "#1E3A8A",
-      "icon": "flag",
-      "history": {
-        "start": "v2.4.0",
-        "startIcon": "star",
-        "end": "v2.4.1",
-        "endIcon": "trophy",
-        "percent": 100,
-        "origin": "left"
-      },
-      "items": [
-        {
-          "title": "Hotfix: Payment gateway timeout",
-          "start": 1,
-          "length": 1.5,
-          "icon": "lightbulb",
-          "color": "#E6B800",
-          "spanning": true,
-          "details": [
-            {
-              "text": "Commit #c9f5e43 by @charlie",
-              "subs": [
-                "Increase timeout to 30s",
-                "Add retry logic"
-              ]
-            }
-          ]
-        },
-        {
-          "title": "Production deploy",
-          "start": 7.75,
-          "length": 0.25,
-          "icon": "rocket",
-          "color": "#10b981",
-          "details": [
-            {
-              "text": "Release v2.4.1",
-              "subs": [
-                "Deployed by @ops-team",
-                "Zero downtime rollout"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "staging environment",
-      "color": "#E6B800",
-      "icon": "gear",
-      "items": [
-        {
-          "title": "Integration tests passed",
-          "start": 4.5,
-          "length": 1,
-          "icon": "check",
           "color": "#10b981"
-        },
-        {
-          "title": "Load testing",
-          "start": 5.75,
-          "length": 1.25,
-          "icon": "chart",
-          "color": "#667eea",
-          "spanning": true
         }
       ]
     }
@@ -363,46 +247,7 @@ RoadScript's **Milestone Map** template is ideal for visualizing git activity wi
 }
 ```
 
-### Git Tracking Best Practices
-
-**Lane Organization:**
-- **Feature branches** - One lane per active branch, colored by team/priority
-- **Main/staging/production** - Separate lanes for deployment pipeline stages
-- **Developers** - Track individual contributor activity with personal lanes
-- **CI/CD** - Dedicated lane for automated builds, tests, and deployments
-
-**Item Mapping:**
-- **Commits** - Use `start` position for commit time (hour-based: 0-8 for 9 AM-5 PM)
-- **Length** - Set to commit complexity (0.25 = quick fix, 1.5 = major refactor)
-- **Icons** - Match commit type: `bug` (fixes), `wrench` (refactor), `rocket` (deploy), `check` (merge)
-- **Colors** - Status-based: green (merged), yellow (in review), red (blocked)
-- **Details → text** - Commit hash, author, and PR number
-- **Details → subs** - Individual file changes or commit message bullets
-
-**History Bars:**
-- **start/end** - Branch creation time and final merge time (or version tags)
-- **startIcon/endIcon** - Visual markers: `clock` (start), `check` (complete), `star` (release)
-- **percent** - Code review completion or test coverage percentage
-- **origin** - `left` for feature work, `middle` for hotfixes, `right` for rollbacks
-
-**Milestones:**
-- **Daily standups** - Pin to consistent time (e.g., 10 AM = position 11)
-- **Deploy windows** - Mark production/staging release times
-- **Code freezes** - Flag pre-release lockdown periods
-- **Sprint boundaries** - Show sprint start/end with `flag` icons
-
-**Positioning Formula:**
-```
-start = (commit_hour - first_column_hour) + (commit_minute / 60)
-Example: 11:30 AM commit in 9 AM-5 PM timeline
-  → start = (11 - 9) + (30 / 60) = 2.5
-```
-
-**Export Workflow:**
-1. Parse `git log --since="9am" --until="5pm" --pretty=format:"%h|%an|%s|%ai"`
-2. Map commits to JSON items with calculated `start` positions
-3. Load JSON into RoadScript via Advanced Editor
-4. Export PNG for team dashboards or Slack updates
+**Positioning:** `start = (hour - first_hour) + (minute / 60)` → 11:30 AM in 9 AM-5 PM timeline = `(11 - 9) + (30/60) = 2.5`
 
 ### Color Palette
 
