@@ -31,27 +31,125 @@
         </div>
     </div>
 
+    <div class="form-group">
+        <label style="font-size: 11px; margin-bottom: 8px; color: #888;">Column Icon</label>
+
+        @* Large Icon Preview Button *@
+        <div style="position: relative;">
+            <button type="button"
+                    @onclick="ToggleColumnIconPicker"
+                    title="Click to @(_columnIconPickerExpanded ? "hide" : "choose") column icon"
+                    style="width: 100%; min-height: 80px; background: #252538; border: 1px solid #3a3a4e; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 16px; position: relative;">
+                @if (!string.IsNullOrEmpty(Column.Icon))
+                {
+                    <Icon IconType="@Column.Icon"
+                          Color="@(Column.Color ?? "#667eea")"
+                          Size="36"
+                          DropShadow="true" />
+                }
+                else
+                {
+                    @* Placeholder for empty state *@
+                    <span style="font-size: 36px; opacity: 0.3; color: #fff;">✦</span>
+                }
+
+                @* Dropdown indicator in bottom right *@
+                <span style="position: absolute; bottom: 8px; right: 8px; font-size: 12px; color: #666; transition: transform 0.2s; transform: rotate(@(_columnIconPickerExpanded ? "180deg" : "0deg"));">▼</span>
+            </button>
+
+            @* Clear button overlay in top right corner *@
+            @if (!string.IsNullOrEmpty(Column.Icon))
+            {
+                <button type="button"
+                        @onclick="ClearColumnIcon"
+                        @onclick:stopPropagation="true"
+                        title="Clear icon"
+                        style="position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; background: rgba(0,0,0,0.6); border: 1px solid #555; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 14px; font-weight: 600; transition: all 0.2s; z-index: 1;">
+                    ✕
+                </button>
+            }
+        </div>
+
+        @if (_columnIconPickerExpanded)
+        {
+            <div style="background: #252538; padding: 12px; border-radius: 6px; border: 1px solid #3a3a4e; margin-top: 8px;">
+                <IconPicker SelectedIcon="@(Column.Icon ?? "")"
+                           Color="@(Column.Color ?? "#667eea")"
+                           OnIconSelected="HandleColumnIconSelectedAndCollapse"
+                           ShowCategories="true"
+                           ColumnsPerRow="5" />
+
+                <div style="margin-top: 12px;">
+                    <label style="font-size: 11px; margin-bottom: 8px;">Icon Color</label>
+
+                    @* Preset Color Options *@
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;">
+                        @foreach (var preset in _colorPresets)
+                        {
+                            <button type="button"
+                                    @onclick="@(() => OnChange.InvokeAsync(("color", preset.Value)))"
+                                    title="@preset.Name"
+                                    style="@GetPresetColorButtonStyle(preset.Value, Column.Color)">
+                                <span style="width: 100%; height: 100%; display: block; border-radius: 3px; background: @preset.Value;"></span>
+                            </button>
+                        }
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="color"
+                               value="@(Column.Color ?? "#667eea")"
+                               @onchange="@(e => OnChange.InvokeAsync(("color", e.Value)))"
+                               style="width: 40px; height: 32px; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; background: #2a2a3e;" />
+                        <input type="text"
+                               value="@(Column.Color ?? "#667eea")"
+                               @onchange="@(e => OnChange.InvokeAsync(("color", e.Value)))"
+                               class="form-control"
+                               placeholder="#667eea"
+                               style="flex: 1; font-size: 12px;" />
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @* Column Management Section *@
     <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
         <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Column Management</label>
 
-        <button @onclick="AddColumn" class="btn-add" type="button" style="width: 100%; margin-bottom: 8px;">
-            + Add New Column
-        </button>
+        @* Inline Column Controls: ADD | DUPE | TRASH *@
+        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+            <button @onclick="AddColumn"
+                    type="button"
+                    title="Add new column"
+                    style="flex: 1; height: 44px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);">
+                <span style="font-size: 18px;">+</span> Column
+            </button>
 
-        <button @onclick="DuplicateColumn" type="button" style="width: 100%; margin-bottom: 8px; background: #667eea; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-            📋 Duplicate This Column
-        </button>
+            <button @onclick="DuplicateColumn"
+                    type="button"
+                    title="Duplicate this column"
+                    style="width: 44px; height: 44px; background: #667eea; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);">
+                ♻️
+            </button>
 
-        <button @onclick="RemoveColumn" class="btn-danger" type="button" style="width: 100%;">
-            Remove This Column
-        </button>
+            <button @onclick="RemoveColumn"
+                    type="button"
+                    title="Remove this column"
+                    style="width: 44px; height: 44px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444; border: 2px solid #ef4444; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                🗑️
+            </button>
+        </div>
     </div>
 
+    @* Milestone Management Section *@
     <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
         <label style="margin-bottom: 12px; font-weight: 600; color: #45B69C;">Milestone Management</label>
 
-        <button @onclick="AddMilestone" class="btn-add" type="button" style="width: 100%; background: linear-gradient(135deg, rgba(69, 182, 156, 0.2) 0%, rgba(69, 182, 156, 0.1) 100%); color: #45B69C; border: 1px solid rgba(69, 182, 156, 0.4); padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-            + Add New Milestone
+        <button @onclick="AddMilestone"
+                type="button"
+                title="Add new milestone"
+                style="width: 100%; height: 48px; background: linear-gradient(135deg, rgba(69, 182, 156, 0.2) 0%, rgba(69, 182, 156, 0.1) 100%); color: #45B69C; border: 1px solid rgba(69, 182, 156, 0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; box-shadow: 0 2px 4px rgba(69, 182, 156, 0.2);">
+            <span style="font-size: 20px;">+</span> Add New Milestone
         </button>
     </div>
 </div>
@@ -93,5 +191,56 @@
     private void AddMilestone()
     {
         OnAdd.InvokeAsync("milestone");
+    }
+
+    private bool _columnIconPickerExpanded = false;
+
+    private void ToggleColumnIconPicker()
+    {
+        _columnIconPickerExpanded = !_columnIconPickerExpanded;
+    }
+
+    private async Task HandleColumnIconSelectedAndCollapse(string iconValue)
+    {
+        Column.Icon = iconValue;
+        await OnChange.InvokeAsync(("icon", iconValue));
+        _columnIconPickerExpanded = false;
+        StateHasChanged();
+    }
+
+    private async Task ClearColumnIcon()
+    {
+        Column.Icon = null;
+        await OnChange.InvokeAsync(("icon", null!));
+        StateHasChanged();
+    }
+
+    private record ColorPreset(string Name, string Value);
+
+    private readonly List<ColorPreset> _colorPresets = new()
+    {
+        new ColorPreset("Teal", "#45B69C"),
+        new ColorPreset("Coral", "#F88379"),
+        new ColorPreset("Lav", "#9999ff"),
+        new ColorPreset("Orange", "#D4652F"),
+        new ColorPreset("Blue", "#87CEEB"),
+        new ColorPreset("Mustard", "#E6B800"),
+        new ColorPreset("Brown", "#4A2C1A"),
+        new ColorPreset("Sage", "#B7C4B7"),
+        new ColorPreset("Red", "#EF4444"),
+        new ColorPreset("Indigo", "#6366F1"),
+        new ColorPreset("Dark Blue", "#1E3A8A"),
+        new ColorPreset("Pink", "#EC4899")
+    };
+
+    private string GetPresetColorButtonStyle(string presetColor, string? currentColor)
+    {
+        var isSelected = presetColor.Equals(currentColor, StringComparison.OrdinalIgnoreCase);
+        var border = isSelected
+            ? "border: 2px solid #667eea; box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);"
+            : "border: 1.5px solid rgba(255, 255, 255, 0.2);";
+
+        return $"width: 100%; height: 32px; padding: 2px; cursor: pointer; border-radius: 4px; " +
+               $"background: #1a1a2e; transition: all 0.2s; {border}";
     }
 }
