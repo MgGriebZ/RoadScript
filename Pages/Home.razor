@@ -591,12 +591,75 @@
                             }
                         </div>
 
-                        <div style="@MilestoneScaleContainerStyle()">
-                            @for (int mi = 0; mi < _data.Milestones.Count; mi++)
+                        @* Milestone area with static navigation controls *@
+                        <div style="display: flex; align-items: stretch;">
+                            @* Static Milestone Navigation Controls - Only show when a milestone is selected *@
+                            @{
+                                var selectedMilestoneIndex = -1;
+                                Milestone? selectedMilestone = null;
+
+                                for (int mi = 0; mi < _data.Milestones.Count; mi++)
+                                {
+                                    if (SelectionState.SelectedPath == $"milestones[{mi}]")
+                                    {
+                                        selectedMilestoneIndex = mi;
+                                        selectedMilestone = _data.Milestones[mi];
+                                        break;
+                                    }
+                                }
+
+                                var showNavControls = selectedMilestoneIndex >= 0 && !_isPreviewMode;
+                            }
+
+                            @if (showNavControls && selectedMilestone != null)
                             {
-                                var milestone = _data.Milestones[mi];
-                                var msIndex = mi;
-                                var isSelected = SelectionState.SelectedPath == $"milestones[{msIndex}]";
+                                <div style="@StaticMilestoneNavContainerStyle()">
+                                    <button type="button"
+                                            @onclick="@(async () => await JumpMilestoneToStart(selectedMilestoneIndex))"
+                                            title="Jump to Start (0%)"
+                                            style="@StaticNavButtonStyle()">
+                                        <div style="font-size: 18px; font-weight: 700;">⏮</div>
+                                    </button>
+                                    <button type="button"
+                                            @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, -1))"
+                                            title="Previous Column"
+                                            style="@StaticNavButtonStyle()">
+                                        <div style="font-size: 20px;">⏪</div>
+                                    </button>
+                                    <button type="button"
+                                            @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, -1))"
+                                            title="Nudge Left"
+                                            style="@StaticNavButtonStyle()">
+                                        <div style="font-size: 18px;">◀</div>
+                                    </button>
+                                    <button type="button"
+                                            @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, 1))"
+                                            title="Nudge Right"
+                                            style="@StaticNavButtonStyle()">
+                                        <div style="font-size: 18px;">▶</div>
+                                    </button>
+                                    <button type="button"
+                                            @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, 1))"
+                                            title="Next Column"
+                                            style="@StaticNavButtonStyle()">
+                                        <div style="font-size: 20px;">⏩</div>
+                                    </button>
+                                    <button type="button"
+                                            @onclick="@(async () => await JumpMilestoneToEnd(selectedMilestoneIndex))"
+                                            title="Jump to End (100%)"
+                                            style="@StaticNavButtonStyle()">
+                                        <div style="font-size: 18px; font-weight: 700;">⏭</div>
+                                    </button>
+                                </div>
+                            }
+
+                            @* Milestone Scale *@
+                            <div style="@MilestoneScaleContainerStyle(showNavControls)">
+                                @for (int mi = 0; mi < _data.Milestones.Count; mi++)
+                                {
+                                    var milestone = _data.Milestones[mi];
+                                    var msIndex = mi;
+                                    var isSelected = SelectionState.SelectedPath == $"milestones[{msIndex}]";
                                 <div id="@($"milestone-{msIndex}")"
                                      @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
                                      @onclick:stopPropagation="@(!_isPreviewMode)"
@@ -652,6 +715,7 @@
                                     </div>
                                 </div>
                             }
+                        </div>
                         </div>
 
                         <div style="flex: 1; position: relative;">
@@ -1930,10 +1994,33 @@
         }
     }
 
-    private string MilestoneScaleContainerStyle() =>
-        _isVibeMode
-            ? "position: relative; height: 40px; border-bottom: 2px solid rgba(102, 126, 234, 0.4); display: flex; align-items: center; background: linear-gradient(180deg, rgba(18, 18, 36, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);"
-            : "position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
+    private string MilestoneScaleContainerStyle(bool hasNavControls)
+    {
+        var flexStyle = hasNavControls ? "flex: 1;" : "";
+        if (_isVibeMode)
+        {
+            return $"{flexStyle} position: relative; height: 40px; border-bottom: 2px solid rgba(102, 126, 234, 0.4); display: flex; align-items: center; background: linear-gradient(180deg, rgba(18, 18, 36, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);";
+        }
+        return $"{flexStyle} position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
+    }
+
+    private string StaticMilestoneNavContainerStyle()
+    {
+        if (_isVibeMode)
+        {
+            return "display: flex; align-items: center; gap: 6px; padding: 0 12px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.15) 100%); border-right: 2px solid rgba(102, 126, 234, 0.5); border-bottom: 2px solid rgba(102, 126, 234, 0.4); box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);";
+        }
+        return "display: flex; align-items: center; gap: 6px; padding: 0 12px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(102, 126, 234, 0.05) 100%); border-right: 2px solid rgba(102, 126, 234, 0.3); border-bottom: 2px solid #e5e7eb;";
+    }
+
+    private string StaticNavButtonStyle()
+    {
+        if (_isVibeMode)
+        {
+            return "width: 44px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: 1px solid rgba(102, 126, 234, 0.8); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4), 0 0 15px rgba(102, 126, 234, 0.3);";
+        }
+        return "width: 44px; height: 36px; background: #667eea; color: #fff; border: 1px solid #5568d3; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);";
+    }
 
     private string MilestoneStyle(double position) =>
         $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10; padding: 8px; min-width: 40px; cursor: move;";
@@ -2003,9 +2090,10 @@
         var widthPct = (item.Length / cols) * 100;
         var greyedOutStyle = item.Greyed ? "opacity: 0.5; filter: grayscale(0.6);" : "";
 
+        // Support row view based on start position (even with different lengths)
         var overlappingItems = lane.Items
             .Select((itm, idx) => new { Item = itm, Index = idx })
-            .Where(x => Math.Abs(x.Item.Start - item.Start) < 0.01 && Math.Abs(x.Item.Length - item.Length) < 0.01)
+            .Where(x => Math.Abs(x.Item.Start - item.Start) < 0.01)
             .OrderBy(x => x.Index)
             .ToList();
 
@@ -3022,6 +3110,83 @@
         }
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task JumpMilestoneToStart(int milestoneIndex)
+    {
+        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+
+        SaveHistorySnapshot();
+
+        var milestone = _data.Milestones[milestoneIndex];
+        milestone.Start = 0.0;
+
+        var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        _currentJson = updatedJson;
+
+        if (_editor != null)
+        {
+            await _editor.SetValue(updatedJson);
+        }
+
+        if (_sessionManager != null && _activeTab != null && _folderManager != null)
+        {
+            _activeTab.Data = _data;
+            _activeTab.LastModified = DateTime.UtcNow;
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task JumpMilestoneToEnd(int milestoneIndex)
+    {
+        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+
+        SaveHistorySnapshot();
+
+        var milestone = _data.Milestones[milestoneIndex];
+        milestone.Start = 100.0;
+
+        var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        _currentJson = updatedJson;
+
+        if (_editor != null)
+        {
+            await _editor.SetValue(updatedJson);
+        }
+
+        if (_sessionManager != null && _activeTab != null && _folderManager != null)
+        {
+            _activeTab.Data = _data;
+            _activeTab.LastModified = DateTime.UtcNow;
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AdjustMilestoneByColumn(int milestoneIndex, int direction)
+    {
+        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+
+        var columnCount = _data.Columns.Count;
+        if (columnCount <= 0) return;
+
+        var columnPercentage = 100.0 / columnCount;
+        var delta = direction * columnPercentage;
+
+        await AdjustMilestonePosition(milestoneIndex, delta);
     }
 
     private async Task HandleTabSwitch(string tabId)

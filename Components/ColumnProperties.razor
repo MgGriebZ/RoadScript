@@ -19,6 +19,28 @@
                placeholder="Jan - Mar" />
     </div>
 
+    @* Day/Date Presets for Label *@
+    <div class="form-group" style="margin-top: 20px; padding: 16px; background: rgba(102, 126, 234, 0.05); border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 8px;">
+        <div style="font-size: 12px; font-weight: 600; color: #667eea; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+            📅 Quick Fill for Label
+        </div>
+        <DateDayPreset CurrentValue="@(Column.Label ?? "")"
+                       Label="Day Presets"
+                       Placeholder="Column label..."
+                       OnValueChange="@(value => OnChange.InvokeAsync(("label", value)))" />
+    </div>
+
+    @* Day/Date Presets for Sub-Label *@
+    <div class="form-group" style="margin-top: 12px; padding: 16px; background: rgba(102, 126, 234, 0.05); border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 8px;">
+        <div style="font-size: 12px; font-weight: 600; color: #667eea; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+            📅 Quick Fill for Sub-Label
+        </div>
+        <DateDayPreset CurrentValue="@(Column.Sub ?? "")"
+                       Label="Day Presets"
+                       Placeholder="Sub-label..."
+                       OnValueChange="@(value => OnChange.InvokeAsync(("sub", value)))" />
+    </div>
+
     <div class="form-group">
         <label>Column ID</label>
         <input type="text"

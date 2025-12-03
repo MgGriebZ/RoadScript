@@ -1,0 +1,148 @@
+@using Microsoft.JSInterop
+
+<div class="date-day-preset">
+    @if (ShowLabel)
+    {
+        <label style="font-size: 11px; margin-bottom: 8px; color: #888; display: block;">@Label</label>
+    }
+
+    @* Manual Text Input *@
+    <input type="text"
+           value="@CurrentValue"
+           @onchange="@HandleManualInput"
+           class="form-control"
+           placeholder="@Placeholder"
+           style="margin-bottom: 12px;" />
+
+    @* Day Presets (Mon-Fri) *@
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px;">
+        @foreach (var day in _dayPresets)
+        {
+            <button type="button"
+                    @onclick="@(() => HandleDaySelect(day.Full))"
+                    title="@day.Full"
+                    style="@GetDayButtonStyle(day.Abbr)">
+                <div style="font-size: 14px; font-weight: 700;">@day.Abbr</div>
+            </button>
+        }
+    </div>
+
+    @* Date Picker with Icon *@
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button"
+                @onclick="ToggleDatePicker"
+                title="@(_datePickerExpanded ? "Hide" : "Show") date picker"
+                style="@GetDatePickerButtonStyle()">
+            <Icon IconType="calendar"
+                  Color="@(_datePickerExpanded ? "#667eea" : "#ccc")"
+                  Size="20"
+                  DropShadow="@_datePickerExpanded" />
+        </button>
+
+        @if (_datePickerExpanded)
+        {
+            <input type="date"
+                   @onchange="@HandleDateSelect"
+                   class="form-control"
+                   style="flex: 1; font-size: 13px;" />
+        }
+        else
+        {
+            <span style="flex: 1; font-size: 12px; color: #888; font-style: italic;">
+                Click calendar to pick a date
+            </span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string CurrentValue { get; set; } = "";
+
+    [Parameter]
+    public string Label { get; set; } = "Quick Presets";
+
+    [Parameter]
+    public string Placeholder { get; set; } = "Enter text...";
+
+    [Parameter]
+    public bool ShowLabel { get; set; } = true;
+
+    [Parameter]
+    public EventCallback<string> OnValueChange { get; set; }
+
+    private bool _datePickerExpanded = false;
+
+    private record DayPreset(string Abbr, string Full);
+
+    private readonly List<DayPreset> _dayPresets = new()
+    {
+        new DayPreset("Mon", "Monday"),
+        new DayPreset("Tue", "Tuesday"),
+        new DayPreset("Wed", "Wednesday"),
+        new DayPreset("Thu", "Thursday"),
+        new DayPreset("Fri", "Friday")
+    };
+
+    private void HandleManualInput(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString() ?? "";
+        OnValueChange.InvokeAsync(value);
+    }
+
+    private void HandleDaySelect(string dayName)
+    {
+        OnValueChange.InvokeAsync(dayName);
+    }
+
+    private async Task HandleDateSelect(ChangeEventArgs e)
+    {
+        var dateValue = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(dateValue) && DateTime.TryParse(dateValue, out var date))
+        {
+            var formattedDate = date.ToString("MMM d, yyyy");
+            await OnValueChange.InvokeAsync(formattedDate);
+        }
+    }
+
+    private void ToggleDatePicker()
+    {
+        _datePickerExpanded = !_datePickerExpanded;
+    }
+
+    private string GetDayButtonStyle(string abbr)
+    {
+        var isActive = CurrentValue?.Equals(_dayPresets.FirstOrDefault(d => d.Abbr == abbr)?.Full,
+            StringComparison.OrdinalIgnoreCase) == true;
+
+        var bg = isActive
+            ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+            : "background: #252538;";
+
+        var border = isActive
+            ? "border: 2px solid #667eea; box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);"
+            : "border: 1px solid #3a3a4e;";
+
+        var color = isActive ? "#fff" : "#ccc";
+
+        return $"width: 100%; height: 48px; {bg} color: {color}; {border} " +
+               "border-radius: 6px; cursor: pointer; transition: all 0.2s; " +
+               "display: flex; align-items: center; justify-content: center; " +
+               "font-weight: 600;";
+    }
+
+    private string GetDatePickerButtonStyle()
+    {
+        var bg = _datePickerExpanded
+            ? "background: rgba(102, 126, 234, 0.2);"
+            : "background: #252538;";
+
+        var border = _datePickerExpanded
+            ? "border: 2px solid #667eea;"
+            : "border: 1px solid #3a3a4e;";
+
+        return $"width: 56px; height: 48px; {bg} {border} " +
+               "border-radius: 6px; cursor: pointer; transition: all 0.2s; " +
+               "display: flex; align-items: center; justify-content: center;";
+    }
+}

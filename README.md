@@ -358,14 +358,27 @@ The **Milestone Map** template can visualize git activity with hourly granularit
 ## Technical Architecture
 
 ### Drag and Move System
-**Milestone Positioning**: Milestones display 6 inline position adjustment buttons in edit mode (⏮ ⏪ ◀ ▶ ⏩ ⏭). Jump to start/end or adjust by column/quarter increments. `AdjustMilestonePosition()` updates position with bounds checking (0-100%), rounds to 2 decimals, saves history snapshot, and syncs editor/storage. Hidden in preview mode.
+**Milestone Positioning**: Milestones feature two navigation interfaces:
+1. **Static Navigation Bar** - When a milestone is selected, a persistent control bar appears left-aligned above the swim lanes at the milestone height level. Features 6 large, inline navigation buttons (⏮ ⏪ ◀ ▶ ⏩ ⏭) for jumping to start/end and adjusting by column increments. The controls remain in a fixed position, preventing the active element from moving during navigation.
+2. **Inline Adjustment Buttons** - Individual milestones display position adjustment buttons when selected (legacy behavior, kept for direct manipulation).
+
+`AdjustMilestonePosition()` updates position with bounds checking (0-100%), rounds to 2 decimals, saves history snapshot, and syncs editor/storage. New helper methods: `JumpMilestoneToStart()`, `JumpMilestoneToEnd()`, and `AdjustMilestoneByColumn()` for precise navigation. All controls hidden in preview mode.
 
 **Item Resizing/Moving**: Items use `.roadmap-item-resizable` class with edge detection (15px threshold via `getBoundingClientRect`). Three cursors: `col-resize` for edges, `move` for middle. Edge indicators use `box-shadow` overlays to preserve original borders. History snapshots saved on drag start for undo/redo support.
 
 **Boundary Constraints**: All drag operations enforce column boundaries. Items/milestones cannot exceed `columnCount` limit. Minimum item length is 0.25 columns.
 
 ### Visual Row Splitting
-Items with identical `Start` and `Length` values in the same lane automatically split into visual rows. Detection uses LINQ to find overlaps (`Math.Abs(x.Item.Start - item.Start) < 0.01`). Row height calculated as `100% / totalRows` with dynamic `top` and `bottom` percentages. No JSON schema changes - purely visual CSS adjustments.
+Items with matching `Start` positions in the same lane automatically split into visual rows—**even if they have different lengths**. This enhancement allows for better visualization of overlapping work that starts at the same time but extends for different durations. Detection uses LINQ to find overlaps based solely on start position (`Math.Abs(x.Item.Start - item.Start) < 0.01`). Row height calculated as `100% / totalRows` with dynamic `top` and `bottom` percentages. No JSON schema changes - purely visual CSS adjustments.
+
+### Date and Day Presets
+**Column Label Quick Fill**: The Column Properties panel now includes an interactive date/day preset component with:
+- **Weekday Buttons** - Five large, inline buttons (Mon-Fri) for quick weekday selection
+- **Date Picker** - Calendar icon toggle reveals HTML5 date input, automatically formats selected dates (e.g., "Dec 3, 2025")
+- **Manual Input** - Text field remains available for custom entries
+- **Dual Integration** - Preset controls available for both "Label" and "Sub-Label" fields
+
+The `DateDayPreset.razor` component is fully reusable and can be integrated into other property panels for consistent UX across the application.
 
 ### History Bar Rendering
 History icons and text display **independently** - each renders if present in JSON, regardless of the other. Start section shows if `StartIcon` OR `Start` exists. End section shows if `EndIcon` OR `End` exists. Both sections use `margin-left: auto` for proper left/right alignment. Prevents hidden icons when text is omitted, ensuring visual consistency across configurations.
@@ -416,6 +429,7 @@ History icons and text display **independently** - each renders if present in JS
 RoadScript/
 ├── Components/
 │   ├── ColumnProperties.razor
+│   ├── DateDayPreset.razor
 │   ├── FolderSelector.razor
 │   ├── Icon.razor
 │   ├── IconPicker.razor
