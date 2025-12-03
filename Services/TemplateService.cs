@@ -1061,6 +1061,8 @@ public class TemplateService
             Subtitle = $"Made with RoadScript.NET... a MgGriebZ project on {today}",
             Columns = new List<Column>
             {
+                new Column { Id = null, Label = "Late Night", Sub = "12AM-2AM", Icon = null, Color = null },
+                new Column { Id = null, Label = "8AM", Sub = "", Icon = null, Color = null },
                 new Column { Id = null, Label = "9AM", Sub = "", Icon = null, Color = null },
                 new Column { Id = null, Label = "10AM", Sub = "", Icon = null, Color = null },
                 new Column { Id = null, Label = "11AM", Sub = "", Icon = null, Color = null },
@@ -1068,19 +1070,14 @@ public class TemplateService
                 new Column { Id = null, Label = "1PM", Sub = "", Icon = null, Color = null },
                 new Column { Id = null, Label = "2PM", Sub = "", Icon = null, Color = null },
                 new Column { Id = null, Label = "3PM", Sub = "", Icon = null, Color = null },
-                new Column { Id = null, Label = "4PM", Sub = "", Icon = null, Color = null },
-                new Column { Id = null, Label = "Supper", Sub = "5PM+", Icon = null, Color = null }
+                new Column { Id = null, Label = "4PM", Sub = "", Icon = null, Color = null }
             },
             Milestones = new List<Milestone>
             {
-                new Milestone { Start = 1, Title = "Claude Prompt", Icon = "bug", Color = "#D4652F" },
-                new Milestone { Start = 25.11, Title = "", Icon = "bug", Color = "#D4652F" },
-                new Milestone { Start = 8.92, Title = "", Icon = "bug", Color = "#D4652F" },
-                new Milestone { Start = 15.03, Title = "", Icon = "bug", Color = "#D4652F" },
-                new Milestone { Start = 23.03, Title = "", Icon = "bug", Color = "#D4652F" },
-                new Milestone { Start = 32.03, Title = "", Icon = "rocket", Color = "#45B69C" },
-                new Milestone { Start = 81.53, Title = "", Icon = "rocket", Color = "#45B69C" },
-                new Milestone { Start = 42, Title = "", Icon = "bug", Color = "#D4652F" }
+                new Milestone { Start = 4.5, Title = "Session Start", Icon = "bug", Color = "#D4652F" },
+                new Milestone { Start = 28, Title = "PR #27", Icon = "rocket", Color = "#45B69C" },
+                new Milestone { Start = 41, Title = "PR #28", Icon = "rocket", Color = "#45B69C" },
+                new Milestone { Start = 92, Title = "PR #29", Icon = "rocket", Color = "#45B69C" }
             },
             Lanes = new List<Lane>
             {
@@ -1093,11 +1090,11 @@ public class TemplateService
                     Height = null,
                     History = new History
                     {
-                        Start = "75%",
+                        Start = "All day",
                         End = "",
                         StartIcon = null,
                         EndIcon = null,
-                        Percent = 80,
+                        Percent = 85,
                         Origin = "left"
                     },
                     Items = new List<Item>
@@ -1105,61 +1102,97 @@ public class TemplateService
                         new Item
                         {
                             Id = null,
-                            Title = "#4287f08",
-                            Start = 0.25,
-                            Length = 1.5,
+                            Title = "#02b540c",
+                            Start = 0,
+                            Length = 0.75,
                             Spanning = false,
-                            Icon = "search",
-                            Color = "#45B69C",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail
-                                {
-                                    Text = "History Rendering",
-                                    Subs = new List<string> { "Start/Stop icon formats" }
-                                }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#f352ac6",
-                            Start = 1.75,
-                            Length = 1.25,
-                            Spanning = false,
-                            Icon = "search",
-                            Color = "#45B69C",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail
-                                {
-                                    Text = "README.md",
-                                    Subs = new List<string> { "simplify git tracking json section" }
-                                }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#68728c1",
-                            Start = 3.25,
-                            Length = 1.5,
-                            Spanning = false,
-                            Icon = "star",
+                            Icon = "code",
                             Color = "#9999ff",
                             Greyed = false,
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail
-                                {
-                                    Text = "Inline position buttons",
-                                    Subs = new List<string> { "selected milestones" }
-                                }
+                                new Detail { Text = "Reorganize JSON schema", Subs = new List<string> { "cleaner property names" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#3da8cfd",
+                            Start = 0.15,
+                            Length = 0.5,
+                            Spanning = false,
+                            Icon = "wrench",
+                            Color = "#EF4444",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Fix property references", Subs = new List<string>() }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#aceff53",
+                            Start = 0.35,
+                            Length = 0.6,
+                            Spanning = false,
+                            Icon = "star",
+                            Color = "#45B69C",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Command center, milestones, swim lanes", Subs = new List<string>() }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#656cd23",
+                            Start = 1.25,
+                            Length = 1,
+                            Spanning = false,
+                            Icon = "lightbulb",
+                            Color = "#9B7ED9",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Vibe mode visual redesign", Subs = new List<string> { "dynamic color system" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#5c0fc80",
+                            Start = 4,
+                            Length = 0.75,
+                            Spanning = false,
+                            Icon = "calendar",
+                            Color = "#E6B800",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Gemini daily template update", Subs = new List<string>() }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#205158f",
+                            Start = 7.25,
+                            Length = 0.75,
+                            Spanning = false,
+                            Icon = "wrench",
+                            Color = "#667eea",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Hover cleanup and Command Center reorganization", Subs = new List<string>() }
                             }
                         }
                     }
@@ -1174,10 +1207,10 @@ public class TemplateService
                     History = new History
                     {
                         Start = "",
-                        End = "25%",
+                        End = "Heavy lifting",
                         StartIcon = null,
                         EndIcon = null,
-                        Percent = 23,
+                        Percent = 75,
                         Origin = "right"
                     },
                     Items = new List<Item>
@@ -1185,29 +1218,9 @@ public class TemplateService
                         new Item
                         {
                             Id = null,
-                            Title = "#9157879",
-                            Start = 0,
-                            Length = 3,
-                            Spanning = false,
-                            Icon = "wrench",
-                            Color = "#EF4444",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail
-                                {
-                                    Text = "State Management",
-                                    Subs = new List<string> { "command center rendering" }
-                                }
-                            }
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "#dc0e8e4",
-                            Start = 3.5,
-                            Length = 1.75,
+                            Title = "#577cc2a",
+                            Start = 1.5,
+                            Length = 1,
                             Spanning = false,
                             Icon = "code",
                             Color = "#667eea",
@@ -1215,11 +1228,151 @@ public class TemplateService
                             Hidden = false,
                             Details = new List<Detail>
                             {
-                                new Detail
-                                {
-                                    Text = "Optional properties",
-                                    Subs = new List<string> { "roadmap models" }
-                                }
+                                new Detail { Text = "Core features", Subs = new List<string> { "keyboard shortcuts, drag-to-resize, quick share" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#99d98dd",
+                            Start = 1.75,
+                            Length = 0.5,
+                            Spanning = false,
+                            Icon = "wrench",
+                            Color = "#EF4444",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Drag-to-resize refinement", Subs = new List<string> { "cursors, 0.25 snapping" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#7a24f5e",
+                            Start = 2,
+                            Length = 0.75,
+                            Spanning = false,
+                            Icon = "wrench",
+                            Color = "#EF4444",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Drag-to-move items", Subs = new List<string> { "slide entire items by dragging middle" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#d3f25fd",
+                            Start = 2.25,
+                            Length = 0.5,
+                            Spanning = false,
+                            Icon = "star",
+                            Color = "#9999ff",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Resize UX improvements", Subs = new List<string> { "larger edge zones (15px), visual indicators" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#2160d39",
+                            Start = 2.5,
+                            Length = 0.5,
+                            Spanning = false,
+                            Icon = "wrench",
+                            Color = "#EF4444",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Box-shadow overlays for edge indicators", Subs = new List<string>() }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#0063991",
+                            Start = 6.5,
+                            Length = 1,
+                            Spanning = false,
+                            Icon = "code",
+                            Color = "#667eea",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Three refinements", Subs = new List<string> { "preview auto-deselect, boundary constraints, move buttons" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#ca61684",
+                            Start = 7.5,
+                            Length = 0.75,
+                            Spanning = false,
+                            Icon = "star",
+                            Color = "#45B69C",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Enhanced item management", Subs = new List<string> { "milestone drag functionality" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#05eac33",
+                            Start = 7.75,
+                            Length = 0.5,
+                            Spanning = false,
+                            Icon = "wrench",
+                            Color = "#EF4444",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Box-shadow overlays fix", Subs = new List<string>() }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#e20ec30",
+                            Start = 8.5,
+                            Length = 0.5,
+                            Spanning = false,
+                            Icon = "wrench",
+                            Color = "#EF4444",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Slow down drag movement", Subs = new List<string> { "3x slower, debug logging" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "#c3dc7e1",
+                            Start = 8.75,
+                            Length = 0.75,
+                            Spanning = false,
+                            Icon = "wrench",
+                            Color = "#EF4444",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Fix milestone drag", Subs = new List<string> { "prevent listener removal during re-renders" } }
                             }
                         }
                     }
@@ -1233,7 +1386,7 @@ public class TemplateService
                     Height = null,
                     History = new History
                     {
-                        Start = "100% commits",
+                        Start = "4 PRs merged",
                         End = "",
                         StartIcon = null,
                         EndIcon = null,
@@ -1245,28 +1398,66 @@ public class TemplateService
                         new Item
                         {
                             Id = null,
-                            Title = "PR #30",
+                            Title = "PR #26",
                             Start = 0,
-                            Length = 3,
+                            Length = 1.5,
                             Spanning = false,
                             Icon = "rocket",
-                            Color = null,
+                            Color = "#45B69C",
                             Greyed = false,
                             Hidden = false,
-                            Details = new List<Detail>()
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "JSON structure reorganization", Subs = new List<string>() }
+                            }
                         },
                         new Item
                         {
                             Id = null,
-                            Title = "PR Merge",
-                            Start = 3.75,
-                            Length = 3.75,
+                            Title = "PR #27",
+                            Start = 1.5,
+                            Length = 1.5,
                             Spanning = false,
                             Icon = "rocket",
-                            Color = null,
+                            Color = "#45B69C",
                             Greyed = false,
                             Hidden = false,
-                            Details = new List<Detail>()
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Template icons and vibe mode", Subs = new List<string>() }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "PR #28",
+                            Start = 3,
+                            Length = 2.5,
+                            Spanning = false,
+                            Icon = "rocket",
+                            Color = "#45B69C",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Core features", Subs = new List<string> { "drag-to-resize, keyboard shortcuts" } }
+                            }
+                        },
+                        new Item
+                        {
+                            Id = null,
+                            Title = "PR #29",
+                            Start = 5.5,
+                            Length = 4.5,
+                            Spanning = false,
+                            Icon = "rocket",
+                            Color = "#45B69C",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Enhanced item management", Subs = new List<string> { "milestone drag, refinements" } }
+                            }
                         }
                     }
                 }

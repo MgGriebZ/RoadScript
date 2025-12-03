@@ -195,74 +195,119 @@ Get started quickly with 3 production-ready templates:
 
 ## Use Case: Git Commit Tracking
 
-The **Milestone Map** template can visualize git activity with hourly granularity. Use lanes for work categories, items for commits, and milestones for key events.
+The **Milestone Map** template can visualize git activity with hourly granularity. Use lanes for work categories, items for commits, and milestones for key events. Perfect for tracking a full day of development work.
 
-**Example mapping:**
+**Example mapping (full day view):**
 ```json
 {
-  "title": "ClaudeCommits",
-  "subtitle": "Made with RoadScript.NET... a MgGriebZ project on Dec 3, 2025",
+  "title": "ClaudeCommits - Dec 2, 2025",
+  "subtitle": "Made with RoadScript.NET... a MgGriebZ project",
   "columns": [
+    { "label": "Late Night", "sub": "12AM-2AM" },
+    { "label": "8AM" },
     { "label": "9AM" },
     { "label": "10AM" },
-    { "label": "11AM" },
-    { "label": "12PM" },
-    { "label": "1PM" }
+    { "label": "1PM" },
+    { "label": "2PM" },
+    { "label": "3PM" },
+    { "label": "4PM" }
   ],
   "milestones": [
-    { "start": 15, "title": "Claude Prompt", "icon": "bug", "color": "#D4652F" },
-    { "start": 42, "title": "PR Merge", "icon": "rocket", "color": "#45B69C" }
+    { "start": 4.5, "title": "Session Start", "icon": "bug", "color": "#D4652F" },
+    { "start": 28, "title": "PR #27", "icon": "rocket", "color": "#45B69C" },
+    { "start": 92, "title": "PR #29", "icon": "rocket", "color": "#45B69C" }
   ],
   "lanes": [
     {
       "title": "UI/UX Polish",
       "color": "#87CEEB",
-      "history": {
-        "start": "75%",
-        "percent": 80,
-        "origin": "left"
-      },
+      "history": { "start": "All day", "percent": 85, "origin": "left" },
       "items": [
         {
-          "title": "#4287f08",
-          "start": 0.25,
-          "length": 1.5,
-          "icon": "search",
-          "color": "#45B69C",
-          "details": [
-            { "text": "History Rendering", "subs": ["Start/Stop icon formats"] }
-          ]
+          "title": "#02b540c",
+          "start": 0,
+          "length": 0.75,
+          "icon": "code",
+          "color": "#9999ff",
+          "details": [{ "text": "Reorganize JSON schema", "subs": ["cleaner property names"] }]
         },
         {
-          "title": "#f352ac6",
-          "start": 1.75,
-          "length": 1.25,
-          "icon": "search",
-          "color": "#45B69C",
-          "details": [
-            { "text": "README.md", "subs": ["simplify git tracking json section"] }
-          ]
+          "title": "#656cd23",
+          "start": 1.25,
+          "length": 1,
+          "icon": "lightbulb",
+          "color": "#9B7ED9",
+          "details": [{ "text": "Vibe mode visual redesign", "subs": ["dynamic color system"] }]
+        },
+        {
+          "title": "#5c0fc80",
+          "start": 4,
+          "length": 0.75,
+          "icon": "calendar",
+          "color": "#E6B800",
+          "details": [{ "text": "Gemini daily template update" }]
         }
       ]
     },
     {
       "title": "Technical/Functional",
       "color": "#E6B800",
-      "history": {
-        "end": "25%",
-        "percent": 23,
-        "origin": "right"
-      },
+      "history": { "end": "Heavy lifting", "percent": 75, "origin": "right" },
       "items": [
         {
-          "title": "#9157879",
-          "start": 0,
-          "length": 3,
+          "title": "#577cc2a",
+          "start": 1.5,
+          "length": 1,
+          "icon": "code",
+          "color": "#667eea",
+          "details": [{ "text": "Core features", "subs": ["keyboard shortcuts, drag-to-resize, quick share"] }]
+        },
+        {
+          "title": "#7a24f5e",
+          "start": 2,
+          "length": 0.75,
           "icon": "wrench",
           "color": "#EF4444",
-          "details": [
-            { "text": "State Management", "subs": ["command center rendering"] }
-          ]
+          "details": [{ "text": "Drag-to-move items", "subs": ["slide entire items by dragging middle"] }]
+        },
+        {
+          "title": "#c3dc7e1",
+          "start": 6.75,
+          "length": 0.75,
+          "icon": "wrench",
+          "color": "#EF4444",
+          "details": [{ "text": "Fix milestone drag", "subs": ["prevent listener removal"] }]
+        }
+      ]
+    },
+    {
+      "title": "Deployments",
+      "color": "#667eea",
+      "history": { "start": "4 PRs merged", "percent": 100, "origin": "left" },
+      "items": [
+        {
+          "title": "PR #26",
+          "start": 0,
+          "length": 1.5,
+          "icon": "rocket",
+          "color": "#45B69C",
+          "details": [{ "text": "JSON structure reorganization" }]
+        },
+        {
+          "title": "PR #27",
+          "start": 1.5,
+          "length": 1.5,
+          "icon": "rocket",
+          "color": "#45B69C",
+          "details": [{ "text": "Template icons and vibe mode" }]
+        },
+        {
+          "title": "PR #29",
+          "start": 5.5,
+          "length": 2,
+          "icon": "rocket",
+          "color": "#45B69C",
+          "details": [{ "text": "Enhanced item management" }]
         }
       ]
     }
