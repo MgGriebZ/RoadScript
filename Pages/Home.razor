@@ -1375,8 +1375,8 @@
 
         _isResizing = false;
 
-        // Update the JSON editor with the new values
-        if (_data != null && _editor != null)
+        // Update the JSON and save to storage
+        if (_data != null)
         {
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
             {
@@ -1385,8 +1385,14 @@
             });
 
             _currentJson = updatedJson;
-            await _editor.SetValue(updatedJson);
 
+            // Sync to editor if it's open
+            if (_editor != null)
+            {
+                await _editor.SetValue(updatedJson);
+            }
+
+            // Always save to storage regardless of editor state
             if (_sessionManager != null && _activeTab != null && _folderManager != null)
             {
                 _activeTab.Data = _data;
@@ -1454,8 +1460,8 @@
 
         _isMoving = false;
 
-        // Update the JSON editor with the new values
-        if (_data != null && _editor != null)
+        // Update the JSON and save to storage
+        if (_data != null)
         {
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
             {
@@ -1464,8 +1470,14 @@
             });
 
             _currentJson = updatedJson;
-            await _editor.SetValue(updatedJson);
 
+            // Sync to editor if it's open
+            if (_editor != null)
+            {
+                await _editor.SetValue(updatedJson);
+            }
+
+            // Always save to storage regardless of editor state
             if (_sessionManager != null && _activeTab != null && _folderManager != null)
             {
                 _activeTab.Data = _data;
@@ -1533,8 +1545,8 @@
 
         _isMovingMilestone = false;
 
-        // Update the JSON editor with the new values
-        if (_data != null && _editor != null)
+        // Update the JSON and save to storage
+        if (_data != null)
         {
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
             {
@@ -1543,8 +1555,14 @@
             });
 
             _currentJson = updatedJson;
-            await _editor.SetValue(updatedJson);
 
+            // Sync to editor if it's open
+            if (_editor != null)
+            {
+                await _editor.SetValue(updatedJson);
+            }
+
+            // Always save to storage regardless of editor state
             if (_sessionManager != null && _activeTab != null && _folderManager != null)
             {
                 _activeTab.Data = _data;
