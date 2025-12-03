@@ -125,6 +125,29 @@
                                     </button>
                                 }
                             </div>
+
+                            @* Active Roadmap Name Editor *@
+                            @if (_activeTab != null)
+                            {
+                                <div style="display: flex; gap: 6px; align-items: center; padding-top: 10px; border-top: 1px solid #3a3a4e;">
+                                    <input type="text"
+                                           value="@_activeTab.Name"
+                                           @onchange="@(async (e) => await HandleTabRename((_activeTab.Id, e.Value?.ToString() ?? "Untitled")))"
+                                           placeholder="Roadmap name..."
+                                           style="flex: 1; background: #252538; color: #e0e7ff; border: 1px solid #3a3a4e; border-radius: 6px; padding: 8px 12px; font-size: 13px; font-weight: 500; outline: none; transition: all 0.2s;"
+                                           onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 2px rgba(102, 126, 234, 0.1)'"
+                                           onblur="this.style.borderColor='#3a3a4e'; this.style.boxShadow='none'" />
+
+                                    @if (_sessionManager.Tabs.Count > 1)
+                                    {
+                                        <button @onclick="@(async () => await HandleTabDelete(_activeTab.Id))"
+                                                title="Delete this roadmap"
+                                                style="width: 44px; height: 44px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700;">
+                                            🗑️
+                                        </button>
+                                    }
+                                </div>
+                            }
                         }
                     </div>
                 </div>
