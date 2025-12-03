@@ -212,7 +212,6 @@
                     <Icon IconType="gear" Size="24" Color="#ffffff" />
                 </button>
 
-                @* Delete Button - Static below gear icon *@
                 @if (_activeTab != null && _sessionManager != null)
                 {
                     <button @onclick="HandleCollapsedTabDelete"
@@ -245,7 +244,6 @@
                                 <Icon IconType="@folderIcon" Size="20" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666"))" />
                             </button>
 
-                            @* Show tabs only for the active folder *@
                             @if (isActive && _sessionManager != null)
                             {
                                 <div style="display: flex; flex-direction: column; gap: 4px; align-items: center; margin-top: 2px;">
@@ -335,7 +333,6 @@
             <div style="@RoadmapWrapperStyle()">
                 <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
 
-                @* Quick Share Icon *@
                 <div @onclick="QuickShareAsPng"
                      class="quick-share-icon"
                      title="Open roadmap as PNG in new tab"
@@ -478,7 +475,7 @@
                                                  @onclick="@(_isPreviewMode ? null : async () => await HandleItemClick(laneIdx, itemIdx, item))"
                                                  @onclick:stopPropagation="@(!_isPreviewMode)"
                                                  class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]") roadmap-item-resizable"
-                                                 style="@ItemStyle(item, lane.Color)"
+                                                 style="@ItemStyle(item, lane, itemIdx)"
                                                  data-lane-index="@laneIdx"
                                                  data-item-index="@itemIdx">
                                             @{
@@ -622,10 +619,10 @@
     private string _currentJson = "";
     private bool _isVibeMode = false;
     private bool _editorReady = false;
-    private bool _isPreviewMode = false;       // Toggle between Edit Mode and Preview Mode
-    private bool _showControlPanel = true;     // Show/hide Control Center panel - visible by default
-    private bool _showAdvancedSection = false; // Show/hide Advanced JSON editor section - collapsed by default
-    private bool _showProperties = true;       // Show/hide properties panel - open by default
+    private bool _isPreviewMode = false;
+    private bool _showControlPanel = false;
+    private bool _showAdvancedSection = false;
+    private bool _showProperties = true;
     private DotNetObjectReference<Home>? _dotNetRef;
 
     private FolderManager? _folderManager;
@@ -638,147 +635,38 @@
     private bool _isCreatingNewFolder = false;
     private string? _pendingFolderName = null;
 
-    // Drag-to-resize state
     private bool _isResizing = false;
     private int _resizingLaneIndex = -1;
     private int _resizingItemIndex = -1;
-    private string _resizingEdge = ""; // "left" or "right"
+    private string _resizingEdge = "";
     private double _resizeStartX = 0;
     private double _resizeOriginalStart = 0;
     private double _resizeOriginalLength = 0;
 
-    // Drag-to-move state
     private bool _isMoving = false;
     private int _movingLaneIndex = -1;
     private int _movingItemIndex = -1;
     private double _moveStartX = 0;
     private double _moveOriginalStart = 0;
 
-    // Milestone drag-to-move state
     private bool _isMovingMilestone = false;
     private int _movingMilestoneIndex = -1;
     private double _milestoneMoveStartX = 0;
     private double _milestoneMoveOriginalStart = 0;
 
-    private const string DefaultJson = @"{
-  ""title"": ""Bi-Weekly Sprint Roadmap"",
-  ""subtitle"": ""2-week sprint cycle with ceremonies"",
-  ""columns"": [
-    { ""label"": ""Thursday"", ""sub"": """" },
-    { ""label"": ""Friday"", ""sub"": """" },
-    { ""label"": ""Weekend"", ""sub"": ""Sat/Sun"" },
-    { ""label"": ""Monday"", ""sub"": """" },
-    { ""label"": ""Tuesday"", ""sub"": """" },
-    { ""label"": ""Wednesday"", ""sub"": ""3:00PM est"" }
-  ],
-  ""milestones"": [
-    { ""position"": 91, ""label"": ""Deployment Cutoff Time"", ""icon"": ""triangle"", ""color"": ""#EF4444"" },
-    { ""position"": 38, ""label"": ""Release Deployments"", ""icon"": ""rocket"", ""color"": ""#025f40"" }
-  ],
-  ""lanes"": [
-    {
-      ""title"": ""Week 1"",
-      ""color"": ""#45B69C"",
-      ""height"": 1,
-      ""items"": [
-        {
-          ""title"": ""Stakeholder Prioritization"",
-          ""start"": 3,
-          ""span"": 1,
-          ""spanning"": true,
-          ""statusIcon"": ""star"",
-          ""statusColor"": ""#D4A520""
-        },
-        {
-          ""title"": ""Refinement"",
-          ""start"": 5,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""search"",
-          ""statusColor"": ""#9B7ED9""
-        },
-        {
-          ""title"": ""Sprint Planning"",
-          ""start"": 0,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""calendar"",
-          ""statusColor"": ""#667eea""
-        },
-        {
-          ""title"": ""Sprint Review"",
-          ""start"": 1,
-          ""span"": 1,
-          ""spanning"": true,
-          ""statusIcon"": ""flag"",
-          ""statusColor"": ""#45B69C""
-        }
-      ]
-    },
-    {
-      ""title"": ""Week 2"",
-      ""color"": ""#D4A520"",
-      ""height"": 1,
-      ""items"": [
-        {
-          ""title"": ""Refinement"",
-          ""start"": 4,
-          ""span"": 2,
-          ""spanning"": false,
-          ""statusIcon"": ""search"",
-          ""statusColor"": ""#9B7ED9""
-        },
-        {
-          ""title"": ""Retro"",
-          ""start"": 1,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""target"",
-          ""statusColor"": ""#D4A520""
-        }
-      ]
-    },
-    {
-      ""title"": ""IT Development"",
-      ""color"": ""#4A90D9"",
-      ""height"": 0.8,
-      ""items"": [
-        {
-          ""title"": ""Sprint Execution"",
-          ""start"": 0,
-          ""span"": 6,
-          ""spanning"": true,
-          ""statusIcon"": ""code"",
-          ""statusColor"": ""#4A90D9""
-        },
-        {
-          ""title"": ""Maintenance Window"",
-          ""start"": 2,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""wrench"",
-          ""statusColor"": ""#4A90D9"",
-          ""details"": [
-            {
-              ""text"": ""Saturday"",
-              ""subs"": [
-                ""3:00PM - 11:59PM est"",
-                ""4PM Release Deployment Process Begins""
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}";
-
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
+        var defaultTemplate = TemplateService.GetScrumSprintCycleTemplate();
+        var defaultJson = JsonSerializer.Serialize(defaultTemplate, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
         return new StandaloneEditorConstructionOptions
         {
             Language = "json",
-            Value = DefaultJson,
+            Value = defaultJson,
             Theme = "vs-dark",
             Minimap = new EditorMinimapOptions { Enabled = false },
             AutomaticLayout = true,
@@ -892,7 +780,6 @@
             await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupKeyboardShortcuts", _dotNetRef);
         }
 
-        // Setup resize/move handlers for all items and milestones (runs on every render to handle new items)
         if (!_isPreviewMode && _dotNetRef != null && _data != null)
         {
             try
@@ -1133,19 +1020,15 @@
             var columnCount = _data.Columns.Count;
             var deltaX = clientX - _resizeStartX;
 
-            // Convert pixel delta to column percentage (approximate)
-            // Assuming the roadmap container width represents 100% of columns
             var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 3000.0) * percentPerColumn; // 3x slower for larger deliberate strokes
+            var deltaPercent = (deltaX / 3000.0) * percentPerColumn;
 
             if (_resizingEdge == "left")
             {
-                // Moving left edge: adjust start position only
                 var newStart = Math.Max(0, _resizeOriginalStart + deltaPercent);
                 var snappedStart = RoundToQuarter(newStart);
                 var newLength = _resizeOriginalLength - (snappedStart - _resizeOriginalStart);
 
-                // Ensure item doesn't exceed column boundaries
                 if (newLength > 0.25 && snappedStart + newLength <= columnCount)
                 {
                     item.Start = snappedStart;
@@ -1154,11 +1037,9 @@
             }
             else if (_resizingEdge == "right")
             {
-                // Moving right edge: adjust length only
                 var newLength = Math.Max(0.25, _resizeOriginalLength + deltaPercent);
                 var snappedLength = RoundToQuarter(newLength);
 
-                // Ensure item doesn't exceed column boundaries
                 if (item.Start + snappedLength <= columnCount)
                 {
                     item.Length = snappedLength;
@@ -1175,7 +1056,6 @@
 
     private double RoundToQuarter(double value)
     {
-        // Round to nearest 0.25 increment
         return Math.Round(value * 4) / 4;
     }
 
@@ -1186,7 +1066,6 @@
 
         _isResizing = false;
 
-        // Update the JSON editor with the new values
         if (_data != null && _editor != null)
         {
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
@@ -1236,15 +1115,12 @@
             var columnCount = _data.Columns.Count;
             var deltaX = clientX - _moveStartX;
 
-            // Convert pixel delta to column percentage
             var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 3000.0) * percentPerColumn; // 3x slower for larger deliberate strokes
+            var deltaPercent = (deltaX / 3000.0) * percentPerColumn;
 
-            // Move the item: adjust start position only, keep length constant
             var newStart = Math.Max(0, _moveOriginalStart + deltaPercent);
             var snappedStart = RoundToQuarter(newStart);
 
-            // Ensure item doesn't exceed column boundaries
             if (snappedStart + item.Length <= columnCount)
             {
                 item.Start = snappedStart;
@@ -1265,7 +1141,6 @@
 
         _isMoving = false;
 
-        // Update the JSON editor with the new values
         if (_data != null && _editor != null)
         {
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
@@ -1288,7 +1163,6 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    // Milestone drag-to-move methods
     [JSInvokable]
     public void StartMoveMilestone(int milestoneIndex, double clientX)
     {
@@ -1315,15 +1189,12 @@
             var columnCount = _data.Columns.Count;
             var deltaX = clientX - _milestoneMoveStartX;
 
-            // Convert pixel delta to column percentage
             var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 3000.0) * percentPerColumn; // 3x slower for larger deliberate strokes
+            var deltaPercent = (deltaX / 3000.0) * percentPerColumn;
 
-            // Move the milestone: adjust start position with boundary constraints
             var newStart = Math.Max(0, _milestoneMoveOriginalStart + deltaPercent);
             var snappedStart = RoundToQuarter(newStart);
 
-            // Ensure milestone doesn't exceed column boundaries
             if (snappedStart <= columnCount)
             {
                 milestone.Start = snappedStart;
@@ -1344,7 +1215,6 @@
 
         _isMovingMilestone = false;
 
-        // Update the JSON editor with the new values
         if (_data != null && _editor != null)
         {
             var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
@@ -1423,7 +1293,7 @@
 
         try
         {
-            await Task.Delay(50); // Brief delay for visual feedback
+            await Task.Delay(50);
             var value = await _editor.GetValue();
             _currentJson = value;
             ParseJson(value);
@@ -1457,9 +1327,16 @@
 
         try
         {
-            await _editor.SetValue(DefaultJson);
-            _currentJson = DefaultJson;
-            ParseJson(DefaultJson);
+            var defaultTemplate = TemplateService.GetScrumSprintCycleTemplate();
+            var defaultJson = JsonSerializer.Serialize(defaultTemplate, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            await _editor.SetValue(defaultJson);
+            _currentJson = defaultJson;
+            ParseJson(defaultJson);
             _lastUpdateSuccess = true;
 
             await StorageService.ClearStorageAsync();
@@ -1486,9 +1363,6 @@
         if (_isPreviewMode)
         {
             _showControlPanel = false;
-            // Auto-deselect any active elements when entering preview mode
-            SelectionState.Clear();
-            // Clear any lingering hover effects for pristine preview
             await JSRuntime.InvokeVoidAsync("RoadScriptInterop.clearAllHoverEffects");
         }
         StateHasChanged();
@@ -1764,12 +1638,35 @@
         return $"height: {heightPercent}%; position: relative; {border}";
     }
 
-    private string ItemStyle(Item item, string color)
+    private string ItemStyle(Item item, Lane lane, int itemIdx)
     {
         var cols = _data?.Columns.Count ?? 4;
         var leftPct = (item.Start / cols) * 100;
         var widthPct = (item.Length / cols) * 100;
         var greyedOutStyle = item.Greyed ? "opacity: 0.5; filter: grayscale(0.6);" : "";
+
+        var overlappingItems = lane.Items
+            .Select((itm, idx) => new { Item = itm, Index = idx })
+            .Where(x => Math.Abs(x.Item.Start - item.Start) < 0.01 && Math.Abs(x.Item.Length - item.Length) < 0.01)
+            .OrderBy(x => x.Index)
+            .ToList();
+
+        var positionStyle = "";
+        if (overlappingItems.Count > 1)
+        {
+            var rowIndex = overlappingItems.FindIndex(x => x.Index == itemIdx);
+            var totalRows = overlappingItems.Count;
+            var rowHeight = 100.0 / totalRows;
+            var topPct = rowHeight * rowIndex;
+            var bottomPct = 100 - (topPct + rowHeight);
+            positionStyle = $"top: calc({topPct}% + 6px); bottom: calc({bottomPct}% + 6px);";
+        }
+        else
+        {
+            positionStyle = "top: 6px; bottom: 6px;";
+        }
+
+        var color = lane.Color;
 
         if (_isVibeMode)
         {
@@ -1789,7 +1686,7 @@
                 shadow = $"box-shadow: inset 0 4px 10px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.6);";
             }
 
-            return $"position: absolute; left: calc({leftPct}% + 6px); top: 6px; bottom: 6px; " +
+            return $"position: absolute; left: calc({leftPct}% + 6px); {positionStyle} " +
                    $"width: calc({widthPct}% - 12px); {vibeGradient} border-radius: 8px; " +
                    $"padding: 12px 16px; overflow: hidden; {borderStyle} {shadow} {greyedOutStyle}";
         }
@@ -1806,7 +1703,7 @@
                 shadow = "box-shadow: inset 0 2px 6px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1);";
             }
 
-            return $"position: absolute; left: calc({leftPct}% + 6px); top: 6px; bottom: 6px; " +
+            return $"position: absolute; left: calc({leftPct}% + 6px); {positionStyle} " +
                    $"width: calc({widthPct}% - 12px); background: #fff; border-radius: 6px; " +
                    $"padding: 12px 16px; overflow: hidden; {borderStyle} {shadow} {greyedOutStyle}";
         }
@@ -1877,7 +1774,6 @@
 
     private string ItemHeaderStyle(bool hasDetails, bool hasSubs, bool hasTitle, double span, string laneColor)
     {
-        // Icon-only items: center and expand the icon
         if (!hasTitle)
         {
             var iconOnlyMargin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
@@ -1901,7 +1797,6 @@
             }
         }
 
-        // Adjust gap and padding based on details and subs
         var gap = hasDetails ? (hasSubs ? "7px" : "8px") : "10px";
         var padding = hasDetails ? (hasSubs ? "7px 11px" : "8px 12px") : "10px 14px";
 
@@ -1928,7 +1823,6 @@
 
     private string ItemTitleStyle(bool hasDetails, bool hasSubs)
     {
-        // Adjust font size based on details and subs
         var baseSize = hasDetails ? (hasSubs ? "21px" : "22px") : "24px";
         var margin = hasDetails ? "margin: 0 0 8px 0;" : "margin: 0;";
 
@@ -1939,13 +1833,11 @@
 
     private int GetIconSize(bool hasDetails, bool hasSubs, bool hasTitle)
     {
-        // Icon-only items get larger icon that scales with container
         if (!hasTitle)
         {
             return hasDetails ? 32 : 48;
         }
 
-        // Regular items with text
         if (hasDetails)
         {
             return hasSubs ? 18 : 20;
@@ -1974,11 +1866,9 @@
         var rgb = HexToRgb(hexColor);
         var hsl = RgbToHsl(rgb.r, rgb.g, rgb.b);
 
-        // Boost saturation for neon effect (min 80%)
         hsl.s = Math.Max(0.80, hsl.s * 1.4);
         hsl.s = Math.Min(1.0, hsl.s);
 
-        // Increase lightness for dark backgrounds (aim for 60-75%)
         hsl.l = Math.Max(0.60, Math.Min(0.75, hsl.l * 1.3));
 
         var vibeRgb = HslToRgb(hsl.h, hsl.s, hsl.l);
@@ -1990,7 +1880,6 @@
         var vibeColor = GetVibeColor(hexColor);
         var rgb = HexToRgb(vibeColor);
 
-        // Create gradient with transparency for layering effect
         return $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.20) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.08) 100%);";
     }
 
@@ -2213,7 +2102,7 @@
                     else
                     {
                         itemLaneIndex = ExtractIndexFromPath(jsonPath, "lanes");
-                        itemIndex = -1; // Add at the end
+                        itemIndex = -1;
                     }
 
                     var newItem = new Item
@@ -2474,20 +2363,14 @@
 
             if (direction == "up" && itemIndex > 0)
             {
-                // Swap with previous item in same lane
                 (lane.Items[itemIndex], lane.Items[itemIndex - 1]) = (lane.Items[itemIndex - 1], lane.Items[itemIndex]);
-                // Update selection to follow the moved item
                 SelectionState.Select($"lanes[{laneIndex}].items[{itemIndex - 1}]", "item", lane.Items[itemIndex - 1]);
             }
             else if (direction == "down" && itemIndex < lane.Items.Count - 1)
             {
-                // Swap with next item in same lane
                 (lane.Items[itemIndex], lane.Items[itemIndex + 1]) = (lane.Items[itemIndex + 1], lane.Items[itemIndex]);
-                // Update selection to follow the moved item
                 SelectionState.Select($"lanes[{laneIndex}].items[{itemIndex + 1}]", "item", lane.Items[itemIndex + 1]);
             }
-
-            // Update JSON
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -2547,19 +2430,14 @@
 
             if (targetLaneIndex >= 0 && targetLaneIndex < _data.Lanes.Count)
             {
-                // Remove item from source lane
                 sourceLane.Items.RemoveAt(itemIndex);
 
-                // Add item to end of target lane
                 var targetLane = _data.Lanes[targetLaneIndex];
                 targetLane.Items.Add(item);
                 var newItemIndex = targetLane.Items.Count - 1;
 
-                // Update selection to follow the moved item
                 SelectionState.Select($"lanes[{targetLaneIndex}].items[{newItemIndex}]", "item", item);
             }
-
-            // Update JSON
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -2628,6 +2506,8 @@
             SaveHistorySnapshot();
 
             var (elementType, jsonPath) = args;
+            string? newPath = null;
+            object? newElement = null;
 
             switch (elementType)
             {
@@ -2639,6 +2519,8 @@
                         var duplicatedColumn = StorageService.DeepClone(originalColumn);
                         duplicatedColumn.Label = $"{originalColumn.Label} (Copy)";
                         _data.Columns.Insert(columnIndex + 1, duplicatedColumn);
+                        newPath = $"columns[{columnIndex + 1}]";
+                        newElement = duplicatedColumn;
                     }
                     break;
 
@@ -2650,6 +2532,8 @@
                         var duplicatedLane = StorageService.DeepClone(originalLane);
                         duplicatedLane.Title = $"{originalLane.Title} (Copy)";
                         _data.Lanes.Insert(laneIndex + 1, duplicatedLane);
+                        newPath = $"lanes[{laneIndex + 1}]";
+                        newElement = duplicatedLane;
                     }
                     break;
 
@@ -2675,6 +2559,8 @@
                         var duplicatedItem = StorageService.DeepClone(originalItem);
                         duplicatedItem.Title = $"{originalItem.Title} (Copy)";
                         _data.Lanes[itemLaneIndex].Items.Insert(itemIndex + 1, duplicatedItem);
+                        newPath = $"lanes[{itemLaneIndex}].items[{itemIndex + 1}]";
+                        newElement = duplicatedItem;
                     }
                     break;
 
@@ -2687,6 +2573,8 @@
                         duplicatedMilestone.Title = $"{originalMilestone.Title} (Copy)";
                         duplicatedMilestone.Start = Math.Min(originalMilestone.Start + 5, 100);
                         _data.Milestones.Insert(milestoneIndex + 1, duplicatedMilestone);
+                        newPath = $"milestones[{milestoneIndex + 1}]";
+                        newElement = duplicatedMilestone;
                     }
                     break;
             }
@@ -2709,6 +2597,11 @@
                 {
                     await StorageService.SaveFolderManagerAsync(_folderManager);
                 }
+            }
+
+            if (newPath != null && newElement != null)
+            {
+                SelectionState.Select(newPath, elementType, newElement);
             }
 
             await InvokeAsync(StateHasChanged);
@@ -3031,8 +2924,8 @@
 
         _pendingFolderName = folderName;
         _isCreatingNewFolder = true;
-        _showFolderSelector = false; // Close folder selector
-        _showTemplateSelector = true; // Show template selector
+        _showFolderSelector = false;
+        _showTemplateSelector = true;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -3085,7 +2978,7 @@
         if (_folderManager == null) return;
 
         var folderIndex = _folderManager.Folders.FindIndex(f => f.Id == folderId);
-        if (folderIndex <= 0) return; // Already at leftmost position
+        if (folderIndex <= 0) return;
 
         var folder = _folderManager.Folders[folderIndex];
         _folderManager.Folders.RemoveAt(folderIndex);
@@ -3102,7 +2995,7 @@
         if (_folderManager == null) return;
 
         var folderIndex = _folderManager.Folders.FindIndex(f => f.Id == folderId);
-        if (folderIndex < 0 || folderIndex >= _folderManager.Folders.Count - 1) return; // Already at rightmost position
+        if (folderIndex < 0 || folderIndex >= _folderManager.Folders.Count - 1) return;
 
         var folder = _folderManager.Folders[folderIndex];
         _folderManager.Folders.RemoveAt(folderIndex);

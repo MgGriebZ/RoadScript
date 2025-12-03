@@ -1,7 +1,6 @@
 @using RoadScript.Models
 
 <style>
-    /* Hide number input spinner arrows */
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
         -webkit-appearance: none;
@@ -24,7 +23,6 @@
     <div class="form-group">
         <label style="margin-bottom: 8px;">Length</label>
 
-        @* Quick Span Buttons with inline editable value *@
         <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 12px;">
             <button type="button"
                     @onclick="@(() => ResetSpanToDefault())"
@@ -34,18 +32,17 @@
             </button>
             <button type="button"
                     @onclick="@(() => AdjustSpan(-1.0))"
-                    title="Big Down (-1 column)"
+                    title="Decrease span"
                     style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
                 <div style="font-size: 16px; line-height: 1;">⏪</div>
             </button>
             <button type="button"
                     @onclick="@(() => AdjustSpan(-0.25))"
-                    title="Little Down (-0.25)"
+                    title="Small decrease"
                     style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
                 <div style="font-size: 14px; line-height: 1;">◀</div>
             </button>
 
-            @* Editable Numeric Value *@
             <input type="number"
                    value="@Item.Length"
                    @onchange="@(e => OnChange.InvokeAsync(("length", double.Parse(e.Value?.ToString() ?? "0.25"))))"
@@ -56,13 +53,13 @@
 
             <button type="button"
                     @onclick="@(() => AdjustSpan(0.25))"
-                    title="Little Up (+0.25)"
+                    title="Small increase"
                     style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
                 <div style="font-size: 14px; line-height: 1;">▶</div>
             </button>
             <button type="button"
                     @onclick="@(() => AdjustSpan(1.0))"
-                    title="Big Up (+1 column)"
+                    title="Increase span"
                     style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
                 <div style="font-size: 16px; line-height: 1;">⏩</div>
             </button>
@@ -78,7 +75,6 @@
     <div class="form-group">
         <label style="margin-bottom: 8px;">Position</label>
 
-        @* Quick Position Buttons with inline editable value *@
         <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 12px;">
             <button type="button"
                     @onclick="@(() => JumpToStart())"
@@ -88,18 +84,17 @@
             </button>
             <button type="button"
                     @onclick="@(() => AdjustPosition(-1.0))"
-                    title="Big Down (-1 column)"
+                    title="Previous column"
                     style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
                 <div style="font-size: 16px; line-height: 1;">⏪</div>
             </button>
             <button type="button"
                     @onclick="@(() => AdjustPosition(-0.25))"
-                    title="Little Down (-0.25)"
+                    title="Small decrease"
                     style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
                 <div style="font-size: 14px; line-height: 1;">◀</div>
             </button>
 
-            @* Editable Numeric Value *@
             <input type="number"
                    value="@Item.Start"
                    @onchange="@(e => OnChange.InvokeAsync(("start", double.Parse(e.Value?.ToString() ?? "0"))))"
@@ -110,13 +105,13 @@
 
             <button type="button"
                     @onclick="@(() => AdjustPosition(0.25))"
-                    title="Little Up (+0.25)"
+                    title="Small increase"
                     style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
                 <div style="font-size: 14px; line-height: 1;">▶</div>
             </button>
             <button type="button"
                     @onclick="@(() => AdjustPosition(1.0))"
-                    title="Big Up (+1 column)"
+                    title="Next column"
                     style="width: 32px; min-height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0;">
                 <div style="font-size: 16px; line-height: 1;">⏩</div>
             </button>
@@ -141,30 +136,26 @@
         </div>
     </div>
 
-    @* Item Display Options - Icon-based toggles *@
     <div class="form-group">
         <label style="font-size: 11px; margin-bottom: 8px; color: #888;">Display Options</label>
         <div style="display: flex; gap: 8px;">
-            @* Spanning Toggle *@
             <button type="button"
                     @onclick="@(() => OnChange.InvokeAsync(("spanning", !Item.Spanning)))"
-                    title="Spanning: Dashed border for ongoing work"
+                    title="Spanning: Dashed border"
                     style="@GetToggleButtonStyle(Item.Spanning)">
                 <span style="font-size: 24px;">⋯⋯</span>
             </button>
 
-            @* Greyed Out Toggle *@
             <button type="button"
                     @onclick="@(() => OnChange.InvokeAsync(("greyed", !Item.Greyed)))"
-                    title="Greyed Out: Reduced opacity with grey shadow"
+                    title="Greyed out: Reduced opacity"
                     style="@GetToggleButtonStyle(Item.Greyed)">
                 <span style="font-size: 24px;">◐</span>
             </button>
 
-            @* Hidden Toggle *@
             <button type="button"
                     @onclick="@(() => OnChange.InvokeAsync(("hidden", !Item.Hidden)))"
-                    title="Hidden: Hide in preview/export mode only"
+                    title="Hide in preview/export"
                     style="@GetToggleButtonStyle(Item.Hidden)">
                 <span style="font-size: 24px;">👁</span>
             </button>
@@ -174,7 +165,6 @@
     <div class="form-group">
         <label style="font-size: 11px; margin-bottom: 8px; color: #888;">Status Icon</label>
 
-        @* Large Icon Preview Button - Similar to Display Options *@
         <div style="position: relative;">
             <button type="button"
                     @onclick="ToggleStatusIconPicker"
@@ -189,15 +179,12 @@
                 }
                 else
                 {
-                    @* Placeholder for empty state *@
                     <span style="font-size: 36px; opacity: 0.3;">✦</span>
                 }
 
-                @* Dropdown indicator in bottom right *@
                 <span style="position: absolute; bottom: 8px; right: 8px; font-size: 12px; color: #666; transition: transform 0.2s; transform: rotate(@(_statusIconPickerExpanded ? "180deg" : "0deg"));">▼</span>
             </button>
 
-            @* Clear button overlay in top right corner *@
             @if (!string.IsNullOrEmpty(Item.Icon))
             {
                 <button @onclick="ClearStatusIcon"
@@ -222,7 +209,6 @@
                 <div style="margin-top: 12px;">
                     <label style="font-size: 11px; margin-bottom: 8px;">Status Color</label>
 
-                    @* Preset Color Options *@
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;">
                         @foreach (var preset in _colorPresets)
                         {
@@ -275,7 +261,6 @@
                         <button @onclick="() => RemoveDetail(index)" class="btn-remove" type="button">×</button>
                     </div>
 
-                    @* Sub-bullets section *@
                     <div style="margin-top: 10px; padding-left: 8px;">
                         <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                             <span style="font-size: 11px; color: #888;">Sub-items</span>
@@ -317,7 +302,6 @@
         }
     </div>
 
-    @* Item Management Section *@
     <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
         <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Item Management</label>
 
@@ -329,13 +313,11 @@
             📋 Duplicate This Item
         </button>
 
-        @* Position Indicator *@
         <div style="background: #252538; border: 1px solid #3a3a4e; border-radius: 4px; padding: 8px 12px; margin-bottom: 10px; text-align: center;">
             <div style="font-size: 11px; color: #888; margin-bottom: 4px;">Position in Lane</div>
             <div style="font-size: 16px; font-weight: 600; color: #667eea;">@(ItemIndex + 1) <span style="color: #666; font-weight: 400;">of</span> @ItemCount</div>
         </div>
 
-        @* Move Up/Down Buttons for Items (Reorder within lane) *@
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
             <button @onclick="MoveItemUp"
                     disabled="@(ItemIndex == 0)"
@@ -351,7 +333,6 @@
             </button>
         </div>
 
-        @* Jump Between Lanes Section *@
         <div style="background: #1a1a2e; border: 1px solid #3a3a4e; border-radius: 6px; padding: 10px; margin-bottom: 8px;">
             <div style="font-size: 11px; color: #888; margin-bottom: 8px; text-align: center;">Jump to Lane</div>
             <div style="display: flex; gap: 6px;">
@@ -466,13 +447,9 @@
 
     private async Task HandleStatusIconSelectedAndCollapse(string iconValue)
     {
-        // Update the item
         Item.Icon = iconValue;
         await OnChange.InvokeAsync(("icon", iconValue));
-
-        // Collapse the picker
         _statusIconPickerExpanded = false;
-
         StateHasChanged();
     }
 
@@ -483,12 +460,10 @@
 
     private bool IsFitToEnd()
     {
-        // Check if the current span fits exactly to the end
         var maxSpan = GetMaxPosition() - Item.Start;
-        return Math.Abs(Item.Length - maxSpan) < 0.01; // Use small epsilon for floating point comparison
+        return Math.Abs(Item.Length - maxSpan) < 0.01;
     }
 
-    // Quick Position Button Methods
     private void JumpToStart()
     {
         OnChange.InvokeAsync(("start", 0.0));
@@ -496,7 +471,6 @@
 
     private void JumpToEnd()
     {
-        // Calculate max position considering the item's span
         var maxPos = Math.Max(0, GetMaxPosition() - Item.Length);
         OnChange.InvokeAsync(("start", maxPos));
     }
@@ -504,23 +478,18 @@
     private void AdjustPosition(double delta)
     {
         var newPos = Item.Start + delta;
-        // Clamp to valid range
         newPos = Math.Max(0, Math.Min(newPos, GetMaxPosition() - Item.Length));
-        // Round to 2 decimal places to avoid floating point precision issues
         newPos = Math.Round(newPos, 2);
         OnChange.InvokeAsync(("start", newPos));
     }
 
-    // Quick Span Button Methods
     private void ResetSpanToDefault()
     {
-        // Reset span to default value of 2.0 (2 columns)
         OnChange.InvokeAsync(("length", 2.0));
     }
 
     private void SetSpanToEnd()
     {
-        // Calculate span to fit to end
         var maxSpan = GetMaxPosition() - Item.Start;
         maxSpan = Math.Round(Math.Max(0.25, maxSpan), 2);
         OnChange.InvokeAsync(("length", maxSpan));
@@ -529,10 +498,8 @@
     private void AdjustSpan(double delta)
     {
         var newSpan = Item.Length + delta;
-        // Ensure span is at least 0.25 and doesn't exceed the available space
         var maxSpan = GetMaxPosition() - Item.Start;
         newSpan = Math.Max(0.25, Math.Min(newSpan, maxSpan));
-        // Round to 2 decimal places to avoid floating point precision issues
         newSpan = Math.Round(newSpan, 2);
         OnChange.InvokeAsync(("length", newSpan));
     }
@@ -549,11 +516,9 @@
         var isChecked = (bool)(e.Value ?? false);
         if (isChecked)
         {
-            // Calculate span to fit to end
             var maxSpan = GetMaxPosition() - Item.Start;
             await OnChange.InvokeAsync(("length", maxSpan));
         }
-        // If unchecked, do nothing - user can manually adjust
     }
 
     private void AddDetail()
@@ -672,17 +637,15 @@
 
     private async Task HandleStatusIconSelected(string iconValue)
     {
-        // Update the item directly to ensure immediate UI update
         Item.Icon = iconValue;
         await OnChange.InvokeAsync(("icon", iconValue));
-        StateHasChanged(); // Force re-render to show selected icon immediately
+        StateHasChanged();
     }
 
     private async Task ClearStatusIcon()
     {
-        // Update the item directly to ensure immediate UI update
         Item.Icon = "";
         await OnChange.InvokeAsync(("icon", ""));
-        StateHasChanged(); // Force re-render
+        StateHasChanged();
     }
 }

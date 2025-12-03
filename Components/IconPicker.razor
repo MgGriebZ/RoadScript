@@ -1,7 +1,5 @@
 @using RoadScript.Models
 
-@* IconPicker Component - Reusable icon selector with categories *@
-
 <div style="display: flex; flex-direction: column; gap: 12px;">
     @if (ShowCategories)
     {
@@ -55,7 +53,6 @@
 
     private readonly List<(string Name, string Value, string Category)> _availableIcons = new()
     {
-        // Status/State (8 icons)
         ("Check", "check", "Status"),
         ("Pause", "pause", "Status"),
         ("X-Mark", "x-mark", "Status"),
@@ -65,14 +62,12 @@
         ("Warning", "triangle", "Status"),
         ("Square", "square", "Status"),
 
-        // Milestones (5 icons)
         ("Diamond", "diamond", "Milestone"),
         ("Star", "star", "Milestone"),
         ("Flag", "flag", "Milestone"),
         ("Target", "target", "Milestone"),
         ("Trophy", "trophy", "Milestone"),
 
-        // Work Type (7 icons)
         ("Idea", "lightbulb", "Work"),
         ("Bug", "bug", "Work"),
         ("Code", "code", "Work"),
@@ -81,14 +76,12 @@
         ("Chart", "chart", "Work"),
         ("Search", "search", "Work"),
 
-        // Priority/Category (5 icons)
         ("Heart", "heart", "Priority"),
         ("Bookmark", "bookmark", "Priority"),
         ("Rocket", "rocket", "Priority"),
         ("Lock", "lock", "Priority"),
         ("Globe", "globe", "Priority"),
 
-        // Time/Schedule (5 icons)
         ("Calendar", "calendar", "Time"),
         ("Clock", "clock", "Time"),
         ("Arrow", "arrow-right", "Time"),

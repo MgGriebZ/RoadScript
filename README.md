@@ -204,40 +204,92 @@ Get started quickly with 3 production-ready templates:
 | Red | `#EF4444` | At risk/blocked |
 | Indigo | `#6366F1` | Technical/engineering focus |
 
+## Technical Architecture
+
+### Drag and Move System
+**Milestone Dragging**: Milestones use `.roadmap-milestone-movable` class with `data-milestone-index` attribute. JavaScript handler prevents listener removal during re-renders using `_roadscriptMilestoneSetup` flag. Movement includes 3x drag slowdown (`deltaX / 3000.0 * percentPerColumn`) for precision. Values snap to 0.25 increments via `RoundToQuarter` method.
+
+**Item Resizing/Moving**: Items use `.roadmap-item-resizable` class with edge detection (15px threshold via `getBoundingClientRect`). Three cursors: `col-resize` for edges, `move` for middle. Edge indicators use `box-shadow` overlays to preserve original borders. History snapshots saved on drag start for undo/redo support.
+
+**Boundary Constraints**: All drag operations enforce column boundaries. Items/milestones cannot exceed `columnCount` limit. Minimum item length is 0.25 columns.
+
+### Visual Row Splitting
+Items with identical `Start` and `Length` values in the same lane automatically split into visual rows. Detection uses LINQ to find overlaps (`Math.Abs(x.Item.Start - item.Start) < 0.01`). Row height calculated as `100% / totalRows` with dynamic `top` and `bottom` percentages. No JSON schema changes - purely visual CSS adjustments.
+
+### State Management Patterns
+**Hierarchical Structure**: FolderManager → Folder → SessionManager → TabSession → RoadmapData. Enables multi-folder (max 3), multi-tab (max 5 per folder) organization.
+
+**Selection State Service**: Singleton service with path-based element access (`lanes[0].items[1]`). Tracks `SelectedPath`, `ElementType`, and `SelectedElement` object reference. Fires `OnSelectionChanged` event for cross-component reactivity.
+
+**Undo/Redo System**: Full JSON snapshot approach (50-snapshot limit). Snapshots saved before modifications via `SaveHistorySnapshot()`. Keyboard shortcuts (Ctrl+Z/Ctrl+Y) skip when Monaco editor has focus.
+
+**Duplicate Auto-Selection**: After duplication, newly created element is automatically selected via `SelectionState.Select(newPath, elementType, newElement)`. Prevents "hidden duplicate" issue and ensures properties UI immediately reflects new element.
+
+### Rendering and Performance
+**Lazy Initialization**: Storage loads on component init. Creates defaults if localStorage empty. Templates provided by `TemplateService`.
+
+**Optimistic UI Updates**: Pattern follows: modify `_data` → serialize to JSON → update editor → save to localStorage → `StateHasChanged()` for re-render.
+
+**Path-Based Element Access**: All elements referenced by JSON paths like `lanes[0].items[1].details[0].subs[2]`. Extracted via regex `ExtractIndexFromPath(path, "lanes")`. Supports undo/redo without maintaining entity references.
+
+### Default UI States
+**Command Center**: Collapsed by default (`_showControlPanel = false`). Expands to full sidebar with folder management, tabs, templates, and JSON editor.
+
+**Advanced JSON Section**: Collapsed by default (`_showAdvancedSection = false`). Monaco editor initializes when opened to prevent rendering issues.
+
+**Properties Panel**: Open by default (`_showProperties = true`). Auto-hides in preview mode.
+
+### Monaco Editor Integration
+**JSON Navigation**: `findJsonPosition()` locates properties for editor highlighting. `updateJsonValue()` modifies JSON at path and returns formatted result. `navigateToPosition()` moves cursor and highlights value.
+
+**Keyboard Shortcuts**: Ctrl+P (toggle preview), Ctrl+T (toggle theme), Ctrl+Z (undo), Ctrl+Y (redo), Ctrl+D (duplicate), Delete (remove), Arrow keys (navigate items), Esc (clear selection).
+
+### Theme System
+**Vibe Mode**: Dark background with neon effects. `GetVibeColor()` boosts saturation (min 80%) and lightness (60-75%) for visibility. `GetVibeGradient()` creates transparency layers.
+
+**Lite Mode**: Light background `#fafbfc` with subtle grays. Standard colors without transformations.
+
+**Icon Sizing**: Icon-only items: 32-48px. With title+details: 18-20px. With title only: 24px. Dynamic based on content presence.
+
+### Export System
+**PNG Export**: Dynamically loads html2canvas library. Handles AMD conflicts by disabling/restoring `define`/`require`. Exports `.roadmap-container` element at full resolution.
+
+**JSON Export**: Downloads current roadmap data as formatted JSON file. Useful for backup and version control.
+
 ## Project Structure
 
 ```
 RoadScript/
 ├── Components/
-│   ├── ColumnProperties.razor    # Column editor
-│   ├── FolderSelector.razor      # Folder management modal
-│   ├── Icon.razor                # SVG icon renderer (40+ icons)
-│   ├── IconPicker.razor          # Icon selection UI
-│   ├── ItemProperties.razor      # Work item editor
-│   ├── LaneProperties.razor      # Swim lane editor
-│   ├── MilestoneProperties.razor # Milestone editor
-│   ├── PropertyPanel.razor       # Property editor orchestrator
-│   ├── TabBar.razor              # Tab management
-│   ├── TemplateSelector.razor    # Template picker modal
-│   └── TitleProperties.razor     # Title/subtitle editor
+│   ├── ColumnProperties.razor
+│   ├── FolderSelector.razor
+│   ├── Icon.razor
+│   ├── IconPicker.razor
+│   ├── ItemProperties.razor
+│   ├── LaneProperties.razor
+│   ├── MilestoneProperties.razor
+│   ├── PropertyPanel.razor
+│   ├── TabBar.razor
+│   ├── TemplateSelector.razor
+│   └── TitleProperties.razor
 ├── Layout/
-│   └── MainLayout.razor          # App shell
+│   └── MainLayout.razor
 ├── Models/
-│   ├── RoadmapModels.cs          # JSON serialization models
-│   └── SelectionState.cs         # UI selection state
+│   ├── RoadmapModels.cs
+│   └── SelectionState.cs
 ├── Pages/
-│   └── Home.razor                # Main editor + preview
+│   └── Home.razor
 ├── Services/
-│   ├── EditorInteropService.cs   # Monaco editor JS interop
-│   ├── StorageService.cs         # LocalStorage persistence + migration
-│   └── TemplateService.cs        # Template generation
+│   ├── EditorInteropService.cs
+│   ├── StorageService.cs
+│   └── TemplateService.cs
 ├── wwwroot/
-│   ├── css/app.css               # Global styles
-│   ├── js/roadscript-interop.js  # JavaScript utilities
-│   └── index.html                # Host page
-├── App.razor                     # Router configuration
-├── Program.cs                    # Blazor WASM entry point
-└── RoadScript.csproj             # .NET 9 project file
+│   ├── css/app.css
+│   ├── js/roadscript-interop.js
+│   └── index.html
+├── App.razor
+├── Program.cs
+└── RoadScript.csproj
 ```
 
 ## Technology Stack

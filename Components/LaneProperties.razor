@@ -1,7 +1,6 @@
 @using RoadScript.Models
 
 <style>
-    /* Hide number input spinner arrows */
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
         -webkit-appearance: none;
@@ -28,7 +27,6 @@
     <div class="form-group">
         <label style="margin-bottom: 8px;">Color</label>
 
-        @* Preset Color Options *@
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;">
             @foreach (var preset in _colorPresets)
             {
@@ -58,7 +56,6 @@
     <div class="form-group">
         <label style="margin-bottom: 8px;">Lane Height</label>
 
-        @* Lane Height Buttons with inline editable value *@
         <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
             <button type="button"
                     @onclick="@(() => AdjustHeight(-0.5))"
@@ -67,7 +64,6 @@
                 <div style="font-size: 14px; line-height: 1;">◀</div>
             </button>
 
-            @* Editable Numeric Value *@
             <input type="number"
                    value="@(Lane.Height ?? 1.0)"
                    @onchange="@(e => OnChange.InvokeAsync(("height", double.Parse(e.Value?.ToString() ?? "1.0"))))"
@@ -100,7 +96,7 @@
         <div class="form-group">
             <label style="margin-bottom: 12px;">History Timeline</label>
 
-            <div class="form-row">
+            <div style="display: flex; gap: 12px;">
                 <div class="form-group" style="flex: 1;">
                     <label style="font-size: 11px;">Start Label</label>
                     <input type="text"
@@ -120,7 +116,7 @@
                 </div>
             </div>
 
-            <div class="form-group" style="margin-top: 8px;">
+            <div style="margin-top: 8px;">
                 <label style="font-size: 11px; margin-bottom: 8px;">Progress Origin</label>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px;">
                     <button type="button"
@@ -150,7 +146,7 @@
                 </div>
             </div>
 
-            <div class="form-group" style="margin-top: 8px;">
+            <div style="margin-top: 8px;">
                 <label style="font-size: 11px;">Past Percentage</label>
                 <input type="range"
                        value="@Lane.History.Percent"
@@ -180,11 +176,9 @@
         </div>
     }
 
-    @* Lane Management Section *@
     <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
         <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Lane Management</label>
 
-        @* Lane Reordering *@
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
             <button @onclick="MoveLaneUp" type="button" style="flex: 1; background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
                 <span style="font-size: 16px;">↑</span> Move Up
@@ -349,21 +343,17 @@
         OnAdd.InvokeAsync("moveLaneDown");
     }
 
-    // Lane Height Button Methods
     private void AdjustHeight(double delta)
     {
         var currentHeight = Lane.Height ?? 1.0;
         var newHeight = currentHeight + delta;
-        // Clamp to valid range (0.5 to 3.0)
         newHeight = Math.Max(0.5, Math.Min(newHeight, 3.0));
-        // Round to 2 decimal places
         newHeight = Math.Round(newHeight, 2);
         OnChange.InvokeAsync(("height", newHeight));
     }
 
     private void ResetHeightToDefault()
     {
-        // Reset height to default value of 1.0
         OnChange.InvokeAsync(("height", 1.0));
     }
 }
