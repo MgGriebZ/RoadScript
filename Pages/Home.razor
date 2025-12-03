@@ -586,6 +586,7 @@
                             {
                                 var milestone = _data.Milestones[mi];
                                 var msIndex = mi;
+                                var isSelected = SelectionState.SelectedPath == $"milestones[{msIndex}]";
                                 <div id="@($"milestone-{msIndex}")"
                                      @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
                                      @onclick:stopPropagation="@(!_isPreviewMode)"
@@ -602,6 +603,41 @@
                                             <span style="@MilestoneLabelStyle(milestone.Color)">
                                                 @milestone.Title
                                             </span>
+                                        }
+
+                                        @* Position adjustment buttons - only show when selected *@
+                                        @if (isSelected && !_isPreviewMode)
+                                        {
+                                            <div style="@MilestoneButtonsStyle()">
+                                                <button type="button"
+                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, -5))"
+                                                        @onclick:stopPropagation="true"
+                                                        title="Move left (-5)"
+                                                        style="@MilestoneButtonStyle()">
+                                                    ◀
+                                                </button>
+                                                <button type="button"
+                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, -1))"
+                                                        @onclick:stopPropagation="true"
+                                                        title="Nudge left (-1)"
+                                                        style="@MilestoneButtonStyle()">
+                                                    ◂
+                                                </button>
+                                                <button type="button"
+                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, 1))"
+                                                        @onclick:stopPropagation="true"
+                                                        title="Nudge right (+1)"
+                                                        style="@MilestoneButtonStyle()">
+                                                    ▸
+                                                </button>
+                                                <button type="button"
+                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, 5))"
+                                                        @onclick:stopPropagation="true"
+                                                        title="Move right (+5)"
+                                                        style="@MilestoneButtonStyle()">
+                                                    ▶
+                                                </button>
+                                            </div>
                                         }
                                     </div>
                                 </div>
