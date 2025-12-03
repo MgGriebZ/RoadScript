@@ -667,9 +667,11 @@ window.RoadScriptInterop = {
         const elements = document.querySelectorAll('.roadmap-milestone-movable');
 
         elements.forEach(element => {
-            // Skip if already set up (prevent removing active listeners during re-renders)
-            if (element._roadscriptMilestoneSetup) return;
-            element._roadscriptMilestoneSetup = true;
+            // Remove existing listener to avoid duplicates (similar to item resize setup)
+            const oldMouseDown = element._roadscriptMilestoneMouseDown;
+            if (oldMouseDown) {
+                element.removeEventListener('mousedown', oldMouseDown);
+            }
 
             // Create mousedown listener (cursor is handled by CSS)
             const handleMouseDown = function(e) {
@@ -693,6 +695,9 @@ window.RoadScriptInterop = {
                 document.addEventListener('mousemove', handleGlobalMouseMove);
                 document.addEventListener('mouseup', handleGlobalMouseUp);
             };
+
+            // Store reference for later removal
+            element._roadscriptMilestoneMouseDown = handleMouseDown;
 
             // Add mousedown listener
             element.addEventListener('mousedown', handleMouseDown);

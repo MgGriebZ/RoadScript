@@ -26,6 +26,57 @@
     </div>
 
     <div class="form-group">
+        <label style="font-size: 11px; margin-bottom: 8px; color: #888;">Lane Icon</label>
+
+        @* Large Icon Preview Button *@
+        <div style="position: relative;">
+            <button type="button"
+                    @onclick="ToggleLaneIconPicker"
+                    title="Click to @(_laneIconPickerExpanded ? "hide" : "choose") lane icon"
+                    style="width: 100%; min-height: 80px; background: #252538; border: 1px solid #3a3a4e; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 16px; position: relative;">
+                @if (!string.IsNullOrEmpty(Lane.Icon))
+                {
+                    <Icon IconType="@Lane.Icon"
+                          Color="@Lane.Color"
+                          Size="36"
+                          DropShadow="true" />
+                }
+                else
+                {
+                    @* Placeholder for empty state *@
+                    <span style="font-size: 36px; opacity: 0.3;">✦</span>
+                }
+
+                @* Dropdown indicator in bottom right *@
+                <span style="position: absolute; bottom: 8px; right: 8px; font-size: 12px; color: #666; transition: transform 0.2s; transform: rotate(@(_laneIconPickerExpanded ? "180deg" : "0deg"));">▼</span>
+            </button>
+
+            @* Clear button overlay in top right corner *@
+            @if (!string.IsNullOrEmpty(Lane.Icon))
+            {
+                <button type="button"
+                        @onclick="ClearLaneIcon"
+                        @onclick:stopPropagation="true"
+                        title="Clear icon"
+                        style="position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; background: rgba(0,0,0,0.6); border: 1px solid #555; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 14px; font-weight: 600; transition: all 0.2s; z-index: 1;">
+                    ✕
+                </button>
+            }
+        </div>
+
+        @if (_laneIconPickerExpanded)
+        {
+            <div style="background: #252538; padding: 12px; border-radius: 6px; border: 1px solid #3a3a4e; margin-top: 8px;">
+                <IconPicker SelectedIcon="@(Lane.Icon ?? "")"
+                           Color="@Lane.Color"
+                           OnIconSelected="HandleLaneIconSelectedAndCollapse"
+                           ShowCategories="true"
+                           ColumnsPerRow="5" />
+            </div>
+        }
+    </div>
+
+    <div class="form-group">
         <label style="margin-bottom: 8px;">Color</label>
 
         @* Preset Color Options *@
@@ -108,6 +159,42 @@
                            @onchange="@(e => UpdateHistory("start", e.Value?.ToString()))"
                            class="form-control"
                            placeholder="e.g., 2024, Q1, Jan" />
+
+                    @* Start Icon Selector *@
+                    <div style="margin-top: 8px;">
+                        <button type="button"
+                                @onclick="ToggleStartIconPicker"
+                                title="@(_startIconPickerExpanded ? "Hide icon selector" : "Add icon to start label")"
+                                style="width: 100%; min-height: 50px; background: #252538; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 8px;">
+                            @if (!string.IsNullOrEmpty(Lane.History.StartIcon))
+                            {
+                                <Icon IconType="@Lane.History.StartIcon" Color="@Lane.Color" Size="20" DropShadow="true" />
+                            }
+                            else
+                            {
+                                <span style="font-size: 12px; color: #888;">+ Icon</span>
+                            }
+                        </button>
+                        @if (!string.IsNullOrEmpty(Lane.History.StartIcon))
+                        {
+                            <button type="button"
+                                    @onclick="@(() => UpdateHistory("startIcon", null!))"
+                                    title="Clear start icon"
+                                    style="width: 100%; margin-top: 4px; background: #3c3c3c; color: #ef4444; border: 1px solid #555; padding: 4px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                                Clear Icon
+                            </button>
+                        }
+                        @if (_startIconPickerExpanded)
+                        {
+                            <div style="background: #1a1a2e; padding: 8px; border-radius: 4px; border: 1px solid #3a3a4e; margin-top: 4px;">
+                                <IconPicker SelectedIcon="@(Lane.History.StartIcon ?? "")"
+                                           Color="@Lane.Color"
+                                           OnIconSelected="@(icon => { UpdateHistory("startIcon", icon); _startIconPickerExpanded = false; })"
+                                           ShowCategories="false"
+                                           ColumnsPerRow="4" />
+                            </div>
+                        }
+                    </div>
                 </div>
 
                 <div class="form-group" style="flex: 1; margin-left: 12px;">
@@ -117,6 +204,42 @@
                            @onchange="@(e => UpdateHistory("end", e.Value?.ToString()))"
                            class="form-control"
                            placeholder="e.g., 2026, Q4, Dec" />
+
+                    @* End Icon Selector *@
+                    <div style="margin-top: 8px;">
+                        <button type="button"
+                                @onclick="ToggleEndIconPicker"
+                                title="@(_endIconPickerExpanded ? "Hide icon selector" : "Add icon to end label")"
+                                style="width: 100%; min-height: 50px; background: #252538; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 8px;">
+                            @if (!string.IsNullOrEmpty(Lane.History.EndIcon))
+                            {
+                                <Icon IconType="@Lane.History.EndIcon" Color="@Lane.Color" Size="20" DropShadow="true" />
+                            }
+                            else
+                            {
+                                <span style="font-size: 12px; color: #888;">+ Icon</span>
+                            }
+                        </button>
+                        @if (!string.IsNullOrEmpty(Lane.History.EndIcon))
+                        {
+                            <button type="button"
+                                    @onclick="@(() => UpdateHistory("endIcon", null!))"
+                                    title="Clear end icon"
+                                    style="width: 100%; margin-top: 4px; background: #3c3c3c; color: #ef4444; border: 1px solid #555; padding: 4px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                                Clear Icon
+                            </button>
+                        }
+                        @if (_endIconPickerExpanded)
+                        {
+                            <div style="background: #1a1a2e; padding: 8px; border-radius: 4px; border: 1px solid #3a3a4e; margin-top: 4px;">
+                                <IconPicker SelectedIcon="@(Lane.History.EndIcon ?? "")"
+                                           Color="@Lane.Color"
+                                           OnIconSelected="@(icon => { UpdateHistory("endIcon", icon); _endIconPickerExpanded = false; })"
+                                           ShowCategories="false"
+                                           ColumnsPerRow="4" />
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
 
@@ -184,13 +307,19 @@
     <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
         <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Lane Management</label>
 
-        @* Lane Reordering *@
+        @* Lane Reordering - Inline Buttons *@
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <button @onclick="MoveLaneUp" type="button" style="flex: 1; background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <span style="font-size: 16px;">↑</span> Move Up
+            <button @onclick="MoveLaneUp"
+                    type="button"
+                    title="Move lane up"
+                    style="width: 50%; min-height: 44px; background: #3c3c3c; color: #ccc; border: 1px solid #555; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; font-weight: 600;">
+                <span style="font-size: 20px;">↑</span> UP
             </button>
-            <button @onclick="MoveLaneDown" type="button" style="flex: 1; background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <span style="font-size: 16px;">↓</span> Move Down
+            <button @onclick="MoveLaneDown"
+                    type="button"
+                    title="Move lane down"
+                    style="width: 50%; min-height: 44px; background: #3c3c3c; color: #ccc; border: 1px solid #555; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; font-weight: 600;">
+                <span style="font-size: 20px;">↓</span> DOWN
             </button>
         </div>
 
@@ -230,6 +359,40 @@
 
     [Parameter]
     public EventCallback<string> OnDuplicate { get; set; }
+
+    private bool _laneIconPickerExpanded = false;
+    private bool _startIconPickerExpanded = false;
+    private bool _endIconPickerExpanded = false;
+
+    private void ToggleLaneIconPicker()
+    {
+        _laneIconPickerExpanded = !_laneIconPickerExpanded;
+    }
+
+    private void ToggleStartIconPicker()
+    {
+        _startIconPickerExpanded = !_startIconPickerExpanded;
+    }
+
+    private void ToggleEndIconPicker()
+    {
+        _endIconPickerExpanded = !_endIconPickerExpanded;
+    }
+
+    private async Task HandleLaneIconSelectedAndCollapse(string iconValue)
+    {
+        Lane.Icon = iconValue;
+        await OnChange.InvokeAsync(("icon", iconValue));
+        _laneIconPickerExpanded = false;
+        StateHasChanged();
+    }
+
+    private async Task ClearLaneIcon()
+    {
+        Lane.Icon = null;
+        await OnChange.InvokeAsync(("icon", null!));
+        StateHasChanged();
+    }
 
     private record ColorPreset(string Name, string Value);
 
@@ -287,8 +450,14 @@
                 case "start":
                     Lane.History.Start = value?.ToString();
                     break;
+                case "starticon":
+                    Lane.History.StartIcon = value?.ToString();
+                    break;
                 case "end":
                     Lane.History.End = value?.ToString();
+                    break;
+                case "endicon":
+                    Lane.History.EndIcon = value?.ToString();
                     break;
                 case "progressorigin":
                     Lane.History.Origin = value?.ToString() ?? "left";
