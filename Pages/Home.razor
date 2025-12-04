@@ -452,7 +452,76 @@
                 </div>
 
                 <div style="display: flex; height: calc(100% - 66px);">
-                    <div style="width: 175px; flex-shrink: 0; padding-top: 48px; padding-right: 14px;">
+                    <div style="width: 175px; flex-shrink: 0; padding-right: 14px; display: flex; flex-direction: column;">
+                        @* Spacer for column headers *@
+                        <div style="height: 48px;"></div>
+
+                        @* Static Milestone Navigation Controls - Only show when a milestone is selected *@
+                        @{
+                            var selectedMilestoneIndex = -1;
+                            Milestone? selectedMilestone = null;
+
+                            for (int mi = 0; mi < _data.Milestones.Count; mi++)
+                            {
+                                if (SelectionState.SelectedPath == $"milestones[{mi}]")
+                                {
+                                    selectedMilestoneIndex = mi;
+                                    selectedMilestone = _data.Milestones[mi];
+                                    break;
+                                }
+                            }
+
+                            var showNavControls = selectedMilestoneIndex >= 0 && !_isPreviewMode;
+                        }
+
+                        @if (showNavControls && selectedMilestone != null)
+                        {
+                            <div style="@StaticMilestoneNavContainerStyle()">
+                                <button type="button"
+                                        @onclick="@(async () => await JumpMilestoneToStart(selectedMilestoneIndex))"
+                                        title="Jump to Start (0%)"
+                                        style="@StaticNavButtonStyle()">
+                                    <div style="font-size: 16px; font-weight: 700;">⏮</div>
+                                </button>
+                                <button type="button"
+                                        @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, -1))"
+                                        title="Previous Column"
+                                        style="@StaticNavButtonStyle()">
+                                    <div style="font-size: 18px;">⏪</div>
+                                </button>
+                                <button type="button"
+                                        @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, -1))"
+                                        title="Nudge Left"
+                                        style="@StaticNavButtonStyle()">
+                                    <div style="font-size: 16px;">◀</div>
+                                </button>
+                                <button type="button"
+                                        @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, 1))"
+                                        title="Nudge Right"
+                                        style="@StaticNavButtonStyle()">
+                                    <div style="font-size: 16px;">▶</div>
+                                </button>
+                                <button type="button"
+                                        @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, 1))"
+                                        title="Next Column"
+                                        style="@StaticNavButtonStyle()">
+                                    <div style="font-size: 18px;">⏩</div>
+                                </button>
+                                <button type="button"
+                                        @onclick="@(async () => await JumpMilestoneToEnd(selectedMilestoneIndex))"
+                                        title="Jump to End (100%)"
+                                        style="@StaticNavButtonStyle()">
+                                    <div style="font-size: 16px; font-weight: 700;">⏭</div>
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            @* Spacer for milestone scale when nav controls not shown *@
+                            <div style="height: 40px;"></div>
+                        }
+
+                        @* Lane titles *@
                         @for (int li = 0; li < _data.Lanes.Count; li++)
                         {
                             var lane = _data.Lanes[li];
@@ -591,75 +660,13 @@
                             }
                         </div>
 
-                        @* Milestone area with static navigation controls *@
-                        <div style="display: flex; align-items: stretch;">
-                            @* Static Milestone Navigation Controls - Only show when a milestone is selected *@
-                            @{
-                                var selectedMilestoneIndex = -1;
-                                Milestone? selectedMilestone = null;
-
-                                for (int mi = 0; mi < _data.Milestones.Count; mi++)
-                                {
-                                    if (SelectionState.SelectedPath == $"milestones[{mi}]")
-                                    {
-                                        selectedMilestoneIndex = mi;
-                                        selectedMilestone = _data.Milestones[mi];
-                                        break;
-                                    }
-                                }
-
-                                var showNavControls = selectedMilestoneIndex >= 0 && !_isPreviewMode;
-                            }
-
-                            @if (showNavControls && selectedMilestone != null)
+                        @* Milestone Scale *@
+                        <div style="@MilestoneScaleContainerStyle()">
+                            @for (int mi = 0; mi < _data.Milestones.Count; mi++)
                             {
-                                <div style="@StaticMilestoneNavContainerStyle()">
-                                    <button type="button"
-                                            @onclick="@(async () => await JumpMilestoneToStart(selectedMilestoneIndex))"
-                                            title="Jump to Start (0%)"
-                                            style="@StaticNavButtonStyle()">
-                                        <div style="font-size: 18px; font-weight: 700;">⏮</div>
-                                    </button>
-                                    <button type="button"
-                                            @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, -1))"
-                                            title="Previous Column"
-                                            style="@StaticNavButtonStyle()">
-                                        <div style="font-size: 20px;">⏪</div>
-                                    </button>
-                                    <button type="button"
-                                            @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, -1))"
-                                            title="Nudge Left"
-                                            style="@StaticNavButtonStyle()">
-                                        <div style="font-size: 18px;">◀</div>
-                                    </button>
-                                    <button type="button"
-                                            @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, 1))"
-                                            title="Nudge Right"
-                                            style="@StaticNavButtonStyle()">
-                                        <div style="font-size: 18px;">▶</div>
-                                    </button>
-                                    <button type="button"
-                                            @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, 1))"
-                                            title="Next Column"
-                                            style="@StaticNavButtonStyle()">
-                                        <div style="font-size: 20px;">⏩</div>
-                                    </button>
-                                    <button type="button"
-                                            @onclick="@(async () => await JumpMilestoneToEnd(selectedMilestoneIndex))"
-                                            title="Jump to End (100%)"
-                                            style="@StaticNavButtonStyle()">
-                                        <div style="font-size: 18px; font-weight: 700;">⏭</div>
-                                    </button>
-                                </div>
-                            }
-
-                            @* Milestone Scale *@
-                            <div style="@MilestoneScaleContainerStyle(showNavControls)">
-                                @for (int mi = 0; mi < _data.Milestones.Count; mi++)
-                                {
-                                    var milestone = _data.Milestones[mi];
-                                    var msIndex = mi;
-                                    var isSelected = SelectionState.SelectedPath == $"milestones[{msIndex}]";
+                                var milestone = _data.Milestones[mi];
+                                var msIndex = mi;
+                                var isSelected = SelectionState.SelectedPath == $"milestones[{msIndex}]";
                                 <div id="@($"milestone-{msIndex}")"
                                      @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
                                      @onclick:stopPropagation="@(!_isPreviewMode)"
@@ -715,7 +722,6 @@
                                     </div>
                                 </div>
                             }
-                        </div>
                         </div>
 
                         <div style="flex: 1; position: relative;">
@@ -1994,32 +2000,31 @@
         }
     }
 
-    private string MilestoneScaleContainerStyle(bool hasNavControls)
+    private string MilestoneScaleContainerStyle()
     {
-        var flexStyle = hasNavControls ? "flex: 1;" : "";
         if (_isVibeMode)
         {
-            return $"{flexStyle} position: relative; height: 40px; border-bottom: 2px solid rgba(102, 126, 234, 0.4); display: flex; align-items: center; background: linear-gradient(180deg, rgba(18, 18, 36, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);";
+            return "position: relative; height: 40px; border-bottom: 2px solid rgba(102, 126, 234, 0.4); display: flex; align-items: center; background: linear-gradient(180deg, rgba(18, 18, 36, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);";
         }
-        return $"{flexStyle} position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
+        return "position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
     }
 
     private string StaticMilestoneNavContainerStyle()
     {
         if (_isVibeMode)
         {
-            return "display: flex; align-items: center; gap: 6px; padding: 0 12px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.15) 100%); border-right: 2px solid rgba(102, 126, 234, 0.5); border-bottom: 2px solid rgba(102, 126, 234, 0.4); box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);";
+            return "height: 40px; display: flex; align-items: center; gap: 3px; padding: 0 4px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.15) 100%); border-radius: 6px; border: 1px solid rgba(102, 126, 234, 0.4); box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.3);";
         }
-        return "display: flex; align-items: center; gap: 6px; padding: 0 12px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(102, 126, 234, 0.05) 100%); border-right: 2px solid rgba(102, 126, 234, 0.3); border-bottom: 2px solid #e5e7eb;";
+        return "height: 40px; display: flex; align-items: center; gap: 3px; padding: 0 4px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(102, 126, 234, 0.05) 100%); border-radius: 6px; border: 1px solid rgba(102, 126, 234, 0.3);";
     }
 
     private string StaticNavButtonStyle()
     {
         if (_isVibeMode)
         {
-            return "width: 44px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: 1px solid rgba(102, 126, 234, 0.8); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4), 0 0 15px rgba(102, 126, 234, 0.3);";
+            return "width: 26px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: 1px solid rgba(102, 126, 234, 0.8); border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);";
         }
-        return "width: 44px; height: 36px; background: #667eea; color: #fff; border: 1px solid #5568d3; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);";
+        return "width: 26px; height: 32px; background: #667eea; color: #fff; border: 1px solid #5568d3; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);";
     }
 
     private string MilestoneStyle(double position) =>
@@ -2588,7 +2593,6 @@
                     break;
 
                 case "milestone":
-                    var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
                     var newMilestone = new Milestone
                     {
                         Title = "New Milestone",
@@ -2597,7 +2601,18 @@
                         Color = "#667eea"
                     };
                     _data.Milestones ??= new List<Milestone>();
-                    _data.Milestones.Insert(milestoneIndex + 1, newMilestone);
+
+                    // If adding from milestone properties, insert after current; otherwise add at end
+                    if (jsonPath.Contains("milestones["))
+                    {
+                        var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
+                        _data.Milestones.Insert(milestoneIndex + 1, newMilestone);
+                    }
+                    else
+                    {
+                        // Adding from column properties or other context - add at end
+                        _data.Milestones.Add(newMilestone);
+                    }
                     break;
 
                 case "moveLaneUp":
