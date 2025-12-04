@@ -684,41 +684,6 @@
                                                 @milestone.Title
                                             </span>
                                         }
-
-                                        @* Position adjustment buttons - only show when selected *@
-                                        @if (isSelected && !_isPreviewMode)
-                                        {
-                                            <div style="@MilestoneButtonsStyle()">
-                                                <button type="button"
-                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, -5))"
-                                                        @onclick:stopPropagation="true"
-                                                        title="Move left (-5)"
-                                                        style="@MilestoneButtonStyle()">
-                                                    ◀
-                                                </button>
-                                                <button type="button"
-                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, -1))"
-                                                        @onclick:stopPropagation="true"
-                                                        title="Nudge left (-1)"
-                                                        style="@MilestoneButtonStyle()">
-                                                    ◂
-                                                </button>
-                                                <button type="button"
-                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, 1))"
-                                                        @onclick:stopPropagation="true"
-                                                        title="Nudge right (+1)"
-                                                        style="@MilestoneButtonStyle()">
-                                                    ▸
-                                                </button>
-                                                <button type="button"
-                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, 5))"
-                                                        @onclick:stopPropagation="true"
-                                                        title="Move right (+5)"
-                                                        style="@MilestoneButtonStyle()">
-                                                    ▶
-                                                </button>
-                                            </div>
-                                        }
                                     </div>
                                 </div>
                             }
@@ -2013,18 +1978,18 @@
     {
         if (_isVibeMode)
         {
-            return "height: 40px; display: flex; align-items: center; gap: 3px; padding: 0 4px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.15) 100%); border-radius: 6px; border: 1px solid rgba(102, 126, 234, 0.4); box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.3);";
+            return "height: 40px; display: flex; align-items: center; gap: 0; padding: 0; background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 6px; border: 2px solid rgba(102, 126, 234, 0.6); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);";
         }
-        return "height: 40px; display: flex; align-items: center; gap: 3px; padding: 0 4px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(102, 126, 234, 0.05) 100%); border-radius: 6px; border: 1px solid rgba(102, 126, 234, 0.3);";
+        return "height: 40px; display: flex; align-items: center; gap: 0; padding: 0; background: linear-gradient(135deg, #667eea 0%, #5568d3 100%); border-radius: 6px; border: 2px solid #4c51bf; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);";
     }
 
     private string StaticNavButtonStyle()
     {
         if (_isVibeMode)
         {
-            return "width: 26px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: 1px solid rgba(102, 126, 234, 0.8); border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);";
+            return "width: 29px; height: 40px; background: transparent; color: #ffffff; border: none; border-right: 1px solid rgba(102, 126, 234, 0.4); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; font-weight: 700;";
         }
-        return "width: 26px; height: 32px; background: #667eea; color: #fff; border: 1px solid #5568d3; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);";
+        return "width: 29px; height: 40px; background: transparent; color: #ffffff; border: none; border-right: 1px solid rgba(255, 255, 255, 0.2); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; font-weight: 700;";
     }
 
     private string MilestoneStyle(double position) =>

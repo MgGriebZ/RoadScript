@@ -1,75 +1,88 @@
 @using Microsoft.JSInterop
 
-<div class="date-day-preset">
-    @if (ShowLabel)
-    {
-        <label style="font-size: 11px; margin-bottom: 8px; color: #888; display: block;">@Label</label>
-    }
+@* This component renders an expandable dropdown with day presets and date picker *@
+@if (IsExpanded)
+{
+    <div style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; z-index: 1000; background: #1e1e2e; border: 2px solid #667eea; border-radius: 8px; padding: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);">
+        @* Day Presets - Two Rows *@
+        <div style="margin-bottom: 12px;">
+            @* Abbreviated Row (Mon, Tue, etc.) *@
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
+                @foreach (var day in _dayPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => HandleDaySelect(day.Full))"
+                            @onclick:stopPropagation="true"
+                            title="@day.Full"
+                            style="@GetDayButtonStyle(day.Abbr, true)">
+                        <div style="font-size: 10px; font-weight: 700;">@day.Abbr</div>
+                    </button>
+                }
+            </div>
 
-    @* Manual Text Input *@
-    <input type="text"
-           value="@CurrentValue"
-           @onchange="@HandleManualInput"
-           class="form-control"
-           placeholder="@Placeholder"
-           style="margin-bottom: 12px;" />
+            @* Full Name Row (Monday, Tuesday, etc.) *@
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
+                @foreach (var day in _dayPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => HandleDaySelect(day.Full))"
+                            @onclick:stopPropagation="true"
+                            title="@day.Full"
+                            style="@GetDayButtonStyle(day.Full, false)">
+                        <div style="font-size: 9px; font-weight: 600;">@day.Full</div>
+                    </button>
+                }
+            </div>
+        </div>
 
-    @* Day Presets (Mon-Fri) *@
-    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px;">
-        @foreach (var day in _dayPresets)
-        {
+        @* Bottom Row: Today + Calendar Picker *@
+        <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px;">
+            @* Today Button *@
             <button type="button"
-                    @onclick="@(() => HandleDaySelect(day.Full))"
-                    title="@day.Full"
-                    style="@GetDayButtonStyle(day.Abbr)">
-                <div style="font-size: 14px; font-weight: 700;">@day.Abbr</div>
+                    @onclick="HandleTodaySelect"
+                    @onclick:stopPropagation="true"
+                    title="Insert today's date"
+                    style="height: 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);">
+                <Icon IconType="calendar" Color="#fff" Size="16" />
+                <span>Today</span>
             </button>
-        }
-    </div>
 
-    @* Date Picker with Icon *@
-    <div style="display: flex; align-items: center; gap: 8px;">
-        <button type="button"
-                @onclick="ToggleDatePicker"
-                title="@(_datePickerExpanded ? "Hide" : "Show") date picker"
-                style="@GetDatePickerButtonStyle()">
-            <Icon IconType="calendar"
-                  Color="@(_datePickerExpanded ? "#667eea" : "#ccc")"
-                  Size="20"
-                  DropShadow="@_datePickerExpanded" />
-        </button>
+            @* Date Picker Toggle *@
+            <button type="button"
+                    @onclick="ToggleDatePicker"
+                    @onclick:stopPropagation="true"
+                    title="@(_datePickerExpanded ? "Hide" : "Show") date picker"
+                    style="@GetDatePickerButtonStyle()">
+                <Icon IconType="calendar" Color="@(_datePickerExpanded ? "#667eea" : "#ccc")" Size="20" DropShadow="@_datePickerExpanded" />
+            </button>
+        </div>
 
+        @* Expanded Date Picker *@
         @if (_datePickerExpanded)
         {
-            <input type="date"
-                   @onchange="@HandleDateSelect"
-                   class="form-control"
-                   style="flex: 1; font-size: 13px;" />
-        }
-        else
-        {
-            <span style="flex: 1; font-size: 12px; color: #888; font-style: italic;">
-                Click calendar to pick a date
-            </span>
+            <div style="margin-top: 8px;">
+                <input type="date"
+                       @onchange="@HandleDateSelect"
+                       @onclick:stopPropagation="true"
+                       class="form-control"
+                       style="width: 100%; font-size: 13px;" />
+            </div>
         }
     </div>
-</div>
+}
 
 @code {
     [Parameter]
     public string CurrentValue { get; set; } = "";
 
     [Parameter]
-    public string Label { get; set; } = "Quick Presets";
-
-    [Parameter]
-    public string Placeholder { get; set; } = "Enter text...";
-
-    [Parameter]
-    public bool ShowLabel { get; set; } = true;
+    public bool IsExpanded { get; set; } = false;
 
     [Parameter]
     public EventCallback<string> OnValueChange { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
 
     private bool _datePickerExpanded = false;
 
@@ -81,18 +94,22 @@
         new DayPreset("Tue", "Tuesday"),
         new DayPreset("Wed", "Wednesday"),
         new DayPreset("Thu", "Thursday"),
-        new DayPreset("Fri", "Friday")
+        new DayPreset("Fri", "Friday"),
+        new DayPreset("Sat", "Saturday"),
+        new DayPreset("Sun", "Sunday")
     };
 
-    private void HandleManualInput(ChangeEventArgs e)
+    private async Task HandleDaySelect(string dayName)
     {
-        var value = e.Value?.ToString() ?? "";
-        OnValueChange.InvokeAsync(value);
+        await OnValueChange.InvokeAsync(dayName);
+        await OnClose.InvokeAsync();
     }
 
-    private void HandleDaySelect(string dayName)
+    private async Task HandleTodaySelect()
     {
-        OnValueChange.InvokeAsync(dayName);
+        var today = DateTime.Now.ToString("MMM d, yyyy");
+        await OnValueChange.InvokeAsync(today);
+        await OnClose.InvokeAsync();
     }
 
     private async Task HandleDateSelect(ChangeEventArgs e)
@@ -102,6 +119,7 @@
         {
             var formattedDate = date.ToString("MMM d, yyyy");
             await OnValueChange.InvokeAsync(formattedDate);
+            await OnClose.InvokeAsync();
         }
     }
 
@@ -110,9 +128,9 @@
         _datePickerExpanded = !_datePickerExpanded;
     }
 
-    private string GetDayButtonStyle(string abbr)
+    private string GetDayButtonStyle(string text, bool isAbbr)
     {
-        var isActive = CurrentValue?.Equals(_dayPresets.FirstOrDefault(d => d.Abbr == abbr)?.Full,
+        var isActive = CurrentValue?.Equals(_dayPresets.FirstOrDefault(d => d.Full == text || d.Abbr == text)?.Full,
             StringComparison.OrdinalIgnoreCase) == true;
 
         var bg = isActive
@@ -120,13 +138,14 @@
             : "background: #252538;";
 
         var border = isActive
-            ? "border: 2px solid #667eea; box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);"
+            ? "border: 2px solid #667eea; box-shadow: 0 0 8px rgba(102, 126, 234, 0.5);"
             : "border: 1px solid #3a3a4e;";
 
         var color = isActive ? "#fff" : "#ccc";
+        var height = isAbbr ? "32px" : "28px";
 
-        return $"width: 100%; height: 48px; {bg} color: {color}; {border} " +
-               "border-radius: 6px; cursor: pointer; transition: all 0.2s; " +
+        return $"width: 100%; height: {height}; {bg} color: {color}; {border} " +
+               "border-radius: 4px; cursor: pointer; transition: all 0.2s; " +
                "display: flex; align-items: center; justify-content: center; " +
                "font-weight: 600;";
     }
@@ -141,7 +160,7 @@
             ? "border: 2px solid #667eea;"
             : "border: 1px solid #3a3a4e;";
 
-        return $"width: 56px; height: 48px; {bg} {border} " +
+        return $"width: 56px; height: 40px; {bg} {border} " +
                "border-radius: 6px; cursor: pointer; transition: all 0.2s; " +
                "display: flex; align-items: center; justify-content: center;";
     }
