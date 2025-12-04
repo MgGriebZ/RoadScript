@@ -35,39 +35,25 @@
             </div>
         </div>
 
-        @* Bottom Row: Today + Calendar Picker *@
-        <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px;">
+        @* Bottom Row: Today + Date Picker *@
+        <div style="display: flex; gap: 8px;">
             @* Today Button *@
             <button type="button"
                     @onclick="HandleTodaySelect"
                     @onclick:stopPropagation="true"
                     title="Insert today's date"
-                    style="height: 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);">
+                    style="flex: 1; height: 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);">
                 <Icon IconType="calendar" Color="#fff" Size="16" />
                 <span>Today</span>
             </button>
 
-            @* Date Picker Toggle *@
-            <button type="button"
-                    @onclick="ToggleDatePicker"
-                    @onclick:stopPropagation="true"
-                    title="@(_datePickerExpanded ? "Hide" : "Show") date picker"
-                    style="@GetDatePickerButtonStyle()">
-                <Icon IconType="calendar" Color="@(_datePickerExpanded ? "#667eea" : "#ccc")" Size="20" DropShadow="@_datePickerExpanded" />
-            </button>
+            @* Date Picker *@
+            <input type="date"
+                   @onchange="@HandleDateSelect"
+                   @onclick:stopPropagation="true"
+                   class="form-control"
+                   style="flex: 1; height: 40px; font-size: 13px; background: #252538; border: 1px solid #667eea; color: #ccc;" />
         </div>
-
-        @* Expanded Date Picker *@
-        @if (_datePickerExpanded)
-        {
-            <div style="margin-top: 8px;">
-                <input type="date"
-                       @onchange="@HandleDateSelect"
-                       @onclick:stopPropagation="true"
-                       class="form-control"
-                       style="width: 100%; font-size: 13px;" />
-            </div>
-        }
     </div>
 }
 
@@ -83,8 +69,6 @@
 
     [Parameter]
     public EventCallback OnClose { get; set; }
-
-    private bool _datePickerExpanded = false;
 
     private record DayPreset(string Abbr, string Full);
 
@@ -107,7 +91,7 @@
 
     private async Task HandleTodaySelect()
     {
-        var today = DateTime.Now.ToString("MMM d, yyyy");
+        var today = DateTime.Now.ToString("MM/dd/yyyy");
         await OnValueChange.InvokeAsync(today);
         await OnClose.InvokeAsync();
     }
@@ -117,15 +101,10 @@
         var dateValue = e.Value?.ToString();
         if (!string.IsNullOrEmpty(dateValue) && DateTime.TryParse(dateValue, out var date))
         {
-            var formattedDate = date.ToString("MMM d, yyyy");
+            var formattedDate = date.ToString("MM/dd/yyyy");
             await OnValueChange.InvokeAsync(formattedDate);
             await OnClose.InvokeAsync();
         }
-    }
-
-    private void ToggleDatePicker()
-    {
-        _datePickerExpanded = !_datePickerExpanded;
     }
 
     private string GetDayButtonStyle(string text, bool isAbbr)
@@ -148,20 +127,5 @@
                "border-radius: 4px; cursor: pointer; transition: all 0.2s; " +
                "display: flex; align-items: center; justify-content: center; " +
                "font-weight: 600;";
-    }
-
-    private string GetDatePickerButtonStyle()
-    {
-        var bg = _datePickerExpanded
-            ? "background: rgba(102, 126, 234, 0.2);"
-            : "background: #252538;";
-
-        var border = _datePickerExpanded
-            ? "border: 2px solid #667eea;"
-            : "border: 1px solid #3a3a4e;";
-
-        return $"width: 56px; height: 40px; {bg} {border} " +
-               "border-radius: 6px; cursor: pointer; transition: all 0.2s; " +
-               "display: flex; align-items: center; justify-content: center;";
     }
 }

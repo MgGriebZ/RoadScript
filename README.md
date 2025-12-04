@@ -358,11 +358,9 @@ The **Milestone Map** template can visualize git activity with hourly granularit
 ## Technical Architecture
 
 ### Drag and Move System
-**Milestone Positioning**: Milestones feature two navigation interfaces:
-1. **Static Navigation Bar** - When a milestone is selected, a persistent control bar appears left-aligned above the swim lanes at the milestone height level. Features 6 large, inline navigation buttons (⏮ ⏪ ◀ ▶ ⏩ ⏭) for jumping to start/end and adjusting by column increments. The controls remain in a fixed position, preventing the active element from moving during navigation.
-2. **Inline Adjustment Buttons** - Individual milestones display position adjustment buttons when selected (legacy behavior, kept for direct manipulation).
+**Milestone Positioning**: When a milestone is selected, a **top-center navigation bar** appears above the roadmap title. Features 6 individual button controls (⏮ ⏪ ◀ ▶ ⏩ ⏭) with spacing between them for easy clicking. Buttons have gradient backgrounds with rounded corners and shadows. The controls remain in a fixed position at the top center, preventing the active element from moving during navigation and ensuring buttons are always visible above the description text (z-index: 150).
 
-`AdjustMilestonePosition()` updates position with bounds checking (0-100%), rounds to 2 decimals, saves history snapshot, and syncs editor/storage. New helper methods: `JumpMilestoneToStart()`, `JumpMilestoneToEnd()`, and `AdjustMilestoneByColumn()` for precise navigation. All controls hidden in preview mode.
+`AdjustMilestonePosition()` updates position with bounds checking (0-100%), rounds to 2 decimals, saves history snapshot, and syncs editor/storage. Helper methods: `JumpMilestoneToStart()`, `JumpMilestoneToEnd()`, and `AdjustMilestoneByColumn()` for precise navigation. All controls hidden in preview mode.
 
 **Item Resizing/Moving**: Items use `.roadmap-item-resizable` class with edge detection (15px threshold via `getBoundingClientRect`). Three cursors: `col-resize` for edges, `move` for middle. Edge indicators use `box-shadow` overlays to preserve original borders. History snapshots saved on drag start for undo/redo support.
 
@@ -372,11 +370,13 @@ The **Milestone Map** template can visualize git activity with hourly granularit
 Items with matching `Start` positions in the same lane automatically split into visual rows—**even if they have different lengths**. This enhancement allows for better visualization of overlapping work that starts at the same time but extends for different durations. Detection uses LINQ to find overlaps based solely on start position (`Math.Abs(x.Item.Start - item.Start) < 0.01`). Row height calculated as `100% / totalRows` with dynamic `top` and `bottom` percentages. No JSON schema changes - purely visual CSS adjustments.
 
 ### Date and Day Presets
-**Column Label Quick Fill**: The Column Properties panel now includes an interactive date/day preset component with:
-- **Weekday Buttons** - Five large, inline buttons (Mon-Fri) for quick weekday selection
-- **Date Picker** - Calendar icon toggle reveals HTML5 date input, automatically formats selected dates (e.g., "Dec 3, 2025")
-- **Manual Input** - Text field remains available for custom entries
-- **Dual Integration** - Preset controls available for both "Label" and "Sub-Label" fields
+**Column Label Quick Fill**: The Column Properties panel includes an icon-triggered dropdown preset component:
+- **Calendar Icon Trigger** - Click the calendar icon next to Label or Sub-Label input fields to expand the dropdown
+- **Weekday Buttons** - Two rows: abbreviated (Mon-Sun) and full names (Monday-Sunday) for full week coverage
+- **Today Button** - Green button with calendar icon that inserts current system date
+- **Date Picker** - HTML5 date input always visible in dropdown for direct date selection
+- **Date Format** - All dates formatted as MM/dd/yyyy (e.g., "12/04/2025")
+- **Auto-Close** - Dropdown automatically closes after selecting a preset option
 
 The `DateDayPreset.razor` component is fully reusable and can be integrated into other property panels for consistent UX across the application.
 
