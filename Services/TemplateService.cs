@@ -17,6 +17,7 @@ public class TemplateService
         ProjectTimelines,      // New: Project timelines with quarters (static JSON)
         AnnualRoadmap,         // New: Annual roadmap (12 months)
         ScrumBoard,            // New: Scrum board flow-state template (static JSON)
+        Retrospective,         // New: Retrospective template with Went Well/Needs Work/Kudos (static JSON)
         Weekly7Days,           // Legacy: 7-day sprint planning
         BiWeeklySprint,        // Legacy: 2-week sprint (5 working days)
         Monthly4Weeks,         // Legacy: 4-week monthly view
@@ -34,6 +35,7 @@ public class TemplateService
         TemplateType.ProjectTimelines => "Project Timelines",
         TemplateType.AnnualRoadmap => "Milestone Map",
         TemplateType.ScrumBoard => "Scrum Board",
+        TemplateType.Retrospective => "Retrospective",
         TemplateType.Weekly7Days => "Weekly (7 Days)",
         TemplateType.BiWeeklySprint => "Bi-Weekly Sprint (5 Days)",
         TemplateType.Monthly4Weeks => "Monthly (4 Weeks)",
@@ -70,6 +72,12 @@ public class TemplateService
         else if (type == TemplateType.ScrumBoard)
         {
             var template = GetScrumBoardTemplate();
+            CopyRoadmapData(template, data);
+            return;
+        }
+        else if (type == TemplateType.Retrospective)
+        {
+            var template = GetRetrospectiveTemplate();
             CopyRoadmapData(template, data);
             return;
         }
@@ -1575,6 +1583,144 @@ public class TemplateService
                             Greyed = false,
                             Hidden = false,
                             Details = new List<Detail>()
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    /// <summary>
+    /// Get Retrospective template (static JSON)
+    /// </summary>
+    public static RoadmapData GetRetrospectiveTemplate()
+    {
+        var today = DateTime.Now.ToString("MMM d, yyyy");
+        return new RoadmapData
+        {
+            Title = "Retrospective",
+            Subtitle = $"Made with RoadScript.NET, on {today}.... by MgGriebZ",
+            Columns = new List<Column>
+            {
+                new Column { Id = null, Label = "Went Well", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "Needs Work", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "Kudos", Sub = "", Icon = null, Color = null }
+            },
+            Milestones = new List<Milestone>
+            {
+                new Milestone { Start = 16.5, Title = "", Icon = "check", Color = "#45B69C" },
+                new Milestone { Start = 50, Title = "", Icon = "x-mark", Color = "#EF4444" },
+                new Milestone { Start = 83.33, Title = "", Icon = "trophy", Color = "#EC4899" }
+            },
+            Lanes = new List<Lane>
+            {
+                new Lane
+                {
+                    Id = null,
+                    Title = "Execution",
+                    Color = "#45B69C",
+                    Icon = "target",
+                    Height = null,
+                    History = null,
+                    Items = new List<Item>
+                    {
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Quality Handling",
+                            Start = 2,
+                            Length = 1,
+                            Spanning = false,
+                            Icon = "",
+                            Color = "#D4652F",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Person", Subs = new List<string>() }
+                            }
+                        }
+                    }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "Requirements",
+                    Color = "#9999ff",
+                    Icon = "wrench",
+                    Height = null,
+                    History = null,
+                    Items = new List<Item>
+                    {
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Task/Feature",
+                            Start = 0,
+                            Length = 1,
+                            Spanning = false,
+                            Icon = "",
+                            Color = "#B7C4B7",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Task #", Subs = new List<string>() }
+                            }
+                        }
+                    }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "Coordination",
+                    Color = "#E6B800",
+                    Icon = "pause",
+                    Height = null,
+                    History = null,
+                    Items = new List<Item>
+                    {
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Meeting Message",
+                            Start = 1,
+                            Length = 1,
+                            Spanning = false,
+                            Icon = "",
+                            Color = "#B7C4B7",
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>()
+                        }
+                    }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "Timing",
+                    Color = "#EF4444",
+                    Icon = "triangle",
+                    Height = 1,
+                    History = null,
+                    Items = new List<Item>
+                    {
+                        new Item
+                        {
+                            Id = null,
+                            Title = "Capacity",
+                            Start = 0,
+                            Length = 1,
+                            Spanning = false,
+                            Icon = null,
+                            Color = null,
+                            Greyed = false,
+                            Hidden = false,
+                            Details = new List<Detail>
+                            {
+                                new Detail { Text = "Quick / slow", Subs = new List<string>() },
+                                new Detail { Text = "Constraints / blockers", Subs = new List<string>() }
+                            }
                         }
                     }
                 }

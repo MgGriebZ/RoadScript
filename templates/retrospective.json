@@ -1,0 +1,156 @@
+{
+  "title": "Retrospective",
+  "subtitle": "Made with RoadScript.NET, on Dec 4, 2025.... by MgGriebZ",
+  "columns": [
+    {
+      "id": null,
+      "label": "Went Well",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "Needs Work",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "Kudos",
+      "sub": "",
+      "icon": null,
+      "color": null
+    }
+  ],
+  "milestones": [
+    {
+      "start": 16.5,
+      "title": "",
+      "icon": "check",
+      "color": "#45B69C"
+    },
+    {
+      "start": 50,
+      "title": "",
+      "icon": "x-mark",
+      "color": "#EF4444"
+    },
+    {
+      "start": 83.33,
+      "title": "",
+      "icon": "trophy",
+      "color": "#EC4899"
+    }
+  ],
+  "lanes": [
+    {
+      "id": null,
+      "title": "Execution",
+      "color": "#45B69C",
+      "icon": "target",
+      "height": null,
+      "history": null,
+      "items": [
+        {
+          "id": null,
+          "title": "Quality Handling",
+          "start": 2,
+          "length": 1,
+          "spanning": false,
+          "icon": "",
+          "color": "#D4652F",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Person",
+              "subs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Requirements",
+      "color": "#9999ff",
+      "icon": "wrench",
+      "height": null,
+      "history": null,
+      "items": [
+        {
+          "id": null,
+          "title": "Task/Feature",
+          "start": 0,
+          "length": 1,
+          "spanning": false,
+          "icon": "",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Task #",
+              "subs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Coordination",
+      "color": "#E6B800",
+      "icon": "pause",
+      "height": null,
+      "history": null,
+      "items": [
+        {
+          "id": null,
+          "title": "Meeting Message",
+          "start": 1,
+          "length": 1,
+          "spanning": false,
+          "icon": "",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Timing",
+      "color": "#EF4444",
+      "icon": "triangle",
+      "height": 1,
+      "history": null,
+      "items": [
+        {
+          "id": null,
+          "title": "Capacity",
+          "start": 0,
+          "length": 1,
+          "spanning": false,
+          "icon": null,
+          "color": null,
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Quick / slow",
+              "subs": []
+            },
+            {
+              "text": "Constraints / blockers",
+              "subs": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

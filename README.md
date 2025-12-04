@@ -56,12 +56,13 @@ Organize your work across **3 project folders**, each containing up to **5 roadm
 
 ### 🎯 **Roadmap Templates**
 
-Get started quickly with 4 production-ready templates:
+Get started quickly with 5 production-ready templates:
 
 1. **Daily Planning** - 2-week sprint cycle with ceremony tracking (Thu → Wed)
 2. **Project Timelines** - Multi-year portfolio view with quarterly milestones
 3. **Milestone Map** - Hourly development tracking with git commit visualization
 4. **Scrum Board** - Flow-state focused template for tracking multi-turn workflows and team dynamics
+5. **Retrospective** - Sprint retrospective with Went Well/Needs Work/Kudos columns for team feedback
 
 ### 📊 **Dynamic Time Tracking**
 
@@ -473,7 +474,7 @@ RoadScript/
 ## Getting Started
 
 1.  **Open** [RoadScript.NET](https://roadscript.net) in your browser
-2.  **Choose a template** - Click "Daily Planning", "Project Timelines", "Milestone Map", or "Scrum Board"
+2.  **Choose a template** - Select from Daily Planning, Project Timelines, Milestone Map, Scrum Board, or Retrospective
 3.  **Edit via UI** - Click any element and use the properties panel
 4.  **Edit via JSON** - Advanced users can edit raw JSON for automation
 5.  **Create folders** - Organize multiple projects (click folder icon)

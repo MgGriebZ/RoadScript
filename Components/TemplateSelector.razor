@@ -49,6 +49,16 @@
                     <p>A flow-state focused template designed for tracking multi-turn workflows and team dynamics. This template features flexible columns with rich milestone markers, progress indicators, and customizable swim lanes perfect for agile teams managing complex collaborative work cycles.</p>
                 </div>
             </div>
+
+            <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.Retrospective))">
+                <div class="template-icon" style="background: linear-gradient(135deg, rgba(230, 184, 0, 0.15) 0%, rgba(230, 184, 0, 0.05) 100%);">
+                    <Icon IconType="pause" Size="56" Color="#E6B800" />
+                </div>
+                <div class="template-info">
+                    <h4>Retrospective</h4>
+                    <p>Structured sprint retrospective template with Went Well, Needs Work, and Kudos columns. Organize team feedback across Execution, Requirements, Coordination, and Timing swim lanes. Perfect for capturing actionable insights and celebrating wins during retrospective ceremonies.</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
