@@ -3,10 +3,10 @@
 @* This component renders an expandable dropdown with day presets and date picker *@
 @if (IsExpanded)
 {
-    <div style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; z-index: 1000; background: #1e1e2e; border: 2px solid #667eea; border-radius: 8px; padding: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); max-height: 450px; overflow-y: auto;">
+    <div style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; z-index: 1000; background: #1e1e2e; border: 2px solid #667eea; border-radius: 8px; padding: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); max-height: 380px; overflow-y: auto;">
         @* Day Presets - Two Rows *@
-        <div style="margin-bottom: 12px;">
-            <div style="font-size: 10px; color: #888; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">Days</div>
+        <div style="margin-bottom: 8px;">
+            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Days</div>
             @* Abbreviated Row (Mon, Tue, etc.) *@
             <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
                 @foreach (var day in _dayPresets)
@@ -37,8 +37,8 @@
         </div>
 
         @* Month Presets - Two Rows *@
-        <div style="margin-bottom: 12px; padding-top: 12px; border-top: 1px solid #3a3a4e;">
-            <div style="font-size: 10px; color: #888; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">Months</div>
+        <div style="margin-bottom: 8px; padding-top: 8px; border-top: 1px solid #3a3a4e;">
+            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Months</div>
             @* Abbreviated Row (Jan, Feb, etc.) *@
             <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 4px;">
                 @foreach (var month in _monthPresets)
@@ -69,8 +69,8 @@
         </div>
 
         @* Hourly Presets *@
-        <div style="margin-bottom: 12px; padding-top: 12px; border-top: 1px solid #3a3a4e;">
-            <div style="font-size: 10px; color: #888; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">Hours</div>
+        <div style="margin-bottom: 8px; padding-top: 8px; border-top: 1px solid #3a3a4e;">
+            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Hours</div>
             <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
                 @foreach (var hour in _hourPresets)
                 {
@@ -86,7 +86,7 @@
         </div>
 
         @* Bottom Row: Today + Date Picker *@
-        <div style="display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid #3a3a4e;">
+        <div style="display: flex; gap: 8px; padding-top: 8px; border-top: 1px solid #3a3a4e;">
             @* Today Button *@
             <button type="button"
                     @onclick="HandleTodaySelect"
@@ -219,7 +219,7 @@
             : "border: 1px solid #3a3a4e;";
 
         var color = isActive ? "#fff" : "#ccc";
-        var height = isFullName ? "28px" : "32px";
+        var height = isFullName ? "26px" : "28px";
 
         return $"width: 100%; height: {height}; {bg} color: {color}; {border} " +
                "border-radius: 4px; cursor: pointer; transition: all 0.2s; " +
