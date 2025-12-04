@@ -440,6 +440,66 @@
                     <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#a5b4fc" : "#6b7280")" />
                 </div>
 
+                @* Static Milestone Navigation Controls - Top Center Position *@
+                @{
+                    var selectedMilestoneIndex = -1;
+                    Milestone? selectedMilestone = null;
+
+                    for (int mi = 0; mi < _data.Milestones.Count; mi++)
+                    {
+                        if (SelectionState.SelectedPath == $"milestones[{mi}]")
+                        {
+                            selectedMilestoneIndex = mi;
+                            selectedMilestone = _data.Milestones[mi];
+                            break;
+                        }
+                    }
+
+                    var showNavControls = selectedMilestoneIndex >= 0 && !_isPreviewMode;
+                }
+
+                @if (showNavControls && selectedMilestone != null)
+                {
+                    <div style="position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 150; display: flex; align-items: center; gap: 6px;">
+                        <button type="button"
+                                @onclick="@(async () => await JumpMilestoneToStart(selectedMilestoneIndex))"
+                                title="Jump to Start (0%)"
+                                style="@StaticNavButtonStyle("jump")">
+                            <div style="font-size: 18px; font-weight: 800;">⏮</div>
+                        </button>
+                        <button type="button"
+                                @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, -1))"
+                                title="Previous Column"
+                                style="@StaticNavButtonStyle("column")">
+                            <div style="font-size: 18px;">⏪</div>
+                        </button>
+                        <button type="button"
+                                @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, -0.25))"
+                                title="Nudge Left (0.25)"
+                                style="@StaticNavButtonStyle("nudge")">
+                            <div style="font-size: 16px;">◀</div>
+                        </button>
+                        <button type="button"
+                                @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, 0.25))"
+                                title="Nudge Right (0.25)"
+                                style="@StaticNavButtonStyle("nudge")">
+                            <div style="font-size: 16px;">▶</div>
+                        </button>
+                        <button type="button"
+                                @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, 1))"
+                                title="Next Column"
+                                style="@StaticNavButtonStyle("column")">
+                            <div style="font-size: 18px;">⏩</div>
+                        </button>
+                        <button type="button"
+                                @onclick="@(async () => await JumpMilestoneToEnd(selectedMilestoneIndex))"
+                                title="Jump to End (100%)"
+                                style="@StaticNavButtonStyle("jump")">
+                            <div style="font-size: 18px; font-weight: 800;">⏭</div>
+                        </button>
+                    </div>
+                }
+
                 <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
                      class="@GetElementClass("title")"
                      style="@TitleContainerStyle()">
@@ -452,7 +512,11 @@
                 </div>
 
                 <div style="display: flex; height: calc(100% - 66px);">
-                    <div style="width: 175px; flex-shrink: 0; padding-top: 48px; padding-right: 14px;">
+                    <div style="width: 175px; flex-shrink: 0; padding-right: 14px; display: flex; flex-direction: column;">
+                        @* Spacer for column headers + milestone scale *@
+                        <div style="height: 88px;"></div>
+
+                        @* Lane titles *@
                         @for (int li = 0; li < _data.Lanes.Count; li++)
                         {
                             var lane = _data.Lanes[li];
@@ -591,6 +655,7 @@
                             }
                         </div>
 
+                        @* Milestone Scale *@
                         <div style="@MilestoneScaleContainerStyle()">
                             @for (int mi = 0; mi < _data.Milestones.Count; mi++)
                             {
@@ -613,41 +678,6 @@
                                             <span style="@MilestoneLabelStyle(milestone.Color)">
                                                 @milestone.Title
                                             </span>
-                                        }
-
-                                        @* Position adjustment buttons - only show when selected *@
-                                        @if (isSelected && !_isPreviewMode)
-                                        {
-                                            <div style="@MilestoneButtonsStyle()">
-                                                <button type="button"
-                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, -5))"
-                                                        @onclick:stopPropagation="true"
-                                                        title="Move left (-5)"
-                                                        style="@MilestoneButtonStyle()">
-                                                    ◀
-                                                </button>
-                                                <button type="button"
-                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, -1))"
-                                                        @onclick:stopPropagation="true"
-                                                        title="Nudge left (-1)"
-                                                        style="@MilestoneButtonStyle()">
-                                                    ◂
-                                                </button>
-                                                <button type="button"
-                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, 1))"
-                                                        @onclick:stopPropagation="true"
-                                                        title="Nudge right (+1)"
-                                                        style="@MilestoneButtonStyle()">
-                                                    ▸
-                                                </button>
-                                                <button type="button"
-                                                        @onclick="@(async () => await AdjustMilestonePosition(msIndex, 5))"
-                                                        @onclick:stopPropagation="true"
-                                                        title="Move right (+5)"
-                                                        style="@MilestoneButtonStyle()">
-                                                    ▶
-                                                </button>
-                                            </div>
                                         }
                                     </div>
                                 </div>
@@ -1930,10 +1960,37 @@
         }
     }
 
-    private string MilestoneScaleContainerStyle() =>
-        _isVibeMode
-            ? "position: relative; height: 40px; border-bottom: 2px solid rgba(102, 126, 234, 0.4); display: flex; align-items: center; background: linear-gradient(180deg, rgba(18, 18, 36, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);"
-            : "position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
+    private string MilestoneScaleContainerStyle()
+    {
+        if (_isVibeMode)
+        {
+            return "position: relative; height: 40px; border-bottom: 2px solid rgba(102, 126, 234, 0.4); display: flex; align-items: center; background: linear-gradient(180deg, rgba(18, 18, 36, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);";
+        }
+        return "position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
+    }
+
+    private string StaticNavButtonStyle(string type)
+    {
+        if (_isVibeMode)
+        {
+            // Different styles based on button type
+            return type switch
+            {
+                "jump" => "width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: 3px solid #047857; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);",
+                "column" => "width: 44px; height: 44px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.3) 100%); color: #ffffff; border: 2px solid rgba(102, 126, 234, 0.7); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);",
+                "nudge" => "width: 40px; height: 40px; background: rgba(30, 30, 46, 0.8); color: #a0a0c0; border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 600; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);",
+                _ => "width: 44px; height: 44px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.2) 100%); color: #ffffff; border: 2px solid rgba(102, 126, 234, 0.6); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);"
+            };
+        }
+
+        return type switch
+        {
+            "jump" => "width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: 3px solid #047857; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6);",
+            "column" => "width: 44px; height: 44px; background: linear-gradient(135deg, #667eea 0%, #5568d3 100%); color: #ffffff; border: 2px solid #4c51bf; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);",
+            "nudge" => "width: 40px; height: 40px; background: rgba(200, 200, 220, 0.3); color: #4c51bf; border: 1px solid #9ca3af; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 600; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);",
+            _ => "width: 44px; height: 44px; background: linear-gradient(135deg, #667eea 0%, #5568d3 100%); color: #ffffff; border: 2px solid #4c51bf; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);"
+        };
+    }
 
     private string MilestoneStyle(double position) =>
         $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10; padding: 8px; min-width: 40px; cursor: move;";
@@ -2003,9 +2060,10 @@
         var widthPct = (item.Length / cols) * 100;
         var greyedOutStyle = item.Greyed ? "opacity: 0.5; filter: grayscale(0.6);" : "";
 
+        // Support row view based on start position (even with different lengths)
         var overlappingItems = lane.Items
             .Select((itm, idx) => new { Item = itm, Index = idx })
-            .Where(x => Math.Abs(x.Item.Start - item.Start) < 0.01 && Math.Abs(x.Item.Length - item.Length) < 0.01)
+            .Where(x => Math.Abs(x.Item.Start - item.Start) < 0.01)
             .OrderBy(x => x.Index)
             .ToList();
 
@@ -2500,7 +2558,6 @@
                     break;
 
                 case "milestone":
-                    var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
                     var newMilestone = new Milestone
                     {
                         Title = "New Milestone",
@@ -2509,7 +2566,18 @@
                         Color = "#667eea"
                     };
                     _data.Milestones ??= new List<Milestone>();
-                    _data.Milestones.Insert(milestoneIndex + 1, newMilestone);
+
+                    // If adding from milestone properties, insert after current; otherwise add at end
+                    if (jsonPath.Contains("milestones["))
+                    {
+                        var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
+                        _data.Milestones.Insert(milestoneIndex + 1, newMilestone);
+                    }
+                    else
+                    {
+                        // Adding from column properties or other context - add at end
+                        _data.Milestones.Add(newMilestone);
+                    }
                     break;
 
                 case "moveLaneUp":
@@ -3022,6 +3090,83 @@
         }
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task JumpMilestoneToStart(int milestoneIndex)
+    {
+        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+
+        SaveHistorySnapshot();
+
+        var milestone = _data.Milestones[milestoneIndex];
+        milestone.Start = 0.0;
+
+        var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        _currentJson = updatedJson;
+
+        if (_editor != null)
+        {
+            await _editor.SetValue(updatedJson);
+        }
+
+        if (_sessionManager != null && _activeTab != null && _folderManager != null)
+        {
+            _activeTab.Data = _data;
+            _activeTab.LastModified = DateTime.UtcNow;
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task JumpMilestoneToEnd(int milestoneIndex)
+    {
+        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+
+        SaveHistorySnapshot();
+
+        var milestone = _data.Milestones[milestoneIndex];
+        milestone.Start = 100.0;
+
+        var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        _currentJson = updatedJson;
+
+        if (_editor != null)
+        {
+            await _editor.SetValue(updatedJson);
+        }
+
+        if (_sessionManager != null && _activeTab != null && _folderManager != null)
+        {
+            _activeTab.Data = _data;
+            _activeTab.LastModified = DateTime.UtcNow;
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AdjustMilestoneByColumn(int milestoneIndex, int direction)
+    {
+        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+
+        var columnCount = _data.Columns.Count;
+        if (columnCount <= 0) return;
+
+        var columnPercentage = 100.0 / columnCount;
+        var delta = direction * columnPercentage;
+
+        await AdjustMilestonePosition(milestoneIndex, delta);
     }
 
     private async Task HandleTabSwitch(string tabId)
