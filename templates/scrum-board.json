@@ -1,0 +1,307 @@
+{
+  "title": "Scrum Board",
+  "subtitle": "Made with RoadScript.NET, on Dec 4, 2025.... by MgGriebZ",
+  "columns": [
+    {
+      "id": null,
+      "label": "Turn 1",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "Turn 2",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "Turn 3",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "Turn 4",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "Turn 5",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "Turn 6",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "Turn 7",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "Turn 8",
+      "sub": "",
+      "icon": null,
+      "color": null
+    }
+  ],
+  "milestones": [
+    {
+      "start": 69.5,
+      "title": "Context Reminder",
+      "icon": "pause",
+      "color": "#E6B800"
+    },
+    {
+      "start": 51.5,
+      "title": "emotions",
+      "icon": "x-mark",
+      "color": "#EF4444"
+    },
+    {
+      "start": 2.5,
+      "title": "Force",
+      "icon": "circle",
+      "color": "#45B69C"
+    },
+    {
+      "start": 83.5,
+      "title": "",
+      "icon": "circle",
+      "color": "#45B69C"
+    },
+    {
+      "start": 10.75,
+      "title": "Frequency",
+      "icon": "half-circle",
+      "color": "#F88379"
+    },
+    {
+      "start": 32,
+      "title": "",
+      "icon": "half-circle",
+      "color": "#F88379"
+    },
+    {
+      "start": 80.25,
+      "title": "",
+      "icon": "half-circle",
+      "color": "#F88379"
+    },
+    {
+      "start": 60.25,
+      "title": "others",
+      "icon": "x-mark",
+      "color": "#EF4444"
+    }
+  ],
+  "lanes": [
+    {
+      "id": null,
+      "title": "Experience",
+      "color": "#EC4899",
+      "icon": "trophy",
+      "height": null,
+      "history": {
+        "start": "90%",
+        "end": "",
+        "startIcon": "star",
+        "endIcon": "wrench",
+        "percent": 90,
+        "origin": "left"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Moment",
+          "start": 3,
+          "length": 1,
+          "spanning": false,
+          "icon": "star",
+          "color": "#D4652F",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Energy",
+      "color": "#45B69C",
+      "icon": "target",
+      "height": 0.5,
+      "history": {
+        "start": "",
+        "end": "",
+        "startIcon": null,
+        "endIcon": null,
+        "percent": 100,
+        "origin": "left"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Flow State",
+          "start": 0,
+          "length": 8,
+          "spanning": true,
+          "icon": null,
+          "color": null,
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Show",
+      "color": "#9999ff",
+      "icon": "wrench",
+      "height": null,
+      "history": {
+        "start": "Person 1",
+        "end": "Person 2",
+        "startIcon": null,
+        "endIcon": null,
+        "percent": 50,
+        "origin": "middle"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Guide",
+          "start": 5,
+          "length": 1,
+          "spanning": false,
+          "icon": "question",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        },
+        {
+          "id": null,
+          "title": "Share",
+          "start": 1,
+          "length": 1,
+          "spanning": false,
+          "icon": "rocket",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        },
+        {
+          "id": null,
+          "title": "Align",
+          "start": 2,
+          "length": 1,
+          "spanning": false,
+          "icon": "check",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Attack",
+      "color": "#E6B800",
+      "icon": "arrow-right",
+      "height": null,
+      "history": {
+        "start": "",
+        "end": "8%",
+        "startIcon": "star",
+        "endIcon": null,
+        "percent": 8,
+        "origin": "right"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Deflect",
+          "start": 4,
+          "length": 1,
+          "spanning": false,
+          "icon": "arrow-right",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        },
+        {
+          "id": null,
+          "title": "Question",
+          "start": 0,
+          "length": 2,
+          "spanning": false,
+          "icon": "question",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        },
+        {
+          "id": null,
+          "title": "Deny",
+          "start": 6,
+          "length": 1,
+          "spanning": false,
+          "icon": "x-mark",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Avoid",
+      "color": "#EF4444",
+      "icon": "x-mark",
+      "height": 1,
+      "history": {
+        "start": "",
+        "end": "2%",
+        "startIcon": null,
+        "endIcon": null,
+        "percent": 2,
+        "origin": "right"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Remove",
+          "start": 7,
+          "length": 1,
+          "spanning": false,
+          "icon": "triangle",
+          "color": "#D4652F",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        }
+      ]
+    }
+  ]
+}
