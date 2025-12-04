@@ -464,38 +464,38 @@
                         <button type="button"
                                 @onclick="@(async () => await JumpMilestoneToStart(selectedMilestoneIndex))"
                                 title="Jump to Start (0%)"
-                                style="@StaticNavButtonStyle()">
-                            <div style="font-size: 16px; font-weight: 700;">⏮</div>
+                                style="@StaticNavButtonStyle("jump")">
+                            <div style="font-size: 18px; font-weight: 800;">⏮</div>
                         </button>
                         <button type="button"
                                 @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, -1))"
                                 title="Previous Column"
-                                style="@StaticNavButtonStyle()">
+                                style="@StaticNavButtonStyle("column")">
                             <div style="font-size: 18px;">⏪</div>
                         </button>
                         <button type="button"
-                                @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, -1))"
-                                title="Nudge Left"
-                                style="@StaticNavButtonStyle()">
+                                @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, -0.25))"
+                                title="Nudge Left (0.25)"
+                                style="@StaticNavButtonStyle("nudge")">
                             <div style="font-size: 16px;">◀</div>
                         </button>
                         <button type="button"
-                                @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, 1))"
-                                title="Nudge Right"
-                                style="@StaticNavButtonStyle()">
+                                @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, 0.25))"
+                                title="Nudge Right (0.25)"
+                                style="@StaticNavButtonStyle("nudge")">
                             <div style="font-size: 16px;">▶</div>
                         </button>
                         <button type="button"
                                 @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, 1))"
                                 title="Next Column"
-                                style="@StaticNavButtonStyle()">
+                                style="@StaticNavButtonStyle("column")">
                             <div style="font-size: 18px;">⏩</div>
                         </button>
                         <button type="button"
                                 @onclick="@(async () => await JumpMilestoneToEnd(selectedMilestoneIndex))"
                                 title="Jump to End (100%)"
-                                style="@StaticNavButtonStyle()">
-                            <div style="font-size: 16px; font-weight: 700;">⏭</div>
+                                style="@StaticNavButtonStyle("jump")">
+                            <div style="font-size: 18px; font-weight: 800;">⏭</div>
                         </button>
                     </div>
                 }
@@ -1969,13 +1969,27 @@
         return "position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
     }
 
-    private string StaticNavButtonStyle()
+    private string StaticNavButtonStyle(string type)
     {
         if (_isVibeMode)
         {
-            return "width: 44px; height: 44px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.2) 100%); color: #ffffff; border: 2px solid rgba(102, 126, 234, 0.6); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);";
+            // Different styles based on button type
+            return type switch
+            {
+                "jump" => "width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: 3px solid #047857; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);",
+                "column" => "width: 44px; height: 44px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.3) 100%); color: #ffffff; border: 2px solid rgba(102, 126, 234, 0.7); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);",
+                "nudge" => "width: 40px; height: 40px; background: rgba(30, 30, 46, 0.8); color: #a0a0c0; border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 600; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);",
+                _ => "width: 44px; height: 44px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.2) 100%); color: #ffffff; border: 2px solid rgba(102, 126, 234, 0.6); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);"
+            };
         }
-        return "width: 44px; height: 44px; background: linear-gradient(135deg, #667eea 0%, #5568d3 100%); color: #ffffff; border: 2px solid #4c51bf; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);";
+
+        return type switch
+        {
+            "jump" => "width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: 3px solid #047857; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6);",
+            "column" => "width: 44px; height: 44px; background: linear-gradient(135deg, #667eea 0%, #5568d3 100%); color: #ffffff; border: 2px solid #4c51bf; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);",
+            "nudge" => "width: 40px; height: 40px; background: rgba(200, 200, 220, 0.3); color: #4c51bf; border: 1px solid #9ca3af; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 600; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);",
+            _ => "width: 44px; height: 44px; background: linear-gradient(135deg, #667eea 0%, #5568d3 100%); color: #ffffff; border: 2px solid #4c51bf; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);"
+        };
     }
 
     private string MilestoneStyle(double position) =>

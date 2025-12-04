@@ -3,18 +3,19 @@
 @* This component renders an expandable dropdown with day presets and date picker *@
 @if (IsExpanded)
 {
-    <div style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; z-index: 1000; background: #1e1e2e; border: 2px solid #667eea; border-radius: 8px; padding: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);">
+    <div style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; z-index: 1000; background: #1e1e2e; border: 2px solid #667eea; border-radius: 8px; padding: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); max-height: 450px; overflow-y: auto;">
         @* Day Presets - Two Rows *@
         <div style="margin-bottom: 12px;">
+            <div style="font-size: 10px; color: #888; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">Days</div>
             @* Abbreviated Row (Mon, Tue, etc.) *@
             <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
                 @foreach (var day in _dayPresets)
                 {
                     <button type="button"
-                            @onclick="@(() => HandleDaySelect(day.Full))"
+                            @onclick="@(() => HandlePresetSelect(day.Full))"
                             @onclick:stopPropagation="true"
                             title="@day.Full"
-                            style="@GetDayButtonStyle(day.Abbr, true)">
+                            style="@GetPresetButtonStyle(day.Abbr)">
                         <div style="font-size: 10px; font-weight: 700;">@day.Abbr</div>
                     </button>
                 }
@@ -25,18 +26,67 @@
                 @foreach (var day in _dayPresets)
                 {
                     <button type="button"
-                            @onclick="@(() => HandleDaySelect(day.Full))"
+                            @onclick="@(() => HandlePresetSelect(day.Full))"
                             @onclick:stopPropagation="true"
                             title="@day.Full"
-                            style="@GetDayButtonStyle(day.Full, false)">
+                            style="@GetPresetButtonStyle(day.Full, true)">
                         <div style="font-size: 9px; font-weight: 600;">@day.Full</div>
                     </button>
                 }
             </div>
         </div>
 
+        @* Month Presets - Two Rows *@
+        <div style="margin-bottom: 12px; padding-top: 12px; border-top: 1px solid #3a3a4e;">
+            <div style="font-size: 10px; color: #888; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">Months</div>
+            @* Abbreviated Row (Jan, Feb, etc.) *@
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 4px;">
+                @foreach (var month in _monthPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => HandlePresetSelect(month.Full))"
+                            @onclick:stopPropagation="true"
+                            title="@month.Full"
+                            style="@GetPresetButtonStyle(month.Abbr)">
+                        <div style="font-size: 10px; font-weight: 700;">@month.Abbr</div>
+                    </button>
+                }
+            </div>
+
+            @* Full Name Row (January, February, etc.) *@
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
+                @foreach (var month in _monthPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => HandlePresetSelect(month.Full))"
+                            @onclick:stopPropagation="true"
+                            title="@month.Full"
+                            style="@GetPresetButtonStyle(month.Full, true)">
+                        <div style="font-size: 9px; font-weight: 600;">@month.Full</div>
+                    </button>
+                }
+            </div>
+        </div>
+
+        @* Hourly Presets *@
+        <div style="margin-bottom: 12px; padding-top: 12px; border-top: 1px solid #3a3a4e;">
+            <div style="font-size: 10px; color: #888; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">Hours</div>
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
+                @foreach (var hour in _hourPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => HandlePresetSelect(hour))"
+                            @onclick:stopPropagation="true"
+                            title="@hour"
+                            style="@GetPresetButtonStyle(hour)">
+                        <div style="font-size: 10px; font-weight: 600;">@hour</div>
+                    </button>
+                }
+            </div>
+        </div>
+
         @* Bottom Row: Today + Date Picker *@
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid #3a3a4e;">
             @* Today Button *@
             <button type="button"
                     @onclick="HandleTodaySelect"
@@ -52,7 +102,7 @@
                    @onchange="@HandleDateSelect"
                    @onclick:stopPropagation="true"
                    class="form-control"
-                   style="flex: 1; height: 40px; font-size: 13px; background: #252538; border: 1px solid #667eea; color: #ccc;" />
+                   style="flex: 1; height: 40px; font-size: 13px; background: #252538; border: 1px solid #667eea; color: #ffffff; color-scheme: dark;" />
         </div>
     </div>
 }
@@ -70,22 +120,46 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    private record DayPreset(string Abbr, string Full);
+    private record Preset(string Abbr, string Full);
 
-    private readonly List<DayPreset> _dayPresets = new()
+    private readonly List<Preset> _dayPresets = new()
     {
-        new DayPreset("Mon", "Monday"),
-        new DayPreset("Tue", "Tuesday"),
-        new DayPreset("Wed", "Wednesday"),
-        new DayPreset("Thu", "Thursday"),
-        new DayPreset("Fri", "Friday"),
-        new DayPreset("Sat", "Saturday"),
-        new DayPreset("Sun", "Sunday")
+        new Preset("Mon", "Monday"),
+        new Preset("Tue", "Tuesday"),
+        new Preset("Wed", "Wednesday"),
+        new Preset("Thu", "Thursday"),
+        new Preset("Fri", "Friday"),
+        new Preset("Sat", "Saturday"),
+        new Preset("Sun", "Sunday")
     };
 
-    private async Task HandleDaySelect(string dayName)
+    private readonly List<Preset> _monthPresets = new()
     {
-        await OnValueChange.InvokeAsync(dayName);
+        new Preset("Jan", "January"),
+        new Preset("Feb", "February"),
+        new Preset("Mar", "March"),
+        new Preset("Apr", "April"),
+        new Preset("May", "May"),
+        new Preset("Jun", "June"),
+        new Preset("Jul", "July"),
+        new Preset("Aug", "August"),
+        new Preset("Sep", "September"),
+        new Preset("Oct", "October"),
+        new Preset("Nov", "November"),
+        new Preset("Dec", "December")
+    };
+
+    private readonly List<string> _hourPresets = new()
+    {
+        "12AM", "1AM", "2AM", "3AM", "4AM", "5AM",
+        "6AM", "7AM", "8AM", "9AM", "10AM", "11AM",
+        "12PM", "1PM", "2PM", "3PM", "4PM", "5PM",
+        "6PM", "7PM", "8PM", "9PM", "10PM", "11PM"
+    };
+
+    private async Task HandlePresetSelect(string value)
+    {
+        await OnValueChange.InvokeAsync(value);
         await OnClose.InvokeAsync();
     }
 
@@ -107,10 +181,34 @@
         }
     }
 
-    private string GetDayButtonStyle(string text, bool isAbbr)
+    private string GetPresetButtonStyle(string text, bool isFullName = false)
     {
-        var isActive = CurrentValue?.Equals(_dayPresets.FirstOrDefault(d => d.Full == text || d.Abbr == text)?.Full,
-            StringComparison.OrdinalIgnoreCase) == true;
+        // Check if this preset matches the current value
+        var isActive = false;
+
+        // Check days
+        var matchingDay = _dayPresets.FirstOrDefault(d =>
+            d.Full.Equals(text, StringComparison.OrdinalIgnoreCase) ||
+            d.Abbr.Equals(text, StringComparison.OrdinalIgnoreCase));
+        if (matchingDay != null)
+        {
+            isActive = CurrentValue?.Equals(matchingDay.Full, StringComparison.OrdinalIgnoreCase) == true;
+        }
+
+        // Check months
+        var matchingMonth = _monthPresets.FirstOrDefault(m =>
+            m.Full.Equals(text, StringComparison.OrdinalIgnoreCase) ||
+            m.Abbr.Equals(text, StringComparison.OrdinalIgnoreCase));
+        if (matchingMonth != null)
+        {
+            isActive = CurrentValue?.Equals(matchingMonth.Full, StringComparison.OrdinalIgnoreCase) == true;
+        }
+
+        // Check hours
+        if (_hourPresets.Contains(text))
+        {
+            isActive = CurrentValue?.Equals(text, StringComparison.OrdinalIgnoreCase) == true;
+        }
 
         var bg = isActive
             ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
@@ -121,7 +219,7 @@
             : "border: 1px solid #3a3a4e;";
 
         var color = isActive ? "#fff" : "#ccc";
-        var height = isAbbr ? "32px" : "28px";
+        var height = isFullName ? "28px" : "32px";
 
         return $"width: 100%; height: {height}; {bg} color: {color}; {border} " +
                "border-radius: 4px; cursor: pointer; transition: all 0.2s; " +
