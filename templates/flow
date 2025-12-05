@@ -1,0 +1,539 @@
+{
+  "title": "Flow Forge Mechanics",
+  "subtitle": "Force and Frequency to maintain constant energy",
+  "columns": [
+    {
+      "id": null,
+      "label": "\u003C--",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "--",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "",
+      "sub": "--",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "",
+      "sub": "-",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "",
+      "sub": "-",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "",
+      "sub": "--",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "--",
+      "sub": "",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "--\u003E",
+      "sub": "",
+      "icon": null,
+      "color": null
+    }
+  ],
+  "milestones": [
+    {
+      "start": 68.75,
+      "title": "Scenario",
+      "icon": "pause",
+      "color": "#B7C4B7"
+    },
+    {
+      "start": 81.25,
+      "title": "Avoid",
+      "icon": "triangle",
+      "color": "#EF4444"
+    },
+    {
+      "start": 56.25,
+      "title": "Specifics",
+      "icon": "x-mark",
+      "color": "#EF4444"
+    },
+    {
+      "start": 12.25,
+      "title": "Action",
+      "icon": "circle",
+      "color": "#F88379"
+    },
+    {
+      "start": 87.5,
+      "title": "",
+      "icon": "circle",
+      "color": "#9999ff"
+    },
+    {
+      "start": 1,
+      "title": "Scenario",
+      "icon": "half-circle",
+      "color": "#B7C4B7"
+    },
+    {
+      "start": 31,
+      "title": "",
+      "icon": "half-circle",
+      "color": "#4A2C1A"
+    },
+    {
+      "start": 19,
+      "title": "Details",
+      "icon": "half-circle",
+      "color": "#B7C4B7"
+    },
+    {
+      "start": 44.25,
+      "title": "",
+      "icon": "half-circle",
+      "color": "#B7C4B7"
+    },
+    {
+      "start": 42.75,
+      "title": "",
+      "icon": "half-circle",
+      "color": "#F88379"
+    },
+    {
+      "start": 32.5,
+      "title": "",
+      "icon": "half-circle",
+      "color": "#F88379"
+    }
+  ],
+  "lanes": [
+    {
+      "id": null,
+      "title": "Energy",
+      "color": "#45B69C",
+      "icon": "target",
+      "height": 0.5,
+      "history": {
+        "start": "Physical",
+        "end": "Mental",
+        "startIcon": null,
+        "endIcon": null,
+        "percent": 100,
+        "origin": "left"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Flow State",
+          "start": 0,
+          "length": 8,
+          "spanning": true,
+          "icon": null,
+          "color": null,
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        },
+        {
+          "id": null,
+          "title": "",
+          "start": 7,
+          "length": 1,
+          "spanning": false,
+          "icon": "triangle",
+          "color": "#EF4444",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        },
+        {
+          "id": null,
+          "title": "",
+          "start": 3,
+          "length": 1,
+          "spanning": false,
+          "icon": "star",
+          "color": "#45B69C",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        },
+        {
+          "id": null,
+          "title": "",
+          "start": 2,
+          "length": 1,
+          "spanning": false,
+          "icon": "star",
+          "color": "#45B69C",
+          "greyed": true,
+          "hidden": false,
+          "details": []
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Experience",
+      "color": "#EC4899",
+      "icon": "trophy",
+      "height": null,
+      "history": {
+        "start": "",
+        "end": "",
+        "startIcon": "wrench",
+        "endIcon": "wrench",
+        "percent": 10,
+        "origin": "middle"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Moment",
+          "start": 2,
+          "length": 1,
+          "spanning": false,
+          "icon": "star",
+          "color": "#D4652F",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Speaking",
+              "subs": []
+            },
+            {
+              "text": "Being Heard",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Love",
+          "start": 3,
+          "length": 1,
+          "spanning": false,
+          "icon": "star",
+          "color": "#D4652F",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Inspiration",
+              "subs": []
+            },
+            {
+              "text": "Peace",
+              "subs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Exchange",
+      "color": "#9999ff",
+      "icon": "wrench",
+      "height": null,
+      "history": {
+        "start": "Give",
+        "end": "Take",
+        "startIcon": "half-circle",
+        "endIcon": "target",
+        "percent": 50,
+        "origin": "right"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Document",
+          "start": 4,
+          "length": 3,
+          "spanning": false,
+          "icon": "search",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Specific Details",
+              "subs": []
+            },
+            {
+              "text": "Unblock buzzwords",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Explore",
+          "start": 1,
+          "length": 1,
+          "spanning": false,
+          "icon": "rocket",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Affirm",
+              "subs": []
+            },
+            {
+              "text": "Reframe",
+              "subs": []
+            },
+            {
+              "text": "Expand",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Attract",
+          "start": 2,
+          "length": 1,
+          "spanning": false,
+          "icon": "check",
+          "color": "#45B69C",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Interactions",
+              "subs": [
+                "Affirm / Reframe"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Actions",
+      "color": "#E6B800",
+      "icon": "arrow-right",
+      "height": null,
+      "history": {
+        "start": "Give",
+        "end": "20%",
+        "startIcon": "half-circle",
+        "endIcon": null,
+        "percent": 80,
+        "origin": "left"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Distract",
+          "start": 5,
+          "length": 1,
+          "spanning": false,
+          "icon": "arrow-right",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Moment",
+              "subs": []
+            },
+            {
+              "text": "Person",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Attack",
+          "start": 4,
+          "length": 1,
+          "spanning": false,
+          "icon": "lock",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Specific Details",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Question",
+          "start": 0,
+          "length": 1,
+          "spanning": false,
+          "icon": "question",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Scenario start",
+              "subs": [
+                "Specific Detail"
+              ]
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Request",
+          "start": 1,
+          "length": 1,
+          "spanning": false,
+          "icon": "circle",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Scenario start",
+              "subs": [
+                "Buzzword connection"
+              ]
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Ignore",
+          "start": 6,
+          "length": 1,
+          "spanning": false,
+          "icon": "x-mark",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Silence",
+              "subs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Life",
+      "color": "#EF4444",
+      "icon": "x-mark",
+      "height": 0.75,
+      "history": {
+        "start": "",
+        "end": "2%",
+        "startIcon": null,
+        "endIcon": null,
+        "percent": 2,
+        "origin": "right"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Remove",
+          "start": 7,
+          "length": 1,
+          "spanning": false,
+          "icon": "triangle",
+          "color": "#EF4444",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Exit Strategy",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Plan",
+          "start": 0,
+          "length": 1,
+          "spanning": false,
+          "icon": "triangle",
+          "color": "#EF4444",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Prep work",
+              "subs": [
+                "Specific/details"
+              ]
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Start",
+          "start": 1,
+          "length": 1,
+          "spanning": false,
+          "icon": "circle",
+          "color": "#9999ff",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Planning",
+              "subs": [
+                "Initial contact"
+              ]
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "RNG",
+          "start": 2,
+          "length": 5,
+          "spanning": true,
+          "icon": "globe",
+          "color": "#45B69C",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Life Events",
+              "subs": [
+                "Time constraints"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
