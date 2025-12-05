@@ -64,7 +64,7 @@
       "start": 68.75,
       "title": "Scenario",
       "icon": "pause",
-      "color": "#B7C4B7"
+      "color": "#87CEEB"
     },
     {
       "start": 81.25,
@@ -75,56 +75,26 @@
     {
       "start": 56.25,
       "title": "Specifics",
-      "icon": "x-mark",
-      "color": "#EF4444"
-    },
-    {
-      "start": 12.25,
-      "title": "Action",
-      "icon": "circle",
-      "color": "#F88379"
-    },
-    {
-      "start": 87.5,
-      "title": "",
-      "icon": "circle",
-      "color": "#9999ff"
+      "icon": "gear",
+      "color": "#E6B800"
     },
     {
       "start": 1,
-      "title": "Scenario",
+      "title": "Scenario Begin",
       "icon": "half-circle",
-      "color": "#B7C4B7"
+      "color": "#EF4444"
     },
     {
-      "start": 31,
-      "title": "",
-      "icon": "half-circle",
-      "color": "#4A2C1A"
+      "start": 37.5,
+      "title": "Scenario Details Connected",
+      "icon": "target",
+      "color": "#87CEEB"
     },
     {
       "start": 19,
-      "title": "Details",
-      "icon": "half-circle",
+      "title": "Details Added",
+      "icon": "gear",
       "color": "#B7C4B7"
-    },
-    {
-      "start": 44.25,
-      "title": "",
-      "icon": "half-circle",
-      "color": "#B7C4B7"
-    },
-    {
-      "start": 42.75,
-      "title": "",
-      "icon": "half-circle",
-      "color": "#F88379"
-    },
-    {
-      "start": 32.5,
-      "title": "",
-      "icon": "half-circle",
-      "color": "#F88379"
     }
   ],
   "lanes": [
@@ -170,24 +140,12 @@
         {
           "id": null,
           "title": "",
-          "start": 3,
-          "length": 1,
-          "spanning": false,
-          "icon": "star",
-          "color": "#45B69C",
-          "greyed": false,
-          "hidden": false,
-          "details": []
-        },
-        {
-          "id": null,
-          "title": "",
           "start": 2,
-          "length": 1,
+          "length": 2,
           "spanning": false,
           "icon": "star",
-          "color": "#45B69C",
-          "greyed": true,
+          "color": "#E6B800",
+          "greyed": false,
           "hidden": false,
           "details": []
         }
@@ -196,7 +154,7 @@
     {
       "id": null,
       "title": "Experience",
-      "color": "#EC4899",
+      "color": "#87CEEB",
       "icon": "trophy",
       "height": null,
       "history": {
@@ -215,7 +173,7 @@
           "length": 1,
           "spanning": false,
           "icon": "star",
-          "color": "#D4652F",
+          "color": "#45B69C",
           "greyed": false,
           "hidden": false,
           "details": [
@@ -235,13 +193,13 @@
           "start": 3,
           "length": 1,
           "spanning": false,
-          "icon": "star",
-          "color": "#D4652F",
+          "icon": "heart",
+          "color": "#45B69C",
           "greyed": false,
           "hidden": false,
           "details": [
             {
-              "text": "Inspiration",
+              "text": "Bliss",
               "subs": []
             },
             {
@@ -279,11 +237,11 @@
           "hidden": false,
           "details": [
             {
-              "text": "Specific Details",
+              "text": "New scenario details",
               "subs": []
             },
             {
-              "text": "Unblock buzzwords",
+              "text": "Reconnect details to scenarios",
               "subs": []
             }
           ]
@@ -291,7 +249,7 @@
         {
           "id": null,
           "title": "Explore",
-          "start": 1,
+          "start": 0,
           "length": 1,
           "spanning": false,
           "icon": "rocket",
@@ -300,34 +258,71 @@
           "hidden": false,
           "details": [
             {
-              "text": "Affirm",
+              "text": "Show/Explain",
               "subs": []
             },
             {
-              "text": "Reframe",
-              "subs": []
-            },
-            {
-              "text": "Expand",
+              "text": "Attention grab",
               "subs": []
             }
           ]
         },
         {
           "id": null,
-          "title": "Attract",
+          "title": "Inspire",
           "start": 2,
           "length": 1,
           "spanning": false,
-          "icon": "check",
+          "icon": "lightbulb",
           "color": "#45B69C",
           "greyed": false,
           "hidden": false,
           "details": [
             {
-              "text": "Interactions",
+              "text": "Attraction",
+              "subs": []
+            },
+            {
+              "text": "Knowledge",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Appreciate",
+          "start": 3,
+          "length": 1,
+          "spanning": false,
+          "icon": "bookmark",
+          "color": "#45B69C",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Scenario",
               "subs": [
-                "Affirm / Reframe"
+                "Connecting details"
+              ]
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Accept",
+          "start": 1,
+          "length": 1,
+          "spanning": false,
+          "icon": "check",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Actions",
+              "subs": [
+                "Memory",
+                "Commitment"
               ]
             }
           ]
@@ -341,7 +336,7 @@
       "icon": "arrow-right",
       "height": null,
       "history": {
-        "start": "Give",
+        "start": "Give 80%",
         "end": "20%",
         "startIcon": "half-circle",
         "endIcon": null,
@@ -352,7 +347,7 @@
         {
           "id": null,
           "title": "Distract",
-          "start": 5,
+          "start": 5.5,
           "length": 1,
           "spanning": false,
           "icon": "arrow-right",
@@ -373,7 +368,7 @@
         {
           "id": null,
           "title": "Attack",
-          "start": 4,
+          "start": 4.5,
           "length": 1,
           "spanning": false,
           "icon": "lock",
@@ -382,7 +377,24 @@
           "hidden": false,
           "details": [
             {
-              "text": "Specific Details",
+              "text": "Detail review",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Apologize",
+          "start": 3.5,
+          "length": 1,
+          "spanning": false,
+          "icon": "calendar",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Detail correction",
               "subs": []
             }
           ]
@@ -428,7 +440,7 @@
         {
           "id": null,
           "title": "Ignore",
-          "start": 6,
+          "start": 6.5,
           "length": 1,
           "spanning": false,
           "icon": "x-mark",
