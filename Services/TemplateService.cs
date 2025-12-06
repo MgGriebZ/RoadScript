@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Reflection;
 using RoadScript.Models;
 
 namespace RoadScript.Services;
@@ -127,16 +128,20 @@ public class TemplateService
     }
 
     /// <summary>
-    /// Load template from JSON file
+    /// Load template from embedded resource
     /// </summary>
     private static RoadmapData? LoadTemplateFromJson(string filename)
     {
         try
         {
-            var templatePath = Path.Combine("templates", filename);
-            if (File.Exists(templatePath))
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = $"RoadScript.templates.{filename}";
+
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream != null)
             {
-                var json = File.ReadAllText(templatePath);
+                using var reader = new StreamReader(stream);
+                var json = reader.ReadToEnd();
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
