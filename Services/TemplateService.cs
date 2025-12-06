@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Reflection;
 using RoadScript.Models;
 
 namespace RoadScript.Services;
@@ -34,7 +35,7 @@ public class TemplateService
         TemplateType.ScrumSprintCycle => "Daily Planning",
         TemplateType.ProjectTimelines => "Project Timelines",
         TemplateType.AnnualRoadmap => "Milestone Map",
-        TemplateType.ScrumBoard => "Scrum Board",
+        TemplateType.ScrumBoard => "Energy Flows",
         TemplateType.Retrospective => "Retrospective",
         TemplateType.Weekly7Days => "Weekly (7 Days)",
         TemplateType.BiWeeklySprint => "Bi-Weekly Sprint (5 Days)",
@@ -124,6 +125,35 @@ public class TemplateService
         target.Columns = source.Columns;
         target.Milestones = source.Milestones;
         target.Lanes = source.Lanes;
+    }
+
+    /// <summary>
+    /// Load template from embedded resource
+    /// </summary>
+    private static RoadmapData? LoadTemplateFromJson(string filename)
+    {
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = $"RoadScript.templates.{filename}";
+
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream != null)
+            {
+                using var reader = new StreamReader(stream);
+                var json = reader.ReadToEnd();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                return JsonSerializer.Deserialize<RoadmapData>(json, options);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading template {filename}: {ex.Message}");
+        }
+        return null;
     }
 
     /// <summary>
@@ -1336,265 +1366,50 @@ public class TemplateService
     }
 
     /// <summary>
-    /// Get Scrum Board template (static JSON)
+    /// Get Scrum Board template (loads from JSON)
     /// </summary>
     public static RoadmapData GetScrumBoardTemplate()
     {
+        var template = LoadTemplateFromJson("scrum-board.json");
+        if (template != null)
+        {
+            return template;
+        }
+
+        // Fallback to empty template if JSON file not found
         var today = DateTime.Now.ToString("MMM d, yyyy");
         return new RoadmapData
         {
-            Title = "Scrum Board",
+            Title = "Energy Flows",
             Subtitle = $"Made with RoadScript.NET, on {today}.... by MgGriebZ",
             Columns = new List<Column>
             {
-                new Column { Id = null, Label = "Turn 1", Sub = "", Icon = null, Color = null },
-                new Column { Id = null, Label = "Turn 2", Sub = "", Icon = null, Color = null },
-                new Column { Id = null, Label = "Turn 3", Sub = "", Icon = null, Color = null },
-                new Column { Id = null, Label = "Turn 4", Sub = "", Icon = null, Color = null },
-                new Column { Id = null, Label = "Turn 5", Sub = "", Icon = null, Color = null },
-                new Column { Id = null, Label = "Turn 6", Sub = "", Icon = null, Color = null },
-                new Column { Id = null, Label = "Turn 7", Sub = "", Icon = null, Color = null },
-                new Column { Id = null, Label = "Turn 8", Sub = "", Icon = null, Color = null }
+                new Column { Id = null, Label = "<--", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "--", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "", Sub = "--", Icon = null, Color = null },
+                new Column { Id = null, Label = "", Sub = "-", Icon = null, Color = null },
+                new Column { Id = null, Label = "", Sub = "-", Icon = null, Color = null },
+                new Column { Id = null, Label = "", Sub = "--", Icon = null, Color = null },
+                new Column { Id = null, Label = "--", Sub = "", Icon = null, Color = null },
+                new Column { Id = null, Label = "-->", Sub = "", Icon = null, Color = null }
             },
-            Milestones = new List<Milestone>
-            {
-                new Milestone { Start = 69.5, Title = "Context Reminder", Icon = "pause", Color = "#E6B800" },
-                new Milestone { Start = 51.5, Title = "emotions", Icon = "x-mark", Color = "#EF4444" },
-                new Milestone { Start = 2.5, Title = "Force", Icon = "circle", Color = "#45B69C" },
-                new Milestone { Start = 83.5, Title = "", Icon = "circle", Color = "#45B69C" },
-                new Milestone { Start = 10.75, Title = "Frequency", Icon = "half-circle", Color = "#F88379" },
-                new Milestone { Start = 32, Title = "", Icon = "half-circle", Color = "#F88379" },
-                new Milestone { Start = 80.25, Title = "", Icon = "half-circle", Color = "#F88379" },
-                new Milestone { Start = 60.25, Title = "others", Icon = "x-mark", Color = "#EF4444" }
-            },
-            Lanes = new List<Lane>
-            {
-                new Lane
-                {
-                    Id = null,
-                    Title = "Experience",
-                    Color = "#EC4899",
-                    Icon = "trophy",
-                    Height = null,
-                    History = new History
-                    {
-                        Start = "90%",
-                        End = "",
-                        StartIcon = "star",
-                        EndIcon = "wrench",
-                        Percent = 90,
-                        Origin = "left"
-                    },
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Moment",
-                            Start = 3,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "star",
-                            Color = "#D4652F",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>()
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "Energy",
-                    Color = "#45B69C",
-                    Icon = "target",
-                    Height = 0.5,
-                    History = new History
-                    {
-                        Start = "",
-                        End = "",
-                        StartIcon = null,
-                        EndIcon = null,
-                        Percent = 100,
-                        Origin = "left"
-                    },
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Flow State",
-                            Start = 0,
-                            Length = 8,
-                            Spanning = true,
-                            Icon = null,
-                            Color = null,
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>()
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "Show",
-                    Color = "#9999ff",
-                    Icon = "wrench",
-                    Height = null,
-                    History = new History
-                    {
-                        Start = "Person 1",
-                        End = "Person 2",
-                        StartIcon = null,
-                        EndIcon = null,
-                        Percent = 50,
-                        Origin = "middle"
-                    },
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Guide",
-                            Start = 5,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "question",
-                            Color = "#B7C4B7",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>()
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Share",
-                            Start = 1,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "rocket",
-                            Color = "#B7C4B7",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>()
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Align",
-                            Start = 2,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "check",
-                            Color = "#B7C4B7",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>()
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "Attack",
-                    Color = "#E6B800",
-                    Icon = "arrow-right",
-                    Height = null,
-                    History = new History
-                    {
-                        Start = "",
-                        End = "8%",
-                        StartIcon = "star",
-                        EndIcon = null,
-                        Percent = 8,
-                        Origin = "right"
-                    },
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Deflect",
-                            Start = 4,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "arrow-right",
-                            Color = "#B7C4B7",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>()
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Question",
-                            Start = 0,
-                            Length = 2,
-                            Spanning = false,
-                            Icon = "question",
-                            Color = "#B7C4B7",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>()
-                        },
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Deny",
-                            Start = 6,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "x-mark",
-                            Color = "#B7C4B7",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>()
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "Avoid",
-                    Color = "#EF4444",
-                    Icon = "x-mark",
-                    Height = 1,
-                    History = new History
-                    {
-                        Start = "",
-                        End = "2%",
-                        StartIcon = null,
-                        EndIcon = null,
-                        Percent = 2,
-                        Origin = "right"
-                    },
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Remove",
-                            Start = 7,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "triangle",
-                            Color = "#D4652F",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>()
-                        }
-                    }
-                }
-            }
+            Milestones = new List<Milestone>(),
+            Lanes = new List<Lane>()
         };
     }
 
     /// <summary>
-    /// Get Retrospective template (static JSON)
+    /// Get Retrospective template (loads from JSON)
     /// </summary>
     public static RoadmapData GetRetrospectiveTemplate()
     {
+        var template = LoadTemplateFromJson("retrospective.json");
+        if (template != null)
+        {
+            return template;
+        }
+
+        // Fallback to empty template if JSON file not found
         var today = DateTime.Now.ToString("MMM d, yyyy");
         return new RoadmapData
         {
@@ -1606,125 +1421,8 @@ public class TemplateService
                 new Column { Id = null, Label = "Needs Work", Sub = "", Icon = null, Color = null },
                 new Column { Id = null, Label = "Kudos", Sub = "", Icon = null, Color = null }
             },
-            Milestones = new List<Milestone>
-            {
-                new Milestone { Start = 16.5, Title = "", Icon = "check", Color = "#45B69C" },
-                new Milestone { Start = 50, Title = "", Icon = "x-mark", Color = "#EF4444" },
-                new Milestone { Start = 83.33, Title = "", Icon = "trophy", Color = "#EC4899" }
-            },
-            Lanes = new List<Lane>
-            {
-                new Lane
-                {
-                    Id = null,
-                    Title = "Execution",
-                    Color = "#45B69C",
-                    Icon = "target",
-                    Height = null,
-                    History = null,
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Quality Handling",
-                            Start = 2,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "",
-                            Color = "#D4652F",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Person", Subs = new List<string>() }
-                            }
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "Requirements",
-                    Color = "#9999ff",
-                    Icon = "wrench",
-                    Height = null,
-                    History = null,
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Task/Feature",
-                            Start = 0,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "",
-                            Color = "#B7C4B7",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Task #", Subs = new List<string>() }
-                            }
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "Coordination",
-                    Color = "#E6B800",
-                    Icon = "pause",
-                    Height = null,
-                    History = null,
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Meeting Message",
-                            Start = 1,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = "",
-                            Color = "#B7C4B7",
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>()
-                        }
-                    }
-                },
-                new Lane
-                {
-                    Id = null,
-                    Title = "Timing",
-                    Color = "#EF4444",
-                    Icon = "triangle",
-                    Height = 1,
-                    History = null,
-                    Items = new List<Item>
-                    {
-                        new Item
-                        {
-                            Id = null,
-                            Title = "Capacity",
-                            Start = 0,
-                            Length = 1,
-                            Spanning = false,
-                            Icon = null,
-                            Color = null,
-                            Greyed = false,
-                            Hidden = false,
-                            Details = new List<Detail>
-                            {
-                                new Detail { Text = "Quick / slow", Subs = new List<string>() },
-                                new Detail { Text = "Constraints / blockers", Subs = new List<string>() }
-                            }
-                        }
-                    }
-                }
-            }
+            Milestones = new List<Milestone>(),
+            Lanes = new List<Lane>()
         };
     }
 }

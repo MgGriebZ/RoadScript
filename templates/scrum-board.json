@@ -1,59 +1,59 @@
 {
-  "title": "Scrum Board",
-  "subtitle": "Made with RoadScript.NET, on Dec 4, 2025.... by MgGriebZ",
+  "title": "Energy Flows",
+  "subtitle": "Force and Frequency with actions and exchanges",
   "columns": [
     {
       "id": null,
-      "label": "Turn 1",
+      "label": "<--",
       "sub": "",
       "icon": null,
       "color": null
     },
     {
       "id": null,
-      "label": "Turn 2",
+      "label": "--",
       "sub": "",
       "icon": null,
       "color": null
     },
     {
       "id": null,
-      "label": "Turn 3",
+      "label": "",
+      "sub": "--",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "",
+      "sub": "-",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "",
+      "sub": "-",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "",
+      "sub": "--",
+      "icon": null,
+      "color": null
+    },
+    {
+      "id": null,
+      "label": "--",
       "sub": "",
       "icon": null,
       "color": null
     },
     {
       "id": null,
-      "label": "Turn 4",
-      "sub": "",
-      "icon": null,
-      "color": null
-    },
-    {
-      "id": null,
-      "label": "Turn 5",
-      "sub": "",
-      "icon": null,
-      "color": null
-    },
-    {
-      "id": null,
-      "label": "Turn 6",
-      "sub": "",
-      "icon": null,
-      "color": null
-    },
-    {
-      "id": null,
-      "label": "Turn 7",
-      "sub": "",
-      "icon": null,
-      "color": null
-    },
-    {
-      "id": null,
-      "label": "Turn 8",
+      "label": "-->",
       "sub": "",
       "icon": null,
       "color": null
@@ -61,84 +61,43 @@
   ],
   "milestones": [
     {
-      "start": 69.5,
-      "title": "Context Reminder",
+      "start": 68.75,
+      "title": "Scenario",
       "icon": "pause",
+      "color": "#87CEEB"
+    },
+    {
+      "start": 81.25,
+      "title": "Avoid",
+      "icon": "triangle",
+      "color": "#EF4444"
+    },
+    {
+      "start": 56.25,
+      "title": "Specifics",
+      "icon": "gear",
       "color": "#E6B800"
     },
     {
-      "start": 51.5,
-      "title": "emotions",
-      "icon": "x-mark",
+      "start": 1,
+      "title": "Scenario Begin",
+      "icon": "half-circle",
       "color": "#EF4444"
     },
     {
-      "start": 2.5,
-      "title": "Force",
-      "icon": "circle",
-      "color": "#45B69C"
+      "start": 37.5,
+      "title": "Scenario Details Connected",
+      "icon": "target",
+      "color": "#87CEEB"
     },
     {
-      "start": 83.5,
-      "title": "",
-      "icon": "circle",
-      "color": "#45B69C"
-    },
-    {
-      "start": 10.75,
-      "title": "Frequency",
-      "icon": "half-circle",
-      "color": "#F88379"
-    },
-    {
-      "start": 32,
-      "title": "",
-      "icon": "half-circle",
-      "color": "#F88379"
-    },
-    {
-      "start": 80.25,
-      "title": "",
-      "icon": "half-circle",
-      "color": "#F88379"
-    },
-    {
-      "start": 60.25,
-      "title": "others",
-      "icon": "x-mark",
-      "color": "#EF4444"
+      "start": 19,
+      "title": "Details Added",
+      "icon": "gear",
+      "color": "#B7C4B7"
     }
   ],
   "lanes": [
-    {
-      "id": null,
-      "title": "Experience",
-      "color": "#EC4899",
-      "icon": "trophy",
-      "height": null,
-      "history": {
-        "start": "90%",
-        "end": "",
-        "startIcon": "star",
-        "endIcon": "wrench",
-        "percent": 90,
-        "origin": "left"
-      },
-      "items": [
-        {
-          "id": null,
-          "title": "Moment",
-          "start": 3,
-          "length": 1,
-          "spanning": false,
-          "icon": "star",
-          "color": "#D4652F",
-          "greyed": false,
-          "hidden": false,
-          "details": []
-        }
-      ]
-    },
     {
       "id": null,
       "title": "Energy",
@@ -146,8 +105,8 @@
       "icon": "target",
       "height": 0.5,
       "history": {
-        "start": "",
-        "end": "",
+        "start": "Physical",
+        "end": "Mental",
         "startIcon": null,
         "endIcon": null,
         "percent": 100,
@@ -165,121 +124,361 @@
           "greyed": false,
           "hidden": false,
           "details": []
-        }
-      ]
-    },
-    {
-      "id": null,
-      "title": "Show",
-      "color": "#9999ff",
-      "icon": "wrench",
-      "height": null,
-      "history": {
-        "start": "Person 1",
-        "end": "Person 2",
-        "startIcon": null,
-        "endIcon": null,
-        "percent": 50,
-        "origin": "middle"
-      },
-      "items": [
+        },
         {
           "id": null,
-          "title": "Guide",
-          "start": 5,
+          "title": "",
+          "start": 7,
           "length": 1,
           "spanning": false,
-          "icon": "question",
-          "color": "#B7C4B7",
+          "icon": "triangle",
+          "color": "#EF4444",
           "greyed": false,
           "hidden": false,
           "details": []
         },
         {
           "id": null,
-          "title": "Share",
-          "start": 1,
+          "title": "",
+          "start": 2,
+          "length": 2,
+          "spanning": false,
+          "icon": "star",
+          "color": "#E6B800",
+          "greyed": false,
+          "hidden": false,
+          "details": []
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Experience",
+      "color": "#87CEEB",
+      "icon": "trophy",
+      "height": null,
+      "history": {
+        "start": "",
+        "end": "",
+        "startIcon": "wrench",
+        "endIcon": "wrench",
+        "percent": 10,
+        "origin": "middle"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Moment",
+          "start": 2,
+          "length": 1,
+          "spanning": false,
+          "icon": "star",
+          "color": "#45B69C",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Speaking",
+              "subs": []
+            },
+            {
+              "text": "Being Heard",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Love",
+          "start": 3,
+          "length": 1,
+          "spanning": false,
+          "icon": "heart",
+          "color": "#45B69C",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Enjoy",
+              "subs": []
+            },
+            {
+              "text": "Vibe",
+              "subs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": null,
+      "title": "Exchange",
+      "color": "#9999ff",
+      "icon": "wrench",
+      "height": null,
+      "history": {
+        "start": "Give",
+        "end": "Take",
+        "startIcon": "half-circle",
+        "endIcon": "target",
+        "percent": 50,
+        "origin": "right"
+      },
+      "items": [
+        {
+          "id": null,
+          "title": "Document",
+          "start": 5,
+          "length": 2,
+          "spanning": false,
+          "icon": "search",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "New scenario details",
+              "subs": []
+            },
+            {
+              "text": "Reconnect details to scenarios",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Explore",
+          "start": 0,
           "length": 1,
           "spanning": false,
           "icon": "rocket",
           "color": "#B7C4B7",
           "greyed": false,
           "hidden": false,
-          "details": []
+          "details": [
+            {
+              "text": "Show/Explain",
+              "subs": []
+            },
+            {
+              "text": "Begin Force",
+              "subs": []
+            }
+          ]
         },
         {
           "id": null,
-          "title": "Align",
+          "title": "Inspire",
           "start": 2,
+          "length": 1,
+          "spanning": false,
+          "icon": "lightbulb",
+          "color": "#45B69C",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Attraction",
+              "subs": []
+            },
+            {
+              "text": "Knowledge",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Appreciate",
+          "start": 3,
+          "length": 1,
+          "spanning": false,
+          "icon": "bookmark",
+          "color": "#45B69C",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Scenario",
+              "subs": [
+                "Connecting details"
+              ]
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Escalate",
+          "start": 4,
+          "length": 1,
+          "spanning": false,
+          "icon": "bell",
+          "color": "#45B69C",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Change force",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Accept",
+          "start": 1,
           "length": 1,
           "spanning": false,
           "icon": "check",
           "color": "#B7C4B7",
           "greyed": false,
           "hidden": false,
-          "details": []
+          "details": [
+            {
+              "text": "Actions",
+              "subs": [
+                "Memory",
+                "Commitment"
+              ]
+            }
+          ]
         }
       ]
     },
     {
       "id": null,
-      "title": "Attack",
+      "title": "Actions",
       "color": "#E6B800",
       "icon": "arrow-right",
       "height": null,
       "history": {
-        "start": "",
-        "end": "8%",
-        "startIcon": "star",
+        "start": "Give 80%",
+        "end": "20%",
+        "startIcon": "half-circle",
         "endIcon": null,
-        "percent": 8,
-        "origin": "right"
+        "percent": 80,
+        "origin": "left"
       },
       "items": [
         {
           "id": null,
-          "title": "Deflect",
-          "start": 4,
+          "title": "Distract",
+          "start": 5.5,
           "length": 1,
           "spanning": false,
           "icon": "arrow-right",
           "color": "#B7C4B7",
           "greyed": false,
           "hidden": false,
-          "details": []
+          "details": [
+            {
+              "text": "Moment",
+              "subs": []
+            },
+            {
+              "text": "Person",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Attack",
+          "start": 4.5,
+          "length": 1,
+          "spanning": false,
+          "icon": "lock",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Detail review",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Apologize",
+          "start": 3.5,
+          "length": 1,
+          "spanning": false,
+          "icon": "calendar",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Detail correction",
+              "subs": []
+            }
+          ]
         },
         {
           "id": null,
           "title": "Question",
           "start": 0,
-          "length": 2,
+          "length": 1,
           "spanning": false,
           "icon": "question",
           "color": "#B7C4B7",
           "greyed": false,
           "hidden": false,
-          "details": []
+          "details": [
+            {
+              "text": "Scenario start",
+              "subs": [
+                "Specific Detail"
+              ]
+            }
+          ]
         },
         {
           "id": null,
-          "title": "Deny",
-          "start": 6,
+          "title": "Request",
+          "start": 1,
+          "length": 1,
+          "spanning": false,
+          "icon": "circle",
+          "color": "#B7C4B7",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Scenario start",
+              "subs": [
+                "Buzzword connection"
+              ]
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Ignore",
+          "start": 6.5,
           "length": 1,
           "spanning": false,
           "icon": "x-mark",
           "color": "#B7C4B7",
           "greyed": false,
           "hidden": false,
-          "details": []
+          "details": [
+            {
+              "text": "Silence",
+              "subs": []
+            }
+          ]
         }
       ]
     },
     {
       "id": null,
-      "title": "Avoid",
+      "title": "Life",
       "color": "#EF4444",
       "icon": "x-mark",
-      "height": 1,
+      "height": 0.75,
       "history": {
         "start": "",
         "end": "2%",
@@ -296,10 +495,72 @@
           "length": 1,
           "spanning": false,
           "icon": "triangle",
-          "color": "#D4652F",
+          "color": "#EF4444",
           "greyed": false,
           "hidden": false,
-          "details": []
+          "details": [
+            {
+              "text": "Exit Strategy",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Plan",
+          "start": 0,
+          "length": 1,
+          "spanning": false,
+          "icon": "triangle",
+          "color": "#EF4444",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Prep work",
+              "subs": [
+                "Specific/details"
+              ]
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Start",
+          "start": 1,
+          "length": 1,
+          "spanning": false,
+          "icon": "circle",
+          "color": "#9999ff",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Planning",
+              "subs": [
+                "Initial contact"
+              ]
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "RNG",
+          "start": 2,
+          "length": 5,
+          "spanning": true,
+          "icon": "globe",
+          "color": "#45B69C",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Life Events",
+              "subs": [
+                "Time constraints"
+              ]
+            }
+          ]
         }
       ]
     }

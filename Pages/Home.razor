@@ -176,19 +176,19 @@
                             <Icon IconType="flag" Size="28" Color="#45B69C" />
                             <span style="font-size: 11px; font-weight: 600; color: #45B69C;">Milestone</span>
                         </button>
-                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumBoard))"
-                                title="Scrum Board"
-                                class="cc-icon-btn"
-                                style="background: linear-gradient(135deg, rgba(248, 131, 121, 0.2) 0%, rgba(248, 131, 121, 0.05) 100%); color: #F88379; border: 1px solid rgba(248, 131, 121, 0.4); flex: 1; min-width: 80px; height: 70px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(248, 131, 121, 0.2);">
-                            <Icon IconType="target" Size="28" Color="#F88379" />
-                            <span style="font-size: 11px; font-weight: 600; color: #F88379;">Scrum</span>
-                        </button>
                         <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Retrospective))"
                                 title="Retrospective"
                                 class="cc-icon-btn"
                                 style="background: linear-gradient(135deg, rgba(230, 184, 0, 0.2) 0%, rgba(230, 184, 0, 0.05) 100%); color: #E6B800; border: 1px solid rgba(230, 184, 0, 0.4); flex: 1; min-width: 80px; height: 70px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(230, 184, 0, 0.2);">
                             <Icon IconType="pause" Size="28" Color="#E6B800" />
                             <span style="font-size: 11px; font-weight: 600; color: #E6B800;">Retro</span>
+                        </button>
+                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumBoard))"
+                                title="Energy Flows"
+                                class="cc-icon-btn"
+                                style="background: linear-gradient(135deg, rgba(248, 131, 121, 0.2) 0%, rgba(248, 131, 121, 0.05) 100%); color: #F88379; border: 1px solid rgba(248, 131, 121, 0.4); flex: 1; min-width: 80px; height: 70px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(248, 131, 121, 0.2);">
+                            <Icon IconType="target" Size="28" Color="#F88379" />
+                            <span style="font-size: 11px; font-weight: 600; color: #F88379;">Energy</span>
                         </button>
                     </div>
                 </div>
@@ -437,18 +437,18 @@
                     <Icon IconType="flag" Size="24" Color="#45B69C" />
                 </button>
 
-                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumBoard))"
-                        title="Apply Scrum Board Template"
-                        class="cc-icon-btn"
-                        style="background: linear-gradient(135deg, rgba(248, 131, 121, 0.2) 0%, rgba(248, 131, 121, 0.05) 100%); color: #F88379; border: 1px solid rgba(248, 131, 121, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(248, 131, 121, 0.2);">
-                    <Icon IconType="target" Size="24" Color="#F88379" />
-                </button>
-
                 <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Retrospective))"
                         title="Apply Retrospective Template"
                         class="cc-icon-btn"
                         style="background: linear-gradient(135deg, rgba(230, 184, 0, 0.2) 0%, rgba(230, 184, 0, 0.05) 100%); color: #E6B800; border: 1px solid rgba(230, 184, 0, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(230, 184, 0, 0.2);">
                     <Icon IconType="pause" Size="24" Color="#E6B800" />
+                </button>
+
+                <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumBoard))"
+                        title="Apply Energy Flows Template"
+                        class="cc-icon-btn"
+                        style="background: linear-gradient(135deg, rgba(248, 131, 121, 0.2) 0%, rgba(248, 131, 121, 0.05) 100%); color: #F88379; border: 1px solid rgba(248, 131, 121, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(248, 131, 121, 0.2);">
+                    <Icon IconType="target" Size="24" Color="#F88379" />
                 </button>
             </div>
         }
@@ -460,12 +460,19 @@
             <div style="@RoadmapWrapperStyle()">
                 <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
 
-                @* Quick Share Icon *@
-                <div @onclick="QuickShareAsPng"
-                     class="quick-share-icon"
-                     title="Open roadmap as PNG in new tab"
-                     style="position: absolute; top: 16px; right: 16px; cursor: pointer; opacity: 0.4; transition: opacity 0.2s, transform 0.2s; z-index: 100; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.2)" : "rgba(0, 0, 0, 0.05)");">
-                    <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#a5b4fc" : "#6b7280")" />
+                @* Quick Share Icon and GitHub Link *@
+                <div style="position: absolute; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; align-items: center;">
+                    <a href="https://github.com/MgGriebZ/RoadScript" target="_blank" rel="noopener noreferrer"
+                       title="View on GitHub"
+                       style="cursor: pointer; opacity: 0.8; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.3)" : "rgba(0, 0, 0, 0.1)"); display: flex; align-items: center; justify-content: center; text-decoration: none;">
+                        <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                    </a>
+                    <div @onclick="QuickShareAsPng"
+                         class="quick-share-icon"
+                         title="Open roadmap as PNG in new tab"
+                         style="cursor: pointer; opacity: 0.4; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.2)" : "rgba(0, 0, 0, 0.05)");">
+                        <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#a5b4fc" : "#6b7280")" />
+                    </div>
                 </div>
 
                 @* Static Milestone Navigation Controls - Top Center Position *@

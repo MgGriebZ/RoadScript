@@ -10,54 +10,109 @@
         </div>
 
         <div class="template-options">
-            <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumSprintCycle))">
-                <div class="template-icon" style="background: linear-gradient(135deg, rgba(153, 153, 255, 0.15) 0%, rgba(153, 153, 255, 0.05) 100%);">
-                    <Icon IconType="calendar" Size="56" Color="#9999ff" />
+            <div class="template-card">
+                <div @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumSprintCycle))" style="display: flex; align-items: center; gap: 20px; cursor: pointer;">
+                    <div class="template-icon" style="background: linear-gradient(135deg, rgba(153, 153, 255, 0.15) 0%, rgba(153, 153, 255, 0.05) 100%);">
+                        <Icon IconType="calendar" Size="56" Color="#9999ff" />
+                    </div>
+                    <div class="template-info">
+                        <h4>Daily Planning</h4>
+                        <p>A quick daily-like view representing something close to an outlook calendar. This template uses typical sprint meetings in an agile Scrum development team. It has a few larger items that are good for adding quick notes or details to re-occurring meetings or projects.</p>
+                    </div>
                 </div>
-                <div class="template-info">
-                    <h4>Daily Planning</h4>
-                    <p>A quick daily-like view representing something close to an outlook calendar. This template uses typical sprint meetings in an agile Scrum development team. It has a few larger items that are good for adding quick notes or details to re-occurring meetings or projects.</p>
-                </div>
+                <button @onclick="@(() => ToggleExamples(TemplateType.ScrumSprintCycle))" @onclick:stopPropagation="true" class="example-toggle">
+                    @(IsExampleExpanded(TemplateType.ScrumSprintCycle) ? "▼" : "▶") Example
+                </button>
+                @if (IsExampleExpanded(TemplateType.ScrumSprintCycle))
+                {
+                    <div class="example-content">
+                        @GetExampleContent(TemplateType.ScrumSprintCycle)
+                    </div>
+                }
             </div>
 
-            <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.ProjectTimelines))">
-                <div class="template-icon" style="background: linear-gradient(135deg, rgba(135, 206, 235, 0.15) 0%, rgba(135, 206, 235, 0.05) 100%);">
-                    <Icon IconType="rocket" Size="56" Color="#87CEEB" />
+            <div class="template-card">
+                <div @onclick="@(() => HandleTemplateSelect(TemplateType.ProjectTimelines))" style="display: flex; align-items: center; gap: 20px; cursor: pointer;">
+                    <div class="template-icon" style="background: linear-gradient(135deg, rgba(135, 206, 235, 0.15) 0%, rgba(135, 206, 235, 0.05) 100%);">
+                        <Icon IconType="rocket" Size="56" Color="#87CEEB" />
+                    </div>
+                    <div class="template-info">
+                        <h4>Project Timelines</h4>
+                        <p>High-level product level tracking which represents larger scales of time. This template uses mggriebz personal portfolio of products including details of core features, deployment dates and easy to adjust roadmap settings.</p>
+                    </div>
                 </div>
-                <div class="template-info">
-                    <h4>Project Timelines</h4>
-                    <p>High-level product level tracking which represents larger scales of time. This template uses mggriebz personal portfolio of products including details of core features, deployment dates and easy to adjust roadmap settings.</p>
-                </div>
+                <button @onclick="@(() => ToggleExamples(TemplateType.ProjectTimelines))" @onclick:stopPropagation="true" class="example-toggle">
+                    @(IsExampleExpanded(TemplateType.ProjectTimelines) ? "▼" : "▶") Example
+                </button>
+                @if (IsExampleExpanded(TemplateType.ProjectTimelines))
+                {
+                    <div class="example-content">
+                        @GetExampleContent(TemplateType.ProjectTimelines)
+                    </div>
+                }
             </div>
 
-            <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.AnnualRoadmap))">
-                <div class="template-icon" style="background: linear-gradient(135deg, rgba(69, 182, 156, 0.15) 0%, rgba(69, 182, 156, 0.05) 100%);">
-                    <Icon IconType="flag" Size="56" Color="#45B69C" />
+            <div class="template-card">
+                <div @onclick="@(() => HandleTemplateSelect(TemplateType.AnnualRoadmap))" style="display: flex; align-items: center; gap: 20px; cursor: pointer;">
+                    <div class="template-icon" style="background: linear-gradient(135deg, rgba(69, 182, 156, 0.15) 0%, rgba(69, 182, 156, 0.05) 100%);">
+                        <Icon IconType="flag" Size="56" Color="#45B69C" />
+                    </div>
+                    <div class="template-info">
+                        <h4>Milestone Map</h4>
+                        <p>Hyper detailed target and milestone event tracking. This template uses several columns to represent hourly development cycles with Claude credit token resets and PR merges that track a product lifecycle. It utilizes the expansive icon list and milestone features to help define specific targets/goals.</p>
+                    </div>
                 </div>
-                <div class="template-info">
-                    <h4>Milestone Map</h4>
-                    <p>Hyper detailed target and milestone event tracking. This template uses several columns to represent hourly development cycles with Claude credit token resets and PR merges that track a product lifecycle. It utilizes the expansive icon list and milestone features to help define specific targets/goals.</p>
-                </div>
+                <button @onclick="@(() => ToggleExamples(TemplateType.AnnualRoadmap))" @onclick:stopPropagation="true" class="example-toggle">
+                    @(IsExampleExpanded(TemplateType.AnnualRoadmap) ? "▼" : "▶") Example
+                </button>
+                @if (IsExampleExpanded(TemplateType.AnnualRoadmap))
+                {
+                    <div class="example-content">
+                        @GetExampleContent(TemplateType.AnnualRoadmap)
+                    </div>
+                }
             </div>
 
-            <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumBoard))">
-                <div class="template-icon" style="background: linear-gradient(135deg, rgba(248, 131, 121, 0.15) 0%, rgba(248, 131, 121, 0.05) 100%);">
-                    <Icon IconType="target" Size="56" Color="#F88379" />
+            <div class="template-card">
+                <div @onclick="@(() => HandleTemplateSelect(TemplateType.Retrospective))" style="display: flex; align-items: center; gap: 20px; cursor: pointer;">
+                    <div class="template-icon" style="background: linear-gradient(135deg, rgba(230, 184, 0, 0.15) 0%, rgba(230, 184, 0, 0.05) 100%);">
+                        <Icon IconType="pause" Size="56" Color="#E6B800" />
+                    </div>
+                    <div class="template-info">
+                        <h4>Retrospective</h4>
+                        <p>Structured sprint retrospective for reflecting on team performance. Features Went Well, Needs Work, and Kudos columns to organize feedback across Execution, Requirements, and Coordination swim lanes. Perfect for capturing insights and celebrating wins during retrospective ceremonies.</p>
+                    </div>
                 </div>
-                <div class="template-info">
-                    <h4>Scrum Board</h4>
-                    <p>A flow-state focused template designed for tracking multi-turn workflows and team dynamics. This template features flexible columns with rich milestone markers, progress indicators, and customizable swim lanes perfect for agile teams managing complex collaborative work cycles.</p>
-                </div>
+                <button @onclick="@(() => ToggleExamples(TemplateType.Retrospective))" @onclick:stopPropagation="true" class="example-toggle">
+                    @(IsExampleExpanded(TemplateType.Retrospective) ? "▼" : "▶") Example
+                </button>
+                @if (IsExampleExpanded(TemplateType.Retrospective))
+                {
+                    <div class="example-content">
+                        @GetExampleContent(TemplateType.Retrospective)
+                    </div>
+                }
             </div>
 
-            <div class="template-card" @onclick="@(() => HandleTemplateSelect(TemplateType.Retrospective))">
-                <div class="template-icon" style="background: linear-gradient(135deg, rgba(230, 184, 0, 0.15) 0%, rgba(230, 184, 0, 0.05) 100%);">
-                    <Icon IconType="pause" Size="56" Color="#E6B800" />
+            <div class="template-card">
+                <div @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumBoard))" style="display: flex; align-items: center; gap: 20px; cursor: pointer;">
+                    <div class="template-icon" style="background: linear-gradient(135deg, rgba(248, 131, 121, 0.15) 0%, rgba(248, 131, 121, 0.05) 100%);">
+                        <Icon IconType="target" Size="56" Color="#F88379" />
+                    </div>
+                    <div class="template-info">
+                        <h4>Energy Flows</h4>
+                        <p>A flow-state focused template designed to show user interactions and the force and frequency behind scenarios. Track the give/take relationship of exchanges and the path to experiencing moments of love and flow. Map how actions influence scenarios and how parties can reconnect to moments or choose to avoid and move to new scenarios.</p>
+                    </div>
                 </div>
-                <div class="template-info">
-                    <h4>Retrospective</h4>
-                    <p>Structured sprint retrospective template with Went Well, Needs Work, and Kudos columns. Organize team feedback across Execution, Requirements, Coordination, and Timing swim lanes. Perfect for capturing actionable insights and celebrating wins during retrospective ceremonies.</p>
-                </div>
+                <button @onclick="@(() => ToggleExamples(TemplateType.ScrumBoard))" @onclick:stopPropagation="true" class="example-toggle">
+                    @(IsExampleExpanded(TemplateType.ScrumBoard) ? "▼" : "▶") Example
+                </button>
+                @if (IsExampleExpanded(TemplateType.ScrumBoard))
+                {
+                    <div class="example-content">
+                        @GetExampleContent(TemplateType.ScrumBoard)
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -68,10 +123,42 @@
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<TemplateType> OnTemplateSelect { get; set; }
 
+    private Dictionary<TemplateType, bool> _expandedExamples = new();
+
     private async Task HandleTemplateSelect(TemplateType templateType)
     {
         await OnTemplateSelect.InvokeAsync(templateType);
         await OnClose.InvokeAsync();
+    }
+
+    private void ToggleExamples(TemplateType templateType)
+    {
+        if (_expandedExamples.ContainsKey(templateType))
+        {
+            _expandedExamples[templateType] = !_expandedExamples[templateType];
+        }
+        else
+        {
+            _expandedExamples[templateType] = true;
+        }
+    }
+
+    private bool IsExampleExpanded(TemplateType templateType)
+    {
+        return _expandedExamples.ContainsKey(templateType) && _expandedExamples[templateType];
+    }
+
+    private string GetExampleContent(TemplateType templateType)
+    {
+        return templateType switch
+        {
+            TemplateType.ScrumSprintCycle => "Example: Use this template for daily standup tracking, sprint planning meetings, and recurring team ceremonies. Add specific meeting notes, action items, and blockers as they occur throughout your day.",
+            TemplateType.ProjectTimelines => "Example: Track multiple product launches across quarters, showing feature rollouts, deployment milestones, and cross-team dependencies. Ideal for portfolio management and strategic planning.",
+            TemplateType.AnnualRoadmap => "Example: Map out a detailed development cycle with hourly checkpoints, Claude AI token resets, PR merge windows, and release targets. Perfect for tracking progress on complex technical implementations.",
+            TemplateType.Retrospective => "Example: After a sprint, document what went well (successful deployments, effective collaboration), what needs work (communication gaps, technical debt), and kudos for team members who went above and beyond.",
+            TemplateType.ScrumBoard => "Example: Map a scenario where you're trying to connect with a friend - the initial question/request (action), their acceptance (exchange), mutual inspiration and appreciation (experience), building toward a flow moment of genuine connection (energy). Track how life events (RNG) can pause or derail the scenario, requiring new actions to reconnect or a decision to avoid and move on.",
+            _ => ""
+        };
     }
 }
 
@@ -148,13 +235,12 @@
 
     .template-card {
         display: flex;
-        align-items: center;
-        gap: 20px;
+        flex-direction: column;
+        gap: 12px;
         padding: 20px;
         background: #2a2a2a;
         border: 2px solid #444;
         border-radius: 12px;
-        cursor: pointer;
         transition: all 0.2s;
     }
 
@@ -162,6 +248,36 @@
         background: #333;
         border-color: #667eea;
         transform: translateX(4px);
+    }
+
+    .example-toggle {
+        align-self: flex-start;
+        background: none;
+        border: 1px solid #555;
+        color: #999;
+        padding: 4px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+        margin-left: 100px;
+    }
+
+    .example-toggle:hover {
+        background: #3c3c3c;
+        color: #ccc;
+        border-color: #667eea;
+    }
+
+    .example-content {
+        margin-left: 100px;
+        padding: 12px;
+        background: #1e1e1e;
+        border-left: 3px solid #667eea;
+        border-radius: 4px;
+        color: #ccc;
+        font-size: 13px;
+        line-height: 1.6;
     }
 
     .template-icon {
