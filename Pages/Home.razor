@@ -30,19 +30,9 @@
 
             <div style="flex: 1; overflow-y: auto; padding: 16px; background: #252526; display: flex; flex-direction: column;">
                 @* Workspace - Folders as large inline icon buttons *@
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Folders</h3>
-                        <button @onclick="ToggleFolderSelector"
-                                title="Advanced folder management"
-                                class="cc-icon-btn"
-                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 40px; height: 40px; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                            <Icon IconType="gear" Size="20" Color="#ccc" />
-                        </button>
-                    </div>
-
-                    @* 3 Folder Buttons - Inline style like Quick Templates *@
-                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                <div style="margin-bottom: 16px;">
+                    @* 3 Folder Buttons with gear icon *@
+                    <div style="display: flex; gap: 8px;">
                         @for (int i = 0; i < 3; i++)
                         {
                             var folderIndex = i;
@@ -60,13 +50,19 @@
                                 <span style="font-size: 10px; font-weight: 600; color: @folderColor; margin-top: 4px;">@(hasFolder ? (folder!.Name.Length > 8 ? folder!.Name.Substring(0, 8) : folder!.Name) : "Add")</span>
                             </button>
                         }
+
+                        @* Gear icon for advanced folder management *@
+                        <button @onclick="ToggleFolderSelector"
+                                title="Advanced folder management"
+                                class="cc-icon-btn"
+                                style="flex: 0 0 70px; height: 70px; background: #3c3c3c; color: #ccc; border: 1px solid #555; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                            <Icon IconType="gear" Size="28" Color="#ccc" />
+                        </button>
                     </div>
                 </div>
 
                 @* Roadmaps - Large icon button grid *@
-                <div style="margin-bottom: 20px;">
-                    <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Roadmaps</h3>
-
+                <div style="margin-bottom: 16px;">
                     @if (_sessionManager != null)
                     {
                         <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; margin-bottom: 12px;">
@@ -124,10 +120,12 @@
                     }
                 </div>
 
-                <div style="margin-bottom: 20px;">
-                    <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Quick Templates</h3>
-                    <div style="display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap;">
-                        <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumSprintCycle))"
+                @if (!_showAdvancedSection)
+                {
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Quick Templates</h3>
+                        <div style="display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap;">
+                            <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumSprintCycle))"
                                 title="Daily Planning"
                                 class="cc-icon-btn"
                                 style="background: linear-gradient(135deg, rgba(153, 153, 255, 0.2) 0%, rgba(153, 153, 255, 0.05) 100%); color: #9999ff; border: 1px solid rgba(153, 153, 255, 0.4); flex: 1; min-width: 80px; height: 70px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(153, 153, 255, 0.2);">
@@ -164,54 +162,60 @@
                         </button>
                     </div>
                 </div>
+                }
 
-                <div style="margin-bottom: 20px;">
-                    <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Quick Actions</h3>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <div>
+                @if (!_showAdvancedSection)
+                {
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Quick Actions</h3>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            @* Edit Mode Button *@
                             <button @onclick="@(async () => await ToggleViewMode(null))"
-                                    title="@(_isPreviewMode ? "Switch to Edit Mode - Enable editing and properties panel" : "Switch to Preview Mode - Clean view for presentations")"
-                                    style="@GetViewModeToggleStyle()">
-                                <div style="display: flex; width: 100%; height: 100%; border-radius: 6px; overflow: hidden;">
-                                    <div style="@GetViewModeOptionStyle(false)">
-                                        <span style="font-size: 24px;">✏️</span>
-                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Edit</span>
-                                    </div>
-                                    <div style="@GetViewModeOptionStyle(true)">
-                                        <span style="font-size: 24px;">👁️</span>
-                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Preview</span>
-                                    </div>
-                                </div>
+                                    title="@(_isPreviewMode ? "Edit Mode" : "Preview Mode")"
+                                    class="cc-icon-btn"
+                                    style="@GetQuickActionButtonStyle(!_isPreviewMode, "#10b981")">
+                                <span style="font-size: 24px;">✏️</span>
+                                <span style="font-size: 10px; font-weight: 600; margin-top: 2px;">Edit</span>
                             </button>
-                        </div>
 
-                        <div>
+                            @* Preview Mode Button *@
+                            <button @onclick="@(async () => await ToggleViewMode(null))"
+                                    title="@(_isPreviewMode ? "Edit Mode" : "Preview Mode")"
+                                    class="cc-icon-btn"
+                                    style="@GetQuickActionButtonStyle(_isPreviewMode, "#8b5cf6")">
+                                <span style="font-size: 24px;">👁️</span>
+                                <span style="font-size: 10px; font-weight: 600; margin-top: 2px;">View</span>
+                            </button>
+
+                            @* Lite Theme Button *@
                             <button @onclick="@(() => ToggleTheme(null))"
-                                    title="@(_isVibeMode ? "Switch to Lite Theme - Light, professional appearance" : "Switch to Vibe Theme - Dark theme with vibrant neon accents")"
-                                    style="@GetThemeModeToggleStyle()">
-                                <div style="display: flex; width: 100%; height: 100%; border-radius: 6px; overflow: hidden;">
-                                    <div style="@GetThemeModeOptionStyle(false)">
-                                        <span style="font-size: 24px;">☀️</span>
-                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Lite</span>
-                                    </div>
-                                    <div style="@GetThemeModeOptionStyle(true)">
-                                        <span style="font-size: 24px;">🌙</span>
-                                        <span style="font-size: 13px; font-weight: 600; margin-left: 8px;">Vibe</span>
-                                    </div>
-                                </div>
+                                    title="Lite Theme"
+                                    class="cc-icon-btn"
+                                    style="@GetQuickActionButtonStyle(!_isVibeMode, "#f59e0b")">
+                                <span style="font-size: 24px;">☀️</span>
+                                <span style="font-size: 10px; font-weight: 600; margin-top: 2px;">Lite</span>
+                            </button>
+
+                            @* Vibe Theme Button *@
+                            <button @onclick="@(() => ToggleTheme(null))"
+                                    title="Vibe Theme"
+                                    class="cc-icon-btn"
+                                    style="@GetQuickActionButtonStyle(_isVibeMode, "#6366f1")">
+                                <span style="font-size: 24px;">🌙</span>
+                                <span style="font-size: 10px; font-weight: 600; margin-top: 2px;">Vibe</span>
+                            </button>
+
+                            @* Export PNG Button *@
+                            <button @onclick="ExportAsPng"
+                                    title="Export PNG"
+                                    class="cc-icon-btn"
+                                    style="flex: 1; min-width: 80px; height: 70px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);">
+                                <span style="font-size: 24px;">📷</span>
+                                <span style="font-size: 10px; font-weight: 600;">Export</span>
                             </button>
                         </div>
                     </div>
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <button @onclick="ExportAsPng"
-                            title="Export your roadmap as a high-quality PNG image for sharing and presentations"
-                            style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 14px 16px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <span style="font-size: 22px;">📷</span>
-                        <span>Export PNG</span>
-                    </button>
-                </div>
+                }
 
                 <div style="border-top: 1px solid #3a3a4e; padding-top: 16px; display: flex; flex-direction: column; flex: 1; min-height: 0;">
                     <button @onclick="ToggleAdvancedSection"
@@ -227,8 +231,9 @@
 
                     @if (_showAdvancedSection)
                     {
-                        <div style="margin-top: 12px; display: flex; flex-direction: column; flex: 1; min-height: 0;">
-                            <div style="background: #1e1e1e; padding: 8px 12px; border-radius: 4px; border: 1px solid #3a3a4e; display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-shrink: 0; flex-wrap: wrap;">
+                        <div style="margin-top: 12px; display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 12px;">
+                            @* Editor Controls - Compact toolbar *@
+                            <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
                                 <button @onclick="UpdatePreview"
                                         disabled="@(!_editorReady)"
                                         title="Apply JSON changes to the roadmap preview"
@@ -241,39 +246,53 @@
                                         title="Download roadmap as JSON file"
                                         class="cc-icon-btn"
                                         style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                                    💾 Save
-                                </button>
-                                <button @onclick="DownloadFolder"
-                                        disabled="@(!_editorReady)"
-                                        title="Download entire folder with all roadmaps as JSON"
-                                        class="cc-icon-btn"
-                                        style="background: linear-gradient(135deg, rgba(255, 165, 0, 0.2) 0%, rgba(255, 165, 0, 0.05) 100%); color: #FFA500; border: 1px solid rgba(255, 165, 0, 0.4); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                                    📁 Folder
+                                    💾 JSON
                                 </button>
 
                                 @if (!_editorReady)
                                 {
-                                    <span style="color: #888; font-size: 11px;">⏳</span>
+                                    <span style="color: #888; font-size: 11px; margin-left: auto;">⏳</span>
                                 }
                                 else if (_isUpdating)
                                 {
-                                    <span style="color: #4ec9b0; font-size: 11px;">●</span>
+                                    <span style="color: #4ec9b0; font-size: 11px; margin-left: auto;">●</span>
                                 }
                                 else if (_lastUpdateSuccess && _error == null)
                                 {
-                                    <span style="color: #4ec9b0; font-size: 11px;">✓</span>
+                                    <span style="color: #4ec9b0; font-size: 11px; margin-left: auto;">✓</span>
                                 }
                                 else if (_error != null)
                                 {
-                                    <span style="color: #f48771; font-size: 11px;">✗</span>
+                                    <span style="color: #f48771; font-size: 11px; margin-left: auto;">✗</span>
                                 }
                             </div>
-                            <div style="flex: 1; border: 1px solid #3a3a4e; border-radius: 4px; overflow: hidden; min-height: 200px;">
+
+                            @* JSON Editor *@
+                            <div style="flex: 1; border: 1px solid #3a3a4e; border-radius: 4px; overflow: hidden; min-height: 300px;">
                                 <StandaloneCodeEditor @ref="_editor"
                                                       Id="roadscript-json-editor"
                                                       ConstructionOptions="EditorConstructionOptions"
                                                       OnDidInit="EditorOnDidInit"
                                                       CssClass="h-100" />
+                            </div>
+
+                            @* Folder Management - Large Icon Buttons *@
+                            <div style="display: flex; gap: 8px;">
+                                <button @onclick="DownloadFolder"
+                                        disabled="@(!_editorReady)"
+                                        title="Download entire folder with all roadmaps as JSON"
+                                        class="cc-icon-btn"
+                                        style="flex: 1; height: 60px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.1) 100%); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);">
+                                    <span style="font-size: 24px;">💾</span>
+                                    <span>Save Folder</span>
+                                </button>
+                                <button @onclick="ImportFolder"
+                                        title="Import folder from JSON file"
+                                        class="cc-icon-btn"
+                                        style="flex: 1; height: 60px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);">
+                                    <span style="font-size: 24px;">📥</span>
+                                    <span>Import Folder</span>
+                                </button>
                             </div>
                         </div>
                     }
@@ -436,13 +455,13 @@
             <div style="@RoadmapWrapperStyle()">
                 <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
 
-                @* Quick Action Icons - Folder, GitHub, Share *@
-                <div style="position: absolute; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; align-items: center;">
-                    @* Folder Navigation *@
+                @* Quick Action Icons - Atom Navigation, GitHub, Share *@
+<div style="position: absolute; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; align-items: center;">
+                    @* Folder Navigation - Atom Icon *@
                     <div @onclick="ToggleFolderNavPopup"
                          title="Quick folder navigation"
-                         style="cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(255, 165, 0, 0.3)" : "rgba(255, 165, 0, 0.15)"); display: flex; align-items: center; justify-content: center;">
-                        <Icon IconType="folder" Size="20" Color="#FFA500" />
+                         style="cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(167, 139, 250, 0.3)" : "rgba(167, 139, 250, 0.15)"); display: flex; align-items: center; justify-content: center;">
+                        <Icon IconType="atom" Size="20" Color="#a78bfa" />
                     </div>
 
                     <a href="https://github.com/MgGriebZ/RoadScript" target="_blank" rel="noopener noreferrer"
@@ -883,6 +902,9 @@
         }
     </div>
 
+    @* Hidden file input for folder import *@
+    <InputFile @ref="_folderImportInput" OnChange="HandleFolderImport" accept=".json" style="display: none;" />
+
     <PropertyPanel OnPropertyChange="HandlePropertyChange"
                   OnAddElement="HandleAddElement"
                   OnRemoveElement="HandleRemoveElement"
@@ -934,6 +956,7 @@
     private bool _showAdvancedSection = false; // Show/hide Advanced JSON editor section - collapsed by default
     private bool _showProperties = true;       // Show/hide properties panel - open by default
     private DotNetObjectReference<Home>? _dotNetRef;
+    private InputFile? _folderImportInput;
 
     private FolderManager? _folderManager;
     private Folder? _activeFolder;
@@ -1789,6 +1812,76 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error downloading folder: {ex.Message}");
+        }
+    }
+
+    private async Task ImportFolder()
+    {
+        if (_folderImportInput?.Element != null)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", "$0.click()", _folderImportInput.Element);
+        }
+    }
+
+    private async Task HandleFolderImport(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            if (file == null) return;
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024); // 5MB limit
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true
+            };
+
+            var importedFolder = JsonSerializer.Deserialize<Folder>(json, options);
+            if (importedFolder == null)
+            {
+                Console.WriteLine("Failed to deserialize folder");
+                return;
+            }
+
+            if (_folderManager == null || _folderManager.Folders.Count >= 3)
+            {
+                Console.WriteLine("Cannot import: folder limit reached");
+                return;
+            }
+
+            // Add the imported folder
+            importedFolder.Id = Guid.NewGuid().ToString();
+            importedFolder.LastModified = DateTime.UtcNow;
+            _folderManager.Folders.Add(importedFolder);
+            _folderManager.ActiveFolderId = importedFolder.Id;
+
+            // Set as active folder
+            _activeFolder = importedFolder;
+            _sessionManager = _activeFolder.SessionManager;
+            _activeTab = StorageService.GetActiveTab(_sessionManager);
+
+            if (_activeTab != null)
+            {
+                _data = _activeTab.Data;
+                _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+                if (_editor != null && _editorReady)
+                {
+                    await _editor.SetValue(_currentJson);
+                }
+            }
+
+            await StorageService.SaveFolderManagerAsync(_folderManager);
+            SelectionState.Clear();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error importing folder: {ex.Message}");
         }
     }
 
@@ -3590,6 +3683,20 @@
             "Energy" => "target",
             _ => null
         };
+    }
+
+    private string GetQuickActionButtonStyle(bool isActive, string color)
+    {
+        var baseStyle = "flex: 1; min-width: 70px; height: 70px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;";
+
+        if (isActive)
+        {
+            return $"{baseStyle} background: linear-gradient(135deg, {color}40 0%, {color}20 100%); border: 2px solid {color}; box-shadow: 0 4px 12px {color}60;";
+        }
+        else
+        {
+            return $"{baseStyle} background: linear-gradient(135deg, {color}10 0%, {color}05 100%); border: 1px solid {color}30; box-shadow: 0 2px 4px {color}20; opacity: 0.6;";
+        }
     }
 
     private void CloseFolderSelector()
