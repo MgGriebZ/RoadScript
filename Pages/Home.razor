@@ -29,18 +29,19 @@
             </div>
 
             <div style="flex: 1; overflow-y: auto; padding: 16px; background: #252526; display: flex; flex-direction: column;">
-                @* Visual Folder & Roadmap Selector *@
+                @* Workspace - Folders as large inline icon buttons *@
                 <div style="margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Workspace</h3>
+                        <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Folders</h3>
                         <button @onclick="ToggleFolderSelector"
                                 title="Advanced folder management"
-                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                            <Icon IconType="gear" Size="18" Color="#ccc" />
+                                class="cc-icon-btn"
+                                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 40px; height: 40px; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                            <Icon IconType="gear" Size="20" Color="#ccc" />
                         </button>
                     </div>
 
-                    @* 3 Static Folder Slots *@
+                    @* 3 Folder Buttons - Inline style like Quick Templates *@
                     <div style="display: flex; gap: 8px; margin-bottom: 16px;">
                         @for (int i = 0; i < 3; i++)
                         {
@@ -48,108 +49,79 @@
                             var hasFolder = folderIndex < (_folderManager?.Folders.Count ?? 0);
                             var folder = hasFolder ? _folderManager!.Folders[folderIndex] : null;
                             var isActive = hasFolder && folder?.Id == _folderManager?.ActiveFolderId;
-                            var folderColor = hasFolder ? folder!.Color : "#3a3a4e";
+                            var folderColor = hasFolder ? folder!.Color : "#FFA500";
                             var folderIcon = hasFolder ? (folder!.Icon ?? "folder") : "folder";
 
-                            <div style="flex: 1; position: relative;">
-                                <button @onclick="@(async () => { if (hasFolder) await HandleFolderSelect(folder!.Id); else ToggleFolderSelector(); })"
-                                        title="@(hasFolder ? folder!.Name : "Empty slot - click to add folder")"
-                                        style="@GetFolderCardStyle(isActive, hasFolder, folderColor)">
-                                    <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px 8px;">
-                                        @* Large folder icon *@
-                                        <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                            <Icon IconType="@folderIcon" Size="32" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#555555"))" DropShadow="@isActive" />
-                                        </div>
+                            <button @onclick="@(async () => { if (hasFolder) await HandleFolderSelect(folder!.Id); else ToggleFolderSelector(); })"
+                                    title="@(hasFolder ? folder!.Name : "Add folder")"
+                                    class="cc-icon-btn"
+                                    style="@GetFolderIconButtonStyle(isActive, hasFolder, folderColor)">
+                                <Icon IconType="@folderIcon" Size="32" Color="@folderColor" DropShadow="@isActive" />
+                                <span style="font-size: 10px; font-weight: 600; color: @folderColor; margin-top: 4px;">@(hasFolder ? (folder!.Name.Length > 8 ? folder!.Name.Substring(0, 8) : folder!.Name) : "Add")</span>
+                            </button>
+                        }
+                    </div>
+                </div>
 
-                                        @* Folder name *@
-                                        <div style="font-size: 11px; font-weight: 600; color: @(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666")); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; text-align: center;">
-                                            @(hasFolder ? folder!.Name : $"Slot {i + 1}")
-                                        </div>
+                @* Roadmaps - Large icon button grid *@
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #e0e7ff; font-size: 13px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Roadmaps</h3>
 
-                                        @* Tab count badge *@
-                                        @if (hasFolder)
+                    @if (_sessionManager != null)
+                    {
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; margin-bottom: 12px;">
+                            @for (int i = 0; i < 5; i++)
+                            {
+                                var tabIndex = i;
+                                var hasTab = tabIndex < _sessionManager.Tabs.Count;
+                                var tab = hasTab ? _sessionManager.Tabs[tabIndex] : null;
+                                var isActiveTab = hasTab && tab!.Id == _sessionManager.ActiveTabId;
+                                var templateType = hasTab ? tab!.TemplateType : null;
+                                var typeColor = GetTemplateTypeColor(templateType);
+                                var typeIcon = GetTemplateTypeIcon(templateType);
+
+                                <button @onclick="@(async () => { if (hasTab) await HandleTabSwitch(tab!.Id); else await HandleTabAdd(); })"
+                                        title="@(hasTab ? tab!.Name : "Add roadmap")"
+                                        class="cc-icon-btn"
+                                        style="@GetRoadmapIconButtonStyle(isActiveTab, hasTab, typeColor)">
+                                    <div style="position: relative;">
+                                        <div style="font-size: 20px; font-weight: 700; color: @typeColor;">@(tabIndex + 1)</div>
+                                        @if (hasTab && !string.IsNullOrEmpty(typeIcon))
                                         {
-                                            var tabCount = folder!.SessionManager?.Tabs.Count ?? 0;
-                                            <div style="font-size: 9px; color: #888; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px;">
-                                                @tabCount tab@(tabCount != 1 ? "s" : "")
+                                            <div style="position: absolute; top: -4px; right: -4px;">
+                                                <Icon IconType="@typeIcon" Size="12" Color="@typeColor" />
                                             </div>
                                         }
                                     </div>
+                                    <span style="font-size: 9px; font-weight: 600; color: @typeColor; margin-top: 4px; max-width: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@(hasTab ? (tab!.Name.Length > 6 ? tab!.Name.Substring(0, 6) : tab!.Name) : "New")</span>
                                 </button>
+                            }
+                        </div>
 
-                                @* Delete button overlay for active folder *@
-                                @if (isActive && hasFolder && (_folderManager?.Folders.Count ?? 0) > 1)
+                        @* Active Roadmap Name Editor (Compact) *@
+                        @if (_activeTab != null)
+                        {
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <input type="text"
+                                       value="@_activeTab.Name"
+                                       @onchange="@(async (e) => await HandleTabRename((_activeTab.Id, e.Value?.ToString() ?? "Untitled")))"
+                                       placeholder="Roadmap name..."
+                                       style="flex: 1; background: #252538; color: #e0e7ff; border: 1px solid #3a3a4e; border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 500; outline: none; transition: all 0.2s;"
+                                       onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 2px rgba(102, 126, 234, 0.1)'"
+                                       onblur="this.style.borderColor='#3a3a4e'; this.style.boxShadow='none'" />
+
+                                @if (_sessionManager.Tabs.Count > 1)
                                 {
-                                    <button @onclick="HandleRemoveFolder"
-                                            @onclick:stopPropagation="true"
-                                            title="Delete this folder"
-                                            style="position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; background: rgba(0,0,0,0.7); color: #ef4444; border: 1px solid #ef4444; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; transition: all 0.2s; z-index: 1;">
+                                    <button @onclick="@(async () => await HandleTabDelete(_activeTab.Id))"
+                                            title="Delete this roadmap"
+                                            class="cc-icon-btn"
+                                            style="width: 36px; height: 36px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 16px;">
                                         🗑️
                                     </button>
                                 }
                             </div>
                         }
-                    </div>
-
-                    @* Roadmaps for Active Folder - Number-based tabs *@
-                    <div style="background: #1e1e2e; border: 1px solid #3a3a4e; border-radius: 6px; padding: 12px;">
-                        <div style="font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 10px; padding: 0 4px;">
-                            Roadmaps (@(GetActiveFolderName()))
-                        </div>
-
-                        @if (_sessionManager != null)
-                        {
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">
-                                @for (int i = 0; i < _sessionManager.Tabs.Count; i++)
-                                {
-                                    var tab = _sessionManager.Tabs[i];
-                                    var tabIndex = i;
-                                    var isActiveTab = tab.Id == _sessionManager.ActiveTabId;
-
-                                    <button @onclick="@(() => HandleTabSwitch(tab.Id))"
-                                            title="@tab.Name"
-                                            style="@GetRoadmapTabStyle(isActiveTab)">
-                                        <div style="font-size: 16px; font-weight: 700; margin-bottom: 2px;">@(tabIndex + 1)</div>
-                                        <div style="font-size: 9px; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px;">@tab.Name</div>
-                                    </button>
-                                }
-
-                                @* Add roadmap button *@
-                                @if (_sessionManager.Tabs.Count < 5)
-                                {
-                                    <button @onclick="HandleTabAdd"
-                                            title="Add new roadmap"
-                                            style="min-width: 60px; height: 60px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.1) 100%); color: #10b981; border: 1px dashed rgba(16, 185, 129, 0.5); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-weight: 600;">
-                                        <span style="font-size: 20px;">+</span>
-                                        <span style="font-size: 9px;">New</span>
-                                    </button>
-                                }
-                            </div>
-
-                            @* Active Roadmap Name Editor *@
-                            @if (_activeTab != null)
-                            {
-                                <div style="display: flex; gap: 6px; align-items: center; padding-top: 10px; border-top: 1px solid #3a3a4e;">
-                                    <input type="text"
-                                           value="@_activeTab.Name"
-                                           @onchange="@(async (e) => await HandleTabRename((_activeTab.Id, e.Value?.ToString() ?? "Untitled")))"
-                                           placeholder="Roadmap name..."
-                                           style="flex: 1; background: #252538; color: #e0e7ff; border: 1px solid #3a3a4e; border-radius: 6px; padding: 8px 12px; font-size: 13px; font-weight: 500; outline: none; transition: all 0.2s;"
-                                           onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 2px rgba(102, 126, 234, 0.1)'"
-                                           onblur="this.style.borderColor='#3a3a4e'; this.style.boxShadow='none'" />
-
-                                    @if (_sessionManager.Tabs.Count > 1)
-                                    {
-                                        <button @onclick="@(async () => await HandleTabDelete(_activeTab.Id))"
-                                                title="Delete this roadmap"
-                                                style="width: 44px; height: 44px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700;">
-                                            🗑️
-                                        </button>
-                                    }
-                                </div>
-                            }
-                        }
-                    </div>
+                    }
                 </div>
 
                 <div style="margin-bottom: 20px;">
@@ -244,9 +216,10 @@
                 <div style="border-top: 1px solid #3a3a4e; padding-top: 16px; display: flex; flex-direction: column; flex: 1; min-height: 0;">
                     <button @onclick="ToggleAdvancedSection"
                             title="@(_showAdvancedSection ? "Hide advanced JSON editor" : "Show advanced JSON editor - Edit roadmap data directly as JSON")"
+                            class="cc-icon-btn"
                             style="width: 100%; background: #2a2a3e; color: #ccc; border: 1px solid #3a3a4e; padding: 12px 14px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 8px;">
                         <span style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 18px;">⚙️</span>
+                            <Icon IconType="atom" Size="20" Color="#a78bfa" />
                             <span>Advanced JSON</span>
                         </span>
                         <span style="transform: rotate(@(_showAdvancedSection ? "180deg" : "0deg")); transition: transform 0.2s; font-size: 12px;">▼</span>
@@ -255,24 +228,27 @@
                     @if (_showAdvancedSection)
                     {
                         <div style="margin-top: 12px; display: flex; flex-direction: column; flex: 1; min-height: 0;">
-                            <div style="background: #1e1e1e; padding: 8px 12px; border-radius: 4px; border: 1px solid #3a3a4e; display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-shrink: 0;">
+                            <div style="background: #1e1e1e; padding: 8px 12px; border-radius: 4px; border: 1px solid #3a3a4e; display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-shrink: 0; flex-wrap: wrap;">
                                 <button @onclick="UpdatePreview"
                                         disabled="@(!_editorReady)"
                                         title="Apply JSON changes to the roadmap preview"
+                                        class="cc-icon-btn"
                                         style="@UpdateButtonStyle()">
                                     Update
                                 </button>
-                                <button @onclick="ResetToDefault"
-                                        disabled="@(!_editorReady)"
-                                        title="Reset to default template"
-                                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                                    Reset
-                                </button>
                                 <button @onclick="DownloadJson"
                                         disabled="@(!_editorReady)"
-                                        title="Download JSON file"
-                                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                                    💾
+                                        title="Download roadmap as JSON file"
+                                        class="cc-icon-btn"
+                                        style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                                    💾 Save
+                                </button>
+                                <button @onclick="DownloadFolder"
+                                        disabled="@(!_editorReady)"
+                                        title="Download entire folder with all roadmaps as JSON"
+                                        class="cc-icon-btn"
+                                        style="background: linear-gradient(135deg, rgba(255, 165, 0, 0.2) 0%, rgba(255, 165, 0, 0.05) 100%); color: #FFA500; border: 1px solid rgba(255, 165, 0, 0.4); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                                    📁 Folder
                                 </button>
 
                                 @if (!_editorReady)
@@ -460,8 +436,15 @@
             <div style="@RoadmapWrapperStyle()">
                 <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
 
-                @* Quick Share Icon and GitHub Link *@
+                @* Quick Action Icons - Folder, GitHub, Share *@
                 <div style="position: absolute; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; align-items: center;">
+                    @* Folder Navigation *@
+                    <div @onclick="ToggleFolderNavPopup"
+                         title="Quick folder navigation"
+                         style="cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(255, 165, 0, 0.3)" : "rgba(255, 165, 0, 0.15)"); display: flex; align-items: center; justify-content: center;">
+                        <Icon IconType="folder" Size="20" Color="#FFA500" />
+                    </div>
+
                     <a href="https://github.com/MgGriebZ/RoadScript" target="_blank" rel="noopener noreferrer"
                        title="View on GitHub"
                        style="cursor: pointer; opacity: 0.8; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.3)" : "rgba(0, 0, 0, 0.1)"); display: flex; align-items: center; justify-content: center; text-decoration: none;">
@@ -474,6 +457,54 @@
                         <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#a5b4fc" : "#6b7280")" />
                     </div>
                 </div>
+
+                @* Folder Navigation Popup *@
+                @if (_showFolderNavPopup && _folderManager != null && _sessionManager != null)
+                {
+                    <div style="position: absolute; top: 60px; right: 16px; z-index: 101; background: #1e1e2e; border: 2px solid #FFA500; border-radius: 8px; padding: 16px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); min-width: 250px;">
+                        <div style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 12px;">
+                            @(_activeFolder?.Name ?? "Current Folder")
+                        </div>
+
+                        @* Roadmaps in current folder *@
+                        <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;">
+                            @for (int i = 0; i < _sessionManager.Tabs.Count; i++)
+                            {
+                                var tab = _sessionManager.Tabs[i];
+                                var isActive = tab.Id == _sessionManager.ActiveTabId;
+
+                                <div @onclick="@(async () => { await HandleTabSwitch(tab.Id); _showFolderNavPopup = false; })"
+                                     style="cursor: pointer; padding: 8px 12px; border-radius: 6px; background: @(isActive ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" : "rgba(102, 126, 234, 0.1)"); color: @(isActive ? "#fff" : "#ccc"); transition: all 0.2s; border: 1px solid @(isActive ? "#667eea" : "rgba(102, 126, 234, 0.3)");">
+                                    <span style="font-weight: 600;">@(i + 1).</span> @tab.Name
+                                </div>
+                            }
+                        </div>
+
+                        @* Other folders *@
+                        @if (_folderManager.Folders.Count > 1)
+                        {
+                            <div style="border-top: 1px solid #3a3a4e; padding-top: 12px;">
+                                <div style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px;">
+                                    Switch Folder
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    @foreach (var folder in _folderManager.Folders)
+                                    {
+                                        var isActiveFolder = folder.Id == _folderManager.ActiveFolderId;
+                                        if (!isActiveFolder)
+                                        {
+                                            <div @onclick="@(async () => { await HandleFolderSelect(folder.Id); _showFolderNavPopup = false; })"
+                                                 style="cursor: pointer; padding: 8px 12px; border-radius: 6px; background: linear-gradient(135deg, @(folder.Color)20 0%, @(folder.Color)05 100%); color: @folder.Color; border: 1px solid @(folder.Color)40; transition: all 0.2s; display: flex; align-items: center; gap: 8px;">
+                                                <Icon IconType="@(folder.Icon ?? "folder")" Size="16" Color="@folder.Color" />
+                                                <span style="font-weight: 600;">@folder.Name</span>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
 
                 @* Static Milestone Navigation Controls - Top Center Position *@
                 @{
@@ -765,6 +796,16 @@
                                                         @item.Title
                                                     </h4>
                                                 }
+                                                @if (!string.IsNullOrEmpty(item.LinkedRoadmapId))
+                                                {
+                                                    var linkedTab = _sessionManager?.Tabs.FirstOrDefault(t => t.Id == item.LinkedRoadmapId);
+                                                    <span @onclick="@(async () => await HandleRoadmapLinkClick(item.LinkedRoadmapId))"
+                                                          @onclick:stopPropagation="true"
+                                                          style="margin-left: auto; font-size: 14px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s, transform 0.2s;"
+                                                          title="Linked to: @(linkedTab?.Name ?? "Unknown roadmap")">
+                                                        🔗
+                                                    </span>
+                                                }
                                                 @if (item.Hidden && !_isPreviewMode)
                                                 {
                                                     <span style="margin-left: auto; font-size: 16px; opacity: 0.5;" title="Hidden in preview mode">👁</span>
@@ -854,7 +895,8 @@
                   LaneCount="@(_data?.Lanes.Count ?? 1)"
                   ItemIndex="@GetSelectedItemIndex()"
                   ItemCount="@GetSelectedItemCount()"
-                  LaneIndex="@GetSelectedLaneIndex()" />
+                  LaneIndex="@GetSelectedLaneIndex()"
+                  AvailableRoadmaps="@(_sessionManager?.Tabs)" />
 
     @if (_folderManager != null)
     {
@@ -900,6 +942,7 @@
 
     private bool _showFolderSelector = false;
     private bool _showTemplateSelector = false;
+    private bool _showFolderNavPopup = false;
     private bool _isCreatingNewFolder = false;
     private string? _pendingFolderName = null;
 
@@ -1733,26 +1776,20 @@
         }
     }
 
-    private async Task ResetToDefault()
+    private async Task DownloadFolder()
     {
-        if (_editor == null || !_editorReady) return;
+        if (_activeFolder == null) return;
 
         try
         {
-            await _editor.SetValue(DefaultJson);
-            _currentJson = DefaultJson;
-            ParseJson(DefaultJson);
-            _lastUpdateSuccess = true;
-
-            await StorageService.ClearStorageAsync();
-            await InitializeFolderManagerAsync();
+            var folderJson = JsonSerializer.Serialize(_activeFolder, new JsonSerializerOptions { WriteIndented = true });
+            var filename = $"folder-{_activeFolder.Name.Replace(" ", "-").ToLower()}-{DateTime.Now:yyyy-MM-dd}.json";
+            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.downloadJson", folderJson, filename, false);
         }
         catch (Exception ex)
         {
-            _error = $"Failed to reset editor: {ex.Message}";
+            Console.WriteLine($"Error downloading folder: {ex.Message}");
         }
-
-        StateHasChanged();
     }
 
     private void ToggleTheme(ChangeEventArgs? e = null)
@@ -3427,6 +3464,12 @@
         StateHasChanged();
     }
 
+    private void ToggleFolderNavPopup()
+    {
+        _showFolderNavPopup = !_showFolderNavPopup;
+        StateHasChanged();
+    }
+
     private int GetActiveFolderNumber()
     {
         if (_folderManager == null || _activeFolder == null) return 1;
@@ -3485,6 +3528,68 @@
         {
             return "min-width: 60px; height: 60px; background: rgba(102, 126, 234, 0.1); color: #9ca3af; border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center;";
         }
+    }
+
+    private string GetFolderIconButtonStyle(bool isActive, bool hasFolder, string folderColor)
+    {
+        var baseStyle = "flex: 1; min-width: 80px; height: 70px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;";
+
+        if (isActive)
+        {
+            return $"{baseStyle} background: linear-gradient(135deg, {folderColor}40 0%, {folderColor}10 100%); border: 2px solid {folderColor}; box-shadow: 0 4px 12px {folderColor}60;";
+        }
+        else if (hasFolder)
+        {
+            return $"{baseStyle} background: linear-gradient(135deg, {folderColor}20 0%, {folderColor}05 100%); border: 1px solid {folderColor}40; box-shadow: 0 2px 4px {folderColor}20;";
+        }
+        else
+        {
+            return $"{baseStyle} background: linear-gradient(135deg, rgba(255, 165, 0, 0.1) 0%, rgba(255, 165, 0, 0.02) 100%); border: 1px dashed rgba(255, 165, 0, 0.3); box-shadow: none;";
+        }
+    }
+
+    private string GetRoadmapIconButtonStyle(bool isActive, bool hasTab, string typeColor)
+    {
+        var baseStyle = "flex: 1; min-width: 55px; max-width: 60px; height: 60px; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;";
+
+        if (isActive)
+        {
+            return $"{baseStyle} background: linear-gradient(135deg, {typeColor}40 0%, {typeColor}20 100%); border: 2px solid {typeColor}; box-shadow: 0 4px 12px {typeColor}60; transform: scale(1.05);";
+        }
+        else if (hasTab)
+        {
+            return $"{baseStyle} background: linear-gradient(135deg, {typeColor}15 0%, {typeColor}05 100%); border: 1px solid {typeColor}30; box-shadow: 0 2px 4px {typeColor}20;";
+        }
+        else
+        {
+            return $"{baseStyle} background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.05) 100%); border: 1px dashed rgba(16, 185, 129, 0.4); box-shadow: none; color: #10b981;";
+        }
+    }
+
+    private string GetTemplateTypeColor(string? templateType)
+    {
+        return templateType switch
+        {
+            "Daily" => "#9999ff",
+            "Project" => "#87CEEB",
+            "Milestone" => "#45B69C",
+            "Retro" => "#E6B800",
+            "Energy" => "#F88379",
+            _ => "#667eea"
+        };
+    }
+
+    private string? GetTemplateTypeIcon(string? templateType)
+    {
+        return templateType switch
+        {
+            "Daily" => "calendar",
+            "Project" => "rocket",
+            "Milestone" => "flag",
+            "Retro" => "pause",
+            "Energy" => "target",
+            _ => null
+        };
     }
 
     private void CloseFolderSelector()
@@ -3612,6 +3717,13 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private async Task HandleRoadmapLinkClick(string linkedRoadmapId)
+    {
+        if (string.IsNullOrEmpty(linkedRoadmapId)) return;
+
+        await HandleTabSwitch(linkedRoadmapId);
+    }
+
     private async Task HandleMoveFolderLeft(string folderId)
     {
         if (_folderManager == null) return;
@@ -3733,6 +3845,7 @@
         TemplateService.ApplyTemplate(_data, templateType, DateTime.Now);
 
         _activeTab.Name = tabNameSuffix;
+        _activeTab.TemplateType = GetTemplateTypeString(templateType);
         _activeTab.LastModified = DateTime.UtcNow;
 
         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
@@ -3755,6 +3868,18 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private string? GetTemplateTypeString(TemplateService.TemplateType templateType)
+    {
+        return templateType switch
+        {
+            TemplateService.TemplateType.ScrumSprintCycle => "Daily",
+            TemplateService.TemplateType.ProjectTimelines => "Project",
+            TemplateService.TemplateType.AnnualRoadmap => "Milestone",
+            TemplateService.TemplateType.ScrumBoard => "Energy",
+            TemplateService.TemplateType.Retrospective => "Retro",
+            _ => null
+        };
+    }
 
     private string FooterBarStyle()
     {

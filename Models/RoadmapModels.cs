@@ -129,6 +129,9 @@ public class Item
     [JsonPropertyName("hidden")]
     public bool Hidden { get; set; }  // true = item hidden in preview/export mode only
 
+    [JsonPropertyName("linkedRoadmapId")]
+    public string? LinkedRoadmapId { get; set; }  // Link to another roadmap (tab) in the same folder
+
     [JsonPropertyName("details")]
     public List<Detail>? Details { get; set; }  // Nullable - items can have no details
 }
@@ -151,6 +154,9 @@ public class TabSession
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = "Untitled Roadmap";
+
+    [JsonPropertyName("templateType")]
+    public string? TemplateType { get; set; }  // "Daily", "Project", "Milestone", "Retro", "Energy"
 
     [JsonPropertyName("lastModified")]
     public DateTime LastModified { get; set; } = DateTime.UtcNow;
