@@ -34,7 +34,7 @@ public class TemplateService
         TemplateType.ScrumSprintCycle => "Daily Planning",
         TemplateType.ProjectTimelines => "Project Timelines",
         TemplateType.AnnualRoadmap => "Milestone Map",
-        TemplateType.ScrumBoard => "Scrum Board",
+        TemplateType.ScrumBoard => "Energy Flows",
         TemplateType.Retrospective => "Retrospective",
         TemplateType.Weekly7Days => "Weekly (7 Days)",
         TemplateType.BiWeeklySprint => "Bi-Weekly Sprint (5 Days)",

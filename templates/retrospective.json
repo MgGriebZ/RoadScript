@@ -5,28 +5,28 @@
     {
       "id": null,
       "label": "Went Well",
-      "sub": "",
+      "sub": "self",
       "icon": null,
       "color": null
     },
     {
       "id": null,
       "label": "Needs Work",
-      "sub": "",
+      "sub": "self",
       "icon": null,
       "color": null
     },
     {
       "id": null,
-      "label": "Kudos",
-      "sub": "",
+      "label": "Went Well/Bad/Good Others",
+      "sub": "Others",
       "icon": null,
       "color": null
     }
   ],
   "milestones": [
     {
-      "start": 16.5,
+      "start": 16.75,
       "title": "",
       "icon": "check",
       "color": "#45B69C"
@@ -38,10 +38,10 @@
       "color": "#EF4444"
     },
     {
-      "start": 83.33,
+      "start": 83.5,
       "title": "",
-      "icon": "trophy",
-      "color": "#EC4899"
+      "icon": "gear",
+      "color": "#D4652F"
     }
   ],
   "lanes": [
@@ -51,21 +51,45 @@
       "color": "#45B69C",
       "icon": "target",
       "height": null,
-      "history": null,
+      "history": {
+        "start": "50%",
+        "end": "50%",
+        "startIcon": null,
+        "endIcon": null,
+        "percent": 50,
+        "origin": "middle"
+      },
       "items": [
         {
           "id": null,
-          "title": "Quality Handling",
-          "start": 2,
+          "title": "Acceptance",
+          "start": 0.5,
           "length": 1,
           "spanning": false,
-          "icon": "",
-          "color": "#D4652F",
+          "icon": "check",
+          "color": "#45B69C",
           "greyed": false,
           "hidden": false,
           "details": [
             {
-              "text": "Person",
+              "text": "Half task acceptance",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Scrum Master",
+          "start": 2,
+          "length": 1,
+          "spanning": false,
+          "icon": "trophy",
+          "color": null,
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Solid introduction to meeting",
               "subs": []
             }
           ]
@@ -78,21 +102,51 @@
       "color": "#9999ff",
       "icon": "wrench",
       "height": null,
-      "history": null,
+      "history": {
+        "start": "100%",
+        "end": "",
+        "startIcon": null,
+        "endIcon": null,
+        "percent": 100,
+        "origin": "left"
+      },
       "items": [
         {
           "id": null,
-          "title": "Task/Feature",
+          "title": "Features",
           "start": 0,
           "length": 1,
           "spanning": false,
-          "icon": "",
-          "color": "#B7C4B7",
+          "icon": "gear",
+          "color": "#45B69C",
           "greyed": false,
           "hidden": false,
           "details": [
             {
-              "text": "Task #",
+              "text": "Retro tool for blockers",
+              "subs": []
+            },
+            {
+              "text": "Each feature explained",
+              "subs": [
+                "Some tasks/specifics"
+              ]
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "PO",
+          "start": 2,
+          "length": 1,
+          "spanning": false,
+          "icon": "trophy",
+          "color": null,
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Detailed requirements",
               "subs": []
             }
           ]
@@ -105,48 +159,56 @@
       "color": "#E6B800",
       "icon": "pause",
       "height": null,
-      "history": null,
+      "history": {
+        "start": "",
+        "end": "25%",
+        "startIcon": null,
+        "endIcon": null,
+        "percent": 25,
+        "origin": "right"
+      },
       "items": [
         {
           "id": null,
-          "title": "Meeting Message",
-          "start": 1,
+          "title": "Message Conflict",
+          "start": 0.75,
           "length": 1,
           "spanning": false,
-          "icon": "",
-          "color": "#B7C4B7",
-          "greyed": false,
-          "hidden": false,
-          "details": []
-        }
-      ]
-    },
-    {
-      "id": null,
-      "title": "Timing",
-      "color": "#EF4444",
-      "icon": "triangle",
-      "height": 1,
-      "history": null,
-      "items": [
-        {
-          "id": null,
-          "title": "Capacity",
-          "start": 0,
-          "length": 1,
-          "spanning": false,
-          "icon": null,
-          "color": null,
+          "icon": "question",
+          "color": "#EF4444",
           "greyed": false,
           "hidden": false,
           "details": [
             {
-              "text": "Quick / slow",
+              "text": "\"Approved tool?\"",
               "subs": []
             },
             {
-              "text": "Constraints / blockers",
+              "text": "\"Let me expand further\"",
               "subs": []
+            },
+            {
+              "text": "\"We need this person\"",
+              "subs": []
+            }
+          ]
+        },
+        {
+          "id": null,
+          "title": "Developer",
+          "start": 2,
+          "length": 1,
+          "spanning": false,
+          "icon": "code",
+          "color": "#4A2C1A",
+          "greyed": false,
+          "hidden": false,
+          "details": [
+            {
+              "text": "Y Person -> Z person",
+              "subs": [
+                "\"I'll talk to that person\""
+              ]
             }
           ]
         }
