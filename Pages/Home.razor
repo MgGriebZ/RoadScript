@@ -452,9 +452,11 @@
                       OnMoveLane="HandleMoveLane"
                       OnHidePanel="ToggleProperties"
                       OnToggleJsonEditor="ToggleJsonEditorMode"
+                      OnSelectTitle="HandleSelectTitle"
                       IsCollapsed="@(!_showProperties)"
                       ColumnCount="@(_data?.Columns.Count ?? 4)"
                       LaneCount="@(_data?.Lanes.Count ?? 1)"
+                      MilestoneCount="@(_data?.Milestones.Count ?? 0)"
                       ItemIndex="@GetSelectedItemIndex()"
                       ItemCount="@GetSelectedItemCount()"
                       LaneIndex="@GetSelectedLaneIndex()"
@@ -2575,7 +2577,6 @@
             switch (elementType)
             {
                 case "lane":
-                    var laneIndex = ExtractIndexFromPath(jsonPath, "lanes");
                     var newLane = new Lane
                     {
                         Title = "New Lane",
@@ -2591,7 +2592,17 @@
                             }
                         }
                     };
-                    _data.Lanes.Insert(laneIndex + 1, newLane);
+
+                    // If jsonPath is just "lanes", add at the end; otherwise insert after the specified index
+                    if (jsonPath == "lanes")
+                    {
+                        _data.Lanes.Add(newLane);
+                    }
+                    else
+                    {
+                        var laneIndex = ExtractIndexFromPath(jsonPath, "lanes");
+                        _data.Lanes.Insert(laneIndex + 1, newLane);
+                    }
                     break;
 
                 case "item":
@@ -2629,13 +2640,22 @@
                     break;
 
                 case "column":
-                    var columnIndex = ExtractIndexFromPath(jsonPath, "columns");
                     var newColumn = new Column
                     {
                         Label = "New Column",
                         Sub = ""
                     };
-                    _data.Columns.Insert(columnIndex + 1, newColumn);
+
+                    // If jsonPath is just "columns", add at the end; otherwise insert after the specified index
+                    if (jsonPath == "columns")
+                    {
+                        _data.Columns.Add(newColumn);
+                    }
+                    else
+                    {
+                        var columnIndex = ExtractIndexFromPath(jsonPath, "columns");
+                        _data.Columns.Insert(columnIndex + 1, newColumn);
+                    }
                     break;
 
                 case "milestone":
@@ -2711,6 +2731,28 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error adding element: {ex.Message}");
+        }
+    }
+
+    private async Task HandleSelectTitle()
+    {
+        try
+        {
+            if (_data == null) return;
+
+            // Programmatically select the title element
+            SelectionState.Select("title", "title", _data);
+
+            // Make sure properties panel is visible
+            if (!_showProperties)
+            {
+                _showProperties = true;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error selecting title: {ex.Message}");
         }
     }
 
