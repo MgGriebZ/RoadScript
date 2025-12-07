@@ -451,6 +451,7 @@
                       OnMoveItem="HandleMoveItem"
                       OnMoveLane="HandleMoveLane"
                       OnHidePanel="ToggleProperties"
+                      OnToggleJsonEditor="ToggleJsonEditorMode"
                       IsCollapsed="@(!_showProperties)"
                       ColumnCount="@(_data?.Columns.Count ?? 4)"
                       LaneCount="@(_data?.Lanes.Count ?? 1)"
@@ -463,16 +464,14 @@
     {
         @* JSON Editor Mode: Advanced JSON editor in right sidebar *@
         <div class="property-panel" style="display: flex; flex-direction: column; background: #1a1a2e;">
-            @* Toolbar Header *@
             <div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #252538; border-bottom: 1px solid #3a3a4e;">
                 <Icon IconType="atom" Size="20" Color="#00D9FF" />
                 <span style="font-size: 14px; font-weight: 600; color: #00D9FF;">JSON Editor</span>
 
-                @* Collapse button (right) *@
-                <button @onclick="ToggleProperties"
-                        title="Hide Sidebar"
-                        style="margin-left: auto; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s;">
-                    ▶ Hide
+                <button @onclick="ToggleJsonEditorMode"
+                        title="Switch to Properties Mode"
+                        style="margin-left: auto; background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(118, 75, 162, 0.3);">
+                    Properties
                 </button>
             </div>
 
@@ -1424,10 +1423,7 @@
         }
     }
 
-    private async Task SaveCurrentFolder()
-    {
-        await DownloadFolder();
-    }
+    private async Task SaveCurrentFolder() => await DownloadFolder();
 
     public void Dispose()
     {
@@ -1526,13 +1522,10 @@
                 return;
             }
 
-            // Add the imported folder
             importedFolder.Id = Guid.NewGuid().ToString();
             importedFolder.LastModified = DateTime.UtcNow;
             _folderManager.Folders.Add(importedFolder);
             _folderManager.ActiveFolderId = importedFolder.Id;
-
-            // Set as active folder
             _activeFolder = importedFolder;
             _sessionManager = _activeFolder.SessionManager;
             _activeTab = StorageService.GetActiveTab(_sessionManager);
@@ -3419,28 +3412,10 @@
         return index >= 0 ? index + 1 : 1;
     }
 
-    private string GetActiveFolderColor()
-    {
-        if (_activeFolder == null) return "#667eea";
-        return _activeFolder.Color;
-    }
-
-    private int GetActiveFolderIndex()
-    {
-        if (_folderManager == null || _activeFolder == null) return 0;
-        return _folderManager.Folders.FindIndex(f => f.Id == _activeFolder.Id);
-    }
-
-    private string GetActiveFolderName()
-    {
-        if (_activeFolder == null) return "No Folder";
-        return _activeFolder.Name;
-    }
-
-    private string? GetActiveFolderIcon()
-    {
-        return _activeFolder?.Icon;
-    }
+    private string GetActiveFolderColor() => _activeFolder?.Color ?? "#667eea";
+    private int GetActiveFolderIndex() => _folderManager == null || _activeFolder == null ? 0 : _folderManager.Folders.FindIndex(f => f.Id == _activeFolder.Id);
+    private string GetActiveFolderName() => _activeFolder?.Name ?? "No Folder";
+    private string? GetActiveFolderIcon() => _activeFolder?.Icon;
 
     private string GetFolderCardStyle(bool isActive, bool hasFolder, string folderColor)
     {
@@ -3624,8 +3599,8 @@
 
         _pendingFolderName = folderName;
         _isCreatingNewFolder = true;
-        _showFolderSelector = false; // Close folder selector
-        _showTemplateSelector = true; // Show template selector
+        _showFolderSelector = false;
+        _showTemplateSelector = true;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -3685,7 +3660,7 @@
         if (_folderManager == null) return;
 
         var folderIndex = _folderManager.Folders.FindIndex(f => f.Id == folderId);
-        if (folderIndex <= 0) return; // Already at leftmost position
+        if (folderIndex <= 0) return;
 
         var folder = _folderManager.Folders[folderIndex];
         _folderManager.Folders.RemoveAt(folderIndex);
@@ -3702,7 +3677,7 @@
         if (_folderManager == null) return;
 
         var folderIndex = _folderManager.Folders.FindIndex(f => f.Id == folderId);
-        if (folderIndex < 0 || folderIndex >= _folderManager.Folders.Count - 1) return; // Already at rightmost position
+        if (folderIndex < 0 || folderIndex >= _folderManager.Folders.Count - 1) return;
 
         var folder = _folderManager.Folders[folderIndex];
         _folderManager.Folders.RemoveAt(folderIndex);
