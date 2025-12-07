@@ -40,11 +40,11 @@
 
                 @* Quick Action Icons - Atom Navigation, GitHub, Share *@
 <div style="position: absolute; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; align-items: center;">
-                    @* JSON Editor Mode Toggle - Atom Icon *@
+                    @* Mode Toggle - Shows icon of mode you'll switch TO *@
                     <div @onclick="ToggleJsonEditorMode"
                          title="@(_jsonEditorMode ? "Switch to Properties Mode" : "Switch to JSON Editor Mode")"
-                         style="cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_jsonEditorMode ? "rgba(255, 165, 0, 0.4)" : (_isVibeMode ? "rgba(255, 165, 0, 0.3)" : "rgba(255, 165, 0, 0.15)")); display: flex; align-items: center; justify-content: center;">
-                        <Icon IconType="atom" Size="20" Color="#FFA500" />
+                         style="cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_jsonEditorMode ? "rgba(156, 163, 175, 0.2)" : "rgba(0, 217, 255, 0.2)"); display: flex; align-items: center; justify-content: center;">
+                        <Icon IconType="@(_jsonEditorMode ? "settings" : "atom")" Size="20" Color="@(_jsonEditorMode ? "#9CA3AF" : "#00D9FF")" />
                     </div>
 
                     <a href="https://github.com/MgGriebZ/RoadScript" target="_blank" rel="noopener noreferrer"
@@ -465,8 +465,8 @@
         <div class="property-panel" style="display: flex; flex-direction: column; background: #1a1a2e;">
             @* Toolbar Header *@
             <div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #252538; border-bottom: 1px solid #3a3a4e;">
-                <Icon IconType="atom" Size="20" Color="#FFA500" />
-                <span style="font-size: 14px; font-weight: 600; color: #FFA500;">JSON Editor</span>
+                <Icon IconType="atom" Size="20" Color="#00D9FF" />
+                <span style="font-size: 14px; font-weight: 600; color: #00D9FF;">JSON Editor</span>
 
                 @* Collapse button (right) *@
                 <button @onclick="ToggleProperties"
@@ -511,13 +511,29 @@
                 </button>
             </div>
 
-            @* JSON Textarea *@
-            <textarea @ref="_jsonTextArea"
-                      @bind="_currentJson"
-                      @bind:event="oninput"
-                      style="flex: 1; background: #252538; color: #e0e7ff; border: none; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.5; resize: none; overflow-y: auto;"
-                      spellcheck="false"
-                      placeholder="Enter your roadmap JSON here..."></textarea>
+            @* Split View: JSON Textarea + Interactive Roadmap Preview *@
+            <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                @* JSON Textarea *@
+                <textarea @ref="_jsonTextArea"
+                          @bind="_currentJson"
+                          @bind:event="oninput"
+                          style="height: 40%; background: #252538; color: #e0e7ff; border: none; border-bottom: 2px solid #00D9FF; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.5; resize: none; overflow-y: auto;"
+                          spellcheck="false"
+                          placeholder="Enter your roadmap JSON here..."></textarea>
+
+                @* Interactive Roadmap Preview - Click elements to jump to JSON *@
+                <div style="flex: 1; overflow-y: auto; background: #1e1e2f; padding: 12px;">
+                    <div style="font-size: 11px; color: #00D9FF; margin-bottom: 8px; font-weight: 600;">
+                        📍 Click elements to jump to JSON
+                    </div>
+                    @if (_data != null)
+                    {
+                        <div style="transform: scale(0.6); transform-origin: top left; width: 166%;">
+                            @RenderRoadmapWithClickHandlers(_data, true)
+                        </div>
+                    }
+                </div>
+            </div>
 
             @* Error Display *@
             @if (!string.IsNullOrEmpty(_error))
