@@ -606,6 +606,22 @@ input[type="color"] {
     transform: scale(1.1);
 }
 
+/* Atom Icon - Electric Magenta with Glow */
+.atom-icon-toggle {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.atom-icon-toggle:hover {
+    transform: scale(1.15) rotate(5deg) !important;
+    box-shadow: 0 0 20px rgba(255, 16, 240, 0.6), 0 0 40px rgba(255, 16, 240, 0.3) !important;
+    filter: brightness(1.2);
+}
+
+.atom-icon-toggle:active {
+    transform: scale(1.05) !important;
+    box-shadow: 0 0 15px rgba(255, 16, 240, 0.4) !important;
+}
+
 /* JSON Modal Close Button */
 .json-modal-close-btn:hover {
     background: rgba(239, 68, 68, 0.2) !important;
