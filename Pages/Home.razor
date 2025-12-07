@@ -511,29 +511,13 @@
                 </button>
             </div>
 
-            @* Split View: JSON Textarea + Interactive Roadmap Preview *@
-            <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
-                @* JSON Textarea *@
-                <textarea @ref="_jsonTextArea"
-                          @bind="_currentJson"
-                          @bind:event="oninput"
-                          style="height: 40%; background: #252538; color: #e0e7ff; border: none; border-bottom: 2px solid #00D9FF; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.5; resize: none; overflow-y: auto;"
-                          spellcheck="false"
-                          placeholder="Enter your roadmap JSON here..."></textarea>
-
-                @* Interactive Roadmap Preview - Click elements to jump to JSON *@
-                <div style="flex: 1; overflow-y: auto; background: #1e1e2f; padding: 12px;">
-                    <div style="font-size: 11px; color: #00D9FF; margin-bottom: 8px; font-weight: 600;">
-                        📍 Click elements to jump to JSON
-                    </div>
-                    @if (_data != null)
-                    {
-                        <div style="transform: scale(0.6); transform-origin: top left; width: 166%;">
-                            @RenderRoadmapWithClickHandlers(_data, true)
-                        </div>
-                    }
-                </div>
-            </div>
+            @* JSON Textarea - Full Height *@
+            <textarea @ref="_jsonTextArea"
+                      @bind="_currentJson"
+                      @bind:event="oninput"
+                      style="flex: 1; background: #252538; color: #e0e7ff; border: none; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.5; resize: none; overflow-y: auto;"
+                      spellcheck="false"
+                      placeholder="Enter your roadmap JSON here..."></textarea>
 
             @* Error Display *@
             @if (!string.IsNullOrEmpty(_error))
@@ -2248,6 +2232,13 @@
 
     private async Task HandleElementClick(string jsonPath, string elementType, object element)
     {
+        // Exit JSON Editor mode and show Properties panel when clicking any element
+        if (_jsonEditorMode)
+        {
+            _jsonEditorMode = false;
+            _showProperties = true;
+        }
+
         SelectionState.Select(jsonPath, elementType, element);
 
         await EditorInterop.NavigateToJsonPath(
@@ -2260,6 +2251,13 @@
 
     private void HandleTitleClick()
     {
+        // Exit JSON Editor mode and show Properties panel when clicking title
+        if (_jsonEditorMode)
+        {
+            _jsonEditorMode = false;
+            _showProperties = true;
+        }
+
         if (_data != null)
         {
             SelectionState.Select("title", "title", _data);
