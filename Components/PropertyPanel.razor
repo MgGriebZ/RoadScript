@@ -24,11 +24,11 @@ else
                 </span>
                 <span style="font-size: 11px; color: #666; font-weight: 400;">@GetElementTypeLabel()</span>
             </div>
-            <button @onclick="HidePanel"
-                    title="Collapse properties panel"
-                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
+            <button @onclick="SwitchToJsonEditor"
+                    title="Switch to JSON Editor Mode"
+                    style="background: linear-gradient(135deg, #00D9FF 0%, #00B8D4 100%); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0, 217, 255, 0.3);"
                     type="button">
-                ▶
+                JSON Editor
             </button>
         </div>
 
@@ -97,11 +97,11 @@ else
                 </span>
                 <span style="font-size: 11px; color: #666; font-weight: 400;">Select an element to edit</span>
             </div>
-            <button @onclick="HidePanel"
-                    title="Collapse properties panel"
-                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
+            <button @onclick="SwitchToJsonEditor"
+                    title="Switch to JSON Editor Mode"
+                    style="background: linear-gradient(135deg, #00D9FF 0%, #00B8D4 100%); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0, 217, 255, 0.3);"
                     type="button">
-                ▶
+                JSON Editor
             </button>
         </div>
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: #666; padding: 24px; text-align: center;">
@@ -143,6 +143,9 @@ else
     public EventCallback OnHidePanel { get; set; }
 
     [Parameter]
+    public EventCallback OnToggleJsonEditor { get; set; }
+
+    [Parameter]
     public bool IsCollapsed { get; set; }
 
     [Parameter]
@@ -178,24 +181,16 @@ else
         return "width: 27%; min-width: 320px; max-width: 450px; background: #1e1e2f; border-left: 1px solid #3a3a4e; display: flex; flex-direction: column; transition: all 0.3s ease; height: 100%;";
     }
 
-    private string GetElementTypeLabel()
+    private string GetElementTypeLabel() => SelectionState.ElementType switch
     {
-        return SelectionState.ElementType switch
-        {
-            "item" => "Item",
-            "lane" => "Lane",
-            "column" => "Column",
-            "milestone" => "Milestone",
-            "title" => "Title",
-            "detail" => "Detail",
-            _ => "Element"
-        };
-    }
-
-    private void ClosePanel()
-    {
-        SelectionState.Clear();
-    }
+        "item" => "Item",
+        "lane" => "Lane",
+        "column" => "Column",
+        "milestone" => "Milestone",
+        "title" => "Title",
+        "detail" => "Detail",
+        _ => "Element"
+    };
 
     private async Task HidePanel()
     {
@@ -253,20 +248,9 @@ else
         }
     }
 
-    private int GetItemIndex()
-    {
-        return ItemIndex;
-    }
-
-    private int GetItemCount()
-    {
-        return ItemCount;
-    }
-
-    private int GetLaneIndex()
-    {
-        return LaneIndex;
-    }
+    private int GetItemIndex() => ItemIndex;
+    private int GetItemCount() => ItemCount;
+    private int GetLaneIndex() => LaneIndex;
 
     private async Task HandleExpandPanel()
     {
@@ -276,6 +260,11 @@ else
         }
     }
 
-    private string GetCollapsedButtonStyle() =>
-        "background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;";
+    private async Task SwitchToJsonEditor()
+    {
+        if (OnToggleJsonEditor.HasDelegate)
+        {
+            await OnToggleJsonEditor.InvokeAsync();
+        }
+    }
 }

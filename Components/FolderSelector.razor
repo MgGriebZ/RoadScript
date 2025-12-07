@@ -145,45 +145,14 @@
 
     private bool _showIconPicker = false;
 
-    private async Task HandleFolderSelect(string folderId)
-    {
-        await OnFolderSelect.InvokeAsync(folderId);
-    }
-
-    private async Task HandleAddFolder()
-    {
-        await OnAddFolder.InvokeAsync();
-    }
-
-    private async Task HandleRemoveFolder()
-    {
-        await OnRemoveFolder.InvokeAsync();
-    }
-
-    private async Task HandleRenameFolder()
-    {
-        await OnRenameFolder.InvokeAsync();
-    }
-
-    private async Task HandleMoveFolderLeft(string folderId)
-    {
-        await OnMoveFolderLeft.InvokeAsync(folderId);
-    }
-
-    private async Task HandleMoveFolderRight(string folderId)
-    {
-        await OnMoveFolderRight.InvokeAsync(folderId);
-    }
-
-    private async Task HandleColorChange(string color)
-    {
-        await OnColorChange.InvokeAsync(color);
-    }
-
-    private async Task SelectColor(string color)
-    {
-        await HandleColorChange(color);
-    }
+    private async Task HandleFolderSelect(string folderId) => await OnFolderSelect.InvokeAsync(folderId);
+    private async Task HandleAddFolder() => await OnAddFolder.InvokeAsync();
+    private async Task HandleRemoveFolder() => await OnRemoveFolder.InvokeAsync();
+    private async Task HandleRenameFolder() => await OnRenameFolder.InvokeAsync();
+    private async Task HandleMoveFolderLeft(string folderId) => await OnMoveFolderLeft.InvokeAsync(folderId);
+    private async Task HandleMoveFolderRight(string folderId) => await OnMoveFolderRight.InvokeAsync(folderId);
+    private async Task HandleColorChange(string color) => await OnColorChange.InvokeAsync(color);
+    private async Task SelectColor(string color) => await HandleColorChange(color);
 
     private async Task HandleIconChange(string icon)
     {
@@ -212,20 +181,14 @@
         return folder?.Color ?? "#667eea";
     }
 
-    private int GetActiveFolderIndex()
-    {
-        if (string.IsNullOrEmpty(ActiveFolderId)) return -1;
-        return Folders.FindIndex(f => f.Id == ActiveFolderId);
-    }
+    private int GetActiveFolderIndex() => string.IsNullOrEmpty(ActiveFolderId) ? -1 : Folders.FindIndex(f => f.Id == ActiveFolderId);
 
     private string GetRoadmapStats(RoadmapData data)
     {
         if (data == null) return "0 0 0";
-
         var columns = data.Columns?.Count ?? 0;
         var lanes = data.Lanes?.Count ?? 0;
         var items = (data.Lanes?.Sum(l => l.Items?.Count ?? 0) ?? 0) + (data.Milestones?.Count ?? 0);
-
         return $"{columns} {lanes} {items}";
     }
 
@@ -246,18 +209,6 @@
         new ColorPreset("Dark Blue", "#1E3A8A"),
         new ColorPreset("Pink", "#EC4899")
     };
-
-    private string GetPresetColorButtonStyle(string presetColor)
-    {
-        var currentColor = GetActiveFolderColor();
-        var isSelected = presetColor.Equals(currentColor, StringComparison.OrdinalIgnoreCase);
-        var border = isSelected
-            ? "border: 2px solid #667eea; box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);"
-            : "border: 1.5px solid rgba(255, 255, 255, 0.2);";
-
-        return $"width: 100%; height: 32px; padding: 2px; cursor: pointer; border-radius: 4px; " +
-               $"background: #1a1a2e; transition: all 0.2s; {border}";
-    }
 }
 
 <style>

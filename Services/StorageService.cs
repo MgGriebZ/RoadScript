@@ -26,7 +26,6 @@ public class StorageService
     {
         try
         {
-            // Try to load new multi-tab format first
             var sessionJson = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", SessionStorageKey);
 
             if (!string.IsNullOrEmpty(sessionJson))
@@ -38,12 +37,10 @@ public class StorageService
                 }
             }
 
-            // No new format found, try legacy format
             var legacyJson = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", LegacyStorageKey);
 
             if (!string.IsNullOrEmpty(legacyJson))
             {
-                // Migrate legacy single roadmap to multi-tab format
                 var legacyData = JsonSerializer.Deserialize<RoadmapData>(legacyJson, GetJsonOptions());
                 if (legacyData != null)
                 {
@@ -62,7 +59,6 @@ public class StorageService
                         }
                     };
 
-                    // Save in new format and remove legacy key
                     await SaveSessionAsync(session);
                     await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", LegacyStorageKey);
 
@@ -70,7 +66,6 @@ public class StorageService
                 }
             }
 
-            // No data found, return null
             return null;
         }
         catch (Exception ex)
@@ -169,7 +164,6 @@ public class StorageService
 
         session.Tabs.Remove(tab);
 
-        // If we removed the active tab, switch to first tab
         if (session.ActiveTabId == tabId)
         {
             session.ActiveTabId = session.Tabs[0].Id;
@@ -210,7 +204,6 @@ public class StorageService
             return null;
         }
 
-        // Deep clone the data
         var clonedData = DeepClone(sourceTab.Data);
 
         var newTab = new TabSession
@@ -278,7 +271,6 @@ public class StorageService
     {
         try
         {
-            // Try to load new folder-based format first
             var folderJson = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", FolderStorageKey);
 
             if (!string.IsNullOrEmpty(folderJson))
@@ -290,11 +282,9 @@ public class StorageService
                 }
             }
 
-            // No folder format found, try to migrate from session format
             var session = await LoadSessionAsync();
             if (session != null)
             {
-                // Migrate session to folder format
                 var folderManager = new FolderManager
                 {
                     ActiveFolderId = "folder-1",
@@ -313,13 +303,11 @@ public class StorageService
                     MaxFolders = 3
                 };
 
-                // Save in new format
                 await SaveFolderManagerAsync(folderManager);
 
                 return folderManager;
             }
 
-            // No data found, return null
             return null;
         }
         catch (Exception ex)
@@ -376,13 +364,11 @@ public class StorageService
             throw new InvalidOperationException($"Maximum of {folderManager.MaxFolders} folders allowed");
         }
 
-        // Assign unique icon and color based on folder count if defaults are used
         if (icon == "folder" && color == "#667eea")
         {
             (icon, color) = GetFolderDefaults(folderManager.Folders.Count);
         }
 
-        // Create a new folder with a default roadmap using Daily Planning template
         var defaultRoadmap = TemplateService.GetScrumSprintCycleTemplate();
 
         var newFolder = new Folder
@@ -425,7 +411,6 @@ public class StorageService
             throw new InvalidOperationException($"Maximum of {folderManager.MaxFolders} folders allowed");
         }
 
-        // Assign unique icon and color based on folder count if defaults are used
         if (icon == "folder" && color == "#667eea")
         {
             (icon, color) = GetFolderDefaults(folderManager.Folders.Count);
@@ -474,7 +459,6 @@ public class StorageService
 
         folderManager.Folders.Remove(folder);
 
-        // If we removed the active folder, switch to first folder
         if (folderManager.ActiveFolderId == folderId)
         {
             folderManager.ActiveFolderId = folderManager.Folders[0].Id;
