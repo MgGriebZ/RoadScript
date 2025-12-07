@@ -1,0 +1,210 @@
+@using RoadScript.Models
+@using RoadScript.Services
+@using RoadScript.Components
+@inject IJSRuntime JSRuntime
+
+@* Collapsed Command Center - Always visible (60px) *@
+<div class="control-panel control-panel-collapsed">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 12px 0; height: 100%;">
+        <button @onclick="@(() => OnToggleFolderSelector.InvokeAsync())"
+                title="Manage Project Folders"
+                class="cc-icon-btn"
+                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+            <Icon IconType="gear" Size="24" Color="#ffffff" />
+        </button>
+
+        @* Delete Button - Static below gear icon *@
+        @if (ActiveTab != null && SessionManager != null)
+        {
+            <button @onclick="@(() => OnTabDelete.InvokeAsync())"
+                    title="@(SessionManager.Tabs.Count > 1 ? "Delete current roadmap tab" : "Delete folder (last tab)")"
+                    class="cc-icon-btn"
+                    style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444; border: 2px solid #ef4444; width: 44px; height: 44px; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">
+                🗑️
+            </button>
+        }
+
+        <div style="width: 32px; height: 2px; background: linear-gradient(90deg, transparent, #667eea, transparent); margin: 8px 0;"></div>
+
+        @if (FolderManager != null)
+        {
+            <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
+                @for (int i = 0; i < 3; i++)
+                {
+                    var folderIndex = i;
+                    var hasFolder = folderIndex < FolderManager.Folders.Count;
+                    var folder = hasFolder ? FolderManager.Folders[folderIndex] : null;
+                    var isActive = hasFolder && folder?.Id == FolderManager.ActiveFolderId;
+                    var folderColor = hasFolder ? folder!.Color : "#4a4a5e";
+                    var folderIcon = hasFolder ? (folder!.Icon ?? "folder") : "folder";
+
+                    <button @onclick="@(() => OnFolderClick.InvokeAsync(folderIndex))"
+                            @oncontextmenu="@(() => OnToggleFolderSelector.InvokeAsync())"
+                            @oncontextmenu:preventDefault="true"
+                            title="@(hasFolder ? folder!.Name : $"Folder {folderIndex + 1} (empty)")"
+                            style="@GetFolderIndicatorStyle(isActive, hasFolder, folderColor)">
+                        <Icon IconType="@folderIcon" Size="20" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666"))" />
+                    </button>
+
+                    @* Show tabs only for the active folder *@
+                    @if (isActive && SessionManager != null)
+                    {
+                        <div style="display: flex; flex-direction: column; gap: 4px; align-items: center; margin-top: 2px;">
+                            @for (int j = 0; j < SessionManager.Tabs.Count; j++)
+                            {
+                                var tab = SessionManager.Tabs[j];
+                                var tabIndex = j;
+                                var isActiveTab = tab.Id == SessionManager.ActiveTabId;
+                                <button @onclick="@(() => OnTabSwitch.InvokeAsync(tab.Id))"
+                                        @oncontextmenu="@(() => HandleRenamePrompt(tab.Id, tab.Name))"
+                                        @oncontextmenu:preventDefault="true"
+                                        title="@tab.Name (Right-click to rename)"
+                                        style="@GetTabIndicatorStyle(isActiveTab)">
+                                    @(tabIndex + 1)
+                                </button>
+                            }
+
+                            @if (SessionManager.Tabs.Count < SessionManager.MaxTabs)
+                            {
+                                <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
+
+                                <button @onclick="@(() => OnTabAdd.InvokeAsync())"
+                                        title="Add new roadmap tab"
+                                        class="cc-icon-btn"
+                                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
+                                    +
+                                </button>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        }
+
+        <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
+
+        <button @onclick="@(() => OnExportPng.InvokeAsync())"
+                title="Export roadmap as PNG image"
+                class="cc-icon-btn"
+                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 24px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+            📷
+        </button>
+
+        <button @onclick="@(() => OnToggleViewMode.InvokeAsync())"
+                title="@(IsPreviewMode ? "Switch to Edit Mode" : "Switch to Preview Mode")"
+                class="cc-icon-btn"
+                style="@GetCollapsedToggleStyle(IsPreviewMode)">
+            @(IsPreviewMode ? "👁️" : "✏️")
+        </button>
+
+        <button @onclick="@(() => OnToggleTheme.InvokeAsync())"
+                title="@(IsVibeMode ? "Switch to Lite Theme" : "Switch to Vibe Theme")"
+                class="cc-icon-btn"
+                style="@GetCollapsedToggleStyle(IsVibeMode)">
+            @(IsVibeMode ? "🌙" : "☀️")
+        </button>
+
+        <div style="flex: 1;"></div>
+
+        <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
+
+        <button @onclick="@(() => OnTemplateApply.InvokeAsync(TemplateService.TemplateType.ScrumSprintCycle))"
+                title="Apply Daily Planning Template"
+                class="cc-icon-btn"
+                style="background: linear-gradient(135deg, rgba(153, 153, 255, 0.2) 0%, rgba(153, 153, 255, 0.05) 100%); color: #9999ff; border: 1px solid rgba(153, 153, 255, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(153, 153, 255, 0.2);">
+            <Icon IconType="calendar" Size="24" Color="#9999ff" />
+        </button>
+
+        <button @onclick="@(() => OnTemplateApply.InvokeAsync(TemplateService.TemplateType.ProjectTimelines))"
+                title="Apply Project Timelines Template"
+                class="cc-icon-btn"
+                style="background: linear-gradient(135deg, rgba(135, 206, 235, 0.2) 0%, rgba(135, 206, 235, 0.05) 100%); color: #87CEEB; border: 1px solid rgba(135, 206, 235, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(135, 206, 235, 0.2);">
+            <Icon IconType="rocket" Size="24" Color="#87CEEB" />
+        </button>
+
+        <button @onclick="@(() => OnTemplateApply.InvokeAsync(TemplateService.TemplateType.AnnualRoadmap))"
+                title="Apply Milestone Map Template"
+                class="cc-icon-btn"
+                style="background: linear-gradient(135deg, rgba(69, 182, 156, 0.2) 0%, rgba(69, 182, 156, 0.05) 100%); color: #45B69C; border: 1px solid rgba(69, 182, 156, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(69, 182, 156, 0.2);">
+            <Icon IconType="flag" Size="24" Color="#45B69C" />
+        </button>
+
+        <button @onclick="@(() => OnTemplateApply.InvokeAsync(TemplateService.TemplateType.Retrospective))"
+                title="Apply Retrospective Template"
+                class="cc-icon-btn"
+                style="background: linear-gradient(135deg, rgba(230, 184, 0, 0.2) 0%, rgba(230, 184, 0, 0.05) 100%); color: #E6B800; border: 1px solid rgba(230, 184, 0, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(230, 184, 0, 0.2);">
+            <Icon IconType="pause" Size="24" Color="#E6B800" />
+        </button>
+
+        <button @onclick="@(() => OnTemplateApply.InvokeAsync(TemplateService.TemplateType.ScrumBoard))"
+                title="Apply Energy Flows Template"
+                class="cc-icon-btn"
+                style="background: linear-gradient(135deg, rgba(248, 131, 121, 0.2) 0%, rgba(248, 131, 121, 0.05) 100%); color: #F88379; border: 1px solid rgba(248, 131, 121, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(248, 131, 121, 0.2);">
+            <Icon IconType="target" Size="24" Color="#F88379" />
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public FolderManager? FolderManager { get; set; }
+    [Parameter] public SessionManager? SessionManager { get; set; }
+    [Parameter] public TabSession? ActiveTab { get; set; }
+    [Parameter] public bool IsPreviewMode { get; set; }
+    [Parameter] public bool IsVibeMode { get; set; }
+
+    // Event callbacks
+    [Parameter] public EventCallback OnToggleFolderSelector { get; set; }
+    [Parameter] public EventCallback OnTabDelete { get; set; }
+    [Parameter] public EventCallback<string> OnTabSwitch { get; set; }
+    [Parameter] public EventCallback<(string TabId, string Name)> OnTabRename { get; set; }
+    [Parameter] public EventCallback<int> OnFolderClick { get; set; }
+    [Parameter] public EventCallback OnTabAdd { get; set; }
+    [Parameter] public EventCallback OnExportPng { get; set; }
+    [Parameter] public EventCallback OnToggleViewMode { get; set; }
+    [Parameter] public EventCallback OnToggleTheme { get; set; }
+    [Parameter] public EventCallback<TemplateService.TemplateType> OnTemplateApply { get; set; }
+
+    private async Task HandleRenamePrompt(string tabId, string currentName)
+    {
+        var newName = await JSRuntime.InvokeAsync<string>("prompt", $"Rename roadmap '{currentName}':", currentName);
+
+        if (!string.IsNullOrWhiteSpace(newName) && newName != currentName)
+        {
+            await OnTabRename.InvokeAsync((tabId, newName.Trim()));
+        }
+    }
+
+    private string GetTabIndicatorStyle(bool isActive)
+    {
+        if (isActive)
+        {
+            return "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4); display: flex; align-items: center; justify-content: center;";
+        }
+        return "background: #2a2a3e; color: #888; border: 1px solid #3a3a4e; width: 32px; height: 32px; border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;";
+    }
+
+    private string GetFolderIndicatorStyle(bool isActive, bool hasFolder, string folderColor)
+    {
+        if (isActive && hasFolder)
+        {
+            return $"background: linear-gradient(135deg, {folderColor} 0%, {folderColor}dd 100%); color: #fff; border: 2px solid {folderColor}; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px {folderColor}66; display: flex; align-items: center; justify-content: center;";
+        }
+        else if (hasFolder)
+        {
+            return $"background: #2a2a3e; color: #888; border: 1px solid {folderColor}44; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.6;";
+        }
+        else
+        {
+            return "background: #1e1e2e; color: #555; border: 1px dashed #3a3a4e; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.4;";
+        }
+    }
+
+    private string GetCollapsedToggleStyle(bool isActive)
+    {
+        if (isActive)
+        {
+            return "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 44px; height: 44px; border-radius: 8px; font-size: 22px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: center;";
+        }
+        return "background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 22px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;";
+    }
+}

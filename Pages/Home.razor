@@ -16,146 +16,21 @@
 
 <div class="container-fluid vh-100 d-flex p-0">
     @* Collapsed Command Center - Always visible (60px) *@
-    <div class="control-panel control-panel-collapsed">
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 12px 0; height: 100%;">
-            <button @onclick="ToggleFolderSelector"
-                    title="Manage Project Folders"
-                    class="cc-icon-btn"
-                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                <Icon IconType="gear" Size="24" Color="#ffffff" />
-            </button>
-
-            @* Delete Button - Static below gear icon *@
-            @if (_activeTab != null && _sessionManager != null)
-            {
-                <button @onclick="HandleCollapsedTabDelete"
-                        title="@(_sessionManager.Tabs.Count > 1 ? "Delete current roadmap tab" : "Delete folder (last tab)")"
-                        class="cc-icon-btn"
-                        style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444; border: 2px solid #ef4444; width: 44px; height: 44px; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">
-                    🗑️
-                </button>
-            }
-
-            <div style="width: 32px; height: 2px; background: linear-gradient(90deg, transparent, #667eea, transparent); margin: 8px 0;"></div>
-
-            @if (_folderManager != null)
-            {
-                <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
-                    @for (int i = 0; i < 3; i++)
-                    {
-                        var folderIndex = i;
-                        var hasFolder = folderIndex < _folderManager.Folders.Count;
-                        var folder = hasFolder ? _folderManager.Folders[folderIndex] : null;
-                        var isActive = hasFolder && folder?.Id == _folderManager.ActiveFolderId;
-                        var folderColor = hasFolder ? folder!.Color : "#4a4a5e";
-                        var folderIcon = hasFolder ? (folder!.Icon ?? "folder") : "folder";
-
-                        <button @onclick="@(() => HandleFolderClick(folderIndex))"
-                                @oncontextmenu="@(() => ToggleFolderSelector())"
-                                @oncontextmenu:preventDefault="true"
-                                title="@(hasFolder ? folder!.Name : $"Folder {folderIndex + 1} (empty)")"
-                                style="@GetFolderIndicatorStyle(isActive, hasFolder, folderColor)">
-                            <Icon IconType="@folderIcon" Size="20" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666"))" />
-                        </button>
-
-                        @* Show tabs only for the active folder *@
-                        @if (isActive && _sessionManager != null)
-                        {
-                            <div style="display: flex; flex-direction: column; gap: 4px; align-items: center; margin-top: 2px;">
-                                @for (int j = 0; j < _sessionManager.Tabs.Count; j++)
-                                {
-                                    var tab = _sessionManager.Tabs[j];
-                                    var tabIndex = j;
-                                    var isActiveTab = tab.Id == _sessionManager.ActiveTabId;
-                                    <button @onclick="@(() => HandleTabSwitch(tab.Id))"
-                                            @oncontextmenu="@(() => ShowRenamePrompt(tab.Id, tab.Name))"
-                                            @oncontextmenu:preventDefault="true"
-                                            title="@tab.Name (Right-click to rename)"
-                                            style="@GetTabIndicatorStyle(isActiveTab)">
-                                        @(tabIndex + 1)
-                                    </button>
-                                }
-
-                                @if (_sessionManager.Tabs.Count < _sessionManager.MaxTabs)
-                                {
-                                    <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
-
-                                    <button @onclick="HandleTabAdd"
-                                            title="Add new roadmap tab"
-                                            class="cc-icon-btn"
-                                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
-                                        +
-                                    </button>
-                                }
-                            </div>
-                        }
-                    }
-                </div>
-            }
-
-            <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
-
-            <button @onclick="ExportAsPng"
-                    title="Export roadmap as PNG image"
-                    class="cc-icon-btn"
-                    style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 24px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-                📷
-            </button>
-
-            <button @onclick="@(async () => await ToggleViewMode(null))"
-                    title="@(_isPreviewMode ? "Switch to Edit Mode" : "Switch to Preview Mode")"
-                    class="cc-icon-btn"
-                    style="@GetCollapsedToggleStyle(_isPreviewMode)">
-                @(_isPreviewMode ? "👁️" : "✏️")
-            </button>
-
-            <button @onclick="@(() => ToggleTheme(null))"
-                    title="@(_isVibeMode ? "Switch to Lite Theme" : "Switch to Vibe Theme")"
-                    class="cc-icon-btn"
-                    style="@GetCollapsedToggleStyle(_isVibeMode)">
-                @(_isVibeMode ? "🌙" : "☀️")
-            </button>
-
-            <div style="flex: 1;"></div>
-
-            <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
-
-            <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumSprintCycle))"
-                    title="Apply Daily Planning Template"
-                    class="cc-icon-btn"
-                    style="background: linear-gradient(135deg, rgba(153, 153, 255, 0.2) 0%, rgba(153, 153, 255, 0.05) 100%); color: #9999ff; border: 1px solid rgba(153, 153, 255, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(153, 153, 255, 0.2);">
-                <Icon IconType="calendar" Size="24" Color="#9999ff" />
-            </button>
-
-            <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ProjectTimelines))"
-                    title="Apply Project Timelines Template"
-                    class="cc-icon-btn"
-                    style="background: linear-gradient(135deg, rgba(135, 206, 235, 0.2) 0%, rgba(135, 206, 235, 0.05) 100%); color: #87CEEB; border: 1px solid rgba(135, 206, 235, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(135, 206, 235, 0.2);">
-                <Icon IconType="rocket" Size="24" Color="#87CEEB" />
-            </button>
-
-            <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.AnnualRoadmap))"
-                    title="Apply Milestone Map Template"
-                    class="cc-icon-btn"
-                    style="background: linear-gradient(135deg, rgba(69, 182, 156, 0.2) 0%, rgba(69, 182, 156, 0.05) 100%); color: #45B69C; border: 1px solid rgba(69, 182, 156, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(69, 182, 156, 0.2);">
-                <Icon IconType="flag" Size="24" Color="#45B69C" />
-            </button>
-
-            <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.Retrospective))"
-                    title="Apply Retrospective Template"
-                    class="cc-icon-btn"
-                    style="background: linear-gradient(135deg, rgba(230, 184, 0, 0.2) 0%, rgba(230, 184, 0, 0.05) 100%); color: #E6B800; border: 1px solid rgba(230, 184, 0, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(230, 184, 0, 0.2);">
-                <Icon IconType="pause" Size="24" Color="#E6B800" />
-            </button>
-
-            <button @onclick="@(() => ApplyTemplate(TemplateService.TemplateType.ScrumBoard))"
-                    title="Apply Energy Flows Template"
-                    class="cc-icon-btn"
-                    style="background: linear-gradient(135deg, rgba(248, 131, 121, 0.2) 0%, rgba(248, 131, 121, 0.05) 100%); color: #F88379; border: 1px solid rgba(248, 131, 121, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(248, 131, 121, 0.2);">
-                <Icon IconType="target" Size="24" Color="#F88379" />
-            </button>
-        </div>
-    </div>
+    <CommandCenter FolderManager="_folderManager"
+                   SessionManager="_sessionManager"
+                   ActiveTab="_activeTab"
+                   IsPreviewMode="_isPreviewMode"
+                   IsVibeMode="_isVibeMode"
+                   OnToggleFolderSelector="ToggleFolderSelector"
+                   OnTabDelete="HandleCollapsedTabDelete"
+                   OnTabSwitch="HandleTabSwitch"
+                   OnTabRename="HandleTabRename"
+                   OnFolderClick="HandleFolderClick"
+                   OnTabAdd="HandleTabAdd"
+                   OnExportPng="ExportAsPng"
+                   OnToggleViewMode="@(async () => await ToggleViewMode(null))"
+                   OnToggleTheme="@(() => ToggleTheme(null))"
+                   OnTemplateApply="ApplyTemplate" />
 
     <div class="preview-pane" style="@PreviewPaneStyle()">
         @if (_data != null)
@@ -166,7 +41,7 @@
                 @* Quick Action Icons - Atom Navigation, GitHub, Share *@
 <div style="position: absolute; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; align-items: center;">
                     @* JSON Editor - Atom Icon *@
-                    <div @onclick="ToggleJsonModal"
+                    <div @onclick="ToggleJsonPanel"
                          title="Advanced JSON Editor & Settings"
                          style="cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(255, 165, 0, 0.3)" : "rgba(255, 165, 0, 0.15)"); display: flex; align-items: center; justify-content: center;">
                         <Icon IconType="atom" Size="20" Color="#FFA500" />
@@ -601,104 +476,81 @@
                      OnClose="CloseTemplateSelector"
                      OnTemplateSelect="HandleTemplateSelect" />
 
-    @* Split-Screen JSON Editor Modal *@
-    @if (_showJsonModal)
+    @* Integrated JSON Editor Panel - Bottom Panel *@
+    @if (_showJsonPanel)
     {
-        <div @onkeydown="HandleJsonModalKeyDown" tabindex="-1" style="position: fixed; inset: 0; z-index: 1000; background: #1a1a2e; display: flex; flex-direction: column; outline: none;">
-            @* Top Toolbar *@
-            <div style="display: flex; align-items: center; gap: 12px; padding: 16px 24px; background: #252538; border-bottom: 2px solid #FFA500; flex-shrink: 0;">
-                @* Icon & Title *@
-                <Icon IconType="atom" Size="28" Color="#FFA500" />
-                <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #FFA500; flex-shrink: 0;">
-                    Advanced JSON Editor
-                </h2>
+        <div style="height: 180px; display: flex; flex-direction: column; border-top: 2px solid #FFA500; background: #1a1a2e;">
+            @* Toolbar with inline buttons *@
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #252538; border-bottom: 1px solid #3a3a4e;">
+                <Icon IconType="atom" Size="20" Color="#FFA500" />
+                <span style="font-size: 13px; font-weight: 600; color: #FFA500;">JSON Editor</span>
 
-                @* Action Buttons *@
-                <div style="display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap;">
-                    <button @onclick="UpdateFromJson"
-                            disabled="@_isUpdating"
-                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; opacity: @(_isUpdating ? "0.5" : "1");">
-                        @if (_isUpdating)
-                        {
-                            <span>⏳ Updating...</span>
-                        }
-                        else if (_lastUpdateSuccess)
-                        {
-                            <span>✓ Update</span>
-                        }
-                        else
-                        {
-                            <span>🔄 Update</span>
-                        }
-                    </button>
-
-                    <button @onclick="SaveJson"
-                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;">
-                        💾 Save JSON
-                    </button>
-
-                    <button @onclick="SaveCurrentFolder"
-                            style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;">
-                        📁 Save Folder
-                    </button>
-
-                    <button @onclick="ImportFolder"
-                            style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;">
-                        📥 Import
-                    </button>
-
-                    <button @onclick="ToggleJsonModal"
-                            class="json-modal-close-btn"
-                            style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;">
-                        ✕ Close
-                    </button>
-                </div>
-            </div>
-
-            @* Split-Screen Content *@
-            <div style="flex: 1; display: flex; overflow: hidden;">
-                @* Left: JSON Editor *@
-                <div style="flex: 0 0 45%; display: flex; flex-direction: column; padding: 16px; background: #1e1e2e; border-right: 2px solid #3a3a4e; overflow: hidden;">
-                    <div style="font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                        JSON Editor
-                    </div>
-                    <textarea @ref="_jsonTextArea"
-                              @bind="_currentJson"
-                              @bind:event="oninput"
-                              style="flex: 1; background: #252538; color: #e0e7ff; border: 1px solid #3a3a4e; border-radius: 6px; padding: 16px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; resize: none; overflow-y: auto;"
-                              spellcheck="false"
-                              placeholder="Enter your roadmap JSON here..."></textarea>
-
-                    @* Error Display *@
-                    @if (!string.IsNullOrEmpty(_error))
+                @* Action buttons *@
+                <button @onclick="UpdateFromJson"
+                        disabled="@_isUpdating"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; opacity: @(_isUpdating ? "0.5" : "1");">
+                    @if (_isUpdating)
                     {
-                        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 6px; padding: 10px; color: #ef4444; font-size: 12px; margin-top: 12px;">
-                            <strong>Error:</strong> @_error
-                        </div>
+                        <span>⏳ Updating...</span>
                     }
-                </div>
+                    else if (_lastUpdateSuccess)
+                    {
+                        <span>✓ Update</span>
+                    }
+                    else
+                    {
+                        <span>🔄 Update</span>
+                    }
+                </button>
 
-                @* Right: Roadmap Preview *@
-                <div style="flex: 1; display: flex; flex-direction: column; background: #e8eaed; overflow: auto;">
-                    <div style="padding: 12px 16px; background: #d1d5db; border-bottom: 1px solid #9ca3af; font-size: 12px; color: #374151; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;">
-                        Interactive Roadmap Preview - Click elements to jump to JSON
-                    </div>
-                    <div style="flex: 1; padding: 20px; overflow: auto;">
-                        @if (_data != null)
-                        {
-                            <div @ref="_modalRoadmapContainer" style="transform: scale(0.85); transform-origin: top left; width: 118%; pointer-events: auto;">
-                                @RenderRoadmapWithClickHandlers(_data, true)
-                            </div>
-                        }
-                        else
-                        {
-                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #6b7280; font-size: 14px;">
-                                No valid roadmap data to preview
-                            </div>
-                        }
-                    </div>
-                </div>
+                <button @onclick="SaveJson"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;">
+                    💾 Save JSON
+                </button>
+
+                <button @onclick="SaveCurrentFolder"
+                        style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;">
+                    📁 Save Folder
+                </button>
+
+                <button @onclick="ImportFolder"
+                        style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;">
+                    📥 Import
+                </button>
+
+                @* Collapse button (right) *@
+                <button @onclick="ToggleJsonPanel"
+                        style="margin-left: auto; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;">
+                    ▼ Collapse
+                </button>
             </div>
+
+            @* JSON textarea *@
+            <textarea @ref="_jsonTextArea"
+                      @bind="_currentJson"
+                      @bind:event="oninput"
+                      style="flex: 1; background: #252538; color: #e0e7ff; border: none; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.5; resize: none; overflow-y: auto;"
+                      spellcheck="false"
+                      placeholder="Enter your roadmap JSON here..."></textarea>
+
+            @* Error display if needed *@
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div style="background: rgba(239, 68, 68, 0.1); border-top: 1px solid #ef4444; padding: 8px 12px; color: #ef4444; font-size: 11px;">
+                    <strong>Error:</strong> @_error
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        @* Collapsed state: just show expand button at bottom *@
+        <div @onclick="ToggleJsonPanel"
+             style="height: 32px; background: #252538; border-top: 2px solid #FFA500; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;"
+             @onmouseover="@(() => {})"
+             title="Expand JSON Editor">
+            <Icon IconType="atom" Size="16" Color="#FFA500" />
+            <span style="font-size: 12px; color: #FFA500; margin-left: 8px;">▲ Expand JSON Editor</span>
         </div>
     }
 </div>
@@ -713,7 +565,7 @@
     private bool _isVibeMode = false;
     private bool _editorReady = false;
     private bool _isPreviewMode = false;       // Toggle between Edit Mode and Preview Mode
-    private bool _showJsonModal = false;       // Full-screen JSON editor modal
+    private bool _showJsonPanel = false;       // Integrated bottom JSON editor panel
     private bool _showProperties = true;       // Show/hide properties panel - open by default
     private DotNetObjectReference<Home>? _dotNetRef;
     private InputFile? _folderImportInput;
@@ -2488,7 +2340,7 @@
     {
         // Render a simplified roadmap with clickable elements
         <div class="roadmap" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 800px;">
-            <div @onclick="@(async () => await JumpToJsonSection("title"))" style="cursor: pointer; margin-bottom: 20px; padding: 12px; border-radius: 6px; transition: background 0.2s;" @onmouseover="@((MouseEventArgs e) => {})" class="clickable-element">
+            <div @onclick="@(async () => await JumpToJsonSection("title"))" style="cursor: pointer; margin-bottom: 20px; padding: 12px; border-radius: 6px; transition: background 0.2s;" class="clickable-element">
                 <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: #1f2937;">@data.Title</h1>
                 @if (!string.IsNullOrEmpty(data.Subtitle))
                 {
@@ -2521,7 +2373,7 @@
                                     {
                                         var item = lane.Items[ii];
                                         var itemIndex = ii;
-                                        <div @onclick="@(async (MouseEventArgs e) => { e.StopPropagation(); await JumpToJsonSection($"lanes[{laneIndex}].items[{itemIndex}]"); })"
+                                        <div @onclick="@(async () => await JumpToJsonSection($"lanes[{laneIndex}].items[{itemIndex}]"))"
                                              @onclick:stopPropagation="true"
                                              style="background: white; border: 1px solid @(lane.Color)40; padding: 8px 12px; border-radius: 4px; font-size: 13px; color: #374151; cursor: pointer; transition: all 0.2s;"
                                              class="clickable-element">
@@ -3505,9 +3357,9 @@
         StateHasChanged();
     }
 
-    private void ToggleJsonModal()
+    private void ToggleJsonPanel()
     {
-        if (!_showJsonModal && _data != null)
+        if (!_showJsonPanel && _data != null)
         {
             // When opening, sync current data to JSON
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
@@ -3516,7 +3368,7 @@
                 DefaultIgnoreCondition = JsonIgnoreCondition.Never
             });
         }
-        _showJsonModal = !_showJsonModal;
+        _showJsonPanel = !_showJsonPanel;
         StateHasChanged();
     }
 
@@ -3524,7 +3376,7 @@
     {
         if (e.Key == "Escape")
         {
-            ToggleJsonModal();
+            ToggleJsonPanel();
         }
     }
 
