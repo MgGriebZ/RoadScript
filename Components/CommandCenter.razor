@@ -13,7 +13,18 @@
             <Icon IconType="gear" Size="24" Color="#ffffff" />
         </button>
 
-        @* Delete Button - Static below gear icon *@
+        @* Add New Tab Button - Primary action at top *@
+        @if (SessionManager != null && SessionManager.Tabs.Count < SessionManager.MaxTabs)
+        {
+            <button @onclick="@(() => OnTabAdd.InvokeAsync())"
+                    title="Add new roadmap tab"
+                    class="cc-icon-btn"
+                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; width: 44px; height: 44px; border-radius: 8px; font-size: 24px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
+                +
+            </button>
+        }
+
+        @* Delete Button *@
         @if (ActiveTab != null && SessionManager != null)
         {
             <button @onclick="@(() => OnTabDelete.InvokeAsync())"
@@ -61,18 +72,6 @@
                                         title="@tab.Name (Right-click to rename)"
                                         style="@GetTabIndicatorStyle(isActiveTab)">
                                     @(tabIndex + 1)
-                                </button>
-                            }
-
-                            @if (SessionManager.Tabs.Count < SessionManager.MaxTabs)
-                            {
-                                <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
-
-                                <button @onclick="@(() => OnTabAdd.InvokeAsync())"
-                                        title="Add new roadmap tab"
-                                        class="cc-icon-btn"
-                                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
-                                    +
                                 </button>
                             }
                         </div>

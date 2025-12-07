@@ -659,66 +659,6 @@ window.RoadScriptInterop = {
         });
     },
 
-    /**
-     * Sets up drag-to-move functionality for all milestones
-     * @param {object} dotNetRef - .NET object reference for callbacks
-     */
-    setupMilestoneDrag: function(dotNetRef) {
-        const elements = document.querySelectorAll('.roadmap-milestone-movable');
-
-        elements.forEach(element => {
-            // Remove existing listeners to avoid duplicates
-            const oldMouseMove = element._roadscriptMilestoneMouseMove;
-            const oldMouseDown = element._roadscriptMilestoneMouseDown;
-
-            if (oldMouseMove) element.removeEventListener('mousemove', oldMouseMove);
-            if (oldMouseDown) element.removeEventListener('mousedown', oldMouseDown);
-
-            // Create new listeners
-            const handleMouseMove = function(e) {
-                // Show move cursor when hovering over milestone
-                element.style.cursor = 'move';
-            };
-
-            const handleMouseDown = function(e) {
-                // Prevent default click behavior
-                e.preventDefault();
-                e.stopPropagation();
-
-                const milestoneIndex = parseInt(element.getAttribute('data-milestone-index'));
-
-                if (isNaN(milestoneIndex)) {
-                    console.error('Invalid milestone index');
-                    return;
-                }
-
-                // Start milestone drag
-                dotNetRef.invokeMethodAsync('StartMoveMilestone', milestoneIndex, e.clientX);
-
-                const handleGlobalMouseMove = (moveEvent) => {
-                    dotNetRef.invokeMethodAsync('UpdateMoveMilestone', moveEvent.clientX);
-                };
-
-                const handleGlobalMouseUp = () => {
-                    dotNetRef.invokeMethodAsync('EndMoveMilestone');
-                    document.removeEventListener('mousemove', handleGlobalMouseMove);
-                    document.removeEventListener('mouseup', handleGlobalMouseUp);
-                };
-
-                document.addEventListener('mousemove', handleGlobalMouseMove);
-                document.addEventListener('mouseup', handleGlobalMouseUp);
-            };
-
-            // Store references for later removal
-            element._roadscriptMilestoneMouseMove = handleMouseMove;
-            element._roadscriptMilestoneMouseDown = handleMouseDown;
-
-            // Add new listeners
-            element.addEventListener('mousemove', handleMouseMove);
-            element.addEventListener('mousedown', handleMouseDown);
-        });
-    },
-
     exportAsPngNewTab: async function(elementSelector) {
         try {
             // Load html2canvas dynamically if not already loaded

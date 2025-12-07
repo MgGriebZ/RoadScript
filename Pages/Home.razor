@@ -286,9 +286,8 @@
                                 <div id="@($"milestone-{msIndex}")"
                                      @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
                                      @onclick:stopPropagation="@(!_isPreviewMode)"
-                                     class="@GetElementClass($"milestones[{msIndex}]") roadmap-milestone-movable"
-                                     style="@MilestoneStyle(milestone.Start)"
-                                     data-milestone-index="@msIndex">
+                                     class="@GetElementClass($"milestones[{msIndex}]")"
+                                     style="@MilestoneStyle(milestone.Start)">
                                     <div style="@MilestoneContainerStyle()">
                                         <Icon IconType="@(milestone.Icon ?? "diamond")"
                                               Color="@milestone.Color"
@@ -845,11 +844,10 @@
             try
             {
                 await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupAllItemResize", _dotNetRef);
-                await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupMilestoneDrag", _dotNetRef);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error setting up item resize/milestone drag: {ex.Message}");
+                Console.WriteLine($"Error setting up item resize: {ex.Message}");
             }
         }
     }
