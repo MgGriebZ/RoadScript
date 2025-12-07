@@ -171,6 +171,30 @@
         </div>
     </div>
 
+    @* Roadmap Linking *@
+    @if (AvailableRoadmaps != null && AvailableRoadmaps.Count > 1)
+    {
+        <div class="form-group">
+            <label style="font-size: 11px; margin-bottom: 8px; color: #888;">Linked Roadmap</label>
+            <select value="@(Item.LinkedRoadmapId ?? "")"
+                    @onchange="@(e => OnChange.InvokeAsync(("linkedRoadmapId", string.IsNullOrEmpty(e.Value?.ToString()) ? null : e.Value.ToString())))"
+                    class="form-control"
+                    style="background: #252538; color: #e0e7ff; border: 1px solid #3a3a4e; border-radius: 6px; padding: 8px 12px; font-size: 13px;">
+                <option value="">None</option>
+                @foreach (var roadmap in AvailableRoadmaps)
+                {
+                    <option value="@roadmap.Id">🔗 @roadmap.Name</option>
+                }
+            </select>
+            @if (!string.IsNullOrEmpty(Item.LinkedRoadmapId))
+            {
+                <div style="margin-top: 6px; padding: 8px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 4px; font-size: 11px; color: #a5b4fc;">
+                    🔗 Click the link icon on the item to navigate
+                </div>
+            }
+        </div>
+    }
+
     <div class="form-group">
         <label style="font-size: 11px; margin-bottom: 8px; color: #888;">Status Icon</label>
 
@@ -446,6 +470,9 @@
 
     [Parameter]
     public int LaneCount { get; set; } = 1;
+
+    [Parameter]
+    public List<TabSession>? AvailableRoadmaps { get; set; }
 
     private bool _statusIconPickerExpanded = false;
 

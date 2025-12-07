@@ -42,6 +42,7 @@ else
                                ItemCount="@GetItemCount()"
                                LaneIndex="@GetLaneIndex()"
                                LaneCount="@LaneCount"
+                               AvailableRoadmaps="@AvailableRoadmaps"
                                OnChange="HandlePropertyChange"
                                OnAdd="HandleAddElement"
                                OnRemove="HandleRemoveElement"
@@ -149,6 +150,9 @@ else
 
     [Parameter]
     public int LaneCount { get; set; } = 1;
+
+    [Parameter]
+    public List<TabSession>? AvailableRoadmaps { get; set; }
 
     [Parameter]
     public int ItemCount { get; set; } = 1;
