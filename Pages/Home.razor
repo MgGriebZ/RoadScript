@@ -1534,11 +1534,6 @@
             {
                 _data = _activeTab.Data;
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
-
-                if (_editor != null && _editorReady)
-                {
-                    await _editor.SetValue(_currentJson);
-                }
             }
 
             await StorageService.SaveFolderManagerAsync(_folderManager);
@@ -2215,45 +2210,56 @@
         var jsonPath = $"lanes[{laneIndex}].items[{itemIndex}]";
         SelectionState.Select(jsonPath, "item", item);
 
-        await EditorInterop.NavigateToJsonPath(
-            "roadscript-json-editor",
-            _currentJson,
-            jsonPath,
-            highlight: true
-        );
+        if (_jsonEditorMode)
+        {
+            await JumpToJsonLocation(jsonPath);
+        }
     }
 
     private async Task HandleElementClick(string jsonPath, string elementType, object element)
     {
-        // Exit JSON Editor mode and show Properties panel when clicking any element
-        if (_jsonEditorMode)
-        {
-            _jsonEditorMode = false;
-            _showProperties = true;
-        }
-
         SelectionState.Select(jsonPath, elementType, element);
 
-        await EditorInterop.NavigateToJsonPath(
-            "roadscript-json-editor",
-            _currentJson,
-            jsonPath,
-            highlight: true
-        );
+        if (_jsonEditorMode)
+        {
+            await JumpToJsonLocation(jsonPath);
+        }
     }
 
     private void HandleTitleClick()
     {
-        // Exit JSON Editor mode and show Properties panel when clicking title
-        if (_jsonEditorMode)
-        {
-            _jsonEditorMode = false;
-            _showProperties = true;
-        }
-
         if (_data != null)
         {
             SelectionState.Select("title", "title", _data);
+            if (_jsonEditorMode)
+            {
+                _ = JumpToJsonLocation("title");
+            }
+        }
+    }
+
+    private async Task JumpToJsonLocation(string jsonPath)
+    {
+        try
+        {
+            var position = await JSRuntime.InvokeAsync<JsonPosition?>(
+                "RoadScriptInterop.findJsonPosition",
+                _currentJson,
+                jsonPath
+            );
+
+            if (position != null && _jsonTextArea.Id != null)
+            {
+                await JSRuntime.InvokeVoidAsync(
+                    "RoadScriptInterop.scrollTextareaToLine",
+                    _jsonTextArea,
+                    position.Line - 1
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error jumping to JSON location: {ex.Message}");
         }
     }
 
@@ -3149,11 +3155,6 @@
             _data = _activeTab.Data;
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-            if (_editor != null && _editorReady)
-            {
-                await _editor.SetValue(_currentJson);
-            }
-
             if (_activeFolder != null)
             {
                 _activeFolder.LastModified = DateTime.UtcNow;
@@ -3553,11 +3554,6 @@
             {
                 _data = _activeTab.Data;
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
-
-                if (_editor != null && _editorReady)
-                {
-                    await _editor.SetValue(_currentJson);
-                }
             }
         }
 
@@ -3632,11 +3628,6 @@
             {
                 _data = _activeTab.Data;
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
-
-                if (_editor != null && _editorReady)
-                {
-                    await _editor.SetValue(_currentJson);
-                }
             }
         }
 
