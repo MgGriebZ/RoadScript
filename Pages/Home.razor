@@ -845,10 +845,11 @@
             try
             {
                 await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupAllItemResize", _dotNetRef);
+                await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupMilestoneDrag", _dotNetRef);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error setting up item resize: {ex.Message}");
+                Console.WriteLine($"Error setting up item resize/milestone drag: {ex.Message}");
             }
         }
     }
