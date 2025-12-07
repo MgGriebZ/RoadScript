@@ -693,6 +693,41 @@ window.RoadScriptInterop = {
             console.error('Error exporting PNG:', error);
             return false;
         }
+    },
+
+    /**
+     * Scrolls a textarea to a specific line number
+     * @param {HTMLTextAreaElement} textarea - The textarea element
+     * @param {number} lineNumber - The line number to scroll to (0-indexed)
+     */
+    scrollTextareaToLine: function(textarea, lineNumber) {
+        try {
+            if (!textarea || lineNumber < 0) return;
+
+            const lines = textarea.value.split('\n');
+            if (lineNumber >= lines.length) lineNumber = lines.length - 1;
+
+            // Calculate the character position at the start of the target line
+            let charPosition = 0;
+            for (let i = 0; i < lineNumber; i++) {
+                charPosition += lines[i].length + 1; // +1 for newline
+            }
+
+            // Set cursor to that position
+            textarea.focus();
+            textarea.setSelectionRange(charPosition, charPosition + lines[lineNumber].length);
+
+            // Scroll to make the selection visible
+            // Calculate approximate pixel position (rough estimate)
+            const lineHeight = 20; // approximate line height in pixels
+            const scrollTop = lineNumber * lineHeight;
+            textarea.scrollTop = scrollTop - (textarea.clientHeight / 3); // Scroll to show line in top third
+
+            return true;
+        } catch (error) {
+            console.error('Error scrolling textarea:', error);
+            return false;
+        }
     }
 };
 

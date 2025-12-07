@@ -168,8 +168,8 @@
                     @* JSON Editor - Atom Icon *@
                     <div @onclick="ToggleJsonModal"
                          title="Advanced JSON Editor & Settings"
-                         style="cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(167, 139, 250, 0.3)" : "rgba(167, 139, 250, 0.15)"); display: flex; align-items: center; justify-content: center;">
-                        <Icon IconType="atom" Size="20" Color="#a78bfa" />
+                         style="cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(255, 165, 0, 0.3)" : "rgba(255, 165, 0, 0.15)"); display: flex; align-items: center; justify-content: center;">
+                        <Icon IconType="atom" Size="20" Color="#FFA500" />
                     </div>
 
                     <a href="https://github.com/MgGriebZ/RoadScript" target="_blank" rel="noopener noreferrer"
@@ -601,77 +601,103 @@
                      OnClose="CloseTemplateSelector"
                      OnTemplateSelect="HandleTemplateSelect" />
 
-    @* Full-Screen JSON Editor Modal *@
+    @* Split-Screen JSON Editor Modal *@
     @if (_showJsonModal)
     {
-        <div @onkeydown="HandleJsonModalKeyDown" tabindex="-1" style="position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, 0.95); display: flex; flex-direction: column; padding: 24px; outline: none;">
-            @* Header *@
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <Icon IconType="atom" Size="32" Color="#a78bfa" />
-                    <h2 style="margin: 0; font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                        Advanced JSON Editor
-                    </h2>
-                </div>
-                <button @onclick="ToggleJsonModal"
-                        class="json-modal-close-btn"
-                        style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s;">
-                    ✕ Close
-                </button>
-            </div>
-
-            @* JSON Editor Area *@
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 16px; overflow: hidden;">
-                <textarea @bind="_currentJson"
-                          @bind:event="oninput"
-                          style="flex: 1; background: #1e1e2e; color: #e0e7ff; border: 2px solid #3a3a4e; border-radius: 8px; padding: 16px; font-family: 'Courier New', monospace; font-size: 13px; resize: none; overflow-y: auto;"
-                          spellcheck="false"
-                          placeholder="Enter your roadmap JSON here..."></textarea>
+        <div @onkeydown="HandleJsonModalKeyDown" tabindex="-1" style="position: fixed; inset: 0; z-index: 1000; background: #1a1a2e; display: flex; flex-direction: column; outline: none;">
+            @* Top Toolbar *@
+            <div style="display: flex; align-items: center; gap: 12px; padding: 16px 24px; background: #252538; border-bottom: 2px solid #FFA500; flex-shrink: 0;">
+                @* Icon & Title *@
+                <Icon IconType="atom" Size="28" Color="#FFA500" />
+                <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #FFA500; flex-shrink: 0;">
+                    Advanced JSON Editor
+                </h2>
 
                 @* Action Buttons *@
-                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    @* JSON Actions *@
+                <div style="display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap;">
                     <button @onclick="UpdateFromJson"
                             disabled="@_isUpdating"
-                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; opacity: @(_isUpdating ? "0.5" : "1"); flex: 1; min-width: 150px;">
+                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; opacity: @(_isUpdating ? "0.5" : "1");">
                         @if (_isUpdating)
                         {
                             <span>⏳ Updating...</span>
                         }
                         else if (_lastUpdateSuccess)
                         {
-                            <span>✓ Update JSON</span>
+                            <span>✓ Update</span>
                         }
                         else
                         {
-                            <span>🔄 Update JSON</span>
+                            <span>🔄 Update</span>
                         }
                     </button>
 
                     <button @onclick="SaveJson"
-                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; flex: 1; min-width: 150px;">
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;">
                         💾 Save JSON
                     </button>
 
-                    @* Folder Actions *@
                     <button @onclick="SaveCurrentFolder"
-                            style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; flex: 1; min-width: 150px;">
+                            style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;">
                         📁 Save Folder
                     </button>
 
                     <button @onclick="ImportFolder"
-                            style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; flex: 1; min-width: 150px;">
-                        📥 Import Folder
+                            style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;">
+                        📥 Import
+                    </button>
+
+                    <button @onclick="ToggleJsonModal"
+                            class="json-modal-close-btn"
+                            style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;">
+                        ✕ Close
                     </button>
                 </div>
+            </div>
 
-                @* Error Display *@
-                @if (!string.IsNullOrEmpty(_error))
-                {
-                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 12px; color: #ef4444; font-size: 13px;">
-                        <strong>Error:</strong> @_error
+            @* Split-Screen Content *@
+            <div style="flex: 1; display: flex; overflow: hidden;">
+                @* Left: JSON Editor *@
+                <div style="flex: 0 0 45%; display: flex; flex-direction: column; padding: 16px; background: #1e1e2e; border-right: 2px solid #3a3a4e; overflow: hidden;">
+                    <div style="font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                        JSON Editor
                     </div>
-                }
+                    <textarea @ref="_jsonTextArea"
+                              @bind="_currentJson"
+                              @bind:event="oninput"
+                              style="flex: 1; background: #252538; color: #e0e7ff; border: 1px solid #3a3a4e; border-radius: 6px; padding: 16px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; resize: none; overflow-y: auto;"
+                              spellcheck="false"
+                              placeholder="Enter your roadmap JSON here..."></textarea>
+
+                    @* Error Display *@
+                    @if (!string.IsNullOrEmpty(_error))
+                    {
+                        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 6px; padding: 10px; color: #ef4444; font-size: 12px; margin-top: 12px;">
+                            <strong>Error:</strong> @_error
+                        </div>
+                    }
+                </div>
+
+                @* Right: Roadmap Preview *@
+                <div style="flex: 1; display: flex; flex-direction: column; background: #e8eaed; overflow: auto;">
+                    <div style="padding: 12px 16px; background: #d1d5db; border-bottom: 1px solid #9ca3af; font-size: 12px; color: #374151; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;">
+                        Interactive Roadmap Preview - Click elements to jump to JSON
+                    </div>
+                    <div style="flex: 1; padding: 20px; overflow: auto;">
+                        @if (_data != null)
+                        {
+                            <div @ref="_modalRoadmapContainer" style="transform: scale(0.85); transform-origin: top left; width: 118%; pointer-events: auto;">
+                                @RenderRoadmapWithClickHandlers(_data, true)
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #6b7280; font-size: 14px;">
+                                No valid roadmap data to preview
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     }
@@ -691,6 +717,8 @@
     private bool _showProperties = true;       // Show/hide properties panel - open by default
     private DotNetObjectReference<Home>? _dotNetRef;
     private InputFile? _folderImportInput;
+    private ElementReference _jsonTextArea;
+    private ElementReference _modalRoadmapContainer;
 
     private FolderManager? _folderManager;
     private Folder? _activeFolder;
@@ -2373,6 +2401,141 @@
             SelectionState.Select("title", "title", _data);
         }
     }
+
+    private async Task JumpToJsonSection(string jsonPath)
+    {
+        try
+        {
+            // Find the line number in the JSON that contains this path
+            var lines = _currentJson.Split('\n');
+            int targetLine = -1;
+
+            // Convert JSON path (e.g., "lanes[0].items[1]") to search terms
+            var searchTerm = jsonPath
+                .Replace("lanes[", "\"lanes\"")
+                .Replace("].items[", "")
+                .Replace("[", "")
+                .Replace("]", "")
+                .Trim();
+
+            // Simple search for the JSON path
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (jsonPath.StartsWith("lanes["))
+                {
+                    // For lanes, look for the lane definition
+                    if (lines[i].Contains("\"title\"") && i > 0)
+                    {
+                        var laneMatch = System.Text.RegularExpressions.Regex.Match(jsonPath, @"lanes\[(\d+)\]");
+                        if (laneMatch.Success)
+                        {
+                            int laneIndex = int.Parse(laneMatch.Groups[1].Value);
+                            int currentLane = 0;
+                            for (int j = 0; j < lines.Length; j++)
+                            {
+                                if (lines[j].Trim().StartsWith("\"title\""))
+                                {
+                                    if (currentLane == laneIndex)
+                                    {
+                                        targetLine = j;
+                                        break;
+                                    }
+                                    currentLane++;
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (jsonPath == "title")
+                {
+                    if (lines[i].Contains("\"title\"") && i < 10) // Title is near the top
+                    {
+                        targetLine = i;
+                        break;
+                    }
+                }
+                else if (jsonPath.StartsWith("columns["))
+                {
+                    if (lines[i].Contains("\"columns\""))
+                    {
+                        targetLine = i;
+                        break;
+                    }
+                }
+                else if (jsonPath.StartsWith("milestones["))
+                {
+                    if (lines[i].Contains("\"milestones\""))
+                    {
+                        targetLine = i;
+                        break;
+                    }
+                }
+            }
+
+            if (targetLine >= 0)
+            {
+                // Scroll to the line using JS interop
+                await JSRuntime.InvokeVoidAsync("RoadScriptInterop.scrollTextareaToLine", _jsonTextArea, targetLine);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error jumping to JSON section: {ex.Message}");
+        }
+    }
+
+    private RenderFragment RenderRoadmapWithClickHandlers(RoadmapData data, bool isModal) => __builder =>
+    {
+        // Render a simplified roadmap with clickable elements
+        <div class="roadmap" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 800px;">
+            <div @onclick="@(async () => await JumpToJsonSection("title"))" style="cursor: pointer; margin-bottom: 20px; padding: 12px; border-radius: 6px; transition: background 0.2s;" @onmouseover="@((MouseEventArgs e) => {})" class="clickable-element">
+                <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: #1f2937;">@data.Title</h1>
+                @if (!string.IsNullOrEmpty(data.Subtitle))
+                {
+                    <p style="margin: 8px 0 0 0; font-size: 14px; color: #6b7280;">@data.Subtitle</p>
+                }
+            </div>
+
+            @if (data.Lanes != null && data.Lanes.Count > 0)
+            {
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    @for (int li = 0; li < data.Lanes.Count; li++)
+                    {
+                        var lane = data.Lanes[li];
+                        var laneIndex = li;
+                        <div @onclick="@(async () => await JumpToJsonSection($"lanes[{laneIndex}]"))"
+                             style="cursor: pointer; padding: 16px; border-left: 4px solid @lane.Color; background: linear-gradient(90deg, @(lane.Color)10 0%, transparent 100%); border-radius: 6px; transition: all 0.2s;"
+                             class="clickable-element">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                @if (!string.IsNullOrEmpty(lane.Icon))
+                                {
+                                    <Icon IconType="@lane.Icon" Color="@lane.Color" Size="20" />
+                                }
+                                <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #374151;">@lane.Title</h3>
+                            </div>
+
+                            @if (lane.Items != null && lane.Items.Count > 0)
+                            {
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
+                                    @for (int ii = 0; ii < lane.Items.Count; ii++)
+                                    {
+                                        var item = lane.Items[ii];
+                                        var itemIndex = ii;
+                                        <div @onclick="@(async (MouseEventArgs e) => { e.StopPropagation(); await JumpToJsonSection($"lanes[{laneIndex}].items[{itemIndex}]"); })"
+                                             @onclick:stopPropagation="true"
+                                             style="background: white; border: 1px solid @(lane.Color)40; padding: 8px 12px; border-radius: 4px; font-size: 13px; color: #374151; cursor: pointer; transition: all 0.2s;"
+                                             class="clickable-element">
+                                            <span style="font-weight: 500;">@item.Title</span>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    };
 
     private async Task HandlePropertyChange((string JsonPath, string PropertyName, object Value) change)
     {
