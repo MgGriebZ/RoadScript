@@ -40,10 +40,10 @@
 
                 @* Quick Action Icons - Atom Navigation, GitHub, Share *@
 <div style="position: absolute; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; align-items: center;">
-                    @* JSON Editor - Atom Icon *@
-                    <div @onclick="ToggleJsonPanel"
-                         title="Advanced JSON Editor & Settings"
-                         style="cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(255, 165, 0, 0.3)" : "rgba(255, 165, 0, 0.15)"); display: flex; align-items: center; justify-content: center;">
+                    @* JSON Editor Mode Toggle - Atom Icon *@
+                    <div @onclick="ToggleJsonEditorMode"
+                         title="@(_jsonEditorMode ? "Switch to Properties Mode" : "Switch to JSON Editor Mode")"
+                         style="cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_jsonEditorMode ? "rgba(255, 165, 0, 0.4)" : (_isVibeMode ? "rgba(255, 165, 0, 0.3)" : "rgba(255, 165, 0, 0.15)")); display: flex; align-items: center; justify-content: center;">
                         <Icon IconType="atom" Size="20" Color="#FFA500" />
                     </div>
 
@@ -440,20 +440,94 @@
     @* Hidden file input for folder import *@
     <InputFile @ref="_folderImportInput" OnChange="HandleFolderImport" accept=".json" style="display: none;" />
 
-    <PropertyPanel OnPropertyChange="HandlePropertyChange"
-                  OnAddElement="HandleAddElement"
-                  OnRemoveElement="HandleRemoveElement"
-                  OnDuplicateElement="HandleDuplicateElement"
-                  OnMoveItem="HandleMoveItem"
-                  OnMoveLane="HandleMoveLane"
-                  OnHidePanel="ToggleProperties"
-                  IsCollapsed="@(!_showProperties)"
-                  ColumnCount="@(_data?.Columns.Count ?? 4)"
-                  LaneCount="@(_data?.Lanes.Count ?? 1)"
-                  ItemIndex="@GetSelectedItemIndex()"
-                  ItemCount="@GetSelectedItemCount()"
-                  LaneIndex="@GetSelectedLaneIndex()"
-                  AvailableRoadmaps="@(_sessionManager?.Tabs)" />
+    @* Right Sidebar: Properties Panel OR JSON Editor *@
+    @if (!_jsonEditorMode)
+    {
+        @* Properties Mode: Standard property editing panel *@
+        <PropertyPanel OnPropertyChange="HandlePropertyChange"
+                      OnAddElement="HandleAddElement"
+                      OnRemoveElement="HandleRemoveElement"
+                      OnDuplicateElement="HandleDuplicateElement"
+                      OnMoveItem="HandleMoveItem"
+                      OnMoveLane="HandleMoveLane"
+                      OnHidePanel="ToggleProperties"
+                      IsCollapsed="@(!_showProperties)"
+                      ColumnCount="@(_data?.Columns.Count ?? 4)"
+                      LaneCount="@(_data?.Lanes.Count ?? 1)"
+                      ItemIndex="@GetSelectedItemIndex()"
+                      ItemCount="@GetSelectedItemCount()"
+                      LaneIndex="@GetSelectedLaneIndex()"
+                      AvailableRoadmaps="@(_sessionManager?.Tabs)" />
+    }
+    else
+    {
+        @* JSON Editor Mode: Advanced JSON editor in right sidebar *@
+        <div class="property-panel" style="display: flex; flex-direction: column; background: #1a1a2e;">
+            @* Toolbar Header *@
+            <div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #252538; border-bottom: 1px solid #3a3a4e;">
+                <Icon IconType="atom" Size="20" Color="#FFA500" />
+                <span style="font-size: 14px; font-weight: 600; color: #FFA500;">JSON Editor</span>
+
+                @* Collapse button (right) *@
+                <button @onclick="ToggleProperties"
+                        title="Hide Sidebar"
+                        style="margin-left: auto; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s;">
+                    ▶ Hide
+                </button>
+            </div>
+
+            @* Action Buttons *@
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; background: #1e1e2f; border-bottom: 1px solid #3a3a4e;">
+                <button @onclick="UpdateFromJson"
+                        disabled="@_isUpdating"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; opacity: @(_isUpdating ? "0.5" : "1"); width: 100%;">
+                    @if (_isUpdating)
+                    {
+                        <span>⏳ Updating...</span>
+                    }
+                    else if (_lastUpdateSuccess)
+                    {
+                        <span>✓ Update Roadmap</span>
+                    }
+                    else
+                    {
+                        <span>🔄 Update Roadmap</span>
+                    }
+                </button>
+
+                <button @onclick="SaveJson"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; width: 100%;">
+                    💾 Save JSON
+                </button>
+
+                <button @onclick="SaveCurrentFolder"
+                        style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; width: 100%;">
+                    📁 Save Folder
+                </button>
+
+                <button @onclick="ImportFolder"
+                        style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; width: 100%;">
+                    📥 Import Folder
+                </button>
+            </div>
+
+            @* JSON Textarea *@
+            <textarea @ref="_jsonTextArea"
+                      @bind="_currentJson"
+                      @bind:event="oninput"
+                      style="flex: 1; background: #252538; color: #e0e7ff; border: none; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.5; resize: none; overflow-y: auto;"
+                      spellcheck="false"
+                      placeholder="Enter your roadmap JSON here..."></textarea>
+
+            @* Error Display *@
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div style="background: rgba(239, 68, 68, 0.1); border-top: 1px solid #ef4444; padding: 8px 12px; color: #ef4444; font-size: 11px;">
+                    <strong>Error:</strong> @_error
+                </div>
+            }
+        </div>
+    }
 
     @if (_folderManager != null)
     {
@@ -475,84 +549,6 @@
     <TemplateSelector IsVisible="@_showTemplateSelector"
                      OnClose="CloseTemplateSelector"
                      OnTemplateSelect="HandleTemplateSelect" />
-
-    @* Integrated JSON Editor Panel - Bottom Panel *@
-    @if (_showJsonPanel)
-    {
-        <div style="height: 180px; display: flex; flex-direction: column; border-top: 2px solid #FFA500; background: #1a1a2e;">
-            @* Toolbar with inline buttons *@
-            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #252538; border-bottom: 1px solid #3a3a4e;">
-                <Icon IconType="atom" Size="20" Color="#FFA500" />
-                <span style="font-size: 13px; font-weight: 600; color: #FFA500;">JSON Editor</span>
-
-                @* Action buttons *@
-                <button @onclick="UpdateFromJson"
-                        disabled="@_isUpdating"
-                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; opacity: @(_isUpdating ? "0.5" : "1");">
-                    @if (_isUpdating)
-                    {
-                        <span>⏳ Updating...</span>
-                    }
-                    else if (_lastUpdateSuccess)
-                    {
-                        <span>✓ Update</span>
-                    }
-                    else
-                    {
-                        <span>🔄 Update</span>
-                    }
-                </button>
-
-                <button @onclick="SaveJson"
-                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;">
-                    💾 Save JSON
-                </button>
-
-                <button @onclick="SaveCurrentFolder"
-                        style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;">
-                    📁 Save Folder
-                </button>
-
-                <button @onclick="ImportFolder"
-                        style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;">
-                    📥 Import
-                </button>
-
-                @* Collapse button (right) *@
-                <button @onclick="ToggleJsonPanel"
-                        style="margin-left: auto; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;">
-                    ▼ Collapse
-                </button>
-            </div>
-
-            @* JSON textarea *@
-            <textarea @ref="_jsonTextArea"
-                      @bind="_currentJson"
-                      @bind:event="oninput"
-                      style="flex: 1; background: #252538; color: #e0e7ff; border: none; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.5; resize: none; overflow-y: auto;"
-                      spellcheck="false"
-                      placeholder="Enter your roadmap JSON here..."></textarea>
-
-            @* Error display if needed *@
-            @if (!string.IsNullOrEmpty(_error))
-            {
-                <div style="background: rgba(239, 68, 68, 0.1); border-top: 1px solid #ef4444; padding: 8px 12px; color: #ef4444; font-size: 11px;">
-                    <strong>Error:</strong> @_error
-                </div>
-            }
-        </div>
-    }
-    else
-    {
-        @* Collapsed state: just show expand button at bottom *@
-        <div @onclick="ToggleJsonPanel"
-             style="height: 32px; background: #252538; border-top: 2px solid #FFA500; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;"
-             @onmouseover="@(() => {})"
-             title="Expand JSON Editor">
-            <Icon IconType="atom" Size="16" Color="#FFA500" />
-            <span style="font-size: 12px; color: #FFA500; margin-left: 8px;">▲ Expand JSON Editor</span>
-        </div>
-    }
 </div>
 
 @code {
@@ -565,8 +561,8 @@
     private bool _isVibeMode = false;
     private bool _editorReady = false;
     private bool _isPreviewMode = false;       // Toggle between Edit Mode and Preview Mode
-    private bool _showJsonPanel = false;       // Integrated bottom JSON editor panel
-    private bool _showProperties = true;       // Show/hide properties panel - open by default
+    private bool _jsonEditorMode = false;      // Toggle between Properties Mode and JSON Editor Mode
+    private bool _showProperties = true;       // Show/hide properties panel (right sidebar) - open by default
     private DotNetObjectReference<Home>? _dotNetRef;
     private InputFile? _folderImportInput;
     private ElementReference _jsonTextArea;
@@ -3357,18 +3353,19 @@
         StateHasChanged();
     }
 
-    private void ToggleJsonPanel()
+    private void ToggleJsonEditorMode()
     {
-        if (!_showJsonPanel && _data != null)
+        if (!_jsonEditorMode && _data != null)
         {
-            // When opening, sync current data to JSON
+            // When entering JSON Editor Mode, sync current data to JSON and ensure sidebar is visible
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
             {
                 WriteIndented = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.Never
             });
+            _showProperties = true; // Ensure sidebar is visible
         }
-        _showJsonPanel = !_showJsonPanel;
+        _jsonEditorMode = !_jsonEditorMode;
         StateHasChanged();
     }
 
@@ -3376,7 +3373,7 @@
     {
         if (e.Key == "Escape")
         {
-            ToggleJsonPanel();
+            ToggleJsonEditorMode();
         }
     }
 
