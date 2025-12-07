@@ -42,9 +42,10 @@
 <div style="position: absolute; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; align-items: center;">
                     @* Mode Toggle - Shows icon of mode you'll switch TO *@
                     <div @onclick="ToggleJsonEditorMode"
+                         class="atom-icon-toggle"
                          title="@(_jsonEditorMode ? "Switch to Properties Mode" : "Switch to JSON Editor Mode")"
-                         style="cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_jsonEditorMode ? "rgba(156, 163, 175, 0.2)" : "rgba(0, 217, 255, 0.2)"); display: flex; align-items: center; justify-content: center;">
-                        <Icon IconType="@(_jsonEditorMode ? "settings" : "atom")" Size="20" Color="@(_jsonEditorMode ? "#9CA3AF" : "#00D9FF")" />
+                         style="cursor: pointer; opacity: 1; transition: all 0.3s ease; padding: 10px; border-radius: 8px; background: @(_jsonEditorMode ? "rgba(156, 163, 175, 0.2)" : "rgba(255, 16, 240, 0.15)"); display: flex; align-items: center; justify-content: center; box-shadow: @(_jsonEditorMode ? "none" : "0 0 12px rgba(255, 16, 240, 0.3)");">
+                        <Icon IconType="@(_jsonEditorMode ? "settings" : "atom")" Size="22" Color="@(_jsonEditorMode ? "#9CA3AF" : "#FF10F0")" />
                     </div>
 
                     <a href="https://github.com/MgGriebZ/RoadScript" target="_blank" rel="noopener noreferrer"
@@ -285,9 +286,8 @@
                                 <div id="@($"milestone-{msIndex}")"
                                      @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
                                      @onclick:stopPropagation="@(!_isPreviewMode)"
-                                     class="@GetElementClass($"milestones[{msIndex}]") roadmap-milestone-movable"
-                                     style="@MilestoneStyle(milestone.Start)"
-                                     data-milestone-index="@msIndex">
+                                     class="@GetElementClass($"milestones[{msIndex}]")"
+                                     style="@MilestoneStyle(milestone.Start)">
                                     <div style="@MilestoneContainerStyle()">
                                         <Icon IconType="@(milestone.Icon ?? "diamond")"
                                               Color="@milestone.Color"
@@ -514,6 +514,7 @@
             <textarea @ref="_jsonTextArea"
                       @bind="_currentJson"
                       @bind:event="oninput"
+                      @bind:after="MarkJsonDirty"
                       style="flex: 1; background: #252538; color: #e0e7ff; border: none; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.5; resize: none; overflow-y: auto;"
                       spellcheck="false"
                       placeholder="Enter your roadmap JSON here..."></textarea>
@@ -571,6 +572,12 @@
     private Folder? _activeFolder;
     private SessionManager? _sessionManager;
     private TabSession? _activeTab;
+
+    // State management enhancement fields
+    private CancellationTokenSource? _saveCancellation;
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
+    private bool _hasUnsavedJsonChanges = false;
+    private DateTime _lastSaveTime = DateTime.MinValue;
 
     private bool _showFolderSelector = false;
     private bool _showTemplateSelector = false;
@@ -806,7 +813,7 @@
                 MaxFolders = 3
             };
 
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            await DebouncedSave();
         }
 
         _activeFolder = StorageService.GetActiveFolder(_folderManager);
@@ -906,7 +913,8 @@
                     _activeTab.LastModified = DateTime.UtcNow;
                     if (_folderManager != null)
                     {
-                        await StorageService.SaveFolderManagerAsync(_folderManager);
+                        // Use immediate save for undo (critical state change)
+                        await SaveState();
                     }
                 }
 
@@ -937,7 +945,8 @@
                     _activeTab.LastModified = DateTime.UtcNow;
                     if (_folderManager != null)
                     {
-                        await StorageService.SaveFolderManagerAsync(_folderManager);
+                        // Use immediate save for redo (critical state change)
+                        await SaveState();
                     }
                 }
 
@@ -1146,7 +1155,7 @@
             {
                 _activeTab.Data = _data;
                 _activeTab.LastModified = DateTime.UtcNow;
-                await StorageService.SaveFolderManagerAsync(_folderManager);
+                await DebouncedSave();
             }
         }
 
@@ -1231,7 +1240,7 @@
             {
                 _activeTab.Data = _data;
                 _activeTab.LastModified = DateTime.UtcNow;
-                await StorageService.SaveFolderManagerAsync(_folderManager);
+                await DebouncedSave();
             }
         }
 
@@ -1316,7 +1325,7 @@
             {
                 _activeTab.Data = _data;
                 _activeTab.LastModified = DateTime.UtcNow;
-                await StorageService.SaveFolderManagerAsync(_folderManager);
+                await DebouncedSave();
             }
         }
 
@@ -1384,7 +1393,7 @@
                     _activeFolder.LastModified = DateTime.UtcNow;
                 }
 
-                await StorageService.SaveFolderManagerAsync(_folderManager);
+                await DebouncedSave();
                 _lastUpdateSuccess = true;
                 _error = null;
             }
@@ -1428,7 +1437,93 @@
     public void Dispose()
     {
         _dotNetRef?.Dispose();
+        _saveCancellation?.Cancel();
+        _saveCancellation?.Dispose();
+        _saveLock?.Dispose();
         JSRuntime.InvokeVoidAsync("RoadScriptInterop.removeKeyboardShortcuts");
+    }
+
+    /// <summary>
+    /// Debounced save with semaphore protection to prevent race conditions
+    /// </summary>
+    private async Task DebouncedSave()
+    {
+        // Cancel any pending save
+        _saveCancellation?.Cancel();
+        _saveCancellation = new CancellationTokenSource();
+
+        try
+        {
+            // Wait 500ms before saving (debounce)
+            await Task.Delay(500, _saveCancellation.Token);
+
+            // Acquire lock to prevent concurrent saves
+            await _saveLock.WaitAsync(_saveCancellation.Token);
+            try
+            {
+                if (_folderManager != null)
+                {
+                    await DebouncedSave();
+                    _lastSaveTime = DateTime.UtcNow;
+                    _hasUnsavedJsonChanges = false;
+                }
+            }
+            finally
+            {
+                _saveLock.Release();
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // Debounce was cancelled, this is expected
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during debounced save: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Immediate save with semaphore protection (for critical operations)
+    /// </summary>
+    private async Task SaveState()
+    {
+        await _saveLock.WaitAsync();
+        try
+        {
+            if (_folderManager != null)
+            {
+                await DebouncedSave();
+                _lastSaveTime = DateTime.UtcNow;
+                _hasUnsavedJsonChanges = false;
+            }
+        }
+        finally
+        {
+            _saveLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Check for unsaved changes before switching tabs/folders
+    /// </summary>
+    private async Task<bool> CheckUnsavedChanges()
+    {
+        if (_hasUnsavedJsonChanges)
+        {
+            var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+                "You have unsaved changes in the JSON editor. Continue without saving?");
+            return confirmed;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Mark JSON as having unsaved changes
+    /// </summary>
+    private void MarkJsonDirty()
+    {
+        _hasUnsavedJsonChanges = true;
     }
 
     private async Task UpdatePreview()
@@ -1452,7 +1547,7 @@
                 _activeTab.LastModified = DateTime.UtcNow;
                 if (_folderManager != null)
                 {
-                    await StorageService.SaveFolderManagerAsync(_folderManager);
+                    await DebouncedSave();
                 }
             }
         }
@@ -1522,8 +1617,23 @@
                 return;
             }
 
+            // Regenerate folder ID to prevent conflicts
             importedFolder.Id = Guid.NewGuid().ToString();
             importedFolder.LastModified = DateTime.UtcNow;
+
+            // CRITICAL FIX: Regenerate all tab IDs to prevent collisions if same folder imported twice
+            foreach (var tab in importedFolder.SessionManager.Tabs)
+            {
+                tab.Id = $"tab-{Guid.NewGuid().ToString("N")[..8]}";
+                tab.LastModified = DateTime.UtcNow;
+            }
+
+            // Ensure ActiveTabId references the new regenerated ID
+            if (importedFolder.SessionManager.Tabs.Count > 0)
+            {
+                importedFolder.SessionManager.ActiveTabId = importedFolder.SessionManager.Tabs[0].Id;
+            }
+
             _folderManager.Folders.Add(importedFolder);
             _folderManager.ActiveFolderId = importedFolder.Id;
             _activeFolder = importedFolder;
@@ -1536,7 +1646,8 @@
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
             }
 
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            // Use immediate save for import operation (critical)
+            await SaveState();
             SelectionState.Clear();
             await InvokeAsync(StateHasChanged);
         }
@@ -1590,11 +1701,6 @@
         {
             _data = null;
             _error = $"Line {ex.LineNumber}, Position {ex.BytePositionInLine}: {ex.Message}";
-        }
-        catch (Exception ex)
-        {
-            _data = null;
-            _error = ex.Message;
         }
     }
 
@@ -2441,9 +2547,10 @@
                     _activeTab.Data = _data!;
                     _activeTab.LastModified = DateTime.UtcNow;
                     if (_folderManager != null)
-                {
-                    await StorageService.SaveFolderManagerAsync(_folderManager);
-                }
+                    {
+                        // Use debounced save for property changes
+                        await DebouncedSave();
+                    }
                 }
 
                 await InvokeAsync(StateHasChanged);
@@ -2595,7 +2702,7 @@
                 _activeTab.LastModified = DateTime.UtcNow;
                 if (_folderManager != null)
                 {
-                    await StorageService.SaveFolderManagerAsync(_folderManager);
+                    await DebouncedSave();
                 }
             }
 
@@ -2672,7 +2779,7 @@
                 _activeTab.LastModified = DateTime.UtcNow;
                 if (_folderManager != null)
                 {
-                    await StorageService.SaveFolderManagerAsync(_folderManager);
+                    await DebouncedSave();
                 }
             }
 
@@ -2802,7 +2909,7 @@
                 _activeTab.LastModified = DateTime.UtcNow;
                 if (_folderManager != null)
                 {
-                    await StorageService.SaveFolderManagerAsync(_folderManager);
+                    await DebouncedSave();
                 }
             }
 
@@ -2874,7 +2981,7 @@
                 _activeTab.LastModified = DateTime.UtcNow;
                 if (_folderManager != null)
                 {
-                    await StorageService.SaveFolderManagerAsync(_folderManager);
+                    await DebouncedSave();
                 }
             }
 
@@ -3014,7 +3121,7 @@
                 _activeTab.LastModified = DateTime.UtcNow;
                 if (_folderManager != null)
                 {
-                    await StorageService.SaveFolderManagerAsync(_folderManager);
+                    await DebouncedSave();
                 }
             }
 
@@ -3060,7 +3167,7 @@
         {
             _activeTab.Data = _data;
             _activeTab.LastModified = DateTime.UtcNow;
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            await DebouncedSave();
         }
 
         await InvokeAsync(StateHasChanged);
@@ -3092,7 +3199,7 @@
         {
             _activeTab.Data = _data;
             _activeTab.LastModified = DateTime.UtcNow;
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            await DebouncedSave();
         }
 
         await InvokeAsync(StateHasChanged);
@@ -3124,7 +3231,7 @@
         {
             _activeTab.Data = _data;
             _activeTab.LastModified = DateTime.UtcNow;
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            await DebouncedSave();
         }
 
         await InvokeAsync(StateHasChanged);
@@ -3147,6 +3254,12 @@
     {
         if (_sessionManager == null || _folderManager == null) return;
 
+        // Check for unsaved changes before switching
+        if (!await CheckUnsavedChanges())
+        {
+            return;
+        }
+
         _sessionManager.ActiveTabId = tabId;
         _activeTab = StorageService.GetActiveTab(_sessionManager);
 
@@ -3160,10 +3273,8 @@
                 _activeFolder.LastModified = DateTime.UtcNow;
             }
 
-            if (_folderManager != null)
-            {
-                await StorageService.SaveFolderManagerAsync(_folderManager);
-            }
+            // Use debounced save for tab switching
+            await DebouncedSave();
             SelectionState.Clear();
             await InvokeAsync(StateHasChanged);
         }
@@ -3237,7 +3348,7 @@
 
         if (_folderManager != null)
         {
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            await DebouncedSave();
         }
 
         _showTemplateSelector = false;
@@ -3271,7 +3382,8 @@
 
         if (_folderManager != null)
         {
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            // Use immediate save for tab deletion (critical operation)
+            await SaveState();
         }
         SelectionState.Clear();
         await InvokeAsync(StateHasChanged);
@@ -3326,7 +3438,8 @@
                 }
             }
 
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            // Use immediate save for folder deletion (critical operation)
+            await SaveState();
         }
         else
         {
@@ -3350,7 +3463,7 @@
 
         if (_folderManager != null)
         {
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            await DebouncedSave();
         }
         await InvokeAsync(StateHasChanged);
     }
@@ -3400,7 +3513,7 @@
                     _activeFolder.LastModified = DateTime.UtcNow;
                 }
 
-                await StorageService.SaveFolderManagerAsync(_folderManager);
+                await DebouncedSave();
                 await InvokeAsync(StateHasChanged);
             }
         }
@@ -3559,7 +3672,7 @@
 
         if (_folderManager != null)
         {
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            await DebouncedSave();
         }
         SelectionState.Clear();
         _showFolderSelector = false;
@@ -3633,7 +3746,8 @@
 
         if (_folderManager != null)
         {
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            // Use immediate save for folder removal (critical operation)
+            await SaveState();
         }
         SelectionState.Clear();
         await InvokeAsync(StateHasChanged);
@@ -3659,7 +3773,7 @@
 
         UpdateFolderColorsByPosition();
 
-        await StorageService.SaveFolderManagerAsync(_folderManager);
+        await DebouncedSave();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -3676,7 +3790,7 @@
 
         UpdateFolderColorsByPosition();
 
-        await StorageService.SaveFolderManagerAsync(_folderManager);
+        await DebouncedSave();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -3705,7 +3819,7 @@
 
         if (_folderManager != null)
         {
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            await DebouncedSave();
         }
         await InvokeAsync(StateHasChanged);
     }
@@ -3716,7 +3830,7 @@
 
         _activeFolder.Color = color;
 
-        await StorageService.SaveFolderManagerAsync(_folderManager);
+        await DebouncedSave();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -3726,7 +3840,7 @@
 
         _activeFolder.Icon = icon;
 
-        await StorageService.SaveFolderManagerAsync(_folderManager);
+        await DebouncedSave();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -3784,7 +3898,7 @@
 
         if (_folderManager != null)
         {
-            await StorageService.SaveFolderManagerAsync(_folderManager);
+            await DebouncedSave();
         }
 
         await InvokeAsync(StateHasChanged);

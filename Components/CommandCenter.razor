@@ -13,7 +13,18 @@
             <Icon IconType="gear" Size="24" Color="#ffffff" />
         </button>
 
-        @* Delete Button - Static below gear icon *@
+        @* Add New Tab Button - Primary action at top *@
+        @if (SessionManager != null && SessionManager.Tabs.Count < SessionManager.MaxTabs)
+        {
+            <button @onclick="@(() => OnTabAdd.InvokeAsync())"
+                    title="Add new roadmap tab"
+                    class="cc-icon-btn"
+                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; width: 44px; height: 44px; border-radius: 8px; font-size: 24px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
+                +
+            </button>
+        }
+
+        @* Delete Button *@
         @if (ActiveTab != null && SessionManager != null)
         {
             <button @onclick="@(() => OnTabDelete.InvokeAsync())"
@@ -43,7 +54,7 @@
                             @oncontextmenu:preventDefault="true"
                             title="@(hasFolder ? folder!.Name : $"Folder {folderIndex + 1} (empty)")"
                             style="@GetFolderIndicatorStyle(isActive, hasFolder, folderColor)">
-                        <Icon IconType="@folderIcon" Size="20" Color="@(isActive ? "#ffffff" : (hasFolder ? "#cccccc" : "#666666"))" />
+                        <Icon IconType="@folderIcon" Size="20" Color="@(isActive ? "#ffffff" : (hasFolder ? folderColor : "#666666"))" />
                     </button>
 
                     @* Show tabs only for the active folder *@
@@ -61,18 +72,6 @@
                                         title="@tab.Name (Right-click to rename)"
                                         style="@GetTabIndicatorStyle(isActiveTab)">
                                     @(tabIndex + 1)
-                                </button>
-                            }
-
-                            @if (SessionManager.Tabs.Count < SessionManager.MaxTabs)
-                            {
-                                <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
-
-                                <button @onclick="@(() => OnTabAdd.InvokeAsync())"
-                                        title="Add new roadmap tab"
-                                        class="cc-icon-btn"
-                                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
-                                    +
                                 </button>
                             }
                         </div>
@@ -216,14 +215,17 @@
     {
         if (isActive && hasFolder)
         {
+            // Active folder: bright gradient with glow
             return $"background: linear-gradient(135deg, {folderColor} 0%, {folderColor}dd 100%); color: #fff; border: 2px solid {folderColor}; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px {folderColor}66; display: flex; align-items: center; justify-content: center;";
         }
         else if (hasFolder)
         {
-            return $"background: #2a2a3e; color: #888; border: 1px solid {folderColor}44; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.6;";
+            // Inactive folder: keep visible with colored border, no opacity fade
+            return $"background: #2a2a3e; color: #888; border: 2px solid {folderColor}66; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;";
         }
         else
         {
+            // Empty folder slot: subtle dashed border
             return "background: #1e1e2e; color: #555; border: 1px dashed #3a3a4e; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.4;";
         }
     }
