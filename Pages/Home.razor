@@ -614,9 +614,8 @@
                     </h2>
                 </div>
                 <button @onclick="ToggleJsonModal"
-                        style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s;"
-                        @onmouseover="@(e => ((Microsoft.AspNetCore.Components.Web.MouseEventArgs)e).CurrentTarget = "background: rgba(239, 68, 68, 0.2);")"
-                        @onmouseout="@(e => ((Microsoft.AspNetCore.Components.Web.MouseEventArgs)e).CurrentTarget = "background: rgba(239, 68, 68, 0.1);")">
+                        class="json-modal-close-btn"
+                        style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s;">
                     ✕ Close
                 </button>
             </div>
@@ -1500,11 +1499,17 @@
         {
             ParseJson(_currentJson);
 
-            if (_data != null && _activeTab != null)
+            if (_data != null && _activeTab != null && _folderManager != null)
             {
                 _activeTab.Data = _data;
                 _activeTab.LastModified = DateTime.UtcNow;
-                await SaveSession();
+
+                if (_activeFolder != null)
+                {
+                    _activeFolder.LastModified = DateTime.UtcNow;
+                }
+
+                await StorageService.SaveFolderManagerAsync(_folderManager);
                 _lastUpdateSuccess = true;
                 _error = null;
             }
@@ -3366,16 +3371,17 @@
 
         if (!string.IsNullOrWhiteSpace(newName) && newName != currentName)
         {
-            if (_sessionManager != null && _activeTab != null)
+            if (_sessionManager != null && _folderManager != null)
             {
-                var tab = _sessionManager.Tabs.FirstOrDefault(t => t.Id == tabId);
-                if (tab != null)
+                StorageService.RenameTab(_sessionManager, tabId, newName.Trim());
+
+                if (_activeFolder != null)
                 {
-                    tab.Name = newName.Trim();
-                    tab.LastModified = DateTime.UtcNow;
-                    await SaveSession();
-                    StateHasChanged();
+                    _activeFolder.LastModified = DateTime.UtcNow;
                 }
+
+                await StorageService.SaveFolderManagerAsync(_folderManager);
+                await InvokeAsync(StateHasChanged);
             }
         }
     }
