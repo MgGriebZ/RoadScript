@@ -142,6 +142,15 @@
                 style="background: linear-gradient(135deg, rgba(248, 131, 121, 0.2) 0%, rgba(248, 131, 121, 0.05) 100%); color: #F88379; border: 1px solid rgba(248, 131, 121, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(248, 131, 121, 0.2);">
             <Icon IconType="target" Size="24" Color="#F88379" />
         </button>
+
+        <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 8px 0;"></div>
+
+        <button @onclick="ApplyRandomTemplate"
+                title="🎲 Apply Random Template - Feeling Lucky?"
+                class="cc-icon-btn"
+                style="background: linear-gradient(135deg, rgba(255, 165, 0, 0.25) 0%, rgba(255, 215, 0, 0.1) 100%); color: #FFA500; border: 1px solid rgba(255, 165, 0, 0.5); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(255, 165, 0, 0.3);">
+            <Icon IconType="dice" Size="24" Color="#FFA500" />
+        </button>
     </div>
 </div>
 
@@ -172,6 +181,26 @@
         {
             await OnTabRename.InvokeAsync((tabId, newName.Trim()));
         }
+    }
+
+    private async Task ApplyRandomTemplate()
+    {
+        // Get all available template types
+        var templates = new[]
+        {
+            TemplateService.TemplateType.ScrumSprintCycle,
+            TemplateService.TemplateType.ProjectTimelines,
+            TemplateService.TemplateType.AnnualRoadmap,
+            TemplateService.TemplateType.Retrospective,
+            TemplateService.TemplateType.ScrumBoard
+        };
+
+        // Pick a random template
+        var random = new Random();
+        var randomTemplate = templates[random.Next(templates.Length)];
+
+        // Apply it!
+        await OnTemplateApply.InvokeAsync(randomTemplate);
     }
 
     private string GetTabIndicatorStyle(bool isActive)
