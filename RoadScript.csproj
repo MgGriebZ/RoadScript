@@ -14,9 +14,4 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.10" PrivateAssets="all" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="templates\scrum-board.json" />
-    <EmbeddedResource Include="templates\retrospective.json" />
-  </ItemGroup>
-
 </Project>

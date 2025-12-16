@@ -17,7 +17,7 @@
                     </div>
                     <div class="template-info">
                         <h4>Daily Planning</h4>
-                        <p>A quick daily-like view representing something close to an outlook calendar. This template uses typical sprint meetings in an agile Scrum development team. It has a few larger items that are good for adding quick notes or details to re-occurring meetings or projects.</p>
+                        <p>Weekly planning template with columns for Monday through Friday plus weekend. Single swim lane for organizing daily tasks and activities.</p>
                     </div>
                 </div>
                 <button @onclick="@(() => ToggleExamples(TemplateType.ScrumSprintCycle))" @onclick:stopPropagation="true" class="example-toggle">
@@ -37,8 +37,8 @@
                         <Icon IconType="rocket" Size="56" Color="#87CEEB" />
                     </div>
                     <div class="template-info">
-                        <h4>Project Timelines</h4>
-                        <p>High-level product level tracking which represents larger scales of time. This template uses mggriebz personal portfolio of products including details of core features, deployment dates and easy to adjust roadmap settings.</p>
+                        <h4>Projects</h4>
+                        <p>Multi-year project tracking with current year plus quarterly breakdown for next year. Features two swim lanes for organizing work in progress and completed items.</p>
                     </div>
                 </div>
                 <button @onclick="@(() => ToggleExamples(TemplateType.ProjectTimelines))" @onclick:stopPropagation="true" class="example-toggle">
@@ -58,8 +58,8 @@
                         <Icon IconType="flag" Size="56" Color="#45B69C" />
                     </div>
                     <div class="template-info">
-                        <h4>Milestone Map</h4>
-                        <p>Hyper detailed target and milestone event tracking. This template uses several columns to represent hourly development cycles with Claude credit token resets and PR merges that track a product lifecycle. It utilizes the expansive icon list and milestone features to help define specific targets/goals.</p>
+                        <h4>Milestones</h4>
+                        <p>Annual milestone tracking with monthly columns spanning the entire year. Single swim lane for organizing tasks and key events throughout the year.</p>
                     </div>
                 </div>
                 <button @onclick="@(() => ToggleExamples(TemplateType.AnnualRoadmap))" @onclick:stopPropagation="true" class="example-toggle">
@@ -79,8 +79,8 @@
                         <Icon IconType="pause" Size="56" Color="#E6B800" />
                     </div>
                     <div class="template-info">
-                        <h4>Retrospective</h4>
-                        <p>Structured sprint retrospective for reflecting on team performance. Features Went Well, Needs Work, and Kudos columns to organize feedback across Execution, Requirements, and Coordination swim lanes. Perfect for capturing insights and celebrating wins during retrospective ceremonies.</p>
+                        <h4>Retro</h4>
+                        <p>Retrospective feedback template with five columns: Went Well, Needs Work, Kudos, Improve, and Advice. Single swim lane for organizing personal reflections and feedback for others.</p>
                     </div>
                 </div>
                 <button @onclick="@(() => ToggleExamples(TemplateType.Retrospective))" @onclick:stopPropagation="true" class="example-toggle">
@@ -100,8 +100,8 @@
                         <Icon IconType="target" Size="56" Color="#F88379" />
                     </div>
                     <div class="template-info">
-                        <h4>Energy Flows</h4>
-                        <p>A flow-state focused template designed to show user interactions and the force and frequency behind scenarios. Track the give/take relationship of exchanges and the path to experiencing moments of love and flow. Map how actions influence scenarios and how parties can reconnect to moments or choose to avoid and move to new scenarios.</p>
+                        <h4>Flows</h4>
+                        <p>Hourly flow tracking from morning through evening. Features two swim lanes (TODO and backlog) for organizing tasks throughout the day.</p>
                     </div>
                 </div>
                 <button @onclick="@(() => ToggleExamples(TemplateType.ScrumBoard))" @onclick:stopPropagation="true" class="example-toggle">
@@ -152,11 +152,11 @@
     {
         return templateType switch
         {
-            TemplateType.ScrumSprintCycle => "Example: Use this template for daily standup tracking, sprint planning meetings, and recurring team ceremonies. Add specific meeting notes, action items, and blockers as they occur throughout your day.",
-            TemplateType.ProjectTimelines => "Example: Track multiple product launches across quarters, showing feature rollouts, deployment milestones, and cross-team dependencies. Ideal for portfolio management and strategic planning.",
-            TemplateType.AnnualRoadmap => "Example: Map out a detailed development cycle with hourly checkpoints, Claude AI token resets, PR merge windows, and release targets. Perfect for tracking progress on complex technical implementations.",
-            TemplateType.Retrospective => "Example: After a sprint, document what went well (successful deployments, effective collaboration), what needs work (communication gaps, technical debt), and kudos for team members who went above and beyond.",
-            TemplateType.ScrumBoard => "Example: Map a scenario where you're trying to connect with a friend - the initial question/request (action), their acceptance (exchange), mutual inspiration and appreciation (experience), building toward a flow moment of genuine connection (energy). Track how life events (RNG) can pause or derail the scenario, requiring new actions to reconnect or a decision to avoid and move on.",
+            TemplateType.ScrumSprintCycle => "Example: Use for weekly task planning. Add items like 'Team meeting Monday 9am', 'Code review Wednesday afternoon', 'Deploy to staging Friday', or 'Weekend reading: technical docs'.",
+            TemplateType.ProjectTimelines => "Example: Track projects like 'Mobile App v2.0' (In-Progress, starting Q2 2026), 'API Migration' (Completed, finished in 2025), or 'New Feature Launch' (In-Progress, spanning Q3-Q4 2026).",
+            TemplateType.AnnualRoadmap => "Example: Plan annual milestones like 'Q1 Product Launch' (March), 'Team Expansion' (June-July), 'Major Release v3.0' (September), or 'Year-End Review' (December).",
+            TemplateType.Retrospective => "Example: After a sprint, document 'Went Well: Successfully deployed new feature' (For Self), 'Needs Work: Better time estimation' (For Self), 'Kudos: Thanks to Sarah for debugging help' (To Others), 'Advice: Consider pair programming for complex tasks' (To Others).",
+            TemplateType.ScrumBoard => "Example: Plan your day with tasks like 'Morning: Team standup' (TODO), '10am: Code review' (TODO), '2pm: Client meeting' (TODO), 'Afternoon: Documentation' (backlog), 'Evening: Learning new framework' (backlog).",
             _ => ""
         };
     }

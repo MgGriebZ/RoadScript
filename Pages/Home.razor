@@ -38,16 +38,8 @@
             <div style="@RoadmapWrapperStyle()">
                 <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
 
-                @* Quick Action Icons - Atom Navigation, GitHub, Share *@
+                @* Quick Action Icons - GitHub, Share *@
 <div style="position: absolute; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; align-items: center;">
-                    @* Mode Toggle - Shows icon of mode you'll switch TO *@
-                    <div @onclick="ToggleJsonEditorMode"
-                         class="atom-icon-toggle"
-                         title="@(_jsonEditorMode ? "Switch to Properties Mode" : "Switch to JSON Editor Mode")"
-                         style="cursor: pointer; opacity: 1; transition: all 0.3s ease; padding: 10px; border-radius: 8px; background: @(_jsonEditorMode ? "rgba(156, 163, 175, 0.2)" : "rgba(255, 16, 240, 0.15)"); display: flex; align-items: center; justify-content: center; box-shadow: @(_jsonEditorMode ? "none" : "0 0 12px rgba(255, 16, 240, 0.3)");">
-                        <Icon IconType="@(_jsonEditorMode ? "settings" : "atom")" Size="22" Color="@(_jsonEditorMode ? "#9CA3AF" : "#FF10F0")" />
-                    </div>
-
                     <a href="https://github.com/MgGriebZ/RoadScript" target="_blank" rel="noopener noreferrer"
                        title="View on GitHub"
                        style="cursor: pointer; opacity: 0.8; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.3)" : "rgba(0, 0, 0, 0.1)"); display: flex; align-items: center; justify-content: center; text-decoration: none;">
@@ -3894,24 +3886,20 @@
         var templateName = templateType switch
         {
             TemplateService.TemplateType.ScrumSprintCycle => "Daily Planning",
-            TemplateService.TemplateType.ProjectTimelines => "Project Timelines",
-            TemplateService.TemplateType.AnnualRoadmap => "Milestone Map",
-            TemplateService.TemplateType.Weekly7Days => "Weekly (7 Days)",
-            TemplateService.TemplateType.Monthly4Weeks => "Monthly (4 Weeks)",
-            TemplateService.TemplateType.Quarterly4Quarters => "Quarterly (4 Quarters)",
-            TemplateService.TemplateType.Yearly12Months => "Yearly (12 Months)",
-            _ => "Custom"
+            TemplateService.TemplateType.ProjectTimelines => "Projects",
+            TemplateService.TemplateType.AnnualRoadmap => "Milestones",
+            TemplateService.TemplateType.ScrumBoard => "Flows",
+            TemplateService.TemplateType.Retrospective => "Retro",
+            _ => "Roadmap"
         };
 
         var tabNameSuffix = templateType switch
         {
             TemplateService.TemplateType.ScrumSprintCycle => "Daily Planning",
-            TemplateService.TemplateType.ProjectTimelines => "Project Timelines",
-            TemplateService.TemplateType.AnnualRoadmap => "Milestone Map",
-            TemplateService.TemplateType.Weekly7Days => "Weekly Roadmap",
-            TemplateService.TemplateType.Monthly4Weeks => "Monthly Roadmap",
-            TemplateService.TemplateType.Quarterly4Quarters => "Quarterly Roadmap",
-            TemplateService.TemplateType.Yearly12Months => "Yearly Roadmap",
+            TemplateService.TemplateType.ProjectTimelines => "Projects",
+            TemplateService.TemplateType.AnnualRoadmap => "Milestones",
+            TemplateService.TemplateType.ScrumBoard => "Flows",
+            TemplateService.TemplateType.Retrospective => "Retro",
             _ => "Roadmap"
         };
 
