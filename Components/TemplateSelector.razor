@@ -124,11 +124,22 @@
     [Parameter] public EventCallback<TemplateType> OnTemplateSelect { get; set; }
 
     private Dictionary<TemplateType, bool> _expandedExamples = new();
+    private bool _previousVisibility = false;
+
+    protected override void OnParametersSet()
+    {
+        // Reset expanded examples when modal is opened
+        if (IsVisible && !_previousVisibility)
+        {
+            _expandedExamples.Clear();
+        }
+        _previousVisibility = IsVisible;
+    }
 
     private async Task HandleTemplateSelect(TemplateType templateType)
     {
         await OnTemplateSelect.InvokeAsync(templateType);
-        await OnClose.InvokeAsync();
+        // Note: Parent HandleTemplateSelect already closes the modal, so we don't need to call OnClose here
     }
 
     private void ToggleExamples(TemplateType templateType)
