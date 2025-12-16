@@ -560,7 +560,6 @@
     private DotNetObjectReference<Home>? _dotNetRef;
     private InputFile? _folderImportInput;
     private ElementReference _jsonTextArea;
-    private ElementReference _modalRoadmapContainer;
 
     private FolderManager? _folderManager;
     private Folder? _activeFolder;
@@ -3908,7 +3907,7 @@
 
         if (!confirmed) return;
 
-        TemplateService.ApplyTemplate(_data, templateType, DateTime.Now);
+        TemplateService.ApplyTemplate(_data, templateType);
 
         _activeTab.Name = tabNameSuffix;
         _activeTab.TemplateType = GetTemplateTypeString(templateType);

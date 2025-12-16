@@ -1,5 +1,3 @@
-using System.Text.Json;
-using System.Reflection;
 using System.Linq;
 using RoadScript.Models;
 
@@ -10,7 +8,6 @@ namespace RoadScript.Services;
 /// </summary>
 public class TemplateService
 {
-    private static readonly Random _random = new Random();
 
     // Available icons for items (from all categories)
     private static readonly string[] _itemIcons =
@@ -64,7 +61,7 @@ public class TemplateService
     /// <summary>
     /// Apply a template to existing roadmap data (replaces title, columns, milestones, and lanes)
     /// </summary>
-    public static void ApplyTemplate(RoadmapData data, TemplateType type, DateTime startDate)
+    public static void ApplyTemplate(RoadmapData data, TemplateType type)
     {
         var template = type switch
         {
@@ -96,9 +93,9 @@ public class TemplateService
     /// </summary>
     private static Item GetRandomItem()
     {
-        var randomIcon = _itemIcons[_random.Next(_itemIcons.Length)];
-        var randomColor = _colors[_random.Next(_colors.Length)];
-        var showTitle = _random.Next(2) == 0; // 50% chance to show title
+        var randomIcon = _itemIcons[Random.Shared.Next(_itemIcons.Length)];
+        var randomColor = _colors[Random.Shared.Next(_colors.Length)];
+        var showTitle = Random.Shared.Next(2) == 0; // 50% chance to show title
 
         return new Item
         {
@@ -119,10 +116,15 @@ public class TemplateService
     /// </summary>
     private static Milestone GetRandomMilestone(int columnCount)
     {
-        var randomIcon = _milestoneIcons[_random.Next(_milestoneIcons.Length)];
-        var randomColor = _colors[_random.Next(_colors.Length)];
+        if (columnCount < 0)
+            throw new ArgumentException("Column count cannot be negative", nameof(columnCount));
+
+        var randomIcon = _milestoneIcons[Random.Shared.Next(_milestoneIcons.Length)];
+        var randomColor = _colors[Random.Shared.Next(_colors.Length)];
         // Random position within the column range (0 to columnCount - 1)
-        var randomPosition = _random.NextDouble() * Math.Max(1, columnCount - 1);
+        var randomPosition = columnCount > 1
+            ? Random.Shared.NextDouble() * (columnCount - 1)
+            : 0;
 
         return new Milestone
         {
