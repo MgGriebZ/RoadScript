@@ -3886,24 +3886,20 @@
         var templateName = templateType switch
         {
             TemplateService.TemplateType.ScrumSprintCycle => "Daily Planning",
-            TemplateService.TemplateType.ProjectTimelines => "Project Timelines",
-            TemplateService.TemplateType.AnnualRoadmap => "Milestone Map",
-            TemplateService.TemplateType.Weekly7Days => "Weekly (7 Days)",
-            TemplateService.TemplateType.Monthly4Weeks => "Monthly (4 Weeks)",
-            TemplateService.TemplateType.Quarterly4Quarters => "Quarterly (4 Quarters)",
-            TemplateService.TemplateType.Yearly12Months => "Yearly (12 Months)",
-            _ => "Custom"
+            TemplateService.TemplateType.ProjectTimelines => "Projects",
+            TemplateService.TemplateType.AnnualRoadmap => "Milestones",
+            TemplateService.TemplateType.ScrumBoard => "Flows",
+            TemplateService.TemplateType.Retrospective => "Retro",
+            _ => "Roadmap"
         };
 
         var tabNameSuffix = templateType switch
         {
             TemplateService.TemplateType.ScrumSprintCycle => "Daily Planning",
-            TemplateService.TemplateType.ProjectTimelines => "Project Timelines",
-            TemplateService.TemplateType.AnnualRoadmap => "Milestone Map",
-            TemplateService.TemplateType.Weekly7Days => "Weekly Roadmap",
-            TemplateService.TemplateType.Monthly4Weeks => "Monthly Roadmap",
-            TemplateService.TemplateType.Quarterly4Quarters => "Quarterly Roadmap",
-            TemplateService.TemplateType.Yearly12Months => "Yearly Roadmap",
+            TemplateService.TemplateType.ProjectTimelines => "Projects",
+            TemplateService.TemplateType.AnnualRoadmap => "Milestones",
+            TemplateService.TemplateType.ScrumBoard => "Flows",
+            TemplateService.TemplateType.Retrospective => "Retro",
             _ => "Roadmap"
         };
 
