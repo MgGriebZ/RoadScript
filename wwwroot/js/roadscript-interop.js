@@ -436,11 +436,22 @@ window.RoadScriptInterop = {
      */
     downloadJson: function(jsonContent, filename, showConfirmation = true) {
         try {
-            // Show confirmation dialog if requested
+            // Show dialog to customize filename if requested
             if (showConfirmation) {
-                const confirmed = confirm('Download roadmap as JSON file?');
-                if (!confirmed) {
+                const defaultFilename = filename || 'roadmap.json';
+                const userFilename = prompt('Enter filename for the JSON file:', defaultFilename);
+
+                // User cancelled
+                if (userFilename === null) {
                     return false;
+                }
+
+                // Use user's filename if provided, otherwise use default
+                filename = userFilename.trim() || defaultFilename;
+
+                // Ensure .json extension
+                if (!filename.toLowerCase().endsWith('.json')) {
+                    filename += '.json';
                 }
             }
 

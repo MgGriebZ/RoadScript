@@ -1974,10 +1974,16 @@
         var widthPct = (item.Length / cols) * 100;
         var greyedOutStyle = item.Greyed ? "opacity: 0.5; filter: grayscale(0.6);" : "";
 
-        // Support row view based on start position (even with different lengths)
+        // Support row view based on ANY overlap (not just same start position)
+        var itemEnd = item.Start + item.Length;
         var overlappingItems = lane.Items
             .Select((itm, idx) => new { Item = itm, Index = idx })
-            .Where(x => Math.Abs(x.Item.Start - item.Start) < 0.01)
+            .Where(x =>
+            {
+                var xEnd = x.Item.Start + x.Item.Length;
+                // Check if ranges overlap: item overlaps with x if item.start < x.end AND x.start < item.end
+                return item.Start < xEnd && x.Item.Start < itemEnd;
+            })
             .OrderBy(x => x.Index)
             .ToList();
 
