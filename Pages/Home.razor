@@ -3411,6 +3411,8 @@
             TemplateService.TemplateType.ScrumSprintCycle => TemplateService.GetScrumSprintCycleTemplate(),
             TemplateService.TemplateType.ProjectTimelines => TemplateService.GetProjectTimelinesTemplate(),
             TemplateService.TemplateType.AnnualRoadmap => TemplateService.GetAnnualRoadmapTemplate(),
+            TemplateService.TemplateType.ScrumBoard => TemplateService.GetScrumBoardTemplate(),
+            TemplateService.TemplateType.Retrospective => TemplateService.GetRetrospectiveTemplate(),
             _ => TemplateService.GetScrumSprintCycleTemplate()
         };
 
@@ -3454,13 +3456,19 @@
             }
         }
 
+        // Close the modal immediately and refresh state
+        _showTemplateSelector = false;
+        SelectionState.Clear();
+
+        // Force state update to refresh sidebar
+        StateHasChanged();
+
         if (_folderManager != null)
         {
             await DebouncedSave();
         }
 
-        _showTemplateSelector = false;
-        SelectionState.Clear();
+        // Final state refresh to ensure all UI updates
         await InvokeAsync(StateHasChanged);
     }
 
