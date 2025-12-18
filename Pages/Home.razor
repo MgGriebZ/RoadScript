@@ -2006,15 +2006,38 @@
             }
         }
 
-        var overlappingItems = overlapGroup
+        // Find items that actually overlap with THIS item (for row assignment)
+        var directOverlaps = overlapGroup
+            .Where(idx => DoItemsOverlap(item, lane.Items[idx]))
             .OrderBy(idx => idx)
             .ToList();
 
-        var positionStyle = "";
-        if (overlappingItems.Count > 1)
+        // Calculate max depth: find the maximum number of items from the overlap group
+        // that simultaneously overlap at any point within this item's range
+        var maxDepth = 1;
+        foreach (var idx in overlapGroup)
         {
-            var rowIndex = overlappingItems.IndexOf(itemIdx);
-            var totalRows = overlappingItems.Count;
+            var testItem = lane.Items[idx];
+            var testStart = testItem.Start;
+            var testEnd = testItem.Start + testItem.Length;
+
+            // Count how many items from the group overlap at this item's position
+            var overlapsAtPoint = overlapGroup.Count(i =>
+            {
+                var checkItem = lane.Items[i];
+                var checkEnd = checkItem.Start + checkItem.Length;
+                // Check if this item overlaps with the test item
+                return testStart < checkEnd && checkItem.Start < testEnd;
+            });
+
+            maxDepth = Math.Max(maxDepth, overlapsAtPoint);
+        }
+
+        var positionStyle = "";
+        if (directOverlaps.Count > 1)
+        {
+            var rowIndex = directOverlaps.IndexOf(itemIdx);
+            var totalRows = maxDepth;
             var rowHeight = 100.0 / totalRows;
             var topPct = rowHeight * rowIndex;
             var bottomPct = 100 - (topPct + rowHeight);
