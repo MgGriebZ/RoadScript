@@ -1,5 +1,3 @@
-using System.Text.Json;
-using System.Reflection;
 using System.Linq;
 using RoadScript.Models;
 
@@ -10,6 +8,31 @@ namespace RoadScript.Services;
 /// </summary>
 public class TemplateService
 {
+
+    // Available icons for items (from all categories)
+    private static readonly string[] _itemIcons =
+    {
+        "check", "pause", "x-mark", "circle", "half-circle", "question", "triangle", "square",
+        "diamond", "star", "flag", "target", "trophy",
+        "lightbulb", "bug", "code", "wrench", "gear", "chart", "search",
+        "heart", "bookmark", "rocket", "lock", "globe",
+        "calendar", "clock", "arrow-right", "bell", "plus"
+    };
+
+    // Available icons for milestones
+    private static readonly string[] _milestoneIcons =
+    {
+        "diamond", "star", "flag", "target", "trophy"
+    };
+
+    // Color palette for randomization
+    private static readonly string[] _colors =
+    {
+        "#667eea", "#EC4899", "#45B69C", "#F88379", "#E6B800",
+        "#9999ff", "#87CEEB", "#10b981", "#f59e0b", "#8b5cf6",
+        "#ef4444", "#06b6d4", "#84cc16", "#f97316", "#a855f7"
+    };
+
     /// <summary>
     /// Available template types
     /// </summary>
@@ -38,7 +61,7 @@ public class TemplateService
     /// <summary>
     /// Apply a template to existing roadmap data (replaces title, columns, milestones, and lanes)
     /// </summary>
-    public static void ApplyTemplate(RoadmapData data, TemplateType type, DateTime startDate)
+    public static void ApplyTemplate(RoadmapData data, TemplateType type)
     {
         var template = type switch
         {
@@ -66,10 +89,59 @@ public class TemplateService
     }
 
     /// <summary>
+    /// Generate a random item with randomized icon, color, and title
+    /// </summary>
+    private static Item GetRandomItem()
+    {
+        var randomIcon = _itemIcons[Random.Shared.Next(_itemIcons.Length)];
+        var randomColor = _colors[Random.Shared.Next(_colors.Length)];
+        var showTitle = Random.Shared.Next(2) == 0; // 50% chance to show title
+
+        return new Item
+        {
+            Id = null,
+            Title = showTitle ? "Item" : "",
+            Start = 0,
+            Length = 1,
+            Icon = randomIcon,
+            Color = randomColor,
+            Spanning = false,
+            Greyed = false,
+            Hidden = false
+        };
+    }
+
+    /// <summary>
+    /// Generate a random milestone with randomized position, icon, and color
+    /// </summary>
+    private static Milestone GetRandomMilestone(int columnCount)
+    {
+        if (columnCount < 0)
+            throw new ArgumentException("Column count cannot be negative", nameof(columnCount));
+
+        var randomIcon = _milestoneIcons[Random.Shared.Next(_milestoneIcons.Length)];
+        var randomColor = _colors[Random.Shared.Next(_colors.Length)];
+        // Random position within the column range (0 to columnCount - 1)
+        var randomPosition = columnCount > 1
+            ? Random.Shared.NextDouble() * (columnCount - 1)
+            : 0;
+
+        return new Milestone
+        {
+            Start = randomPosition,
+            Title = "",
+            Icon = randomIcon,
+            Color = randomColor
+        };
+    }
+
+    /// <summary>
     /// Get Daily Planning template (simplified - columns and lanes only)
     /// </summary>
     public static RoadmapData GetScrumSprintCycleTemplate()
     {
+        var columnCount = 6; // Monday through Weekend
+
         return new RoadmapData
         {
             Title = "Daily Planning",
@@ -83,7 +155,7 @@ public class TemplateService
                 new Column { Id = null, Label = "Friday", Sub = "" },
                 new Column { Id = null, Label = "Weekend", Sub = "Sat/Sun" }
             },
-            Milestones = new List<Milestone>(),
+            Milestones = new List<Milestone> { GetRandomMilestone(columnCount) },
             Lanes = new List<Lane>
             {
                 new Lane
@@ -92,7 +164,7 @@ public class TemplateService
                     Title = "Tasks",
                     Color = "#9999ff",
                     Height = 1.0,
-                    Items = new List<Item>()
+                    Items = new List<Item> { GetRandomItem() }
                 }
             }
         };
@@ -104,6 +176,8 @@ public class TemplateService
     public static RoadmapData GetProjectTimelinesTemplate()
     {
         var currentYear = DateTime.Now.Year;
+        var columnCount = 6; // Current year + 4 quarters + future
+
         return new RoadmapData
         {
             Title = "Projects",
@@ -117,7 +191,7 @@ public class TemplateService
                 new Column { Id = null, Label = "Q4", Sub = (currentYear + 1).ToString() },
                 new Column { Id = null, Label = $"{currentYear + 2}+", Sub = "" }
             },
-            Milestones = new List<Milestone>(),
+            Milestones = new List<Milestone> { GetRandomMilestone(columnCount) },
             Lanes = new List<Lane>
             {
                 new Lane
@@ -126,7 +200,7 @@ public class TemplateService
                     Title = "In-Progress",
                     Color = "#EC4899",
                     Height = 1.0,
-                    Items = new List<Item>()
+                    Items = new List<Item> { GetRandomItem() }
                 },
                 new Lane
                 {
@@ -134,7 +208,7 @@ public class TemplateService
                     Title = "Completed",
                     Color = "#45B69C",
                     Height = 1.0,
-                    Items = new List<Item>()
+                    Items = new List<Item> { GetRandomItem() }
                 }
             }
         };
@@ -146,6 +220,7 @@ public class TemplateService
     public static RoadmapData GetAnnualRoadmapTemplate()
     {
         var months = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+        var columnCount = 12; // 12 months
 
         return new RoadmapData
         {
@@ -159,7 +234,7 @@ public class TemplateService
                 Icon = null,
                 Color = null
             }).ToList(),
-            Milestones = new List<Milestone>(),
+            Milestones = new List<Milestone> { GetRandomMilestone(columnCount) },
             Lanes = new List<Lane>
             {
                 new Lane
@@ -168,7 +243,7 @@ public class TemplateService
                     Title = "Tasks",
                     Color = "#45B69C",
                     Height = 1.0,
-                    Items = new List<Item>()
+                    Items = new List<Item> { GetRandomItem() }
                 }
             }
         };
@@ -179,6 +254,8 @@ public class TemplateService
     /// </summary>
     public static RoadmapData GetScrumBoardTemplate()
     {
+        var columnCount = 10; // Morning through Evening
+
         return new RoadmapData
         {
             Title = "Flows",
@@ -196,7 +273,7 @@ public class TemplateService
                 new Column { Id = null, Label = "4pm", Sub = "" },
                 new Column { Id = null, Label = "Evening", Sub = "5pm and later" }
             },
-            Milestones = new List<Milestone>(),
+            Milestones = new List<Milestone> { GetRandomMilestone(columnCount) },
             Lanes = new List<Lane>
             {
                 new Lane
@@ -205,7 +282,7 @@ public class TemplateService
                     Title = "TODO",
                     Color = "#F88379",
                     Height = 1.0,
-                    Items = new List<Item>()
+                    Items = new List<Item> { GetRandomItem() }
                 },
                 new Lane
                 {
@@ -213,7 +290,7 @@ public class TemplateService
                     Title = "backlog",
                     Color = "#B7C4B7",
                     Height = 1.0,
-                    Items = new List<Item>()
+                    Items = new List<Item> { GetRandomItem() }
                 }
             }
         };
@@ -224,6 +301,8 @@ public class TemplateService
     /// </summary>
     public static RoadmapData GetRetrospectiveTemplate()
     {
+        var columnCount = 5; // Went Well, Needs Work, Kudos, Improve, Advice
+
         return new RoadmapData
         {
             Title = "Retro",
@@ -236,7 +315,7 @@ public class TemplateService
                 new Column { Id = null, Label = "Improve", Sub = "" },
                 new Column { Id = null, Label = "Advice", Sub = "To Others" }
             },
-            Milestones = new List<Milestone>(),
+            Milestones = new List<Milestone> { GetRandomMilestone(columnCount) },
             Lanes = new List<Lane>
             {
                 new Lane
@@ -245,7 +324,7 @@ public class TemplateService
                     Title = "Tasks",
                     Color = "#E6B800",
                     Height = 1.0,
-                    Items = new List<Item>()
+                    Items = new List<Item> { GetRandomItem() }
                 }
             }
         };

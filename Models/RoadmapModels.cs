@@ -67,9 +67,8 @@ public class Lane
     [JsonPropertyName("icon")]
     public string? Icon { get; set; }  // Optional icon for lane header
 
-    // NEW: Variable height support (1.0 = default, 2.0 = double, 0.5 = half)
     [JsonPropertyName("height")]
-    public double? Height { get; set; }
+    public double? Height { get; set; }  // Variable height support (1.0 = default, 2.0 = double, 0.5 = half)
 
     [JsonPropertyName("history")]
     public History? History { get; set; }  // Nullable - not all lanes need history
@@ -80,9 +79,8 @@ public class Lane
 
 public class History
 {
-    // Freeform text labels (nullable) instead of forced years
     [JsonPropertyName("start")]
-    public string? Start { get; set; }
+    public string? Start { get; set; }  // Freeform text labels (nullable)
 
     [JsonPropertyName("end")]
     public string? End { get; set; }
