@@ -2006,38 +2006,61 @@
             }
         }
 
-        // Find items that actually overlap with THIS item (for row assignment)
-        var directOverlaps = overlapGroup
-            .Where(idx => DoItemsOverlap(item, lane.Items[idx]))
-            .OrderBy(idx => idx)
+        // Row assignment algorithm (Gantt-chart style)
+        // Sort items in the overlap group by start position, then by index
+        var sortedItems = overlapGroup
+            .Select(idx => new { Index = idx, Item = lane.Items[idx] })
+            .OrderBy(x => x.Item.Start)
+            .ThenBy(x => x.Index)
             .ToList();
 
-        // Calculate max depth: find the maximum number of items from the overlap group
-        // that simultaneously overlap at any point within this item's range
-        var maxDepth = 1;
-        foreach (var idx in overlapGroup)
+        // Assign each item to the first available row where it doesn't overlap
+        var itemToRow = new Dictionary<int, int>();
+        var rows = new List<List<int>>(); // Each row contains item indices
+
+        foreach (var itemData in sortedItems)
         {
-            var testItem = lane.Items[idx];
-            var testStart = testItem.Start;
-            var testEnd = testItem.Start + testItem.Length;
+            var idx = itemData.Index;
+            var itm = itemData.Item;
 
-            // Count how many items from the group overlap at this item's position
-            var overlapsAtPoint = overlapGroup.Count(i =>
+            // Find the first row where this item doesn't overlap with any existing items
+            int assignedRow = -1;
+            for (int rowIdx = 0; rowIdx < rows.Count; rowIdx++)
             {
-                var checkItem = lane.Items[i];
-                var checkEnd = checkItem.Start + checkItem.Length;
-                // Check if this item overlaps with the test item
-                return testStart < checkEnd && checkItem.Start < testEnd;
-            });
+                var canFit = true;
+                foreach (var existingIdx in rows[rowIdx])
+                {
+                    if (DoItemsOverlap(itm, lane.Items[existingIdx]))
+                    {
+                        canFit = false;
+                        break;
+                    }
+                }
 
-            maxDepth = Math.Max(maxDepth, overlapsAtPoint);
+                if (canFit)
+                {
+                    assignedRow = rowIdx;
+                    break;
+                }
+            }
+
+            // If no existing row works, create a new row
+            if (assignedRow == -1)
+            {
+                assignedRow = rows.Count;
+                rows.Add(new List<int>());
+            }
+
+            rows[assignedRow].Add(idx);
+            itemToRow[idx] = assignedRow;
         }
 
         var positionStyle = "";
-        if (directOverlaps.Count > 1)
+        var totalRows = rows.Count;
+
+        if (totalRows > 1)
         {
-            var rowIndex = directOverlaps.IndexOf(itemIdx);
-            var totalRows = maxDepth;
+            var rowIndex = itemToRow[itemIdx];
             var rowHeight = 100.0 / totalRows;
             var topPct = rowHeight * rowIndex;
             var bottomPct = 100 - (topPct + rowHeight);
