@@ -3496,12 +3496,17 @@
             _activeFolder.LastModified = DateTime.UtcNow;
         }
 
+        // Clear selection and force immediate state refresh
+        SelectionState.Clear();
+        StateHasChanged();
+
         if (_folderManager != null)
         {
             // Use immediate save for tab deletion (critical operation)
             await SaveState();
         }
-        SelectionState.Clear();
+
+        // Final state refresh to ensure sidebar updates properly
         await InvokeAsync(StateHasChanged);
     }
 
@@ -3554,15 +3559,21 @@
                 }
             }
 
+            // Clear selection and force immediate state refresh
+            SelectionState.Clear();
+            StateHasChanged();
+
             // Use immediate save for folder deletion (critical operation)
             await SaveState();
         }
         else
         {
             await HandleTabDelete(_activeTab.Id);
+            // HandleTabDelete already handles state refresh, no need to duplicate
+            return;
         }
 
-        SelectionState.Clear();
+        // Final state refresh to ensure sidebar updates properly
         await InvokeAsync(StateHasChanged);
     }
 
