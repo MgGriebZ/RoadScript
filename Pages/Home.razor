@@ -1974,18 +1974,93 @@
         var widthPct = (item.Length / cols) * 100;
         var greyedOutStyle = item.Greyed ? "opacity: 0.5; filter: grayscale(0.6);" : "";
 
-        // Support row view based on start position (even with different lengths)
-        var overlappingItems = lane.Items
-            .Select((itm, idx) => new { Item = itm, Index = idx })
-            .Where(x => Math.Abs(x.Item.Start - item.Start) < 0.01)
-            .OrderBy(x => x.Index)
+        // Support row view based on ANY overlap (not just same start position)
+        // Find the complete overlap group (transitive closure) to avoid gaps
+        var itemEnd = item.Start + item.Length;
+
+        // Helper function to check if two items overlap
+        bool DoItemsOverlap(Item a, Item b)
+        {
+            var aEnd = a.Start + a.Length;
+            var bEnd = b.Start + b.Length;
+            return a.Start < bEnd && b.Start < aEnd;
+        }
+
+        // Find all items in the same overlap group (transitive closure)
+        var overlapGroup = new HashSet<int> { itemIdx };
+        var toProcess = new Queue<int>();
+        toProcess.Enqueue(itemIdx);
+
+        while (toProcess.Count > 0)
+        {
+            var currentIdx = toProcess.Dequeue();
+            var currentItem = lane.Items[currentIdx];
+
+            for (int i = 0; i < lane.Items.Count; i++)
+            {
+                if (!overlapGroup.Contains(i) && DoItemsOverlap(currentItem, lane.Items[i]))
+                {
+                    overlapGroup.Add(i);
+                    toProcess.Enqueue(i);
+                }
+            }
+        }
+
+        // Row assignment algorithm (Gantt-chart style)
+        // Sort items in the overlap group by start position, then by index
+        var sortedItems = overlapGroup
+            .Select(idx => new { Index = idx, Item = lane.Items[idx] })
+            .OrderBy(x => x.Item.Start)
+            .ThenBy(x => x.Index)
             .ToList();
 
-        var positionStyle = "";
-        if (overlappingItems.Count > 1)
+        // Assign each item to the first available row where it doesn't overlap
+        var itemToRow = new Dictionary<int, int>();
+        var rows = new List<List<int>>(); // Each row contains item indices
+
+        foreach (var itemData in sortedItems)
         {
-            var rowIndex = overlappingItems.FindIndex(x => x.Index == itemIdx);
-            var totalRows = overlappingItems.Count;
+            var idx = itemData.Index;
+            var itm = itemData.Item;
+
+            // Find the first row where this item doesn't overlap with any existing items
+            int assignedRow = -1;
+            for (int rowIdx = 0; rowIdx < rows.Count; rowIdx++)
+            {
+                var canFit = true;
+                foreach (var existingIdx in rows[rowIdx])
+                {
+                    if (DoItemsOverlap(itm, lane.Items[existingIdx]))
+                    {
+                        canFit = false;
+                        break;
+                    }
+                }
+
+                if (canFit)
+                {
+                    assignedRow = rowIdx;
+                    break;
+                }
+            }
+
+            // If no existing row works, create a new row
+            if (assignedRow == -1)
+            {
+                assignedRow = rows.Count;
+                rows.Add(new List<int>());
+            }
+
+            rows[assignedRow].Add(idx);
+            itemToRow[idx] = assignedRow;
+        }
+
+        var positionStyle = "";
+        var totalRows = rows.Count;
+
+        if (totalRows > 1)
+        {
+            var rowIndex = itemToRow[itemIdx];
             var rowHeight = 100.0 / totalRows;
             var topPct = rowHeight * rowIndex;
             var bottomPct = 100 - (topPct + rowHeight);
