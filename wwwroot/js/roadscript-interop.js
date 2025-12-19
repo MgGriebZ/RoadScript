@@ -728,11 +728,31 @@ window.RoadScriptInterop = {
             textarea.focus();
             textarea.setSelectionRange(charPosition, charPosition + lines[lineNumber].length);
 
-            // Scroll to make the selection visible
-            // Calculate approximate pixel position (rough estimate)
-            const lineHeight = 20; // approximate line height in pixels
-            const scrollTop = lineNumber * lineHeight;
-            textarea.scrollTop = scrollTop - (textarea.clientHeight / 3); // Scroll to show line in top third
+            // Scroll to make the selection visible - improved for new layout
+            // Get computed styles for accurate line height
+            const computedStyle = window.getComputedStyle(textarea);
+            const fontSize = parseFloat(computedStyle.fontSize) || 11;
+            const lineHeightValue = computedStyle.lineHeight;
+
+            // Calculate actual line height (handle both numeric and 'normal' values)
+            let lineHeight;
+            if (lineHeightValue === 'normal') {
+                lineHeight = fontSize * 1.5; // Default line-height multiplier
+            } else if (lineHeightValue.endsWith('px')) {
+                lineHeight = parseFloat(lineHeightValue);
+            } else {
+                lineHeight = fontSize * parseFloat(lineHeightValue);
+            }
+
+            // Calculate pixel position of the target line
+            const targetLineTop = lineNumber * lineHeight;
+
+            // Center the line in the visible area with some padding
+            // Scroll so the line appears in the center of the textarea
+            const scrollTop = targetLineTop - (textarea.clientHeight / 2) + (lineHeight / 2);
+
+            // Apply scroll with smooth behavior
+            textarea.scrollTop = Math.max(0, scrollTop);
 
             return true;
         } catch (error) {
