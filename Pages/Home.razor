@@ -1641,12 +1641,14 @@
             if (importedFolder == null)
             {
                 Console.WriteLine("Failed to deserialize folder");
+                await JSRuntime.InvokeVoidAsync("alert", "Failed to import folder. Invalid file format.");
                 return;
             }
 
             if (_folderManager == null || _folderManager.Folders.Count >= 3)
             {
                 Console.WriteLine("Cannot import: folder limit reached");
+                await JSRuntime.InvokeVoidAsync("alert", "Cannot import folder. Maximum limit of 3 folders reached.");
                 return;
             }
 
@@ -1682,11 +1684,27 @@
             // Use immediate save for import operation (critical)
             await SaveState();
             SelectionState.Clear();
+
+            // Force UI refresh
             await InvokeAsync(StateHasChanged);
+
+            // Small delay to ensure render completes
+            await Task.Delay(100);
+
+            // Second refresh to ensure CommandCenter updates
+            await InvokeAsync(StateHasChanged);
+
+            // Show success notification
+            var tabCount = importedFolder.SessionManager.Tabs.Count;
+            await JSRuntime.InvokeVoidAsync("alert",
+                $"✅ Folder imported successfully!\n\n" +
+                $"📁 Folder: {importedFolder.Name}\n" +
+                $"📄 Roadmaps: {tabCount}");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error importing folder: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", $"❌ Error importing folder:\n{ex.Message}");
         }
     }
 
@@ -1735,6 +1753,7 @@
             if (importedFolderManager == null)
             {
                 Console.WriteLine("Failed to deserialize folder manager");
+                await JSRuntime.InvokeVoidAsync("alert", "Failed to import session data. Invalid file format.");
                 return;
             }
 
@@ -1778,11 +1797,28 @@
             // Use immediate save for import operation (critical)
             await SaveState();
             SelectionState.Clear();
+
+            // Force UI refresh
             await InvokeAsync(StateHasChanged);
+
+            // Small delay to ensure render completes
+            await Task.Delay(100);
+
+            // Second refresh to ensure CommandCenter updates
+            await InvokeAsync(StateHasChanged);
+
+            // Show success notification
+            var folderCount = _folderManager.Folders.Count;
+            var totalTabs = _folderManager.Folders.Sum(f => f.SessionManager.Tabs.Count);
+            await JSRuntime.InvokeVoidAsync("alert",
+                $"✅ Session data imported successfully!\n\n" +
+                $"📁 Folders: {folderCount}\n" +
+                $"📄 Total Roadmaps: {totalTabs}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error importing all data: {ex.Message}");
+            Console.WriteLine($"Error importing session data: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", $"❌ Error importing session data:\n{ex.Message}");
         }
     }
 
