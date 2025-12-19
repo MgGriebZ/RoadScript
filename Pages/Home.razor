@@ -1616,7 +1616,7 @@
     {
         if (_folderImportInput?.Element != null)
         {
-            await JSRuntime.InvokeVoidAsync("eval", "$0.click()", _folderImportInput.Element);
+            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.triggerFileInput", _folderImportInput.Element);
         }
     }
 
@@ -1710,7 +1710,7 @@
     {
         if (_allDataImportInput?.Element != null)
         {
-            await JSRuntime.InvokeVoidAsync("eval", "$0.click()", _allDataImportInput.Element);
+            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.triggerFileInput", _allDataImportInput.Element);
         }
     }
 

@@ -759,6 +759,23 @@ window.RoadScriptInterop = {
             console.error('Error scrolling textarea:', error);
             return false;
         }
+    },
+
+    /**
+     * Triggers a click on a file input element
+     * @param {HTMLInputElement} inputElement - The file input element to click
+     */
+    triggerFileInput: function(inputElement) {
+        try {
+            if (inputElement && inputElement.tagName === 'INPUT' && inputElement.type === 'file') {
+                inputElement.click();
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error triggering file input:', error);
+            return false;
+        }
     }
 };
 
