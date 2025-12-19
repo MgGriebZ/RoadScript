@@ -21,6 +21,7 @@
                    ActiveTab="_activeTab"
                    IsPreviewMode="_isPreviewMode"
                    IsVibeMode="_isVibeMode"
+                   CurrentTheme="_currentTheme"
                    OnToggleFolderSelector="ToggleFolderSelector"
                    OnTabDelete="HandleCollapsedTabDelete"
                    OnTabSwitch="HandleTabSwitch"
@@ -30,6 +31,7 @@
                    OnExportPng="ExportAsPng"
                    OnToggleViewMode="@(async () => await ToggleViewMode(null))"
                    OnToggleTheme="@(() => ToggleTheme(null))"
+                   OnCycleTheme="CycleSeasonalTheme"
                    OnTemplateApply="ApplyTemplate" />
 
     <div class="preview-pane" style="@PreviewPaneStyle()">
@@ -592,6 +594,7 @@
     private bool _lastUpdateSuccess = false;
     private string _currentJson = "";
     private bool _isVibeMode = false;
+    private SeasonalTheme _currentTheme = SeasonalTheme.Classic;
     private bool _editorReady = false;
     private bool _isPreviewMode = false;       // Toggle between Edit Mode and Preview Mode
     private bool _jsonEditorMode = false;      // Toggle between Properties Mode and JSON Editor Mode
@@ -1828,6 +1831,20 @@
         StateHasChanged();
     }
 
+    private void CycleSeasonalTheme()
+    {
+        _currentTheme = _currentTheme switch
+        {
+            SeasonalTheme.Classic => SeasonalTheme.Spring,
+            SeasonalTheme.Spring => SeasonalTheme.Summer,
+            SeasonalTheme.Summer => SeasonalTheme.Autumn,
+            SeasonalTheme.Autumn => SeasonalTheme.Winter,
+            SeasonalTheme.Winter => SeasonalTheme.Classic,
+            _ => SeasonalTheme.Classic
+        };
+        StateHasChanged();
+    }
+
     private async Task ToggleViewMode(ChangeEventArgs? e = null)
     {
         _isPreviewMode = !_isPreviewMode;
@@ -1995,12 +2012,12 @@
 
     private string LaneBarStyle(string color)
     {
+        var themedColor = GetThemedColor(color, "lane");
         if (_isVibeMode)
         {
-            var vibeColor = GetVibeColor(color);
-            return $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {vibeColor}; box-shadow: 0 0 15px {vibeColor}, 0 0 5px {vibeColor}80;";
+            return $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {themedColor}; box-shadow: 0 0 15px {themedColor}, 0 0 5px {themedColor}80;";
         }
-        return $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {color};";
+        return $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {themedColor};";
     }
 
     private string HistoryBarContainerStyle() =>
@@ -2010,12 +2027,12 @@
 
     private string HistoryProgressStyle(string color, double pct)
     {
+        var themedColor = GetThemedColor(color, "history");
         if (_isVibeMode)
         {
-            var vibeColor = GetVibeColor(color);
-            return $"width: {pct:F2}%; background: {vibeColor}; box-shadow: 0 0 12px {vibeColor};";
+            return $"width: {pct:F2}%; background: {themedColor}; box-shadow: 0 0 12px {themedColor};";
         }
-        return $"width: {pct:F2}%; background: {color};";
+        return $"width: {pct:F2}%; background: {themedColor};";
     }
 
     private string HistoryEmptyStyle(double pct)
@@ -2085,12 +2102,12 @@
 
     private string MilestoneLabelStyle(string color)
     {
+        var themedColor = GetThemedColor(color, "milestone");
         if (_isVibeMode)
         {
-            var vibeColor = GetVibeColor(color);
-            return $"font-size: 15px; font-weight: 700; line-height: 1.3; color: {vibeColor}; white-space: nowrap; text-shadow: 0 0 10px {vibeColor}80, 0 1px 3px rgba(0,0,0,0.8); background: rgba(13, 13, 26, 0.95); padding: 4px 10px; border-radius: 4px; border: 1px solid {vibeColor}60; border-left: 3px solid {vibeColor}; box-shadow: 0 0 15px {vibeColor}40;";
+            return $"font-size: 15px; font-weight: 700; line-height: 1.3; color: {themedColor}; white-space: nowrap; text-shadow: 0 0 10px {themedColor}80, 0 1px 3px rgba(0,0,0,0.8); background: rgba(13, 13, 26, 0.95); padding: 4px 10px; border-radius: 4px; border: 1px solid {themedColor}60; border-left: 3px solid {themedColor}; box-shadow: 0 0 15px {themedColor}40;";
         }
-        return $"font-size: 15px; font-weight: 700; line-height: 1.3; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.98); padding: 4px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 3px solid {color};";
+        return $"font-size: 15px; font-weight: 700; line-height: 1.3; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.98); padding: 4px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 3px solid {themedColor};";
     }
 
     private string MilestoneButtonsStyle() =>
@@ -2243,19 +2260,19 @@
         }
 
         var color = lane.Color;
+        var themedColor = GetThemedColor(color, "item");
 
         if (_isVibeMode)
         {
-            var vibeColor = GetVibeColor(color);
-            var vibeGradient = GetVibeGradient(color);
+            var vibeGradient = GetVibeGradient(themedColor);
 
             var borderStyle = item.Spanning
-                ? $"border: 2px dashed {vibeColor}; border-left: 4px solid {vibeColor};"
-                : $"border: 1px solid {vibeColor}; border-left: 4px solid {vibeColor};";
+                ? $"border: 2px dashed {themedColor}; border-left: 4px solid {themedColor};"
+                : $"border: 1px solid {themedColor}; border-left: 4px solid {themedColor};";
 
             var shadow = item.Spanning
-                ? $"box-shadow: 0 0 20px {vibeColor}40, 0 4px 12px rgba(0,0,0,0.4);"
-                : $"box-shadow: 0 0 15px {vibeColor}30, 0 4px 12px rgba(0,0,0,0.4);";
+                ? $"box-shadow: 0 0 20px {themedColor}40, 0 4px 12px rgba(0,0,0,0.4);"
+                : $"box-shadow: 0 0 15px {themedColor}30, 0 4px 12px rgba(0,0,0,0.4);";
 
             if (item.Greyed)
             {
@@ -2269,8 +2286,8 @@
         else
         {
             var borderStyle = item.Spanning
-                ? $"border: 2px dashed {color}50; border-left: 5px solid {color};"
-                : $"border: 1px solid {color}30; border-left: 5px solid {color};";
+                ? $"border: 2px dashed {themedColor}50; border-left: 5px solid {themedColor};"
+                : $"border: 1px solid {themedColor}30; border-left: 5px solid {themedColor};";
 
             var shadow = item.Spanning ? "" : "box-shadow: 0 1px 4px rgba(0,0,0,0.08);";
 
@@ -2299,12 +2316,12 @@
 
     private string BulletStyle(string color)
     {
+        var themedColor = GetThemedColor(color, "bullet");
         if (_isVibeMode)
         {
-            var vibeColor = GetVibeColor(color);
-            return $"position: absolute; left: 0; color: {vibeColor}; font-weight: 700; text-shadow: 0 0 12px {vibeColor}, 0 0 4px {vibeColor}80;";
+            return $"position: absolute; left: 0; color: {themedColor}; font-weight: 700; text-shadow: 0 0 12px {themedColor}, 0 0 4px {themedColor}80;";
         }
-        return $"position: absolute; left: 0; color: {color}; font-weight: 700;";
+        return $"position: absolute; left: 0; color: {themedColor}; font-weight: 700;";
     }
 
 
@@ -2350,6 +2367,8 @@
 
     private string ItemHeaderStyle(bool hasDetails, bool hasSubs, bool hasTitle, double span, string laneColor)
     {
+        var themedColor = GetThemedColor(laneColor, "header");
+
         // Icon-only items: center and expand the icon
         if (!hasTitle)
         {
@@ -2357,8 +2376,7 @@
 
             if (_isVibeMode)
             {
-                var vibeColor = GetVibeColor(laneColor);
-                var rgb = HexToRgb(vibeColor);
+                var rgb = HexToRgb(themedColor);
                 var background = $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.25) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.10) 100%);";
                 var border = $"border-bottom: 2px solid rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.4);";
                 var shadow = $"box-shadow: 0 3px 10px rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.2);";
@@ -2367,8 +2385,8 @@
             }
             else
             {
-                var background = $"background: {laneColor}08;";
-                var border = $"border-bottom: 1px solid {laneColor}15;";
+                var background = $"background: {themedColor}08;";
+                var border = $"border-bottom: 1px solid {themedColor}15;";
 
                 return $"display: flex; align-items: center; justify-content: center; padding: 14px; {background} {border} {iconOnlyMargin}";
             }
@@ -2380,8 +2398,7 @@
 
         if (_isVibeMode)
         {
-            var vibeColor = GetVibeColor(laneColor);
-            var rgb = HexToRgb(vibeColor);
+            var rgb = HexToRgb(themedColor);
             var background = $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.25) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.10) 100%);";
             var border = $"border-bottom: 2px solid rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.4);";
             var shadow = $"box-shadow: 0 3px 10px rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.2);";
@@ -2391,8 +2408,8 @@
         }
         else
         {
-            var background = $"background: {laneColor}08;";
-            var border = $"border-bottom: 1px solid {laneColor}15;";
+            var background = $"background: {themedColor}08;";
+            var border = $"border-bottom: 1px solid {themedColor}15;";
             var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
 
             return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {margin}";
@@ -2465,6 +2482,129 @@
 
         // Create gradient with transparency for layering effect
         return $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.20) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.08) 100%);";
+    }
+
+    // Get theme-aware color - applies seasonal theme transformation, then vibe mode if enabled
+    private string GetThemedColor(string baseColor, string colorRole = "default")
+    {
+        // First apply seasonal theme transformation
+        var themedColor = ApplySeasonalTheme(baseColor, colorRole);
+
+        // Then apply vibe mode transformation if enabled
+        return _isVibeMode ? GetVibeColor(themedColor) : themedColor;
+    }
+
+    // Apply seasonal theme color transformation based on color role
+    private string ApplySeasonalTheme(string baseColor, string colorRole)
+    {
+        // For Classic theme, return original color
+        if (_currentTheme == SeasonalTheme.Classic)
+            return baseColor;
+
+        // Get theme-specific color mappings
+        return _currentTheme switch
+        {
+            SeasonalTheme.Spring => GetSpringColor(baseColor, colorRole),
+            SeasonalTheme.Summer => GetSummerColor(baseColor, colorRole),
+            SeasonalTheme.Autumn => GetAutumnColor(baseColor, colorRole),
+            SeasonalTheme.Winter => GetWinterColor(baseColor, colorRole),
+            _ => baseColor
+        };
+    }
+
+    // Spring Theme - Fresh greens, soft pinks, lavender
+    private string GetSpringColor(string baseColor, string colorRole)
+    {
+        var hsl = RgbToHsl(HexToRgb(baseColor).r, HexToRgb(baseColor).g, HexToRgb(baseColor).b);
+
+        // Shift hue towards green/pink range (60-330 degrees)
+        // Add slight pastel effect by adjusting saturation and lightness
+        if (hsl.h < 0.17) // Red range -> Shift to pink
+            hsl.h = 0.92 + (hsl.h * 0.1);
+        else if (hsl.h < 0.33) // Yellow/Orange -> Shift to spring green
+            hsl.h = 0.28 + (hsl.h * 0.2);
+        else if (hsl.h < 0.67) // Green/Cyan -> Keep in green range
+            hsl.h = 0.25 + (hsl.h * 0.3);
+        else // Blue/Purple -> Shift to lavender
+            hsl.h = 0.75 + (hsl.h * 0.15);
+
+        hsl.s = Math.Min(0.75, hsl.s * 0.9); // Softer saturation
+        hsl.l = Math.Min(0.70, Math.Max(0.45, hsl.l)); // Medium-light range
+
+        var rgb = HslToRgb(hsl.h, hsl.s, hsl.l);
+        return $"#{rgb.r:X2}{rgb.g:X2}{rgb.b:X2}";
+    }
+
+    // Summer Theme - Bright yellows, ocean blues, coral
+    private string GetSummerColor(string baseColor, string colorRole)
+    {
+        var hsl = RgbToHsl(HexToRgb(baseColor).r, HexToRgb(baseColor).g, HexToRgb(baseColor).b);
+
+        // Shift hue towards warm/bright summer colors
+        if (hsl.h < 0.17) // Red -> Coral/Orange
+            hsl.h = 0.05 + (hsl.h * 0.5);
+        else if (hsl.h < 0.33) // Yellow/Orange -> Bright yellow
+            hsl.h = 0.14 + (hsl.h * 0.3);
+        else if (hsl.h < 0.50) // Green -> Tropical teal
+            hsl.h = 0.48 + (hsl.h * 0.2);
+        else if (hsl.h < 0.67) // Cyan/Blue -> Ocean blue
+            hsl.h = 0.55 + (hsl.h * 0.15);
+        else // Purple -> Sky blue
+            hsl.h = 0.58;
+
+        hsl.s = Math.Min(0.95, hsl.s * 1.3); // High saturation
+        hsl.l = Math.Min(0.65, Math.Max(0.50, hsl.l * 1.1)); // Bright
+
+        var rgb = HslToRgb(hsl.h, hsl.s, hsl.l);
+        return $"#{rgb.r:X2}{rgb.g:X2}{rgb.b:X2}";
+    }
+
+    // Autumn Theme - Warm oranges, reds, browns, golds
+    private string GetAutumnColor(string baseColor, string colorRole)
+    {
+        var hsl = RgbToHsl(HexToRgb(baseColor).r, HexToRgb(baseColor).g, HexToRgb(baseColor).b);
+
+        // Shift hue towards warm autumn colors
+        if (hsl.h < 0.17) // Red -> Deep red/burgundy
+            hsl.h = 0.0 + (hsl.h * 0.4);
+        else if (hsl.h < 0.33) // Yellow -> Gold/amber
+            hsl.h = 0.10 + (hsl.h * 0.3);
+        else if (hsl.h < 0.50) // Green -> Olive/brown
+            hsl.h = 0.08 + (hsl.h * 0.15);
+        else if (hsl.h < 0.67) // Blue -> Muted brown
+            hsl.h = 0.08;
+        else // Purple -> Plum/wine
+            hsl.h = 0.92 + (hsl.h * 0.1);
+
+        hsl.s = Math.Min(0.85, Math.Max(0.40, hsl.s * 0.95)); // Rich but not oversaturated
+        hsl.l = Math.Min(0.60, Math.Max(0.35, hsl.l * 0.9)); // Warm, slightly darker
+
+        var rgb = HslToRgb(hsl.h, hsl.s, hsl.l);
+        return $"#{rgb.r:X2}{rgb.g:X2}{rgb.b:X2}";
+    }
+
+    // Winter Theme - Cool blues, icy silvers, crisp whites
+    private string GetWinterColor(string baseColor, string colorRole)
+    {
+        var hsl = RgbToHsl(HexToRgb(baseColor).r, HexToRgb(baseColor).g, HexToRgb(baseColor).b);
+
+        // Shift hue towards cool winter colors
+        if (hsl.h < 0.17) // Red -> Cool pink/icy
+            hsl.h = 0.80;
+        else if (hsl.h < 0.33) // Yellow -> Pale blue
+            hsl.h = 0.58;
+        else if (hsl.h < 0.50) // Green -> Icy teal
+            hsl.h = 0.52;
+        else if (hsl.h < 0.67) // Blue -> Deep winter blue
+            hsl.h = 0.60 + (hsl.h * 0.1);
+        else // Purple -> Cool violet
+            hsl.h = 0.72 + (hsl.h * 0.1);
+
+        hsl.s = Math.Min(0.65, hsl.s * 0.7); // Muted saturation for icy effect
+        hsl.l = Math.Min(0.75, Math.Max(0.45, hsl.l * 1.1)); // Lighter, crisp
+
+        var rgb = HslToRgb(hsl.h, hsl.s, hsl.l);
+        return $"#{rgb.r:X2}{rgb.g:X2}{rgb.b:X2}";
     }
 
     private (int r, int g, int b) HexToRgb(string hex)
