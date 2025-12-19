@@ -139,7 +139,7 @@
     private async Task HandleTemplateSelect(TemplateType templateType)
     {
         await OnTemplateSelect.InvokeAsync(templateType);
-        // Note: Parent HandleTemplateSelect already closes the modal, so we don't need to call OnClose here
+        // Note: Parent HandleTemplateSelect already closes the modal and refreshes state
     }
 
     private void ToggleExamples(TemplateType templateType)

@@ -90,20 +90,50 @@ public class TemplateService
 
     /// <summary>
     /// Generate a random item with randomized icon, color, and title
+    /// Distribution: 20% no text/no icon, 20% text only, 20% icon only, 40% text+icon
     /// </summary>
-    private static Item GetRandomItem()
+    private static Item GetRandomItem(int length = 1)
     {
-        var randomIcon = _itemIcons[Random.Shared.Next(_itemIcons.Length)];
         var randomColor = _colors[Random.Shared.Next(_colors.Length)];
-        var showTitle = Random.Shared.Next(2) == 0; // 50% chance to show title
+
+        // Random distribution: 0-4 (5 possibilities)
+        // 0 = no text, no icon (20%)
+        // 1 = title text, no icon (20%)
+        // 2 = no text, with icon (20%)
+        // 3-4 = title text with icon (40%)
+        var distribution = Random.Shared.Next(5);
+
+        string title = "";
+        string? icon = null;
+
+        switch (distribution)
+        {
+            case 0: // 20% - no text, no icon
+                title = "";
+                icon = null;
+                break;
+            case 1: // 20% - title text, no icon
+                title = "Item";
+                icon = null;
+                break;
+            case 2: // 20% - no text, with icon
+                title = "";
+                icon = _itemIcons[Random.Shared.Next(_itemIcons.Length)];
+                break;
+            case 3: // 20% - title text with icon
+            case 4: // 20% - title text with icon
+                title = "Item";
+                icon = _itemIcons[Random.Shared.Next(_itemIcons.Length)];
+                break;
+        }
 
         return new Item
         {
             Id = null,
-            Title = showTitle ? "Item" : "",
+            Title = title,
             Start = 0,
-            Length = 1,
-            Icon = randomIcon,
+            Length = length,
+            Icon = icon,
             Color = randomColor,
             Spanning = false,
             Greyed = false,
@@ -161,8 +191,16 @@ public class TemplateService
                 new Lane
                 {
                     Id = null,
-                    Title = "Tasks",
-                    Color = "#9999ff",
+                    Title = "Current Week",
+                    Color = "#45B69C",
+                    Height = 1.0,
+                    Items = new List<Item> { GetRandomItem() }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "Week 2",
+                    Color = "#EC4899",
                     Height = 1.0,
                     Items = new List<Item> { GetRandomItem() }
                 }
@@ -197,17 +235,25 @@ public class TemplateService
                 new Lane
                 {
                     Id = null,
-                    Title = "In-Progress",
-                    Color = "#EC4899",
+                    Title = "Completed",
+                    Color = "#45B69C",
+                    Height = 0.5,
+                    Items = new List<Item> { GetRandomItem() }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "In Progress",
+                    Color = "#E6B800",
                     Height = 1.0,
                     Items = new List<Item> { GetRandomItem() }
                 },
                 new Lane
                 {
                     Id = null,
-                    Title = "Completed",
-                    Color = "#45B69C",
-                    Height = 1.0,
+                    Title = "Backlog",
+                    Color = "#B7C4B7",
+                    Height = 0.5,
                     Items = new List<Item> { GetRandomItem() }
                 }
             }
@@ -241,9 +287,17 @@ public class TemplateService
                 {
                     Id = null,
                     Title = "Tasks",
-                    Color = "#45B69C",
+                    Color = "#E6B800",
                     Height = 1.0,
-                    Items = new List<Item> { GetRandomItem() }
+                    Items = new List<Item> { GetRandomItem(2) }
+                },
+                new Lane
+                {
+                    Id = null,
+                    Title = "Features",
+                    Color = "#F88379",
+                    Height = 1.0,
+                    Items = new List<Item> { GetRandomItem(2) }
                 }
             }
         };
@@ -279,17 +333,17 @@ public class TemplateService
                 new Lane
                 {
                     Id = null,
-                    Title = "TODO",
-                    Color = "#F88379",
+                    Title = "To Do",
+                    Color = "#E6B800",
                     Height = 1.0,
                     Items = new List<Item> { GetRandomItem() }
                 },
                 new Lane
                 {
                     Id = null,
-                    Title = "backlog",
+                    Title = "Backlog",
                     Color = "#B7C4B7",
-                    Height = 1.0,
+                    Height = 0.5,
                     Items = new List<Item> { GetRandomItem() }
                 }
             }
@@ -301,7 +355,7 @@ public class TemplateService
     /// </summary>
     public static RoadmapData GetRetrospectiveTemplate()
     {
-        var columnCount = 5; // Went Well, Needs Work, Kudos, Improve, Advice
+        var columnCount = 3; // Went Well, Needs Work, Kudos
 
         return new RoadmapData
         {
@@ -309,11 +363,9 @@ public class TemplateService
             Subtitle = "Retrospective feedback",
             Columns = new List<Column>
             {
-                new Column { Id = null, Label = "Went Well", Sub = "For Self" },
-                new Column { Id = null, Label = "Needs Work", Sub = "For Self" },
-                new Column { Id = null, Label = "Kudos", Sub = "To Others" },
-                new Column { Id = null, Label = "Improve", Sub = "" },
-                new Column { Id = null, Label = "Advice", Sub = "To Others" }
+                new Column { Id = null, Label = "Went Well", Sub = "self" },
+                new Column { Id = null, Label = "Needs Work", Sub = "self" },
+                new Column { Id = null, Label = "Kudos", Sub = "others" }
             },
             Milestones = new List<Milestone> { GetRandomMilestone(columnCount) },
             Lanes = new List<Lane>
@@ -321,8 +373,8 @@ public class TemplateService
                 new Lane
                 {
                     Id = null,
-                    Title = "Tasks",
-                    Color = "#E6B800",
+                    Title = "Feedback",
+                    Color = "#FF69B4",
                     Height = 1.0,
                     Items = new List<Item> { GetRandomItem() }
                 }
