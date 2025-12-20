@@ -3,164 +3,170 @@
 @* This component renders an expandable dropdown with day presets and date picker *@
 @if (IsExpanded)
 {
-    <div style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; z-index: 1000; background: #1e1e2e; border: 2px solid #667eea; border-radius: 8px; padding: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); max-height: 480px; overflow-y: auto;">
+    <div style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; z-index: 1000; background: #1e1e2e; border: 2px solid #667eea; border-radius: 8px; padding: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);">
 
-        @* Target Field Toggle - NEW *@
-        <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #3a3a4e;">
-            <div style="font-size: 9px; color: #888; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">Apply To</div>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
-                <button type="button"
-                        @onclick="@(() => SetTargetField("label"))"
-                        @onclick:stopPropagation="true"
-                        style="@GetTargetButtonStyle("label")">
-                    <div style="font-size: 10px; font-weight: 700;">Label</div>
-                </button>
-                <button type="button"
-                        @onclick="@(() => SetTargetField("sub"))"
-                        @onclick:stopPropagation="true"
-                        style="@GetTargetButtonStyle("sub")">
-                    <div style="font-size: 10px; font-weight: 700;">Sublabel</div>
-                </button>
-                <button type="button"
-                        @onclick="@(() => SetTargetField("both"))"
-                        @onclick:stopPropagation="true"
-                        style="@GetTargetButtonStyle("both")">
-                    <div style="font-size: 10px; font-weight: 700;">Both</div>
-                </button>
-            </div>
+        @* Days Section *@
+        <div style="margin-bottom: 10px;">
+            <button type="button"
+                    @onclick="@(() => _daysExpanded = !_daysExpanded)"
+                    @onclick:stopPropagation="true"
+                    style="width: 100%; padding: 8px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 4px; color: #c7d2fe; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;">
+                <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Days of Week</span>
+                <span style="font-size: 10px; transition: transform 0.2s; transform: rotate(@(_daysExpanded ? "180deg" : "0deg"));">▼</span>
+            </button>
+
+            @if (_daysExpanded)
+            {
+                <div style="margin-top: 8px;">
+                    <div style="font-size: 9px; color: #888; margin-bottom: 4px; font-weight: 600;">Abbreviated</div>
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 6px;">
+                        @foreach (var day in _dayPresets)
+                        {
+                            <button type="button"
+                                    @onclick="@(() => HandlePresetSelect(day.Abbr))"
+                                    @onclick:stopPropagation="true"
+                                    title="@day.Abbr"
+                                    style="@GetPresetButtonStyle(day.Abbr)">
+                                <div style="font-size: 10px; font-weight: 700;">@day.Abbr</div>
+                            </button>
+                        }
+                    </div>
+
+                    <div style="font-size: 9px; color: #888; margin-bottom: 4px; font-weight: 600;">Full Name</div>
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
+                        @foreach (var day in _dayPresets)
+                        {
+                            <button type="button"
+                                    @onclick="@(() => HandlePresetSelect(day.Full))"
+                                    @onclick:stopPropagation="true"
+                                    title="@day.Full"
+                                    style="@GetPresetButtonStyle(day.Full)">
+                                <div style="font-size: 9px; font-weight: 600;">@day.Full</div>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
         </div>
 
-        @* Day Presets - Abbreviated and Full *@
-        <div style="margin-bottom: 8px;">
-            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Days (Abbreviated)</div>
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
-                @foreach (var day in _dayPresets)
-                {
-                    <button type="button"
-                            @onclick="@(() => HandlePresetSelect(day.Abbr))"
-                            @onclick:stopPropagation="true"
-                            title="@day.Abbr"
-                            style="@GetPresetButtonStyle(day.Abbr)">
-                        <div style="font-size: 10px; font-weight: 700;">@day.Abbr</div>
-                    </button>
-                }
-            </div>
+        @* Months Section *@
+        <div style="margin-bottom: 10px;">
+            <button type="button"
+                    @onclick="@(() => _monthsExpanded = !_monthsExpanded)"
+                    @onclick:stopPropagation="true"
+                    style="width: 100%; padding: 8px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 4px; color: #c7d2fe; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;">
+                <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Months</span>
+                <span style="font-size: 10px; transition: transform 0.2s; transform: rotate(@(_monthsExpanded ? "180deg" : "0deg"));">▼</span>
+            </button>
 
-            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Days (Full)</div>
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
-                @foreach (var day in _dayPresets)
-                {
-                    <button type="button"
-                            @onclick="@(() => HandlePresetSelect(day.Full))"
-                            @onclick:stopPropagation="true"
-                            title="@day.Full"
-                            style="@GetPresetButtonStyle(day.Full, true)">
-                        <div style="font-size: 9px; font-weight: 600;">@day.Full</div>
-                    </button>
-                }
-            </div>
+            @if (_monthsExpanded)
+            {
+                <div style="margin-top: 8px;">
+                    <div style="font-size: 9px; color: #888; margin-bottom: 4px; font-weight: 600;">Abbreviated</div>
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 6px;">
+                        @foreach (var month in _monthPresets)
+                        {
+                            <button type="button"
+                                    @onclick="@(() => HandlePresetSelect(month.Abbr))"
+                                    @onclick:stopPropagation="true"
+                                    title="@month.Abbr"
+                                    style="@GetPresetButtonStyle(month.Abbr)">
+                                <div style="font-size: 10px; font-weight: 700;">@month.Abbr</div>
+                            </button>
+                        }
+                    </div>
+
+                    <div style="font-size: 9px; color: #888; margin-bottom: 4px; font-weight: 600;">Full Name</div>
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
+                        @foreach (var month in _monthPresets)
+                        {
+                            <button type="button"
+                                    @onclick="@(() => HandlePresetSelect(month.Full))"
+                                    @onclick:stopPropagation="true"
+                                    title="@month.Full"
+                                    style="@GetPresetButtonStyle(month.Full)">
+                                <div style="font-size: 9px; font-weight: 600;">@month.Full</div>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
         </div>
 
-        @* Month Presets - Abbreviated and Full *@
-        <div style="margin-bottom: 8px; padding-top: 8px; border-top: 1px solid #3a3a4e;">
-            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Months (Abbreviated)</div>
-            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 4px;">
-                @foreach (var month in _monthPresets)
-                {
-                    <button type="button"
-                            @onclick="@(() => HandlePresetSelect(month.Abbr))"
-                            @onclick:stopPropagation="true"
-                            title="@month.Abbr"
-                            style="@GetPresetButtonStyle(month.Abbr)">
-                        <div style="font-size: 10px; font-weight: 700;">@month.Abbr</div>
-                    </button>
-                }
-            </div>
+        @* Additional Options *@
+        <div style="margin-bottom: 10px;">
+            <button type="button"
+                    @onclick="@(() => _moreExpanded = !_moreExpanded)"
+                    @onclick:stopPropagation="true"
+                    style="width: 100%; padding: 8px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 4px; color: #c7d2fe; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;">
+                <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">More Options</span>
+                <span style="font-size: 10px; transition: transform 0.2s; transform: rotate(@(_moreExpanded ? "180deg" : "0deg"));">▼</span>
+            </button>
 
-            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Months (Full)</div>
-            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
-                @foreach (var month in _monthPresets)
-                {
-                    <button type="button"
-                            @onclick="@(() => HandlePresetSelect(month.Full))"
-                            @onclick:stopPropagation="true"
-                            title="@month.Full"
-                            style="@GetPresetButtonStyle(month.Full, true)">
-                        <div style="font-size: 9px; font-weight: 600;">@month.Full</div>
-                    </button>
-                }
-            </div>
+            @if (_moreExpanded)
+            {
+                <div style="margin-top: 8px;">
+                    <div style="font-size: 9px; color: #888; margin-bottom: 4px; font-weight: 600;">Quarters</div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px;">
+                        @foreach (var quarter in _quarterPresets)
+                        {
+                            <button type="button"
+                                    @onclick="@(() => HandlePresetSelect(quarter))"
+                                    @onclick:stopPropagation="true"
+                                    title="@quarter"
+                                    style="@GetPresetButtonStyle(quarter)">
+                                <div style="font-size: 10px; font-weight: 700;">@quarter</div>
+                            </button>
+                        }
+                    </div>
+
+                    <div style="font-size: 9px; color: #888; margin-bottom: 4px; font-weight: 600;">Years</div>
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 8px;">
+                        @foreach (var year in _yearPresets)
+                        {
+                            <button type="button"
+                                    @onclick="@(() => HandlePresetSelect(year))"
+                                    @onclick:stopPropagation="true"
+                                    title="@year"
+                                    style="@GetPresetButtonStyle(year)">
+                                <div style="font-size: 10px; font-weight: 700;">@year</div>
+                            </button>
+                        }
+                    </div>
+
+                    <div style="font-size: 9px; color: #888; margin-bottom: 4px; font-weight: 600;">Hours (12AM - 11PM)</div>
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
+                        @foreach (var hour in _hourPresets)
+                        {
+                            <button type="button"
+                                    @onclick="@(() => HandlePresetSelect(hour))"
+                                    @onclick:stopPropagation="true"
+                                    title="@hour"
+                                    style="@GetPresetButtonStyle(hour)">
+                                <div style="font-size: 10px; font-weight: 600;">@hour</div>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
         </div>
 
-        @* Quarters - NEW *@
-        <div style="margin-bottom: 8px; padding-top: 8px; border-top: 1px solid #3a3a4e;">
-            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Quarters</div>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
-                @foreach (var quarter in _quarterPresets)
-                {
-                    <button type="button"
-                            @onclick="@(() => HandlePresetSelect(quarter))"
-                            @onclick:stopPropagation="true"
-                            title="@quarter"
-                            style="@GetPresetButtonStyle(quarter)">
-                        <div style="font-size: 10px; font-weight: 700;">@quarter</div>
-                    </button>
-                }
-            </div>
-        </div>
-
-        @* Years - NEW *@
-        <div style="margin-bottom: 8px; padding-top: 8px; border-top: 1px solid #3a3a4e;">
-            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Years</div>
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;">
-                @foreach (var year in _yearPresets)
-                {
-                    <button type="button"
-                            @onclick="@(() => HandlePresetSelect(year))"
-                            @onclick:stopPropagation="true"
-                            title="@year"
-                            style="@GetPresetButtonStyle(year)">
-                        <div style="font-size: 10px; font-weight: 700;">@year</div>
-                    </button>
-                }
-            </div>
-        </div>
-
-        @* Hourly Presets *@
-        <div style="margin-bottom: 8px; padding-top: 8px; border-top: 1px solid #3a3a4e;">
-            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Hours</div>
-            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
-                @foreach (var hour in _hourPresets)
-                {
-                    <button type="button"
-                            @onclick="@(() => HandlePresetSelect(hour))"
-                            @onclick:stopPropagation="true"
-                            title="@hour"
-                            style="@GetPresetButtonStyle(hour)">
-                        <div style="font-size: 10px; font-weight: 600;">@hour</div>
-                    </button>
-                }
-            </div>
-        </div>
-
-        @* Bottom Row: Today + Date Picker *@
-        <div style="display: flex; gap: 8px; padding-top: 8px; border-top: 1px solid #3a3a4e;">
-            @* Today Button *@
+        @* Date Picker Row *@
+        <div style="display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid #3a3a4e;">
             <button type="button"
                     @onclick="HandleTodaySelect"
                     @onclick:stopPropagation="true"
                     title="Insert today's date"
-                    style="flex: 1; height: 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);">
-                <Icon IconType="calendar" Color="#fff" Size="16" />
+                    style="flex: 1; height: 36px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);">
+                <Icon IconType="calendar" Color="#fff" Size="14" />
                 <span>Today</span>
             </button>
 
-            @* Date Picker *@
             <input type="date"
                    @onchange="@HandleDateSelect"
                    @onclick:stopPropagation="true"
                    class="form-control"
-                   style="flex: 1; height: 40px; font-size: 13px; background: #252538; border: 1px solid #667eea; color: #ffffff; color-scheme: dark;" />
+                   style="flex: 1; height: 36px; font-size: 12px; background: #252538; border: 1px solid #667eea; color: #ffffff; color-scheme: dark; border-radius: 4px; padding: 0 8px;" />
         </div>
     </div>
 }
@@ -178,10 +184,9 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    [Parameter]
-    public string FieldType { get; set; } = "label"; // "label", "sub", or "both"
-
-    private string _targetField = "label"; // Internal state for target field
+    private bool _daysExpanded = true;
+    private bool _monthsExpanded = false;
+    private bool _moreExpanded = false;
 
     private record Preset(string Abbr, string Full);
 
@@ -230,17 +235,6 @@
         "6PM", "7PM", "8PM", "9PM", "10PM", "11PM"
     };
 
-    protected override void OnParametersSet()
-    {
-        _targetField = FieldType;
-    }
-
-    private void SetTargetField(string field)
-    {
-        _targetField = field;
-        StateHasChanged();
-    }
-
     private async Task HandlePresetSelect(string value)
     {
         await OnValueChange.InvokeAsync(value);
@@ -265,27 +259,8 @@
         }
     }
 
-    private string GetTargetButtonStyle(string target)
+    private string GetPresetButtonStyle(string text)
     {
-        var isActive = _targetField == target;
-        var bg = isActive
-            ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
-            : "background: #252538;";
-
-        var border = isActive
-            ? "border: 2px solid #667eea; box-shadow: 0 0 8px rgba(102, 126, 234, 0.5);"
-            : "border: 1px solid #3a3a4e;";
-
-        var color = isActive ? "#fff" : "#ccc";
-
-        return $"width: 100%; height: 28px; {bg} color: {color}; {border} " +
-               "border-radius: 4px; cursor: pointer; transition: all 0.2s; " +
-               "display: flex; align-items: center; justify-content: center;";
-    }
-
-    private string GetPresetButtonStyle(string text, bool isFullName = false)
-    {
-        // Check if this preset matches the current value
         var isActive = CurrentValue?.Equals(text, StringComparison.OrdinalIgnoreCase) == true;
 
         var bg = isActive
@@ -297,9 +272,8 @@
             : "border: 1px solid #3a3a4e;";
 
         var color = isActive ? "#fff" : "#ccc";
-        var height = isFullName ? "26px" : "28px";
 
-        return $"width: 100%; height: {height}; {bg} color: {color}; {border} " +
+        return $"width: 100%; height: 26px; {bg} color: {color}; {border} " +
                "border-radius: 4px; cursor: pointer; transition: all 0.2s; " +
                "display: flex; align-items: center; justify-content: center; " +
                "font-weight: 600;";

@@ -1,89 +1,52 @@
 @using RoadScript.Models
 
-@* Quick Actions Toolbar - Positioned above swim lanes in roadmap UI *@
-<div style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: rgba(30, 30, 46, 0.6); border-bottom: 1px solid #3a3a4e; min-height: 44px;">
+@* Quick Actions Toolbar - Positioned in left sidebar aligned with columns/milestones *@
+<div style="padding: 8px 0; margin-bottom: 12px; border-bottom: 1px solid #3a3a4e;">
+    <div style="font-size: 9px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.5px;">Quick Actions</div>
 
-    @* Column Quick Actions *@
-    <div style="display: flex; align-items: center; gap: 6px;">
-        <span style="font-size: 10px; color: #888; text-transform: uppercase; font-weight: 600; margin-right: 4px;">Columns:</span>
-
-        @* Current Month *@
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+        @* Add Current Month *@
         <button type="button"
                 @onclick="@(() => AddCurrentMonth())"
                 title="Add current month as column"
-                style="height: 32px; padding: 0 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">
+                style="width: 100%; height: 36px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">
             <Icon IconType="calendar" Color="#fff" Size="14" />
             <span>Month</span>
         </button>
 
-        @* 12 Months Dropdown *@
-        <div style="position: relative;">
-            <button type="button"
-                    @onclick="@(() => _showMonthsDropdown = !_showMonthsDropdown)"
-                    title="Add multiple months"
-                    style="height: 32px; padding: 0 10px; background: #667eea; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);">
-                <span>12 Mo</span>
-                <span style="font-size: 9px;">▼</span>
-            </button>
+        @* Add Current Date *@
+        <button type="button"
+                @onclick="@(() => AddCurrentDate())"
+                title="Add today's date as column"
+                style="width: 100%; height: 36px; background: #667eea; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);">
+            <Icon IconType="calendar" Color="#fff" Size="14" />
+            <span>Date</span>
+        </button>
 
-            @if (_showMonthsDropdown)
-            {
-                <div style="position: absolute; top: 100%; left: 0; margin-top: 4px; z-index: 1000; background: #1e1e2e; border: 2px solid #667eea; border-radius: 6px; padding: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); min-width: 200px;">
-                    <button type="button"
-                            @onclick="@(() => Add12Months(DateTime.Now.Year))"
-                            @onclick:stopPropagation="true"
-                            style="width: 100%; height: 32px; margin-bottom: 4px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 11px; font-weight: 600;">
-                        12 Months (@DateTime.Now.Year)
-                    </button>
-                    <button type="button"
-                            @onclick="@(() => Add12Months(DateTime.Now.Year + 1))"
-                            @onclick:stopPropagation="true"
-                            style="width: 100%; height: 32px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 11px; font-weight: 600;">
-                        12 Months (@(DateTime.Now.Year + 1))
-                    </button>
-                </div>
-            }
-        </div>
-
-        @* Days of Week *@
+        @* Add 7 Days *@
         <button type="button"
                 @onclick="@(() => Add7Days())"
                 title="Add 7 days of the week"
-                style="height: 32px; padding: 0 10px; background: #F88379; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(248, 131, 121, 0.3);">
+                style="width: 100%; height: 36px; background: #F88379; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(248, 131, 121, 0.3);">
             <span>7 Days</span>
         </button>
 
-        @* Quarters *@
+        @* Add 4 Quarters *@
         <button type="button"
                 @onclick="@(() => Add4Quarters())"
                 title="Add Q1-Q4 quarters"
-                style="height: 32px; padding: 0 10px; background: #E6B800; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(230, 184, 0, 0.3);">
-            <span>4 Qtrs</span>
+                style="width: 100%; height: 36px; background: #E6B800; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(230, 184, 0, 0.3);">
+            <span>4 Quarters</span>
         </button>
-    </div>
 
-    @* Divider *@
-    <div style="width: 1px; height: 28px; background: #3a3a4e; margin: 0 4px;"></div>
-
-    @* Milestone Quick Action *@
-    <div style="display: flex; align-items: center; gap: 6px;">
-        <span style="font-size: 10px; color: #888; text-transform: uppercase; font-weight: 600; margin-right: 4px;">Milestone:</span>
-
+        @* Add Milestone *@
         <button type="button"
                 @onclick="@(() => AddMilestone())"
                 title="Add new milestone"
-                style="height: 32px; padding: 0 10px; background: linear-gradient(135deg, rgba(69, 182, 156, 0.3) 0%, rgba(69, 182, 156, 0.2) 100%); color: #45B69C; border: 1px solid rgba(69, 182, 156, 0.5); border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(69, 182, 156, 0.2);">
+                style="width: 100%; height: 36px; background: linear-gradient(135deg, rgba(69, 182, 156, 0.3) 0%, rgba(69, 182, 156, 0.2) 100%); color: #45B69C; border: 1px solid rgba(69, 182, 156, 0.5); border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(69, 182, 156, 0.2);">
             <span style="font-size: 16px; line-height: 1;">+</span>
             <Icon IconType="target" Color="#45B69C" Size="14" />
         </button>
-    </div>
-
-    @* Spacer *@
-    <div style="flex: 1;"></div>
-
-    @* Info/Help *@
-    <div style="font-size: 10px; color: #666; font-style: italic;">
-        Quick Actions
     </div>
 </div>
 
@@ -93,8 +56,6 @@
 
     [Parameter]
     public EventCallback OnAddMilestone { get; set; }
-
-    private bool _showMonthsDropdown = false;
 
     private async Task AddCurrentMonth()
     {
@@ -106,25 +67,18 @@
             Sublabels = new List<string> { DateTime.Now.Year.ToString() }
         };
         await OnBulkColumnAction.InvokeAsync(action);
-        CloseDropdowns();
     }
 
-    private async Task Add12Months(int year)
+    private async Task AddCurrentDate()
     {
-        var months = new List<string>
-        {
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-        };
-
+        var today = DateTime.Now.ToString("MM/dd/yyyy");
         var action = new BulkColumnAction
         {
-            ActionType = "bulk",
-            Labels = months,
-            Sublabels = Enumerable.Repeat(year.ToString(), 12).ToList()
+            ActionType = "single",
+            Labels = new List<string> { today },
+            Sublabels = new List<string> { "" }
         };
         await OnBulkColumnAction.InvokeAsync(action);
-        CloseDropdowns();
     }
 
     private async Task Add7Days()
@@ -141,13 +95,12 @@
             Sublabels = new List<string>() // Empty sublabels
         };
         await OnBulkColumnAction.InvokeAsync(action);
-        CloseDropdowns();
     }
 
     private async Task Add4Quarters()
     {
         var quarters = new List<string> { "Q1", "Q2", "Q3", "Q4" };
-        var year = DateTime.Now.Year.ToString();
+        var year = "2026";
 
         var action = new BulkColumnAction
         {
@@ -156,19 +109,11 @@
             Sublabels = Enumerable.Repeat(year, 4).ToList()
         };
         await OnBulkColumnAction.InvokeAsync(action);
-        CloseDropdowns();
     }
 
     private async Task AddMilestone()
     {
         await OnAddMilestone.InvokeAsync();
-        CloseDropdowns();
-    }
-
-    private void CloseDropdowns()
-    {
-        _showMonthsDropdown = false;
-        StateHasChanged();
     }
 
     public class BulkColumnAction
