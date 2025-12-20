@@ -12,6 +12,9 @@ html, body, #app {
 .container-fluid {
     display: flex;
     height: 100vh;
+    overflow-x: hidden;
+    max-width: 100vw;
+    box-sizing: border-box;
 }
 
 /* Control Center panel styling */
@@ -81,6 +84,9 @@ html, body, #app {
 .preview-pane {
     background: #e8eaed;
     overflow: auto;
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 /* Roadmap container - ensures proper scaling */
@@ -192,12 +198,12 @@ html, body, #app {
 
     /* Wrapper padding */
     .preview-pane > div {
-        padding: 10px !important;
+        padding: 8px !important;
     }
 
     /* Container padding - tight but breathable */
     .roadmap-container {
-        padding: 16px 22px !important;
+        padding: 14px 18px !important;
     }
 
     /* ========== TYPOGRAPHY SCALE - Proportional to desktop ========== */
@@ -316,9 +322,65 @@ html, body, #app {
 
     /* Property panel - narrower */
     .property-panel {
-        width: 270px !important;
-        min-width: 270px !important;
+        width: 280px !important;
+        min-width: 280px !important;
         max-width: 320px !important;
+    }
+
+    /* Property panel content - reduce padding */
+    .property-panel > div:last-child {
+        padding: 12px !important;
+    }
+
+    /* Property editor - tighter spacing */
+    .property-editor {
+        gap: 12px !important;
+    }
+
+    .property-editor .form-group {
+        gap: 4px !important;
+    }
+
+    /* Compact button controls for property panel */
+    .property-editor button[style*="width: 38px"],
+    .property-editor button[style*="width: 44px"],
+    .property-editor button[style*="width: 52px"] {
+        min-width: 28px !important;
+        width: 28px !important;
+        padding: 4px !important;
+        font-size: 11px !important;
+    }
+
+    .property-editor button[style*="width: 32px"] {
+        min-width: 26px !important;
+        width: 26px !important;
+        padding: 3px !important;
+    }
+
+    /* Reduce gap between controls */
+    .property-editor div[style*="gap: 4px"],
+    .property-editor div[style*="gap: 6px"],
+    .property-editor div[style*="gap: 8px"] {
+        gap: 3px !important;
+    }
+
+    /* Make numeric inputs more compact */
+    .property-editor input[type="number"] {
+        min-width: 45px !important;
+        padding: 4px 2px !important;
+        font-size: 12px !important;
+    }
+
+    /* Smaller icon previews */
+    .property-editor button[style*="min-height: 80px"] {
+        min-height: 60px !important;
+        padding: 8px !important;
+    }
+
+    /* Compact color preset grid */
+    .property-editor div[style*="grid-template-columns: repeat(4, 1fr)"] {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 4px !important;
     }
 }
 
@@ -625,4 +687,35 @@ input[type="color"] {
 /* JSON Modal Close Button */
 .json-modal-close-btn:hover {
     background: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Quick Action Buttons (GitHub, Share) - Inline in Title */
+.quick-actions-container {
+    /* Removed drop-shadow for cleaner inline look */
+}
+
+.quick-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.quick-action-button:hover .quick-action-icon {
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.quick-action-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
 }
