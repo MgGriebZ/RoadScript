@@ -11,9 +11,9 @@
 
         <div class="template-options">
             <div class="template-card">
-                <div @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumSprintCycle))" style="display: flex; align-items: center; gap: 20px; cursor: pointer;">
+                <div @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumSprintCycle))" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                     <div class="template-icon" style="background: linear-gradient(135deg, rgba(153, 153, 255, 0.15) 0%, rgba(153, 153, 255, 0.05) 100%);">
-                        <Icon IconType="calendar" Size="56" Color="#9999ff" />
+                        <Icon IconType="calendar" Size="40" Color="#9999ff" />
                     </div>
                     <div class="template-info">
                         <h4>Daily Planning</h4>
@@ -32,9 +32,9 @@
             </div>
 
             <div class="template-card">
-                <div @onclick="@(() => HandleTemplateSelect(TemplateType.ProjectTimelines))" style="display: flex; align-items: center; gap: 20px; cursor: pointer;">
+                <div @onclick="@(() => HandleTemplateSelect(TemplateType.ProjectTimelines))" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                     <div class="template-icon" style="background: linear-gradient(135deg, rgba(135, 206, 235, 0.15) 0%, rgba(135, 206, 235, 0.05) 100%);">
-                        <Icon IconType="rocket" Size="56" Color="#87CEEB" />
+                        <Icon IconType="rocket" Size="40" Color="#87CEEB" />
                     </div>
                     <div class="template-info">
                         <h4>Projects</h4>
@@ -53,9 +53,9 @@
             </div>
 
             <div class="template-card">
-                <div @onclick="@(() => HandleTemplateSelect(TemplateType.AnnualRoadmap))" style="display: flex; align-items: center; gap: 20px; cursor: pointer;">
+                <div @onclick="@(() => HandleTemplateSelect(TemplateType.AnnualRoadmap))" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                     <div class="template-icon" style="background: linear-gradient(135deg, rgba(69, 182, 156, 0.15) 0%, rgba(69, 182, 156, 0.05) 100%);">
-                        <Icon IconType="flag" Size="56" Color="#45B69C" />
+                        <Icon IconType="flag" Size="40" Color="#45B69C" />
                     </div>
                     <div class="template-info">
                         <h4>Milestones</h4>
@@ -74,9 +74,9 @@
             </div>
 
             <div class="template-card">
-                <div @onclick="@(() => HandleTemplateSelect(TemplateType.Retrospective))" style="display: flex; align-items: center; gap: 20px; cursor: pointer;">
+                <div @onclick="@(() => HandleTemplateSelect(TemplateType.Retrospective))" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                     <div class="template-icon" style="background: linear-gradient(135deg, rgba(230, 184, 0, 0.15) 0%, rgba(230, 184, 0, 0.05) 100%);">
-                        <Icon IconType="pause" Size="56" Color="#E6B800" />
+                        <Icon IconType="pause" Size="40" Color="#E6B800" />
                     </div>
                     <div class="template-info">
                         <h4>Retro</h4>
@@ -95,9 +95,9 @@
             </div>
 
             <div class="template-card">
-                <div @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumBoard))" style="display: flex; align-items: center; gap: 20px; cursor: pointer;">
+                <div @onclick="@(() => HandleTemplateSelect(TemplateType.ScrumBoard))" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                     <div class="template-icon" style="background: linear-gradient(135deg, rgba(248, 131, 121, 0.15) 0%, rgba(248, 131, 121, 0.05) 100%);">
-                        <Icon IconType="target" Size="56" Color="#F88379" />
+                        <Icon IconType="target" Size="40" Color="#F88379" />
                     </div>
                     <div class="template-info">
                         <h4>Flows</h4>
@@ -192,16 +192,19 @@
 
     .template-selector-content {
         position: absolute;
-        top: 20px;
-        left: 20px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         background: #1e1e1e;
         border: 1px solid #444;
         border-radius: 12px;
-        padding: 24px;
-        max-width: 700px;
+        padding: 20px;
+        max-width: 90vw;
+        max-height: 85vh;
         width: auto;
-        min-width: 650px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
     }
 
     .template-selector-header {
@@ -239,26 +242,41 @@
     }
 
     .template-options {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 12px;
+        overflow-y: auto;
+        max-height: calc(85vh - 100px);
+        padding-right: 4px;
+    }
+
+    @media (min-width: 1200px) {
+        .template-options {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .template-options {
+            grid-template-columns: 1fr;
+        }
     }
 
     .template-card {
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        padding: 20px;
+        gap: 8px;
+        padding: 14px;
         background: #2a2a2a;
         border: 2px solid #444;
-        border-radius: 12px;
+        border-radius: 8px;
         transition: all 0.2s;
     }
 
     .template-card:hover {
         background: #333;
         border-color: #667eea;
-        transform: translateX(4px);
+        transform: scale(1.02);
     }
 
     .example-toggle {
@@ -266,12 +284,12 @@
         background: none;
         border: 1px solid #555;
         color: #999;
-        padding: 4px 10px;
+        padding: 3px 8px;
         border-radius: 4px;
         cursor: pointer;
-        font-size: 12px;
+        font-size: 11px;
         transition: all 0.2s;
-        margin-left: 100px;
+        margin-left: 76px;
     }
 
     .example-toggle:hover {
@@ -281,25 +299,25 @@
     }
 
     .example-content {
-        margin-left: 100px;
-        padding: 12px;
+        margin-left: 76px;
+        padding: 10px;
         background: #1e1e1e;
         border-left: 3px solid #667eea;
         border-radius: 4px;
         color: #ccc;
-        font-size: 13px;
-        line-height: 1.6;
+        font-size: 12px;
+        line-height: 1.5;
     }
 
     .template-icon {
         flex-shrink: 0;
-        width: 80px;
-        height: 80px;
+        width: 60px;
+        height: 60px;
         display: flex;
         align-items: center;
         justify-content: center;
         background: #1e1e1e;
-        border-radius: 12px;
+        border-radius: 8px;
         border: 2px solid #444;
     }
 
@@ -312,16 +330,16 @@
     }
 
     .template-info h4 {
-        margin: 0 0 8px 0;
+        margin: 0 0 6px 0;
         color: #ffffff;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 600;
     }
 
     .template-info p {
         margin: 0;
         color: #999;
-        font-size: 14px;
-        line-height: 1.5;
+        font-size: 13px;
+        line-height: 1.4;
     }
 </style>

@@ -692,6 +692,8 @@
     private bool _showTemplateSelector = false;
     private bool _isCreatingNewFolder = false;
     private string? _pendingFolderName = null;
+    private string? _pendingAddToFolderId = null;
+    private string? _pendingRoadmapName = null;
 
     // Drag-to-resize state
     private bool _isResizing = false;
@@ -3845,6 +3847,20 @@
             _isCreatingNewFolder = false;
             _pendingFolderName = null;
         }
+        else if (!string.IsNullOrWhiteSpace(_pendingAddToFolderId) && !string.IsNullOrWhiteSpace(_pendingRoadmapName))
+        {
+            // Adding to a specific folder from folder manager
+            var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == _pendingAddToFolderId);
+            if (folder != null)
+            {
+                templateData.Title = _pendingRoadmapName;
+                StorageService.AddTab(folder.SessionManager, _pendingRoadmapName, templateData);
+                folder.LastModified = DateTime.UtcNow;
+            }
+
+            _pendingAddToFolderId = null;
+            _pendingRoadmapName = null;
+        }
         else if (_sessionManager != null)
         {
             var newTab = StorageService.AddTab(_sessionManager, templateData.Title, templateData);
@@ -4072,13 +4088,10 @@
         var tabName = await JSRuntime.InvokeAsync<string>("prompt", "Enter roadmap name:", "New Roadmap");
         if (string.IsNullOrWhiteSpace(tabName)) return;
 
-        var defaultRoadmap = TemplateService.GetScrumSprintCycleTemplate();
-        defaultRoadmap.Title = tabName.Trim();
-
-        StorageService.AddTab(folder.SessionManager, tabName.Trim(), defaultRoadmap);
-        folder.LastModified = DateTime.UtcNow;
-
-        await DebouncedSave();
+        // Store the pending info and show template selector
+        _pendingAddToFolderId = folderId;
+        _pendingRoadmapName = tabName.Trim();
+        _showTemplateSelector = true;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -4493,6 +4506,8 @@
         _showTemplateSelector = false;
         _isCreatingNewFolder = false;
         _pendingFolderName = null;
+        _pendingAddToFolderId = null;
+        _pendingRoadmapName = null;
         StateHasChanged();
     }
 
