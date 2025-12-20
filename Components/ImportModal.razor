@@ -45,14 +45,21 @@
 
                 <div class="import-folder-select">
                     <label>Save to Folder:</label>
-                    <select @bind="SelectedFolderId" class="import-folder-dropdown">
+                    <select @bind="SelectedFolderId" @bind:after="OnFolderChanged" class="import-folder-dropdown">
                         @foreach (var folder in AvailableFolders)
                         {
-                            <option value="@folder.Id">
-                                @folder.Icon @folder.Name (@folder.SessionManager.Tabs.Count/@folder.SessionManager.MaxTabs tabs)
+                            var isFull = folder.SessionManager.Tabs.Count >= folder.SessionManager.MaxTabs;
+                            <option value="@folder.Id" disabled="@isFull">
+                                @folder.Icon @folder.Name (@folder.SessionManager.Tabs.Count/@folder.SessionManager.MaxTabs tabs) @(isFull ? "FULL" : "")
                             </option>
                         }
                     </select>
+                    @if (IsSelectedFolderFull())
+                    {
+                        <div style="margin-top: 8px; padding: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 4px;">
+                            <span style="color: #fca5a5; font-size: 12px;">⚠️ This folder is full. Please select a different folder.</span>
+                        </div>
+                    }
                 </div>
 
                 <div class="import-name-input">
@@ -64,10 +71,19 @@
                 </div>
 
                 <div class="import-actions">
-                    <button @onclick="ImportRoadmap" class="btn-import-primary">
-                        ✨ Import Roadmap
+                    <button @onclick="ImportRoadmap"
+                            class="btn-import-primary"
+                            disabled="@(_isImporting || IsSelectedFolderFull())">
+                        @if (_isImporting)
+                        {
+                            <span>⏳ Importing...</span>
+                        }
+                        else
+                        {
+                            <span>✨ Import Roadmap</span>
+                        }
                     </button>
-                    <button @onclick="Close" class="btn-import-secondary">
+                    <button @onclick="Close" class="btn-import-secondary" disabled="@_isImporting">
                         Cancel
                     </button>
                 </div>
@@ -102,15 +118,20 @@
 
     private string SelectedFolderId { get; set; } = "";
     private string RoadmapName { get; set; } = "";
+    private bool _isImporting = false;
 
     protected override void OnParametersSet()
     {
-        if (RoadmapData != null)
+        if (RoadmapData != null && IsVisible)
         {
-            // Default to the first folder if available
+            // Reset importing state when modal opens
+            _isImporting = false;
+
+            // Default to the first non-full folder if available
             if (AvailableFolders.Count > 0 && string.IsNullOrEmpty(SelectedFolderId))
             {
-                SelectedFolderId = AvailableFolders[0].Id;
+                var availableFolder = AvailableFolders.FirstOrDefault(f => f.SessionManager.Tabs.Count < f.SessionManager.MaxTabs);
+                SelectedFolderId = availableFolder?.Id ?? AvailableFolders[0].Id;
             }
 
             // Default name from roadmap title
@@ -126,22 +147,53 @@
         return RoadmapData?.Lanes.Sum(l => l.Items?.Count ?? 0) ?? 0;
     }
 
+    private bool IsSelectedFolderFull()
+    {
+        var folder = AvailableFolders.FirstOrDefault(f => f.Id == SelectedFolderId);
+        return folder != null && folder.SessionManager.Tabs.Count >= folder.SessionManager.MaxTabs;
+    }
+
+    private void OnFolderChanged()
+    {
+        StateHasChanged();
+    }
+
     private async Task Close()
     {
-        RoadmapName = "";
-        await OnClose.InvokeAsync();
+        if (!_isImporting)
+        {
+            RoadmapName = "";
+            _isImporting = false;
+            await OnClose.InvokeAsync();
+        }
     }
 
     private async Task ImportRoadmap()
     {
-        if (RoadmapData == null || string.IsNullOrWhiteSpace(RoadmapName) || string.IsNullOrWhiteSpace(SelectedFolderId))
+        if (_isImporting || RoadmapData == null || string.IsNullOrWhiteSpace(RoadmapName) || string.IsNullOrWhiteSpace(SelectedFolderId))
         {
             return;
         }
 
-        await OnImport.InvokeAsync((SelectedFolderId, RoadmapName.Trim(), RoadmapData));
-        RoadmapName = "";
-        await Close();
+        if (IsSelectedFolderFull())
+        {
+            return;
+        }
+
+        _isImporting = true;
+        StateHasChanged();
+
+        try
+        {
+            await OnImport.InvokeAsync((SelectedFolderId, RoadmapName.Trim(), RoadmapData));
+            RoadmapName = "";
+            _isImporting = false;
+        }
+        catch
+        {
+            _isImporting = false;
+            throw;
+        }
     }
 }
 
@@ -344,6 +396,12 @@
 
     .btn-import-primary:active {
         transform: translateY(0);
+    }
+
+    .btn-import-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
     }
 
     .btn-import-secondary {

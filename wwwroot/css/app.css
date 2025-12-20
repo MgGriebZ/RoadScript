@@ -688,3 +688,52 @@ input[type="color"] {
 .json-modal-close-btn:hover {
     background: rgba(239, 68, 68, 0.2) !important;
 }
+
+/* Quick Action Buttons (GitHub, Share) */
+.quick-actions-container {
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+}
+
+.quick-action-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.quick-action-button:hover {
+    transform: translateY(-2px);
+}
+
+.quick-action-button:hover .quick-action-icon {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.quick-action-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.quick-action-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.quick-action-button:hover .quick-action-label {
+    opacity: 1;
+}

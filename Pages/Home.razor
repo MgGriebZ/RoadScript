@@ -42,17 +42,30 @@
                 <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
 
                 @* Quick Action Icons - GitHub, Share *@
-<div style="position: absolute; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; align-items: center;">
-                    <a href="https://github.com/MgGriebZ/RoadScript" target="_blank" rel="noopener noreferrer"
-                       title="View on GitHub"
-                       style="cursor: pointer; opacity: 0.8; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.3)" : "rgba(0, 0, 0, 0.1)"); display: flex; align-items: center; justify-content: center; text-decoration: none;">
-                        <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
-                    </a>
-                    <div @onclick="HandleQuickShare"
-                         class="quick-share-icon"
-                         title="Share this roadmap"
-                         style="cursor: pointer; opacity: 0.8; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.3)" : "rgba(0, 0, 0, 0.1)");">
-                        <Icon IconType="share" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                <div class="quick-actions-container" style="position: absolute; top: 24px; right: 24px; z-index: 100;">
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <a href="https://github.com/MgGriebZ/RoadScript"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="quick-action-button"
+                           title="View on GitHub">
+                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                                <Icon IconType="github" Size="22" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                            </div>
+                            <div class="quick-action-label" style="color: @(_isVibeMode ? "#a5b4fc" : "#6b7280");">
+                                RoadScript
+                            </div>
+                        </a>
+                        <div @onclick="HandleQuickShare"
+                             class="quick-action-button"
+                             title="Share this roadmap">
+                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                                <Icon IconType="globe" Size="22" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                            </div>
+                            <div class="quick-action-label" style="color: @(_isVibeMode ? "#a5b4fc" : "#6b7280");">
+                                Share
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -574,6 +587,7 @@
                        OnClose="CloseRoadmapManager"
                        OnFolderClick="HandleFolderSelect"
                        OnFolderSettings="HandleFolderSettings"
+                       OnFolderRename="HandleFolderRenameFromManager"
                        OnAddFolder="HandleAddFolder"
                        OnAddRoadmap="HandleAddRoadmapToFolder"
                        OnRoadmapClick="HandleRoadmapClick"
@@ -4212,6 +4226,23 @@
                 await DebouncedSave();
                 await InvokeAsync(StateHasChanged);
             }
+        }
+    }
+
+    private async Task HandleFolderRenameFromManager(string folderId)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == folderId);
+        if (folder == null) return;
+
+        var newName = await JSRuntime.InvokeAsync<string>("prompt", $"Rename folder '{folder.Name}':", folder.Name);
+        if (!string.IsNullOrWhiteSpace(newName) && newName != folder.Name)
+        {
+            StorageService.RenameFolder(_folderManager, folder.Id, newName.Trim());
+            folder.LastModified = DateTime.UtcNow;
+            await DebouncedSave();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
