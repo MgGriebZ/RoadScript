@@ -105,63 +105,54 @@
                     var hasTitleText = !string.IsNullOrWhiteSpace(_data.Title);
                     var hasSubtitleText = !string.IsNullOrWhiteSpace(_data.Subtitle);
                     var hasTitleContent = hasTitleText || hasSubtitleText;
-                    var titlePadding = hasTitleContent ? "padding: 6px 10px;" : "padding: 4px 10px; min-height: 44px;";
+                    var titlePadding = hasTitleContent ? "padding: 6px 10px;" : "padding: 6px 10px; min-height: 48px;";
                 }
 
                 <div class="@GetElementClass("title")"
-                     style="@(TitleContainerStyle() + " display: flex; align-items: center; justify-content: space-between; gap: 8px; " + titlePadding)">
-                    @* GitHub button - Left *@
-                    <div style="flex-shrink: 0; display: flex; align-items: center;">
+                     style="@(TitleContainerStyle() + " " + titlePadding)">
+
+                    @* Top row: Icon | Title | Icon *@
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 36px;">
+                        @* GitHub button - Left *@
                         <a href="https://github.com/MgGriebZ/RoadScript"
                            target="_blank"
                            rel="noopener noreferrer"
                            class="quick-action-button"
                            title="View on GitHub"
-                           style="text-decoration: none;">
+                           style="text-decoration: none; flex-shrink: 0;">
                             <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
                                 <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
                             </div>
                         </a>
-                    </div>
 
-                    @* Centered Title/Subtitle *@
-                    @if (hasTitleContent)
-                    {
+                        @* Title (centered) *@
                         <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
                              style="flex: 1; text-align: center; min-width: 0; @(_isPreviewMode ? "" : "cursor: pointer;")">
                             @if (hasTitleText)
                             {
-                                <h1 style="@TitleStyle()">
-                                    @_data.Title
-                                </h1>
-                            }
-                            @if (hasSubtitleText)
-                            {
-                                <p style="@SubtitleStyle()">
-                                    @_data.Subtitle
-                                </p>
+                                <h1 style="@TitleStyle()">@_data.Title</h1>
                             }
                         </div>
-                    }
-                    else
-                    {
-                        <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
-                             style="flex: 1; @(_isPreviewMode ? "" : "cursor: pointer;")">
-                            @* Empty space for clicking to add title *@
-                        </div>
-                    }
 
-                    @* Share button - Right *@
-                    <div style="flex-shrink: 0; display: flex; align-items: center;">
+                        @* Share button - Right *@
                         <div @onclick="HandleQuickShare"
                              class="quick-action-button"
                              title="Share this roadmap"
-                             style="cursor: pointer;">
+                             style="cursor: pointer; flex-shrink: 0;">
                             <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
                                 <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
                             </div>
                         </div>
                     </div>
+
+                    @* Bottom row: Subtitle (full width, centered) *@
+                    @if (hasSubtitleText)
+                    {
+                        <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
+                             style="text-align: center; margin-top: 4px; @(_isPreviewMode ? "" : "cursor: pointer;")">
+                            <p style="@SubtitleStyle()">@_data.Subtitle</p>
+                        </div>
+                    }
                 </div>
 
                 <div style="display: flex; height: calc(100% - 66px);">
