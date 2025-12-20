@@ -112,7 +112,7 @@
                      style="@(TitleContainerStyle() + " " + titlePadding)">
 
                     @* Top row: Icon | Title | Icon *@
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 36px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 36px; width: 100%;">
                         @* GitHub button - Left *@
                         <a href="https://github.com/MgGriebZ/RoadScript"
                            target="_blank"
@@ -127,10 +127,15 @@
 
                         @* Title (centered) *@
                         <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
-                             style="flex: 1; text-align: center; min-width: 0; @(_isPreviewMode ? "" : "cursor: pointer;")">
+                             style="flex: 1; text-align: center; min-width: 0; min-height: 20px; @(_isPreviewMode ? "" : "cursor: pointer;")">
                             @if (hasTitleText)
                             {
                                 <h1 style="@TitleStyle()">@_data.Title</h1>
+                            }
+                            else
+                            {
+                                @* Invisible placeholder to maintain layout *@
+                                <span style="visibility: hidden; font-size: 0;">&#8203;</span>
                             }
                         </div>
 
