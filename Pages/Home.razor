@@ -167,13 +167,6 @@
                         @* Spacer for column headers + milestone scale *@
                         <div style="height: 88px;"></div>
 
-                        @* Quick Actions Toolbar *@
-                        @if (!_isPreviewMode)
-                        {
-                            <QuickActionsToolbar OnBulkColumnAction="HandleBulkColumnAction"
-                                               OnAddMilestone="HandleQuickAddMilestone" />
-                        }
-
                         @* Lane titles *@
                         @for (int li = 0; li < _data.Lanes.Count; li++)
                         {
@@ -3210,109 +3203,6 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error adding element: {ex.Message}");
-        }
-    }
-
-    private async Task HandleBulkColumnAction(QuickActionsToolbar.BulkColumnAction action)
-    {
-        try
-        {
-            if (_data == null) return;
-
-            SaveHistorySnapshot();
-
-            // Clear existing columns if bulk action
-            if (action.ActionType == "bulk")
-            {
-                _data.Columns.Clear();
-            }
-
-            // Add new columns
-            for (int i = 0; i < action.Labels.Count; i++)
-            {
-                var newColumn = new Column
-                {
-                    Label = action.Labels[i],
-                    Sub = i < action.Sublabels.Count ? action.Sublabels[i] : ""
-                };
-                _data.Columns.Add(newColumn);
-            }
-
-            var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
-            _currentJson = updatedJson;
-            ParseJson(updatedJson);
-
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
-
-            if (_error == null && _sessionManager != null && _activeTab != null)
-            {
-                _activeTab.Data = _data;
-                _activeTab.LastModified = DateTime.UtcNow;
-                if (_folderManager != null)
-                {
-                    await DebouncedSave();
-                }
-            }
-
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error handling bulk column action: {ex.Message}");
-        }
-    }
-
-    private async Task HandleQuickAddMilestone()
-    {
-        try
-        {
-            if (_data == null) return;
-
-            SaveHistorySnapshot();
-
-            var random = new Random();
-            var newMilestone = new Milestone
-            {
-                Title = "New Milestone",
-                Start = random.Next(0, 101),
-                Icon = "target",
-                Color = "#45B69C"
-            };
-
-            _data.Milestones ??= new List<Milestone>();
-            _data.Milestones.Add(newMilestone);
-
-            var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
-            _currentJson = updatedJson;
-            ParseJson(updatedJson);
-
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
-
-            if (_error == null && _sessionManager != null && _activeTab != null)
-            {
-                _activeTab.Data = _data;
-                _activeTab.LastModified = DateTime.UtcNow;
-                if (_folderManager != null)
-                {
-                    await DebouncedSave();
-                }
-            }
-
-            // Auto-select the new milestone
-            var newPath = $"milestones[{_data.Milestones.Count - 1}]";
-            SelectionState.Select(newPath, "milestone", newMilestone);
-
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error adding milestone from quick action: {ex.Message}");
         }
     }
 
