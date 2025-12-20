@@ -1,0 +1,284 @@
+@using RoadScript.Models
+
+<div class="roadmap-card @(IsActive ? "active" : "")" @onclick="HandleClick">
+    <div class="roadmap-card-header">
+        <div class="roadmap-card-title">
+            <span class="roadmap-name">@RoadmapName</span>
+            @if (IsActive)
+            {
+                <span class="active-badge">Active</span>
+            }
+        </div>
+        <div class="roadmap-card-actions" @onclick:stopPropagation="true">
+            <button @onclick="HandleShare"
+                    class="roadmap-action-btn"
+                    title="Share this roadmap">
+                🔗
+            </button>
+            <button @onclick="HandleRename"
+                    class="roadmap-action-btn"
+                    title="Rename">
+                ✏️
+            </button>
+            <button @onclick="HandleDuplicate"
+                    class="roadmap-action-btn"
+                    title="Duplicate">
+                ♻️
+            </button>
+            <button @onclick="HandleDelete"
+                    class="roadmap-action-btn roadmap-action-delete"
+                    title="Delete"
+                    disabled="@IsOnlyRoadmap">
+                🗑️
+            </button>
+        </div>
+    </div>
+
+    <div class="roadmap-card-stats">
+        <div class="roadmap-stat">
+            <span class="roadmap-stat-value">@Stats.Columns</span>
+            <span class="roadmap-stat-label">cols</span>
+        </div>
+        <div class="roadmap-stat-separator">•</div>
+        <div class="roadmap-stat">
+            <span class="roadmap-stat-value">@Stats.Lanes</span>
+            <span class="roadmap-stat-label">lanes</span>
+        </div>
+        <div class="roadmap-stat-separator">•</div>
+        <div class="roadmap-stat">
+            <span class="roadmap-stat-value">@Stats.Items</span>
+            <span class="roadmap-stat-label">items</span>
+        </div>
+        @if (Stats.Milestones > 0)
+        {
+            <div class="roadmap-stat-separator">•</div>
+            <div class="roadmap-stat">
+                <span class="roadmap-stat-value">@Stats.Milestones</span>
+                <span class="roadmap-stat-label">milestones</span>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(TemplateType))
+    {
+        <div class="roadmap-card-footer">
+            <span class="roadmap-template-badge">@GetTemplateIcon() @TemplateType</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string RoadmapName { get; set; } = "";
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public bool IsOnlyRoadmap { get; set; }
+    [Parameter] public RoadmapStats Stats { get; set; } = new();
+    [Parameter] public string? TemplateType { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public EventCallback OnShare { get; set; }
+    [Parameter] public EventCallback OnRename { get; set; }
+    [Parameter] public EventCallback OnDuplicate { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+
+    private async Task HandleClick()
+    {
+        await OnClick.InvokeAsync();
+    }
+
+    private async Task HandleShare()
+    {
+        await OnShare.InvokeAsync();
+    }
+
+    private async Task HandleRename()
+    {
+        await OnRename.InvokeAsync();
+    }
+
+    private async Task HandleDuplicate()
+    {
+        await OnDuplicate.InvokeAsync();
+    }
+
+    private async Task HandleDelete()
+    {
+        if (!IsOnlyRoadmap)
+        {
+            await OnDelete.InvokeAsync();
+        }
+    }
+
+    private string GetTemplateIcon()
+    {
+        return TemplateType?.ToLower() switch
+        {
+            "daily" => "📅",
+            "project" => "🎯",
+            "milestone" => "🏁",
+            "retro" => "🔄",
+            "energy" => "⚡",
+            _ => "📋"
+        };
+    }
+
+    public class RoadmapStats
+    {
+        public int Columns { get; set; }
+        public int Lanes { get; set; }
+        public int Items { get; set; }
+        public int Milestones { get; set; }
+    }
+}
+
+<style>
+    .roadmap-card {
+        background: #2a2a2a;
+        border: 1px solid #3a3a3a;
+        border-radius: 8px;
+        padding: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 8px;
+    }
+
+    .roadmap-card:hover {
+        background: #2f2f2f;
+        border-color: #667eea;
+        transform: translateX(4px);
+    }
+
+    .roadmap-card.active {
+        background: rgba(102, 126, 234, 0.15);
+        border-color: #667eea;
+        box-shadow: 0 0 0 1px rgba(102, 126, 234, 0.3);
+    }
+
+    .roadmap-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .roadmap-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .roadmap-name {
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .active-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        flex-shrink: 0;
+    }
+
+    .roadmap-card-actions {
+        display: flex;
+        gap: 4px;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+    .roadmap-card:hover .roadmap-card-actions {
+        opacity: 1;
+    }
+
+    .roadmap-action-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        padding: 0;
+    }
+
+    .roadmap-action-btn:hover {
+        background: rgba(102, 126, 234, 0.3);
+        border-color: #667eea;
+        transform: scale(1.1);
+    }
+
+    .roadmap-action-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .roadmap-action-btn:disabled:hover {
+        transform: none;
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .roadmap-action-delete:hover:not(:disabled) {
+        background: rgba(239, 68, 68, 0.3);
+        border-color: #ef4444;
+    }
+
+    .roadmap-card-stats {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #888;
+        font-size: 12px;
+    }
+
+    .roadmap-stat {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .roadmap-stat-value {
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .roadmap-stat-label {
+        color: #888;
+    }
+
+    .roadmap-stat-separator {
+        color: #555;
+    }
+
+    .roadmap-card-footer {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #333;
+    }
+
+    .roadmap-template-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(102, 126, 234, 0.1);
+        color: #a5b4fc;
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+</style>

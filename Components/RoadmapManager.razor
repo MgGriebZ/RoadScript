@@ -1,0 +1,471 @@
+@using RoadScript.Models
+@using RoadScript.Components
+@using static RoadScript.Components.RoadmapCard
+@inject IJSRuntime JSRuntime
+
+<div class="roadmap-manager-overlay @(IsVisible ? "visible" : "")" @onclick="Close">
+    <div class="roadmap-manager-content" @onclick:stopPropagation="true">
+        <div class="roadmap-manager-header">
+            <h3>🗂️ Manage Roadmaps</h3>
+            <button class="close-button" @onclick="Close">×</button>
+        </div>
+
+        @* Search Bar *@
+        <div class="roadmap-manager-search">
+            <input type="text"
+                   @bind="SearchQuery"
+                   @bind:event="oninput"
+                   class="search-input"
+                   placeholder="🔍 Search roadmaps..." />
+        </div>
+
+        <div class="roadmap-manager-body">
+            @foreach (var folder in GetFilteredFolders())
+            {
+                var isActiveFolder = folder.Id == ActiveFolderId;
+                <div class="folder-section">
+                    <div class="folder-header">
+                        <div class="folder-header-left" @onclick="() => HandleFolderClick(folder.Id)">
+                            <Icon IconType="@(folder.Icon ?? "folder")" Size="20" Color="@folder.Color" />
+                            <span class="folder-name">@folder.Name</span>
+                            <span class="folder-count">(@folder.SessionManager.Tabs.Count/@folder.SessionManager.MaxTabs)</span>
+                            @if (isActiveFolder)
+                            {
+                                <span class="folder-active-badge">Active</span>
+                            }
+                        </div>
+                        <div class="folder-header-actions">
+                            <button @onclick="() => HandleAddRoadmap(folder.Id)"
+                                    class="folder-action-btn"
+                                    title="Add roadmap"
+                                    disabled="@(folder.SessionManager.Tabs.Count >= folder.SessionManager.MaxTabs)">
+                                +
+                            </button>
+                            <button @onclick="() => HandleFolderSettings(folder.Id)"
+                                    class="folder-action-btn"
+                                    title="Folder settings">
+                                ⚙️
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="roadmaps-list">
+                        @foreach (var tab in GetFilteredTabs(folder))
+                        {
+                            var isActive = isActiveFolder && tab.Id == folder.SessionManager.ActiveTabId;
+                            <RoadmapCard RoadmapName="@tab.Name"
+                                        IsActive="@isActive"
+                                        IsOnlyRoadmap="@(folder.SessionManager.Tabs.Count == 1)"
+                                        Stats="@GetRoadmapStats(tab.Data)"
+                                        TemplateType="@tab.TemplateType"
+                                        OnClick="@(() => HandleRoadmapClick(folder.Id, tab.Id))"
+                                        OnShare="@(() => HandleRoadmapShare(folder.Id, tab.Id))"
+                                        OnRename="@(() => HandleRoadmapRename(folder.Id, tab.Id))"
+                                        OnDuplicate="@(() => HandleRoadmapDuplicate(folder.Id, tab.Id))"
+                                        OnDelete="@(() => HandleRoadmapDelete(folder.Id, tab.Id))" />
+                        }
+                        @if (folder.SessionManager.Tabs.Count == 0)
+                        {
+                            <div class="empty-folder">
+                                <span>No roadmaps in this folder</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Folders.Count == 0)
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">📂</div>
+                    <div class="empty-state-title">No Folders Yet</div>
+                    <div class="empty-state-message">Create your first folder to get started</div>
+                </div>
+            }
+            else if (GetFilteredFolders().Count == 0)
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <div class="empty-state-title">No Results</div>
+                    <div class="empty-state-message">No roadmaps match "@SearchQuery"</div>
+                </div>
+            }
+        </div>
+
+        <div class="roadmap-manager-footer">
+            <button @onclick="HandleAddFolder"
+                    class="btn-add-folder"
+                    disabled="@(Folders.Count >= MaxFolders)">
+                <span style="font-size: 18px;">+</span> Add New Folder
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public List<Folder> Folders { get; set; } = new();
+    [Parameter] public string? ActiveFolderId { get; set; }
+    [Parameter] public int MaxFolders { get; set; } = 3;
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<string> OnFolderClick { get; set; }
+    [Parameter] public EventCallback<string> OnFolderSettings { get; set; }
+    [Parameter] public EventCallback OnAddFolder { get; set; }
+    [Parameter] public EventCallback<string> OnAddRoadmap { get; set; }
+    [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapClick { get; set; }
+    [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapShare { get; set; }
+    [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapRename { get; set; }
+    [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapDuplicate { get; set; }
+    [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapDelete { get; set; }
+
+    private string SearchQuery { get; set; } = "";
+
+    private async Task Close()
+    {
+        SearchQuery = "";
+        await OnClose.InvokeAsync();
+    }
+
+    private List<Folder> GetFilteredFolders()
+    {
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            return Folders;
+        }
+
+        return Folders.Where(f =>
+            f.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
+            f.SessionManager.Tabs.Any(t => t.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
+        ).ToList();
+    }
+
+    private List<TabSession> GetFilteredTabs(Folder folder)
+    {
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            return folder.SessionManager.Tabs;
+        }
+
+        return folder.SessionManager.Tabs
+            .Where(t => t.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private RoadmapStats GetRoadmapStats(RoadmapData data)
+    {
+        return new RoadmapStats
+        {
+            Columns = data.Columns?.Count ?? 0,
+            Lanes = data.Lanes?.Count ?? 0,
+            Items = data.Lanes?.Sum(l => l.Items?.Count ?? 0) ?? 0,
+            Milestones = data.Milestones?.Count ?? 0
+        };
+    }
+
+    private async Task HandleFolderClick(string folderId)
+    {
+        await OnFolderClick.InvokeAsync(folderId);
+    }
+
+    private async Task HandleFolderSettings(string folderId)
+    {
+        await OnFolderSettings.InvokeAsync(folderId);
+    }
+
+    private async Task HandleAddFolder()
+    {
+        await OnAddFolder.InvokeAsync();
+    }
+
+    private async Task HandleAddRoadmap(string folderId)
+    {
+        await OnAddRoadmap.InvokeAsync(folderId);
+    }
+
+    private async Task HandleRoadmapClick(string folderId, string tabId)
+    {
+        await OnRoadmapClick.InvokeAsync((folderId, tabId));
+        await Close();
+    }
+
+    private async Task HandleRoadmapShare(string folderId, string tabId)
+    {
+        await OnRoadmapShare.InvokeAsync((folderId, tabId));
+    }
+
+    private async Task HandleRoadmapRename(string folderId, string tabId)
+    {
+        await OnRoadmapRename.InvokeAsync((folderId, tabId));
+    }
+
+    private async Task HandleRoadmapDuplicate(string folderId, string tabId)
+    {
+        await OnRoadmapDuplicate.InvokeAsync((folderId, tabId));
+    }
+
+    private async Task HandleRoadmapDelete(string folderId, string tabId)
+    {
+        await OnRoadmapDelete.InvokeAsync((folderId, tabId));
+    }
+}
+
+<style>
+    .roadmap-manager-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1500;
+    }
+
+    .roadmap-manager-overlay.visible {
+        display: flex;
+    }
+
+    .roadmap-manager-content {
+        background: #1e1e1e;
+        border: 1px solid #444;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 85vh;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .roadmap-manager-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #333;
+        flex-shrink: 0;
+    }
+
+    .roadmap-manager-header h3 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .close-button {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 32px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .close-button:hover {
+        color: #ffffff;
+    }
+
+    .roadmap-manager-search {
+        padding: 16px 24px;
+        border-bottom: 1px solid #333;
+        flex-shrink: 0;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 8px;
+        color: #ffffff;
+        font-size: 14px;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    }
+
+    .roadmap-manager-body {
+        padding: 20px 24px;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .folder-section {
+        margin-bottom: 24px;
+    }
+
+    .folder-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .folder-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: #252525;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .folder-header:hover {
+        background: #2a2a2a;
+    }
+
+    .folder-header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+    }
+
+    .folder-name {
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .folder-count {
+        color: #888;
+        font-size: 13px;
+    }
+
+    .folder-active-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        font-size: 10px;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .folder-header-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .folder-action-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .folder-action-btn:hover:not(:disabled) {
+        background: rgba(102, 126, 234, 0.3);
+        border-color: #667eea;
+    }
+
+    .folder-action-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .roadmaps-list {
+        padding-left: 32px;
+    }
+
+    .empty-folder {
+        padding: 20px;
+        text-align: center;
+        color: #666;
+        font-size: 13px;
+        font-style: italic;
+        background: #252525;
+        border-radius: 8px;
+        border: 1px dashed #3a3a3a;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .empty-state-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 8px;
+    }
+
+    .empty-state-message {
+        font-size: 14px;
+        color: #888;
+    }
+
+    .roadmap-manager-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #333;
+        flex-shrink: 0;
+    }
+
+    .btn-add-folder {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-add-folder:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-add-folder:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .btn-add-folder:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+</style>

@@ -1,0 +1,366 @@
+@using RoadScript.Models
+@inject IJSRuntime JSRuntime
+
+<div class="import-modal-overlay @(IsVisible ? "visible" : "")" @onclick="Close">
+    <div class="import-modal-content" @onclick:stopPropagation="true">
+        <div class="import-modal-header">
+            <h3>📥 Import Shared Roadmap</h3>
+            <button class="close-button" @onclick="Close">×</button>
+        </div>
+
+        <div class="import-modal-body">
+            @if (RoadmapData != null)
+            {
+                <div class="import-preview">
+                    <div class="import-preview-header">
+                        <h4>@RoadmapData.Title</h4>
+                        @if (!string.IsNullOrEmpty(RoadmapData.Subtitle))
+                        {
+                            <p>@RoadmapData.Subtitle</p>
+                        }
+                    </div>
+
+                    <div class="import-stats">
+                        <div class="import-stat">
+                            <div class="import-stat-value">@RoadmapData.Columns.Count</div>
+                            <div class="import-stat-label">Columns</div>
+                        </div>
+                        <div class="import-stat">
+                            <div class="import-stat-value">@RoadmapData.Lanes.Count</div>
+                            <div class="import-stat-label">Lanes</div>
+                        </div>
+                        <div class="import-stat">
+                            <div class="import-stat-value">@GetTotalItems()</div>
+                            <div class="import-stat-label">Items</div>
+                        </div>
+                        @if (RoadmapData.Milestones?.Count > 0)
+                        {
+                            <div class="import-stat">
+                                <div class="import-stat-value">@RoadmapData.Milestones.Count</div>
+                                <div class="import-stat-label">Milestones</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="import-folder-select">
+                    <label>Save to Folder:</label>
+                    <select @bind="SelectedFolderId" class="import-folder-dropdown">
+                        @foreach (var folder in AvailableFolders)
+                        {
+                            <option value="@folder.Id">
+                                @folder.Icon @folder.Name (@folder.SessionManager.Tabs.Count/@folder.SessionManager.MaxTabs tabs)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="import-name-input">
+                    <label>Roadmap Name:</label>
+                    <input type="text"
+                           @bind="RoadmapName"
+                           class="import-name-field"
+                           placeholder="Enter roadmap name..." />
+                </div>
+
+                <div class="import-actions">
+                    <button @onclick="ImportRoadmap" class="btn-import-primary">
+                        ✨ Import Roadmap
+                    </button>
+                    <button @onclick="Close" class="btn-import-secondary">
+                        Cancel
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="import-error">
+                    <div class="import-error-icon">⚠️</div>
+                    <div>
+                        <div class="import-error-title">Invalid Share Link</div>
+                        <div class="import-error-message">
+                            This link appears to be corrupted or invalid. Please check the URL and try again.
+                        </div>
+                    </div>
+                </div>
+                <div class="import-actions">
+                    <button @onclick="Close" class="btn-import-secondary" style="width: 100%;">
+                        Close
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public RoadmapData? RoadmapData { get; set; }
+    [Parameter] public List<Folder> AvailableFolders { get; set; } = new();
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<(string FolderId, string RoadmapName, RoadmapData Data)> OnImport { get; set; }
+
+    private string SelectedFolderId { get; set; } = "";
+    private string RoadmapName { get; set; } = "";
+
+    protected override void OnParametersSet()
+    {
+        if (RoadmapData != null)
+        {
+            // Default to the first folder if available
+            if (AvailableFolders.Count > 0 && string.IsNullOrEmpty(SelectedFolderId))
+            {
+                SelectedFolderId = AvailableFolders[0].Id;
+            }
+
+            // Default name from roadmap title
+            if (string.IsNullOrEmpty(RoadmapName) && !string.IsNullOrEmpty(RoadmapData.Title))
+            {
+                RoadmapName = RoadmapData.Title;
+            }
+        }
+    }
+
+    private int GetTotalItems()
+    {
+        return RoadmapData?.Lanes.Sum(l => l.Items?.Count ?? 0) ?? 0;
+    }
+
+    private async Task Close()
+    {
+        RoadmapName = "";
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task ImportRoadmap()
+    {
+        if (RoadmapData == null || string.IsNullOrWhiteSpace(RoadmapName) || string.IsNullOrWhiteSpace(SelectedFolderId))
+        {
+            return;
+        }
+
+        await OnImport.InvokeAsync((SelectedFolderId, RoadmapName.Trim(), RoadmapData));
+        RoadmapName = "";
+        await Close();
+    }
+}
+
+<style>
+    .import-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+
+    .import-modal-overlay.visible {
+        display: flex;
+    }
+
+    .import-modal-content {
+        background: #1e1e1e;
+        border: 1px solid #444;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .import-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #333;
+    }
+
+    .import-modal-header h3 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .close-button {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 32px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .close-button:hover {
+        color: #ffffff;
+    }
+
+    .import-modal-body {
+        padding: 24px;
+    }
+
+    .import-preview {
+        background: #252525;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .import-preview-header h4 {
+        margin: 0 0 8px 0;
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .import-preview-header p {
+        margin: 0;
+        color: #999;
+        font-size: 14px;
+    }
+
+    .import-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    .import-stat {
+        text-align: center;
+    }
+
+    .import-stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 4px;
+    }
+
+    .import-stat-label {
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .import-folder-select,
+    .import-name-input {
+        margin-bottom: 16px;
+    }
+
+    .import-folder-select label,
+    .import-name-input label {
+        display: block;
+        font-size: 12px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .import-folder-dropdown,
+    .import-name-field {
+        width: 100%;
+        padding: 12px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 6px;
+        color: #ffffff;
+        font-size: 14px;
+    }
+
+    .import-folder-dropdown:focus,
+    .import-name-field:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .import-error {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .import-error-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .import-error-title {
+        color: #fca5a5;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .import-error-message {
+        color: #fca5a5;
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .import-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-import-primary {
+        flex: 1;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-import-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-import-primary:active {
+        transform: translateY(0);
+    }
+
+    .btn-import-secondary {
+        flex: 1;
+        padding: 14px 24px;
+        background: #2a2a2a;
+        color: #fff;
+        border: 1px solid #444;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-import-secondary:hover {
+        background: #333;
+        border-color: #667eea;
+    }
+</style>

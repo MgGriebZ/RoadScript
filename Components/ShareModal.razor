@@ -1,0 +1,350 @@
+@inject IJSRuntime JSRuntime
+
+<div class="share-modal-overlay @(IsVisible ? "visible" : "")" @onclick="Close">
+    <div class="share-modal-content" @onclick:stopPropagation="true">
+        <div class="share-modal-header">
+            <h3>🔗 Share Roadmap</h3>
+            <button class="close-button" @onclick="Close">×</button>
+        </div>
+
+        <div class="share-modal-body">
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="share-error">
+                    <div class="share-error-icon">⚠️</div>
+                    <div>
+                        <div class="share-error-title">Unable to Generate Share Link</div>
+                        <div class="share-error-message">@ErrorMessage</div>
+                    </div>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(ShareUrl))
+            {
+                <div class="share-info">
+                    <div class="share-info-icon">✨</div>
+                    <div class="share-info-text">
+                        Anyone with this link can import this roadmap into their own RoadScript.
+                        The link contains all the roadmap data - no server needed!
+                    </div>
+                </div>
+
+                <div class="share-url-container">
+                    <input type="text"
+                           readonly
+                           value="@ShareUrl"
+                           @ref="_urlInput"
+                           class="share-url-input" />
+                </div>
+
+                <div class="share-stats">
+                    <div class="share-stat">
+                        <span class="share-stat-label">URL Length:</span>
+                        <span class="share-stat-value">@ShareUrl.Length chars</span>
+                    </div>
+                    <div class="share-stat">
+                        <span class="share-stat-label">Status:</span>
+                        <span class="share-stat-value share-stat-@(ShareUrl.Length < 2000 ? "good" : "warning")">
+                            @(ShareUrl.Length < 2000 ? "✓ Safe to share" : "⚠ Very long URL")
+                        </span>
+                    </div>
+                </div>
+
+                <div class="share-actions">
+                    <button @onclick="CopyToClipboard" class="btn-share-primary">
+                        @(_copied ? "✓ Copied!" : "📋 Copy Link")
+                    </button>
+                    <button @onclick="OpenInNewTab" class="btn-share-secondary">
+                        🌐 Open in New Tab
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="share-loading">
+                    <div class="share-spinner"></div>
+                    <div>Generating share link...</div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string ShareUrl { get; set; } = "";
+    [Parameter] public string ErrorMessage { get; set; } = "";
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private ElementReference _urlInput;
+    private bool _copied = false;
+
+    private async Task Close()
+    {
+        _copied = false;
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task CopyToClipboard()
+    {
+        if (!string.IsNullOrEmpty(ShareUrl))
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", ShareUrl);
+            _copied = true;
+            StateHasChanged();
+
+            // Reset after 2 seconds
+            await Task.Delay(2000);
+            _copied = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenInNewTab()
+    {
+        if (!string.IsNullOrEmpty(ShareUrl))
+        {
+            await JSRuntime.InvokeVoidAsync("open", ShareUrl, "_blank");
+        }
+    }
+}
+
+<style>
+    .share-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+
+    .share-modal-overlay.visible {
+        display: flex;
+    }
+
+    .share-modal-content {
+        background: #1e1e1e;
+        border: 1px solid #444;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .share-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #333;
+    }
+
+    .share-modal-header h3 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .close-button {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 32px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .close-button:hover {
+        color: #ffffff;
+    }
+
+    .share-modal-body {
+        padding: 24px;
+    }
+
+    .share-info {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        background: rgba(102, 126, 234, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .share-info-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .share-info-text {
+        color: #a5b4fc;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .share-error {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .share-error-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .share-error-title {
+        color: #fca5a5;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .share-error-message {
+        color: #fca5a5;
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .share-url-container {
+        margin-bottom: 16px;
+    }
+
+    .share-url-input {
+        width: 100%;
+        padding: 12px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 6px;
+        color: #00D9FF;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        word-break: break-all;
+    }
+
+    .share-url-input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .share-stats {
+        display: flex;
+        gap: 24px;
+        margin-bottom: 20px;
+        padding: 12px;
+        background: #252525;
+        border-radius: 6px;
+    }
+
+    .share-stat {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .share-stat-label {
+        font-size: 12px;
+        color: #888;
+    }
+
+    .share-stat-value {
+        font-size: 13px;
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .share-stat-good {
+        color: #10b981 !important;
+    }
+
+    .share-stat-warning {
+        color: #f59e0b !important;
+    }
+
+    .share-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-share-primary {
+        flex: 1;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-share-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-share-primary:active {
+        transform: translateY(0);
+    }
+
+    .btn-share-secondary {
+        flex: 1;
+        padding: 14px 24px;
+        background: #2a2a2a;
+        color: #fff;
+        border: 1px solid #444;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-share-secondary:hover {
+        background: #333;
+        border-color: #667eea;
+    }
+
+    .share-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        gap: 16px;
+        color: #999;
+    }
+
+    .share-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #333;
+        border-top-color: #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>

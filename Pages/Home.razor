@@ -12,6 +12,7 @@
 @inject EditorInteropService EditorInterop
 @inject SelectionState SelectionState
 @inject StorageService StorageService
+@inject UrlNavigationService UrlNavigation
 @implements IDisposable
 
 <div class="container-fluid vh-100 d-flex p-0">
@@ -47,11 +48,11 @@
                        style="cursor: pointer; opacity: 0.8; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.3)" : "rgba(0, 0, 0, 0.1)"); display: flex; align-items: center; justify-content: center; text-decoration: none;">
                         <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
                     </a>
-                    <div @onclick="QuickShareAsPng"
+                    <div @onclick="HandleQuickShare"
                          class="quick-share-icon"
-                         title="Open roadmap as PNG in new tab"
-                         style="cursor: pointer; opacity: 0.4; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.2)" : "rgba(0, 0, 0, 0.05)");">
-                        <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#a5b4fc" : "#6b7280")" />
+                         title="Share this roadmap"
+                         style="cursor: pointer; opacity: 0.8; transition: opacity 0.2s, transform 0.2s; padding: 8px; border-radius: 6px; background: @(_isVibeMode ? "rgba(102, 126, 234, 0.3)" : "rgba(0, 0, 0, 0.1)");">
+                        <Icon IconType="share" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
                     </div>
                 </div>
 
@@ -566,11 +567,26 @@
 
     @if (_folderManager != null)
     {
-        <FolderSelector IsVisible="@_showFolderSelector"
+        <RoadmapManager IsVisible="@_showRoadmapManager"
                        Folders="@_folderManager.Folders"
                        ActiveFolderId="@_folderManager.ActiveFolderId"
                        MaxFolders="@_folderManager.MaxFolders"
-                       OnClose="CloseFolderSelector"
+                       OnClose="CloseRoadmapManager"
+                       OnFolderClick="HandleFolderSelect"
+                       OnFolderSettings="HandleFolderSettings"
+                       OnAddFolder="HandleAddFolder"
+                       OnAddRoadmap="HandleAddRoadmapToFolder"
+                       OnRoadmapClick="HandleRoadmapClick"
+                       OnRoadmapShare="HandleRoadmapShareFromManager"
+                       OnRoadmapRename="HandleRoadmapRenameFromManager"
+                       OnRoadmapDuplicate="HandleRoadmapDuplicateFromManager"
+                       OnRoadmapDelete="HandleRoadmapDeleteFromManager" />
+
+        <FolderSelector IsVisible="@_showFolderSettings"
+                       Folders="@_folderManager.Folders"
+                       ActiveFolderId="@_folderManager.ActiveFolderId"
+                       MaxFolders="@_folderManager.MaxFolders"
+                       OnClose="CloseFolderSettings"
                        OnFolderSelect="HandleFolderSelect"
                        OnAddFolder="HandleAddFolder"
                        OnRemoveFolder="HandleRemoveFolder"
@@ -580,6 +596,17 @@
                        OnColorChange="HandleFolderColorChange"
                        OnIconChange="HandleFolderIconChange" />
     }
+
+    <ShareModal IsVisible="@_showShareModal"
+               ShareUrl="@_shareUrl"
+               ErrorMessage="@_shareError"
+               OnClose="CloseShareModal" />
+
+    <ImportModal IsVisible="@_showImportModal"
+                RoadmapData="@_importRoadmapData"
+                AvailableFolders="@(_folderManager?.Folders ?? new())"
+                OnClose="CloseImportModal"
+                OnImport="HandleImportSharedRoadmap" />
 
     <TemplateSelector IsVisible="@_showTemplateSelector"
                      OnClose="CloseTemplateSelector"
@@ -615,7 +642,14 @@
     private bool _hasUnsavedJsonChanges = false;
     private DateTime _lastSaveTime = DateTime.MinValue;
 
-    private bool _showFolderSelector = false;
+    private bool _showFolderSelector = false; // Legacy - keeping for backward compatibility
+    private bool _showRoadmapManager = false;
+    private bool _showFolderSettings = false;
+    private bool _showShareModal = false;
+    private bool _showImportModal = false;
+    private string _shareUrl = "";
+    private string _shareError = "";
+    private RoadmapData? _importRoadmapData = null;
     private bool _showTemplateSelector = false;
     private bool _isCreatingNewFolder = false;
     private string? _pendingFolderName = null;
@@ -802,10 +836,58 @@
     {
         await InitializeFolderManagerAsync();
 
+        // Handle URL-based navigation and sharing
+        await HandleUrlNavigation();
+
         if (_data != null && !string.IsNullOrEmpty(_currentJson))
         {
             ParseJson(_currentJson);
             await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task HandleUrlNavigation()
+    {
+        try
+        {
+            var hash = await UrlNavigation.GetCurrentHash();
+            var (folderId, tabId, shareCode) = UrlNavigation.ParseHash(hash);
+
+            if (!string.IsNullOrEmpty(shareCode))
+            {
+                // Handle share URL - show import modal
+                var sharedData = ShareService.ParseShareUrl(shareCode);
+                if (sharedData != null)
+                {
+                    _importRoadmapData = sharedData;
+                    _showImportModal = true;
+                }
+            }
+            else if (!string.IsNullOrEmpty(folderId) && !string.IsNullOrEmpty(tabId) && _folderManager != null)
+            {
+                // Handle navigation URL - switch to specified folder/tab
+                var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == folderId);
+                if (folder != null)
+                {
+                    _folderManager.ActiveFolderId = folderId;
+                    _activeFolder = folder;
+                    _sessionManager = folder.SessionManager;
+
+                    var tab = folder.SessionManager.Tabs.FirstOrDefault(t => t.Id == tabId);
+                    if (tab != null)
+                    {
+                        folder.SessionManager.ActiveTabId = tabId;
+                        _activeTab = tab;
+                        _data = tab.Data;
+                        _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+                        await DebouncedSave();
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Silently fail if URL parsing fails
         }
     }
 
@@ -3667,6 +3749,9 @@
             if (_activeFolder != null)
             {
                 _activeFolder.LastModified = DateTime.UtcNow;
+
+                // Update URL for browser history
+                await UrlNavigation.UpdateUrl(_folderManager.ActiveFolderId, tabId);
             }
 
             // Use debounced save for tab switching
@@ -3885,8 +3970,249 @@
 
     private void ToggleFolderSelector()
     {
-        _showFolderSelector = !_showFolderSelector;
+        // Legacy method - now opens RoadmapManager instead
+        _showRoadmapManager = !_showRoadmapManager;
         StateHasChanged();
+    }
+
+    private void CloseRoadmapManager()
+    {
+        _showRoadmapManager = false;
+        StateHasChanged();
+    }
+
+    private void HandleFolderSettings(string folderId)
+    {
+        if (_folderManager != null)
+        {
+            _folderManager.ActiveFolderId = folderId;
+            _activeFolder = _folderManager.Folders.FirstOrDefault(f => f.Id == folderId);
+            _showRoadmapManager = false;
+            _showFolderSettings = true;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseFolderSettings()
+    {
+        _showFolderSettings = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleAddRoadmapToFolder(string folderId)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == folderId);
+        if (folder == null || folder.SessionManager.Tabs.Count >= folder.SessionManager.MaxTabs) return;
+
+        var tabName = await JSRuntime.InvokeAsync<string>("prompt", "Enter roadmap name:", "New Roadmap");
+        if (string.IsNullOrWhiteSpace(tabName)) return;
+
+        var defaultRoadmap = TemplateService.GetScrumSprintCycleTemplate();
+        defaultRoadmap.Title = tabName.Trim();
+
+        StorageService.AddTab(folder.SessionManager, tabName.Trim(), defaultRoadmap);
+        folder.LastModified = DateTime.UtcNow;
+
+        await DebouncedSave();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleRoadmapClick((string FolderId, string TabId) args)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
+        if (folder == null) return;
+
+        _folderManager.ActiveFolderId = args.FolderId;
+        _activeFolder = folder;
+        _sessionManager = folder.SessionManager;
+
+        var tab = folder.SessionManager.Tabs.FirstOrDefault(t => t.Id == args.TabId);
+        if (tab != null)
+        {
+            folder.SessionManager.ActiveTabId = args.TabId;
+            _activeTab = tab;
+            _data = tab.Data;
+            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+            // Update URL
+            await UrlNavigation.UpdateUrl(args.FolderId, args.TabId);
+
+            await DebouncedSave();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task HandleRoadmapShareFromManager((string FolderId, string TabId) args)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
+        var tab = folder?.SessionManager.Tabs.FirstOrDefault(t => t.Id == args.TabId);
+
+        if (tab?.Data != null)
+        {
+            await GenerateShareUrl(tab.Data);
+        }
+    }
+
+    private async Task HandleQuickShare()
+    {
+        if (_data != null)
+        {
+            await GenerateShareUrl(_data);
+        }
+    }
+
+    private async Task GenerateShareUrl(RoadmapData data)
+    {
+        try
+        {
+            var baseUrl = await UrlNavigation.GetBaseUrl();
+            _shareUrl = ShareService.GenerateShareUrl(data, baseUrl);
+            _shareError = "";
+
+            if (_shareUrl.Length > 2000)
+            {
+                _shareError = "This roadmap is quite large and may produce a very long URL. Consider simplifying the roadmap or exporting as JSON instead.";
+            }
+
+            _showShareModal = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            _shareError = $"Failed to generate share URL: {ex.Message}";
+            _shareUrl = "";
+            _showShareModal = true;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseShareModal()
+    {
+        _showShareModal = false;
+        _shareUrl = "";
+        _shareError = "";
+        StateHasChanged();
+    }
+
+    private void CloseImportModal()
+    {
+        _showImportModal = false;
+        _importRoadmapData = null;
+        StateHasChanged();
+    }
+
+    private async Task HandleImportSharedRoadmap((string FolderId, string RoadmapName, RoadmapData Data) import)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == import.FolderId);
+        if (folder == null || folder.SessionManager.Tabs.Count >= folder.SessionManager.MaxTabs) return;
+
+        StorageService.AddTab(folder.SessionManager, import.RoadmapName, import.Data);
+        folder.LastModified = DateTime.UtcNow;
+
+        // Switch to the imported roadmap
+        var newTab = folder.SessionManager.Tabs.Last();
+        folder.SessionManager.ActiveTabId = newTab.Id;
+        _folderManager.ActiveFolderId = folder.Id;
+        _activeFolder = folder;
+        _sessionManager = folder.SessionManager;
+        _activeTab = newTab;
+        _data = newTab.Data;
+        _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+        // Update URL and clear hash (remove share code from URL)
+        await UrlNavigation.UpdateUrl(folder.Id, newTab.Id);
+
+        await DebouncedSave();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleRoadmapRenameFromManager((string FolderId, string TabId) args)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
+        var tab = folder?.SessionManager.Tabs.FirstOrDefault(t => t.Id == args.TabId);
+
+        if (tab != null)
+        {
+            var newName = await JSRuntime.InvokeAsync<string>("prompt", $"Rename roadmap '{tab.Name}':", tab.Name);
+            if (!string.IsNullOrWhiteSpace(newName) && newName != tab.Name)
+            {
+                StorageService.RenameTab(folder!.SessionManager, tab.Id, newName.Trim());
+                folder.LastModified = DateTime.UtcNow;
+                await DebouncedSave();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    private async Task HandleRoadmapDuplicateFromManager((string FolderId, string TabId) args)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
+        if (folder == null || folder.SessionManager.Tabs.Count >= folder.SessionManager.MaxTabs) return;
+
+        var tab = folder.SessionManager.Tabs.FirstOrDefault(t => t.Id == args.TabId);
+        if (tab != null)
+        {
+            var copyName = $"{tab.Name} (Copy)";
+            var copiedData = JsonSerializer.Deserialize<RoadmapData>(
+                JsonSerializer.Serialize(tab.Data)
+            );
+
+            if (copiedData != null)
+            {
+                StorageService.AddTab(folder.SessionManager, copyName, copiedData);
+                folder.LastModified = DateTime.UtcNow;
+                await DebouncedSave();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    private async Task HandleRoadmapDeleteFromManager((string FolderId, string TabId) args)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
+        if (folder == null || folder.SessionManager.Tabs.Count <= 1) return;
+
+        var tab = folder.SessionManager.Tabs.FirstOrDefault(t => t.Id == args.TabId);
+        if (tab != null)
+        {
+            var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Delete roadmap '{tab.Name}'?");
+            if (confirmed)
+            {
+                StorageService.DeleteTab(folder.SessionManager, tab.Id);
+                folder.LastModified = DateTime.UtcNow;
+
+                // If we deleted the active tab, switch to the first tab
+                if (folder.SessionManager.ActiveTabId == tab.Id && folder.SessionManager.Tabs.Count > 0)
+                {
+                    folder.SessionManager.ActiveTabId = folder.SessionManager.Tabs[0].Id;
+
+                    // Update the active data if this is the active folder
+                    if (_activeFolder?.Id == folder.Id)
+                    {
+                        _activeTab = folder.SessionManager.Tabs[0];
+                        _data = _activeTab.Data;
+                        _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+                    }
+                }
+
+                await DebouncedSave();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
     }
 
     private void ToggleJsonEditorMode()
@@ -4082,6 +4408,9 @@
             {
                 _data = _activeTab.Data;
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+                // Update URL for browser history
+                await UrlNavigation.UpdateUrl(folderId, _activeTab.Id);
             }
         }
 
@@ -4091,6 +4420,7 @@
         }
         SelectionState.Clear();
         _showFolderSelector = false;
+        _showFolderSettings = false;
         await InvokeAsync(StateHasChanged);
     }
 

@@ -14,5 +14,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddSingleton<SelectionState>();
 builder.Services.AddSingleton<EditorInteropService>();
 builder.Services.AddScoped<StorageService>();
+builder.Services.AddScoped<UrlNavigationService>();
 
 await builder.Build().RunAsync();
