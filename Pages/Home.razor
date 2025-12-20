@@ -38,34 +38,6 @@
     <div class="preview-pane" style="@PreviewPaneStyle()">
         @if (_data != null)
         {
-            @* Quick Action Icons - GitHub, Share (positioned relative to preview pane) *@
-            <div class="quick-actions-container" style="position: absolute; top: 16px; right: 16px; z-index: 100;">
-                <div style="display: flex; gap: 12px; align-items: flex-start;">
-                    <a href="https://github.com/MgGriebZ/RoadScript"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       class="quick-action-button"
-                       title="View on GitHub">
-                        <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                            <Icon IconType="github" Size="22" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
-                        </div>
-                        <div class="quick-action-label" style="color: @(_isVibeMode ? "#a5b4fc" : "#6b7280");">
-                            RoadScript
-                        </div>
-                    </a>
-                    <div @onclick="HandleQuickShare"
-                         class="quick-action-button"
-                         title="Share this roadmap">
-                        <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                            <Icon IconType="globe" Size="22" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
-                        </div>
-                        <div class="quick-action-label" style="color: @(_isVibeMode ? "#a5b4fc" : "#6b7280");">
-                            Share
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div style="@RoadmapWrapperStyle()">
                 <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
 
@@ -129,15 +101,37 @@
                     </div>
                 }
 
-                <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
-                     class="@GetElementClass("title")"
-                     style="@TitleContainerStyle()">
-                    <h1 style="@TitleStyle()">
-                        @_data.Title
-                    </h1>
-                    <p style="@SubtitleStyle()">
-                        @_data.Subtitle
-                    </p>
+                <div class="@GetElementClass("title")"
+                     style="@(TitleContainerStyle() + " display: flex; align-items: center; justify-content: space-between; gap: 16px;")">
+                    <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
+                         style="flex: 1; min-width: 0; @(_isPreviewMode ? "" : "cursor: pointer;")">
+                        <h1 style="@TitleStyle()">
+                            @_data.Title
+                        </h1>
+                        <p style="@SubtitleStyle()">
+                            @_data.Subtitle
+                        </p>
+                    </div>
+                    <div class="quick-actions-container" style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;">
+                        <a href="https://github.com/MgGriebZ/RoadScript"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="quick-action-button"
+                           title="View on GitHub"
+                           style="text-decoration: none;">
+                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                                <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                            </div>
+                        </a>
+                        <div @onclick="HandleQuickShare"
+                             class="quick-action-button"
+                             title="Share this roadmap"
+                             style="cursor: pointer;">
+                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                                <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div style="display: flex; height: calc(100% - 66px);">
