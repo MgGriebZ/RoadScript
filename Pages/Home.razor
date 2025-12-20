@@ -585,13 +585,14 @@
                        ActiveFolderId="@_folderManager.ActiveFolderId"
                        MaxFolders="@_folderManager.MaxFolders"
                        OnClose="CloseRoadmapManager"
-                       OnFolderClick="HandleFolderSelect"
-                       OnFolderSettings="HandleFolderSettings"
                        OnFolderRename="HandleFolderRenameFromManager"
+                       OnDeleteFolder="HandleDeleteFolderFromManager"
+                       OnColorChange="HandleColorChangeFromManager"
+                       OnIconChange="HandleIconChangeFromManager"
                        OnAddFolder="HandleAddFolder"
                        OnAddRoadmap="HandleAddRoadmapToFolder"
-                       OnRoadmapClick="HandleRoadmapClick"
-                       OnRoadmapShare="HandleRoadmapShareFromManager"
+                       OnRoadmapClick="HandleRoadmapClickFromManager"
+                       OnRoadmapOpen="HandleRoadmapOpenFromManager"
                        OnRoadmapRename="HandleRoadmapRenameFromManager"
                        OnRoadmapDuplicate="HandleRoadmapDuplicateFromManager"
                        OnRoadmapDelete="HandleRoadmapDeleteFromManager" />
@@ -3995,16 +3996,44 @@
         StateHasChanged();
     }
 
-    private void HandleFolderSettings(string folderId)
+    private async Task HandleDeleteFolderFromManager(string folderId)
     {
-        if (_folderManager != null)
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == folderId);
+        if (folder == null) return;
+
+        var confirm = await JSRuntime.InvokeAsync<bool>("confirm",
+            $"Delete folder '{folder.Name}' and all {folder.SessionManager.Tabs.Count} roadmap(s)? This cannot be undone.");
+
+        if (!confirm) return;
+
+        // Remove the folder
+        _folderManager.Folders.Remove(folder);
+
+        // If this was the active folder, switch to first available folder
+        if (_folderManager.ActiveFolderId == folderId)
         {
-            _folderManager.ActiveFolderId = folderId;
-            _activeFolder = _folderManager.Folders.FirstOrDefault(f => f.Id == folderId);
-            _showRoadmapManager = false;
-            _showFolderSettings = true;
-            StateHasChanged();
+            var firstFolder = _folderManager.Folders.FirstOrDefault();
+            if (firstFolder != null)
+            {
+                _folderManager.ActiveFolderId = firstFolder.Id;
+                _activeFolder = firstFolder;
+                _sessionManager = firstFolder.SessionManager;
+
+                var firstTab = firstFolder.SessionManager.Tabs.FirstOrDefault();
+                if (firstTab != null)
+                {
+                    firstFolder.SessionManager.ActiveTabId = firstTab.Id;
+                    _activeTab = firstTab;
+                    _data = firstTab.Data;
+                    _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+                }
+            }
         }
+
+        await DebouncedSave();
+        await InvokeAsync(StateHasChanged);
     }
 
     private void CloseFolderSettings()
@@ -4033,8 +4062,9 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task HandleRoadmapClick((string FolderId, string TabId) args)
+    private async Task HandleRoadmapClickFromManager((string FolderId, string TabId) args)
     {
+        // Just mark as active, don't close modal
         if (_folderManager == null) return;
 
         var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
@@ -4060,17 +4090,40 @@
         }
     }
 
-    private async Task HandleRoadmapShareFromManager((string FolderId, string TabId) args)
+    private async Task HandleRoadmapOpenFromManager((string FolderId, string TabId) args)
+    {
+        // Open roadmap and close modal
+        await HandleRoadmapClickFromManager(args);
+        _showRoadmapManager = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleColorChangeFromManager((string FolderId, string Color) args)
     {
         if (_folderManager == null) return;
 
         var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
-        var tab = folder?.SessionManager.Tabs.FirstOrDefault(t => t.Id == args.TabId);
+        if (folder == null) return;
 
-        if (tab?.Data != null)
-        {
-            await GenerateShareUrl(tab.Data);
-        }
+        folder.Color = args.Color;
+        folder.LastModified = DateTime.UtcNow;
+
+        await DebouncedSave();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleIconChangeFromManager((string FolderId, string Icon) args)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
+        if (folder == null) return;
+
+        folder.Icon = args.Icon;
+        folder.LastModified = DateTime.UtcNow;
+
+        await DebouncedSave();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleQuickShare()

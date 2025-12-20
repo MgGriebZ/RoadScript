@@ -10,10 +10,10 @@
             }
         </div>
         <div class="roadmap-card-actions" @onclick:stopPropagation="true">
-            <button @onclick="HandleShare"
-                    class="roadmap-action-btn"
-                    title="Share this roadmap">
-                🔗
+            <button @onclick="HandleOpen"
+                    class="roadmap-action-btn roadmap-action-open"
+                    title="Open this roadmap">
+                📂
             </button>
             <button @onclick="HandleRename"
                     class="roadmap-action-btn"
@@ -74,7 +74,7 @@
     [Parameter] public RoadmapStats Stats { get; set; } = new();
     [Parameter] public string? TemplateType { get; set; }
     [Parameter] public EventCallback OnClick { get; set; }
-    [Parameter] public EventCallback OnShare { get; set; }
+    [Parameter] public EventCallback OnOpen { get; set; }
     [Parameter] public EventCallback OnRename { get; set; }
     [Parameter] public EventCallback OnDuplicate { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
@@ -84,9 +84,9 @@
         await OnClick.InvokeAsync();
     }
 
-    private async Task HandleShare()
+    private async Task HandleOpen()
     {
-        await OnShare.InvokeAsync();
+        await OnOpen.InvokeAsync();
     }
 
     private async Task HandleRename()
@@ -143,7 +143,7 @@
     .roadmap-card:hover {
         background: #2f2f2f;
         border-color: #667eea;
-        transform: translateX(4px);
+        transform: translateY(-2px);
     }
 
     .roadmap-card.active {
@@ -230,6 +230,11 @@
         transform: none;
         background: rgba(255, 255, 255, 0.05);
         border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .roadmap-action-open:hover {
+        background: rgba(16, 185, 129, 0.3);
+        border-color: #10b981;
     }
 
     .roadmap-action-delete:hover:not(:disabled) {

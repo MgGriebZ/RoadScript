@@ -25,7 +25,7 @@
                 var isActiveFolder = folder.Id == ActiveFolderId;
                 <div class="folder-section">
                     <div class="folder-header">
-                        <div class="folder-header-left" @onclick="() => HandleFolderClick(folder.Id)">
+                        <div class="folder-header-left" @onclick="() => ToggleFolderConfig(folder.Id)">
                             <Icon IconType="@(folder.Icon ?? "folder")" Size="20" Color="@folder.Color" />
                             <span class="folder-name">@folder.Name</span>
                             <span class="folder-count">(@folder.SessionManager.Tabs.Count/@folder.SessionManager.MaxTabs)</span>
@@ -33,26 +33,74 @@
                             {
                                 <span class="folder-active-badge">Active</span>
                             }
+                            <span class="folder-expand-arrow @(_expandedFolderId == folder.Id ? "expanded" : "")">▼</span>
                         </div>
                         <div class="folder-header-actions">
                             <button @onclick="() => HandleFolderRename(folder.Id)"
+                                    @onclick:stopPropagation="true"
                                     class="folder-action-btn"
                                     title="Rename folder">
                                 ✏️
                             </button>
                             <button @onclick="() => HandleAddRoadmap(folder.Id)"
+                                    @onclick:stopPropagation="true"
                                     class="folder-action-btn"
                                     title="Add roadmap"
                                     disabled="@(folder.SessionManager.Tabs.Count >= folder.SessionManager.MaxTabs)">
                                 +
                             </button>
-                            <button @onclick="() => HandleFolderSettings(folder.Id)"
-                                    class="folder-action-btn"
-                                    title="Folder settings">
-                                ⚙️
+                            <button @onclick="() => HandleDeleteFolder(folder.Id)"
+                                    @onclick:stopPropagation="true"
+                                    class="folder-action-btn folder-action-delete"
+                                    title="Delete folder and all roadmaps"
+                                    disabled="@(Folders.Count <= 1)">
+                                🗑️
                             </button>
                         </div>
                     </div>
+
+                    @* Folder Configuration (Icon/Color Selector) *@
+                    @if (_expandedFolderId == folder.Id)
+                    {
+                        <div class="folder-config-panel">
+                            <div class="folder-config-row">
+                                <div class="folder-config-section">
+                                    <label class="folder-config-label">Icon</label>
+                                    <button class="btn-icon-selector"
+                                            @onclick="() => ToggleIconPicker(folder.Id)"
+                                            title="Click to choose icon">
+                                        <Icon IconType="@(folder.Icon ?? "folder")" Color="@folder.Color" Size="32" />
+                                    </button>
+                                </div>
+
+                                <div class="folder-config-section folder-config-colors">
+                                    <label class="folder-config-label">Color</label>
+                                    <div class="color-palette">
+                                        @foreach (var preset in _colorPresets)
+                                        {
+                                            <button type="button"
+                                                    @onclick="() => SelectColor(folder.Id, preset.Value)"
+                                                    title="@preset.Name"
+                                                    class="color-swatch @(preset.Value.Equals(folder.Color, StringComparison.OrdinalIgnoreCase) ? "selected" : "")"
+                                                    style="background: @preset.Value;">
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (_showIconPicker && _iconPickerFolderId == folder.Id)
+                            {
+                                <div class="icon-picker-panel">
+                                    <IconPicker SelectedIcon="@(folder.Icon ?? "folder")"
+                                               Color="@folder.Color"
+                                               OnIconSelected="@((icon) => HandleIconChange(folder.Id, icon))"
+                                               ShowCategories="false"
+                                               ColumnsPerRow="6" />
+                                </div>
+                            }
+                        </div>
+                    }
 
                     <div class="roadmaps-list">
                         @foreach (var tab in GetFilteredTabs(folder))
@@ -64,7 +112,7 @@
                                         Stats="@GetRoadmapStats(tab.Data)"
                                         TemplateType="@tab.TemplateType"
                                         OnClick="@(() => HandleRoadmapClick(folder.Id, tab.Id))"
-                                        OnShare="@(() => HandleRoadmapShare(folder.Id, tab.Id))"
+                                        OnOpen="@(() => HandleRoadmapOpen(folder.Id, tab.Id))"
                                         OnRename="@(() => HandleRoadmapRename(folder.Id, tab.Id))"
                                         OnDuplicate="@(() => HandleRoadmapDuplicate(folder.Id, tab.Id))"
                                         OnDelete="@(() => HandleRoadmapDelete(folder.Id, tab.Id))" />
@@ -113,18 +161,22 @@
     [Parameter] public string? ActiveFolderId { get; set; }
     [Parameter] public int MaxFolders { get; set; } = 3;
     [Parameter] public EventCallback OnClose { get; set; }
-    [Parameter] public EventCallback<string> OnFolderClick { get; set; }
-    [Parameter] public EventCallback<string> OnFolderSettings { get; set; }
     [Parameter] public EventCallback<string> OnFolderRename { get; set; }
+    [Parameter] public EventCallback<string> OnDeleteFolder { get; set; }
+    [Parameter] public EventCallback<(string FolderId, string Color)> OnColorChange { get; set; }
+    [Parameter] public EventCallback<(string FolderId, string Icon)> OnIconChange { get; set; }
     [Parameter] public EventCallback OnAddFolder { get; set; }
     [Parameter] public EventCallback<string> OnAddRoadmap { get; set; }
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapClick { get; set; }
-    [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapShare { get; set; }
+    [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapOpen { get; set; }
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapRename { get; set; }
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapDuplicate { get; set; }
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapDelete { get; set; }
 
     private string SearchQuery { get; set; } = "";
+    private string? _expandedFolderId = null;
+    private bool _showIconPicker = false;
+    private string? _iconPickerFolderId = null;
 
     private async Task Close()
     {
@@ -168,19 +220,56 @@
         };
     }
 
-    private async Task HandleFolderClick(string folderId)
+    private void ToggleFolderConfig(string folderId)
     {
-        await OnFolderClick.InvokeAsync(folderId);
+        if (_expandedFolderId == folderId)
+        {
+            _expandedFolderId = null;
+            _showIconPicker = false;
+            _iconPickerFolderId = null;
+        }
+        else
+        {
+            _expandedFolderId = folderId;
+            _showIconPicker = false;
+            _iconPickerFolderId = null;
+        }
     }
 
-    private async Task HandleFolderSettings(string folderId)
+    private void ToggleIconPicker(string folderId)
     {
-        await OnFolderSettings.InvokeAsync(folderId);
+        if (_showIconPicker && _iconPickerFolderId == folderId)
+        {
+            _showIconPicker = false;
+            _iconPickerFolderId = null;
+        }
+        else
+        {
+            _showIconPicker = true;
+            _iconPickerFolderId = folderId;
+        }
+    }
+
+    private async Task SelectColor(string folderId, string color)
+    {
+        await OnColorChange.InvokeAsync((folderId, color));
+    }
+
+    private async Task HandleIconChange(string folderId, string icon)
+    {
+        await OnIconChange.InvokeAsync((folderId, icon));
+        _showIconPicker = false;
+        _iconPickerFolderId = null;
     }
 
     private async Task HandleFolderRename(string folderId)
     {
         await OnFolderRename.InvokeAsync(folderId);
+    }
+
+    private async Task HandleDeleteFolder(string folderId)
+    {
+        await OnDeleteFolder.InvokeAsync(folderId);
     }
 
     private async Task HandleAddFolder()
@@ -195,13 +284,15 @@
 
     private async Task HandleRoadmapClick(string folderId, string tabId)
     {
+        // Just mark as active, don't close modal
         await OnRoadmapClick.InvokeAsync((folderId, tabId));
-        await Close();
     }
 
-    private async Task HandleRoadmapShare(string folderId, string tabId)
+    private async Task HandleRoadmapOpen(string folderId, string tabId)
     {
-        await OnRoadmapShare.InvokeAsync((folderId, tabId));
+        // Open roadmap and close modal
+        await OnRoadmapOpen.InvokeAsync((folderId, tabId));
+        await Close();
     }
 
     private async Task HandleRoadmapRename(string folderId, string tabId)
@@ -218,6 +309,24 @@
     {
         await OnRoadmapDelete.InvokeAsync((folderId, tabId));
     }
+
+    private record ColorPreset(string Name, string Value);
+
+    private readonly List<ColorPreset> _colorPresets = new()
+    {
+        new ColorPreset("Teal", "#45B69C"),
+        new ColorPreset("Coral", "#F88379"),
+        new ColorPreset("Lav", "#9999ff"),
+        new ColorPreset("Orange", "#D4652F"),
+        new ColorPreset("Blue", "#87CEEB"),
+        new ColorPreset("Mustard", "#E6B800"),
+        new ColorPreset("Brown", "#4A2C1A"),
+        new ColorPreset("Sage", "#B7C4B7"),
+        new ColorPreset("Red", "#EF4444"),
+        new ColorPreset("Indigo", "#6366F1"),
+        new ColorPreset("Dark Blue", "#1E3A8A"),
+        new ColorPreset("Pink", "#EC4899")
+    };
 }
 
 <style>
@@ -329,11 +438,10 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px;
+        padding: 14px 16px;
         background: #252525;
         border-radius: 8px;
-        margin-bottom: 12px;
-        cursor: pointer;
+        margin-bottom: 0;
         transition: all 0.2s;
     }
 
@@ -346,6 +454,8 @@
         align-items: center;
         gap: 10px;
         flex: 1;
+        cursor: pointer;
+        user-select: none;
     }
 
     .folder-name {
@@ -357,6 +467,17 @@
     .folder-count {
         color: #888;
         font-size: 13px;
+    }
+
+    .folder-expand-arrow {
+        color: #666;
+        font-size: 10px;
+        margin-left: auto;
+        transition: transform 0.2s;
+    }
+
+    .folder-expand-arrow.expanded {
+        transform: rotate(180deg);
     }
 
     .folder-active-badge {
@@ -401,10 +522,103 @@
         cursor: not-allowed;
     }
 
+    .folder-action-delete:hover:not(:disabled) {
+        background: rgba(239, 68, 68, 0.3);
+        border-color: #ef4444;
+    }
+
+    .folder-config-panel {
+        background: #2a2a2a;
+        border: 1px solid #3a3a3a;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 12px 0;
+    }
+
+    .folder-config-row {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .folder-config-section {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .folder-config-colors {
+        flex: 1;
+    }
+
+    .folder-config-label {
+        font-size: 10px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .btn-icon-selector {
+        width: 70px;
+        height: 70px;
+        background: #1e1e1e;
+        border: 2px solid #3a3a3a;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-icon-selector:hover {
+        border-color: #667eea;
+        background: #252525;
+        transform: scale(1.05);
+    }
+
+    .color-palette {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 6px;
+    }
+
+    .color-swatch {
+        width: 100%;
+        aspect-ratio: 1;
+        min-height: 32px;
+        border: 2px solid #3a3a3a;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        padding: 0;
+    }
+
+    .color-swatch.selected {
+        border-color: #ffffff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+    }
+
+    .color-swatch:hover {
+        transform: scale(1.15);
+        border-color: #ffffff;
+    }
+
+    .icon-picker-panel {
+        margin-top: 12px;
+        padding: 16px;
+        background: #1e1e1e;
+        border: 1px solid #3a3a3a;
+        border-radius: 8px;
+    }
+
     .roadmaps-list {
         padding-left: 32px;
-        max-height: 400px;
+        max-height: 600px;
         overflow-y: auto;
+        margin-top: 12px;
     }
 
     .empty-folder {
