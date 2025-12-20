@@ -3,25 +3,50 @@
 @* This component renders an expandable dropdown with day presets and date picker *@
 @if (IsExpanded)
 {
-    <div style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; z-index: 1000; background: #1e1e2e; border: 2px solid #667eea; border-radius: 8px; padding: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); max-height: 380px; overflow-y: auto;">
-        @* Day Presets - Two Rows *@
+    <div style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; z-index: 1000; background: #1e1e2e; border: 2px solid #667eea; border-radius: 8px; padding: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); max-height: 480px; overflow-y: auto;">
+
+        @* Target Field Toggle - NEW *@
+        <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #3a3a4e;">
+            <div style="font-size: 9px; color: #888; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">Apply To</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+                <button type="button"
+                        @onclick="@(() => SetTargetField("label"))"
+                        @onclick:stopPropagation="true"
+                        style="@GetTargetButtonStyle("label")">
+                    <div style="font-size: 10px; font-weight: 700;">Label</div>
+                </button>
+                <button type="button"
+                        @onclick="@(() => SetTargetField("sub"))"
+                        @onclick:stopPropagation="true"
+                        style="@GetTargetButtonStyle("sub")">
+                    <div style="font-size: 10px; font-weight: 700;">Sublabel</div>
+                </button>
+                <button type="button"
+                        @onclick="@(() => SetTargetField("both"))"
+                        @onclick:stopPropagation="true"
+                        style="@GetTargetButtonStyle("both")">
+                    <div style="font-size: 10px; font-weight: 700;">Both</div>
+                </button>
+            </div>
+        </div>
+
+        @* Day Presets - Abbreviated and Full *@
         <div style="margin-bottom: 8px;">
-            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Days</div>
-            @* Abbreviated Row (Mon, Tue, etc.) *@
+            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Days (Abbreviated)</div>
             <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
                 @foreach (var day in _dayPresets)
                 {
                     <button type="button"
-                            @onclick="@(() => HandlePresetSelect(day.Full))"
+                            @onclick="@(() => HandlePresetSelect(day.Abbr))"
                             @onclick:stopPropagation="true"
-                            title="@day.Full"
+                            title="@day.Abbr"
                             style="@GetPresetButtonStyle(day.Abbr)">
                         <div style="font-size: 10px; font-weight: 700;">@day.Abbr</div>
                     </button>
                 }
             </div>
 
-            @* Full Name Row (Monday, Tuesday, etc.) *@
+            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Days (Full)</div>
             <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
                 @foreach (var day in _dayPresets)
                 {
@@ -36,24 +61,23 @@
             </div>
         </div>
 
-        @* Month Presets - Two Rows *@
+        @* Month Presets - Abbreviated and Full *@
         <div style="margin-bottom: 8px; padding-top: 8px; border-top: 1px solid #3a3a4e;">
-            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Months</div>
-            @* Abbreviated Row (Jan, Feb, etc.) *@
+            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Months (Abbreviated)</div>
             <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 4px;">
                 @foreach (var month in _monthPresets)
                 {
                     <button type="button"
-                            @onclick="@(() => HandlePresetSelect(month.Full))"
+                            @onclick="@(() => HandlePresetSelect(month.Abbr))"
                             @onclick:stopPropagation="true"
-                            title="@month.Full"
+                            title="@month.Abbr"
                             style="@GetPresetButtonStyle(month.Abbr)">
                         <div style="font-size: 10px; font-weight: 700;">@month.Abbr</div>
                     </button>
                 }
             </div>
 
-            @* Full Name Row (January, February, etc.) *@
+            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Months (Full)</div>
             <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
                 @foreach (var month in _monthPresets)
                 {
@@ -63,6 +87,40 @@
                             title="@month.Full"
                             style="@GetPresetButtonStyle(month.Full, true)">
                         <div style="font-size: 9px; font-weight: 600;">@month.Full</div>
+                    </button>
+                }
+            </div>
+        </div>
+
+        @* Quarters - NEW *@
+        <div style="margin-bottom: 8px; padding-top: 8px; border-top: 1px solid #3a3a4e;">
+            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Quarters</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
+                @foreach (var quarter in _quarterPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => HandlePresetSelect(quarter))"
+                            @onclick:stopPropagation="true"
+                            title="@quarter"
+                            style="@GetPresetButtonStyle(quarter)">
+                        <div style="font-size: 10px; font-weight: 700;">@quarter</div>
+                    </button>
+                }
+            </div>
+        </div>
+
+        @* Years - NEW *@
+        <div style="margin-bottom: 8px; padding-top: 8px; border-top: 1px solid #3a3a4e;">
+            <div style="font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Years</div>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;">
+                @foreach (var year in _yearPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => HandlePresetSelect(year))"
+                            @onclick:stopPropagation="true"
+                            title="@year"
+                            style="@GetPresetButtonStyle(year)">
+                        <div style="font-size: 10px; font-weight: 700;">@year</div>
                     </button>
                 }
             </div>
@@ -120,6 +178,11 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
+    [Parameter]
+    public string FieldType { get; set; } = "label"; // "label", "sub", or "both"
+
+    private string _targetField = "label"; // Internal state for target field
+
     private record Preset(string Abbr, string Full);
 
     private readonly List<Preset> _dayPresets = new()
@@ -149,6 +212,16 @@
         new Preset("Dec", "December")
     };
 
+    private readonly List<string> _quarterPresets = new()
+    {
+        "Q1", "Q2", "Q3", "Q4"
+    };
+
+    private readonly List<string> _yearPresets = new()
+    {
+        "2024", "2025", "2026", "2027", "2028"
+    };
+
     private readonly List<string> _hourPresets = new()
     {
         "12AM", "1AM", "2AM", "3AM", "4AM", "5AM",
@@ -156,6 +229,17 @@
         "12PM", "1PM", "2PM", "3PM", "4PM", "5PM",
         "6PM", "7PM", "8PM", "9PM", "10PM", "11PM"
     };
+
+    protected override void OnParametersSet()
+    {
+        _targetField = FieldType;
+    }
+
+    private void SetTargetField(string field)
+    {
+        _targetField = field;
+        StateHasChanged();
+    }
 
     private async Task HandlePresetSelect(string value)
     {
@@ -181,34 +265,28 @@
         }
     }
 
+    private string GetTargetButtonStyle(string target)
+    {
+        var isActive = _targetField == target;
+        var bg = isActive
+            ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+            : "background: #252538;";
+
+        var border = isActive
+            ? "border: 2px solid #667eea; box-shadow: 0 0 8px rgba(102, 126, 234, 0.5);"
+            : "border: 1px solid #3a3a4e;";
+
+        var color = isActive ? "#fff" : "#ccc";
+
+        return $"width: 100%; height: 28px; {bg} color: {color}; {border} " +
+               "border-radius: 4px; cursor: pointer; transition: all 0.2s; " +
+               "display: flex; align-items: center; justify-content: center;";
+    }
+
     private string GetPresetButtonStyle(string text, bool isFullName = false)
     {
         // Check if this preset matches the current value
-        var isActive = false;
-
-        // Check days
-        var matchingDay = _dayPresets.FirstOrDefault(d =>
-            d.Full.Equals(text, StringComparison.OrdinalIgnoreCase) ||
-            d.Abbr.Equals(text, StringComparison.OrdinalIgnoreCase));
-        if (matchingDay != null)
-        {
-            isActive = CurrentValue?.Equals(matchingDay.Full, StringComparison.OrdinalIgnoreCase) == true;
-        }
-
-        // Check months
-        var matchingMonth = _monthPresets.FirstOrDefault(m =>
-            m.Full.Equals(text, StringComparison.OrdinalIgnoreCase) ||
-            m.Abbr.Equals(text, StringComparison.OrdinalIgnoreCase));
-        if (matchingMonth != null)
-        {
-            isActive = CurrentValue?.Equals(matchingMonth.Full, StringComparison.OrdinalIgnoreCase) == true;
-        }
-
-        // Check hours
-        if (_hourPresets.Contains(text))
-        {
-            isActive = CurrentValue?.Equals(text, StringComparison.OrdinalIgnoreCase) == true;
-        }
+        var isActive = CurrentValue?.Equals(text, StringComparison.OrdinalIgnoreCase) == true;
 
         var bg = isActive
             ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"

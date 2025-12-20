@@ -174,18 +174,6 @@
             </button>
         </div>
     </div>
-
-    @* Milestone Management Section *@
-    <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
-        <label style="margin-bottom: 12px; font-weight: 600; color: #45B69C;">Milestone Management</label>
-
-        <button @onclick="AddMilestone"
-                type="button"
-                title="Add new milestone"
-                style="width: 100%; height: 48px; background: linear-gradient(135deg, rgba(69, 182, 156, 0.2) 0%, rgba(69, 182, 156, 0.1) 100%); color: #45B69C; border: 1px solid rgba(69, 182, 156, 0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; box-shadow: 0 2px 4px rgba(69, 182, 156, 0.2);">
-            <span style="font-size: 20px;">+</span> Add New Milestone
-        </button>
-    </div>
 </div>
 
 @code {
@@ -249,11 +237,6 @@
     private void RemoveColumn()
     {
         OnRemove.InvokeAsync("column");
-    }
-
-    private void AddMilestone()
-    {
-        OnAdd.InvokeAsync("milestone");
     }
 
     private bool _columnIconPickerExpanded = false;
