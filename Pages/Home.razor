@@ -103,16 +103,8 @@
 
                 <div class="@GetElementClass("title")"
                      style="@(TitleContainerStyle() + " display: flex; align-items: center; justify-content: space-between; gap: 16px;")">
-                    <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
-                         style="flex: 1; min-width: 0; @(_isPreviewMode ? "" : "cursor: pointer;")">
-                        <h1 style="@TitleStyle()">
-                            @_data.Title
-                        </h1>
-                        <p style="@SubtitleStyle()">
-                            @_data.Subtitle
-                        </p>
-                    </div>
-                    <div class="quick-actions-container" style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;">
+                    @* GitHub button - Left *@
+                    <div style="flex-shrink: 0;">
                         <a href="https://github.com/MgGriebZ/RoadScript"
                            target="_blank"
                            rel="noopener noreferrer"
@@ -123,6 +115,21 @@
                                 <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
                             </div>
                         </a>
+                    </div>
+
+                    @* Centered Title/Subtitle *@
+                    <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
+                         style="flex: 1; text-align: center; min-width: 0; @(_isPreviewMode ? "" : "cursor: pointer;")">
+                        <h1 style="@TitleStyle()">
+                            @_data.Title
+                        </h1>
+                        <p style="@SubtitleStyle()">
+                            @_data.Subtitle
+                        </p>
+                    </div>
+
+                    @* Share button - Right *@
+                    <div style="flex-shrink: 0;">
                         <div @onclick="HandleQuickShare"
                              class="quick-action-button"
                              title="Share this roadmap"
