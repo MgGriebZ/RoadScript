@@ -4192,7 +4192,7 @@
             var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Delete roadmap '{tab.Name}'?");
             if (confirmed)
             {
-                StorageService.DeleteTab(folder.SessionManager, tab.Id);
+                StorageService.RemoveTab(folder.SessionManager, tab.Id);
                 folder.LastModified = DateTime.UtcNow;
 
                 // If we deleted the active tab, switch to the first tab
