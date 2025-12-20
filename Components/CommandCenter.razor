@@ -103,6 +103,13 @@
             @(IsVibeMode ? "🌙" : "☀️")
         </button>
 
+        <button @onclick="@(() => OnCycleTheme.InvokeAsync())"
+                title="@GetSeasonalThemeTitle()"
+                class="cc-icon-btn"
+                style="@GetSeasonalThemeStyle()">
+            @GetSeasonalThemeIcon()
+        </button>
+
         <div style="flex: 1;"></div>
 
         <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
@@ -159,6 +166,7 @@
     [Parameter] public TabSession? ActiveTab { get; set; }
     [Parameter] public bool IsPreviewMode { get; set; }
     [Parameter] public bool IsVibeMode { get; set; }
+    [Parameter] public SeasonalTheme CurrentTheme { get; set; }
 
     // Event callbacks
     [Parameter] public EventCallback OnToggleFolderSelector { get; set; }
@@ -170,6 +178,7 @@
     [Parameter] public EventCallback OnExportPng { get; set; }
     [Parameter] public EventCallback OnToggleViewMode { get; set; }
     [Parameter] public EventCallback OnToggleTheme { get; set; }
+    [Parameter] public EventCallback OnCycleTheme { get; set; }
     [Parameter] public EventCallback<TemplateService.TemplateType> OnTemplateApply { get; set; }
 
     private async Task HandleRenamePrompt(string tabId, string currentName)
@@ -237,5 +246,48 @@
             return "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 44px; height: 44px; border-radius: 8px; font-size: 22px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: center;";
         }
         return "background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 22px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;";
+    }
+
+    // Seasonal Theme UI Helpers
+    private string GetSeasonalThemeIcon()
+    {
+        return CurrentTheme switch
+        {
+            SeasonalTheme.Classic => "🎨",
+            SeasonalTheme.Spring => "🌸",
+            SeasonalTheme.Summer => "☀️",
+            SeasonalTheme.Autumn => "🍂",
+            SeasonalTheme.Winter => "❄️",
+            _ => "🎨"
+        };
+    }
+
+    private string GetSeasonalThemeTitle()
+    {
+        var themeName = CurrentTheme switch
+        {
+            SeasonalTheme.Classic => "Classic",
+            SeasonalTheme.Spring => "Spring",
+            SeasonalTheme.Summer => "Summer",
+            SeasonalTheme.Autumn => "Autumn",
+            SeasonalTheme.Winter => "Winter",
+            _ => "Classic"
+        };
+        return $"Current: {themeName} Theme (Click to cycle)";
+    }
+
+    private string GetSeasonalThemeStyle()
+    {
+        var (color, gradient) = CurrentTheme switch
+        {
+            SeasonalTheme.Classic => ("#667eea", "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"),
+            SeasonalTheme.Spring => ("#86efac", "linear-gradient(135deg, #86efac 0%, #fb7185 100%)"),
+            SeasonalTheme.Summer => ("#fbbf24", "linear-gradient(135deg, #fbbf24 0%, #60a5fa 100%)"),
+            SeasonalTheme.Autumn => ("#fb923c", "linear-gradient(135deg, #fb923c 0%, #dc2626 100%)"),
+            SeasonalTheme.Winter => ("#7dd3fc", "linear-gradient(135deg, #7dd3fc 0%, #c7d2fe 100%)"),
+            _ => ("#667eea", "linear-gradient(135deg, #667eea 0%, #764ba2 100%)")
+        };
+
+        return $"background: {gradient}; color: #fff; border: none; width: 44px; height: 44px; border-radius: 8px; font-size: 22px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: center;";
     }
 }
