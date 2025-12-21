@@ -112,23 +112,22 @@
                      style="@(TitleContainerStyle() + " " + titlePadding)">
 
                     @* Top row: Icon | Title | Icon *@
-                    <div style="display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; min-height: 36px; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 16px; min-height: 36px; width: 100%;">
                         @* GitHub button - Left *@
                         <a href="https://github.com/MgGriebZ/RoadScript"
                            target="_blank"
                            rel="noopener noreferrer"
                            class="quick-action-button"
                            title="View on GitHub"
-                           style="text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                           style="text-decoration: none; flex-shrink: 0;">
+                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
                                 <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
                             </div>
-                            <span style="font-size: 10px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Repo</span>
                         </a>
 
                         @* Title (centered) *@
                         <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
-                             style="text-align: center; min-height: 20px; @(_isPreviewMode ? "" : "cursor: pointer;")">
+                             style="text-align: center; min-height: 20px; flex: 1; @(_isPreviewMode ? "" : "cursor: pointer;")">
                             @if (hasTitleText)
                             {
                                 <h1 style="@TitleStyle()">@_data.Title</h1>
@@ -144,11 +143,10 @@
                         <div @onclick="HandleQuickShare"
                              class="quick-action-button"
                              title="Share this roadmap"
-                             style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                             style="cursor: pointer; flex-shrink: 0;">
+                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
                                 <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
                             </div>
-                            <span style="font-size: 10px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Share</span>
                         </div>
                     </div>
 
