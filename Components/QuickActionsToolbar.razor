@@ -1,0 +1,125 @@
+@using RoadScript.Models
+
+@* Quick Actions Toolbar - Positioned in left sidebar aligned with columns/milestones *@
+<div style="padding: 8px 0; margin-bottom: 12px; border-bottom: 1px solid #3a3a4e;">
+    <div style="font-size: 9px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.5px;">Quick Actions</div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+        @* Add Current Month *@
+        <button type="button"
+                @onclick="@(() => AddCurrentMonth())"
+                title="Add current month as column"
+                style="width: 100%; height: 36px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">
+            <Icon IconType="calendar" Color="#fff" Size="14" />
+            <span>Month</span>
+        </button>
+
+        @* Add Current Date *@
+        <button type="button"
+                @onclick="@(() => AddCurrentDate())"
+                title="Add today's date as column"
+                style="width: 100%; height: 36px; background: #667eea; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);">
+            <Icon IconType="calendar" Color="#fff" Size="14" />
+            <span>Date</span>
+        </button>
+
+        @* Add 7 Days *@
+        <button type="button"
+                @onclick="@(() => Add7Days())"
+                title="Add 7 days of the week"
+                style="width: 100%; height: 36px; background: #F88379; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(248, 131, 121, 0.3);">
+            <span>7 Days</span>
+        </button>
+
+        @* Add 4 Quarters *@
+        <button type="button"
+                @onclick="@(() => Add4Quarters())"
+                title="Add Q1-Q4 quarters"
+                style="width: 100%; height: 36px; background: #E6B800; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(230, 184, 0, 0.3);">
+            <span>4 Quarters</span>
+        </button>
+
+        @* Add Milestone *@
+        <button type="button"
+                @onclick="@(() => AddMilestone())"
+                title="Add new milestone"
+                style="width: 100%; height: 36px; background: linear-gradient(135deg, rgba(69, 182, 156, 0.3) 0%, rgba(69, 182, 156, 0.2) 100%); color: #45B69C; border: 1px solid rgba(69, 182, 156, 0.5); border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(69, 182, 156, 0.2);">
+            <span style="font-size: 16px; line-height: 1;">+</span>
+            <Icon IconType="target" Color="#45B69C" Size="14" />
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<BulkColumnAction> OnBulkColumnAction { get; set; }
+
+    [Parameter]
+    public EventCallback OnAddMilestone { get; set; }
+
+    private async Task AddCurrentMonth()
+    {
+        var currentMonth = DateTime.Now.ToString("MMMM");
+        var action = new BulkColumnAction
+        {
+            ActionType = "single",
+            Labels = new List<string> { currentMonth },
+            Sublabels = new List<string> { DateTime.Now.Year.ToString() }
+        };
+        await OnBulkColumnAction.InvokeAsync(action);
+    }
+
+    private async Task AddCurrentDate()
+    {
+        var today = DateTime.Now.ToString("MM/dd/yyyy");
+        var action = new BulkColumnAction
+        {
+            ActionType = "single",
+            Labels = new List<string> { today },
+            Sublabels = new List<string> { "" }
+        };
+        await OnBulkColumnAction.InvokeAsync(action);
+    }
+
+    private async Task Add7Days()
+    {
+        var days = new List<string>
+        {
+            "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+        };
+
+        var action = new BulkColumnAction
+        {
+            ActionType = "bulk",
+            Labels = days,
+            Sublabels = new List<string>() // Empty sublabels
+        };
+        await OnBulkColumnAction.InvokeAsync(action);
+    }
+
+    private async Task Add4Quarters()
+    {
+        var quarters = new List<string> { "Q1", "Q2", "Q3", "Q4" };
+        var year = "2026";
+
+        var action = new BulkColumnAction
+        {
+            ActionType = "bulk",
+            Labels = quarters,
+            Sublabels = Enumerable.Repeat(year, 4).ToList()
+        };
+        await OnBulkColumnAction.InvokeAsync(action);
+    }
+
+    private async Task AddMilestone()
+    {
+        await OnAddMilestone.InvokeAsync();
+    }
+
+    public class BulkColumnAction
+    {
+        public string ActionType { get; set; } = "single"; // "single" or "bulk"
+        public List<string> Labels { get; set; } = new();
+        public List<string> Sublabels { get; set; } = new();
+    }
+}

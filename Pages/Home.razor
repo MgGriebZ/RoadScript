@@ -109,46 +109,50 @@
                 }
 
                 <div class="@GetElementClass("title")"
-                     style="@(TitleContainerStyle() + " " + titlePadding)">
+                     style="@(TitleContainerStyle() + " " + titlePadding + " min-width: 560px;")">
 
                     @* Top row: Icon | Title | Icon *@
-                    <div style="display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; min-height: 36px; width: 100%;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; min-height: 36px; width: 100%; position: relative;">
                         @* GitHub button - Left *@
-                        <a href="https://github.com/MgGriebZ/RoadScript"
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           class="quick-action-button"
-                           title="View on GitHub"
-                           style="text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                                <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
-                            </div>
-                            <span style="font-size: 10px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Repo</span>
-                        </a>
+                        <div style="width: 36px; flex-shrink: 0;">
+                            <a href="https://github.com/MgGriebZ/RoadScript"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="quick-action-button"
+                               title="View on GitHub"
+                               style="text-decoration: none; display: block;">
+                                <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
+                                    <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                                </div>
+                            </a>
+                        </div>
 
-                        @* Title (centered) *@
-                        <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
-                             style="text-align: center; min-height: 20px; @(_isPreviewMode ? "" : "cursor: pointer;")">
-                            @if (hasTitleText)
-                            {
-                                <h1 style="@TitleStyle()">@_data.Title</h1>
-                            }
-                            else
-                            {
-                                @* Invisible placeholder to maintain layout *@
-                                <span style="visibility: hidden; font-size: 0;">&#8203;</span>
-                            }
+                        @* Title (centered) - uses absolute positioning to truly center *@
+                        <div style="position: absolute; left: 50%; transform: translateX(-50%); max-width: calc(100% - 100px); pointer-events: none;">
+                            <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
+                                 style="text-align: center; min-height: 20px; pointer-events: auto; @(_isPreviewMode ? "" : "cursor: pointer;")">
+                                @if (hasTitleText)
+                                {
+                                    <h1 style="@TitleStyle()">@_data.Title</h1>
+                                }
+                                else
+                                {
+                                    @* Invisible placeholder to maintain layout *@
+                                    <span style="visibility: hidden; font-size: 0;">&#8203;</span>
+                                }
+                            </div>
                         </div>
 
                         @* Share button - Right *@
-                        <div @onclick="HandleQuickShare"
-                             class="quick-action-button"
-                             title="Share this roadmap"
-                             style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                                <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                        <div style="width: 36px; flex-shrink: 0;">
+                            <div @onclick="HandleQuickShare"
+                                 class="quick-action-button"
+                                 title="Share this roadmap"
+                                 style="cursor: pointer; display: block;">
+                                <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
+                                    <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                                </div>
                             </div>
-                            <span style="font-size: 10px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Share</span>
                         </div>
                     </div>
 
@@ -2111,16 +2115,17 @@
     {
         var maxWidthStyle = _isPreviewMode ? "max-width: 1700px;" : "";
         var widthStyle = _isPreviewMode ? "width: 100%;" : "width: 100%;";
+        var minWidthStyle = "min-width: 600px;"; // Prevent container from getting too narrow
 
         if (_isVibeMode)
         {
-            return $"{widthStyle} {maxWidthStyle} aspect-ratio: 16/9; " +
+            return $"{widthStyle} {maxWidthStyle} {minWidthStyle} aspect-ratio: 16/9; " +
                   $"background: {GetSeasonalVibeContainer()}; " +
                   "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
                   "padding: 22px 30px; border: 2px solid #667eea; position: relative; " +
                   "box-shadow: 0 0 40px rgba(102, 126, 234, 0.3), 0 8px 32px rgba(0, 0, 0, 0.6);";
         }
-        return $"{widthStyle} {maxWidthStyle} aspect-ratio: 16/9; background: {GetSeasonalLiteContainer()}; " +
+        return $"{widthStyle} {maxWidthStyle} {minWidthStyle} aspect-ratio: 16/9; background: {GetSeasonalLiteContainer()}; " +
               "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
               "padding: 22px 30px; border: 1px solid #d1d5db; position: relative;";
     }
@@ -2451,8 +2456,8 @@
 
     private string TitleStyle() =>
         _isVibeMode
-            ? "margin: 0; font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 35%, #e0c3fc 50%, #c4b5fd 65%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 2px 4px rgba(165, 180, 252, 0.3));"
-            : "margin: 0; font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #1a1a2e 0%, #2a2a3e 50%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));";
+            ? "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 35%, #e0c3fc 50%, #c4b5fd 65%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 2px 4px rgba(165, 180, 252, 0.3)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;"
+            : "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #1a1a2e 0%, #2a2a3e 50%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;";
 
     private string SubtitleStyle() =>
         _isVibeMode
@@ -3130,12 +3135,13 @@
                     break;
 
                 case "milestone":
+                    var random = new Random();
                     var newMilestone = new Milestone
                     {
                         Title = "New Milestone",
-                        Start = 50,
-                        Icon = "diamond",
-                        Color = "#667eea"
+                        Start = random.Next(0, 101),
+                        Icon = "target",
+                        Color = "#45B69C"
                     };
                     _data.Milestones ??= new List<Milestone>();
 
@@ -3556,7 +3562,6 @@
                     {
                         var originalColumn = _data.Columns[columnIndex];
                         var duplicatedColumn = StorageService.DeepClone(originalColumn);
-                        duplicatedColumn.Label = $"{originalColumn.Label} (Copy)";
                         _data.Columns.Insert(columnIndex + 1, duplicatedColumn);
                         newPath = $"columns[{columnIndex + 1}]";
                         newElement = duplicatedColumn;
@@ -3569,7 +3574,6 @@
                     {
                         var originalLane = _data.Lanes[laneIndex];
                         var duplicatedLane = StorageService.DeepClone(originalLane);
-                        duplicatedLane.Title = $"{originalLane.Title} (Copy)";
                         _data.Lanes.Insert(laneIndex + 1, duplicatedLane);
                         newPath = $"lanes[{laneIndex + 1}]";
                         newElement = duplicatedLane;
@@ -3596,7 +3600,6 @@
                     {
                         var originalItem = _data.Lanes[itemLaneIndex].Items[itemIndex];
                         var duplicatedItem = StorageService.DeepClone(originalItem);
-                        duplicatedItem.Title = $"{originalItem.Title} (Copy)";
                         _data.Lanes[itemLaneIndex].Items.Insert(itemIndex + 1, duplicatedItem);
                         newPath = $"lanes[{itemLaneIndex}].items[{itemIndex + 1}]";
                         newElement = duplicatedItem;
@@ -3609,7 +3612,6 @@
                     {
                         var originalMilestone = _data.Milestones[milestoneIndex];
                         var duplicatedMilestone = StorageService.DeepClone(originalMilestone);
-                        duplicatedMilestone.Title = $"{originalMilestone.Title} (Copy)";
                         duplicatedMilestone.Start = Math.Min(originalMilestone.Start + 5, 100);
                         _data.Milestones.Insert(milestoneIndex + 1, duplicatedMilestone);
                         newPath = $"milestones[{milestoneIndex + 1}]";
