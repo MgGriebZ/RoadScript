@@ -1,0 +1,133 @@
+@using RoadScript.Models
+@inject ThemeService ThemeService
+@inject SelectionState SelectionState
+
+<div style="width: 175px; flex-shrink: 0; padding-right: 14px; display: flex; flex-direction: column;">
+    @* Spacer for column headers + milestone scale *@
+    <div style="height: 88px;"></div>
+
+    @* Lane titles *@
+    @for (int li = 0; li < Data.Lanes.Count; li++)
+    {
+        var lane = Data.Lanes[li];
+        var laneIndex = li;
+        <div @onclick="@(IsPreviewMode ? null : () => OnLaneClick.InvokeAsync((Path: $"lanes[{laneIndex}]", Lane: lane)))"
+             class="@GetElementClass($"lanes[{laneIndex}]")"
+             style="@ThemeService.LaneLabelWrapStyle(lane, Data)">
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                <div style="@ThemeService.LaneBarStyle(lane.Color)"></div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        @if (!string.IsNullOrEmpty(lane.Icon))
+                        {
+                            <Icon IconType="@lane.Icon" Color="@lane.Color" Size="18" DropShadow="true" />
+                        }
+                        <span style="@ThemeService.LaneTitleStyle()">
+                            @((MarkupString)lane.Title.Replace("&", "&amp;<br/>"))
+                        </span>
+                    </div>
+                    @if (lane.History != null)
+                    {
+                        <div style="display: flex; flex-direction: column; gap: 2px;">
+                            <div style="@ThemeService.HistoryBarContainerStyle()">
+                                @{
+                                    var origin = lane.History.Origin ?? "left";
+                                    if (origin == "left")
+                                    {
+                                        <div style="@ThemeService.HistoryProgressStyle(lane.Color, lane.History.Percent)"></div>
+                                        <div style="@ThemeService.HistoryEmptyStyle(100 - lane.History.Percent)"></div>
+                                    }
+                                    else if (origin == "middle")
+                                    {
+                                        var emptyPct = (100 - lane.History.Percent) / 2.0;
+                                        <div style="@ThemeService.HistoryEmptyStyle(emptyPct)"></div>
+                                        <div style="@ThemeService.HistoryProgressStyle(lane.Color, lane.History.Percent)"></div>
+                                        <div style="@ThemeService.HistoryEmptyStyle(emptyPct)"></div>
+                                    }
+                                    else if (origin == "right")
+                                    {
+                                        <div style="@ThemeService.HistoryEmptyStyle(100 - lane.History.Percent)"></div>
+                                        <div style="@ThemeService.HistoryProgressStyle(lane.Color, lane.History.Percent)"></div>
+                                    }
+                                }
+                            </div>
+                            <div style="display: flex; justify-content: space-between; width: 90px;">
+                                @{
+                                    var hasStartContent = !string.IsNullOrEmpty(lane.History.StartIcon) || !string.IsNullOrWhiteSpace(lane.History.Start);
+                                    var hasEndContent = !string.IsNullOrEmpty(lane.History.EndIcon) || !string.IsNullOrWhiteSpace(lane.History.End);
+                                }
+                                @if (hasStartContent)
+                                {
+                                    <div style="display: flex; align-items: center; gap: 3px;">
+                                        @if (!string.IsNullOrEmpty(lane.History.StartIcon))
+                                        {
+                                            <Icon IconType="@lane.History.StartIcon" Color="@lane.Color" Size="10" DropShadow="false" />
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(lane.History.Start))
+                                        {
+                                            <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.Start</span>
+                                        }
+                                    </div>
+                                }
+                                @if (hasEndContent)
+                                {
+                                    <div style="display: flex; align-items: center; gap: 3px; margin-left: auto;">
+                                        @if (!string.IsNullOrEmpty(lane.History.EndIcon))
+                                        {
+                                            <Icon IconType="@lane.History.EndIcon" Color="@lane.Color" Size="10" DropShadow="false" />
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(lane.History.End))
+                                        {
+                                            <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.End</span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// The roadmap data containing lanes to display
+    /// </summary>
+    [Parameter]
+    public RoadmapData Data { get; set; } = null!;
+
+    /// <summary>
+    /// Whether the component is in preview mode (disables editing)
+    /// </summary>
+    [Parameter]
+    public bool IsPreviewMode { get; set; }
+
+    /// <summary>
+    /// Whether vibe mode is enabled for styling
+    /// </summary>
+    [Parameter]
+    public bool IsVibeMode { get; set; }
+
+    /// <summary>
+    /// Callback fired when a lane label is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback<(string Path, Lane Lane)> OnLaneClick { get; set; }
+
+    /// <summary>
+    /// Determines CSS classes based on selection state and preview mode
+    /// </summary>
+    private string GetElementClass(string jsonPath)
+    {
+        if (IsPreviewMode) return "";
+
+        var baseClass = "clickable-element";
+        if (SelectionState.SelectedPath == jsonPath)
+        {
+            baseClass += " selected-element";
+        }
+        return baseClass;
+    }
+}

@@ -1,0 +1,223 @@
+@using RoadScript.Models
+@using RoadScript.Services
+@inject ThemeService ThemeService
+@inject SelectionState SelectionState
+
+<div style="flex: 1; display: flex; flex-direction: column;">
+    @* Column Headers *@
+    <div style="@ThemeService.ColumnHeaderContainerStyle()">
+        @for (int i = 0; i < Data.Columns.Count; i++)
+        {
+            var col = Data.Columns[i];
+            var colIndex = i;
+            <div @onclick="@(IsPreviewMode ? null : () => OnColumnClick.InvokeAsync(new ColumnClickEventArgs { Index = colIndex, Column = col }))"
+                 class="@GetElementClass($"columns[{colIndex}]")"
+                 style="@ThemeService.ColumnHeaderStyle(i)">
+                @{
+                    var hasTitle = !string.IsNullOrWhiteSpace(col.Label);
+                    var hasSub = !string.IsNullOrWhiteSpace(col.Sub);
+                    var hasIcon = !string.IsNullOrEmpty(col.Icon);
+                }
+
+                @if (hasIcon && hasTitle)
+                {
+                    @* Icon inline with title *@
+                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                        <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="14" DropShadow="true" />
+                        <span style="@ThemeService.ColumnLabelStyle()">@col.Label</span>
+                    </div>
+                    @if (hasSub)
+                    {
+                        <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
+                    }
+                }
+                else if (hasIcon && !hasTitle)
+                {
+                    @* Large centered icon (no title) *@
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 100%;">
+                        <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="@(hasSub ? 24 : 28)" DropShadow="true" />
+                        @if (hasSub)
+                        {
+                            <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    @* No icon - standard text layout *@
+                    @if (hasTitle)
+                    {
+                        <span style="@ThemeService.ColumnLabelStyle()">@col.Label</span>
+                    }
+                    @if (hasSub)
+                    {
+                        <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
+                    }
+                }
+            </div>
+        }
+    </div>
+
+    @* Milestone Scale *@
+    <div style="@ThemeService.MilestoneScaleContainerStyle()">
+        @for (int mi = 0; mi < Data.Milestones.Count; mi++)
+        {
+            var milestone = Data.Milestones[mi];
+            var msIndex = mi;
+            var isSelected = SelectionState.SelectedPath == $"milestones[{msIndex}]";
+            <div id="@($"milestone-{msIndex}")"
+                 @onclick="@(IsPreviewMode ? null : () => OnMilestoneClick.InvokeAsync(new MilestoneClickEventArgs { Index = msIndex, Milestone = milestone }))"
+                 @onclick:stopPropagation="@(!IsPreviewMode)"
+                 class="@GetElementClass($"milestones[{msIndex}]")"
+                 style="@ThemeService.MilestoneStyle(milestone.Start)">
+                <div style="@ThemeService.MilestoneContainerStyle()">
+                    <Icon IconType="@(milestone.Icon ?? "diamond")"
+                          Color="@milestone.Color"
+                          Size="24"
+                          DropShadow="true" />
+                    @if (!string.IsNullOrWhiteSpace(milestone.Title))
+                    {
+                        <span style="@ThemeService.MilestoneLabelStyle(milestone.Color)">
+                            @milestone.Title
+                        </span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    @* Grid with lanes and items *@
+    <div style="flex: 1; position: relative;">
+        <div style="position: absolute; inset: 0; display: flex; pointer-events: none;">
+            @for (int i = 0; i < Data.Columns.Count; i++)
+            {
+                <div style="@GridColumnStyle(i)"></div>
+            }
+        </div>
+
+        @for (int li = 0; li < Data.Lanes.Count; li++)
+        {
+            var lane = Data.Lanes[li];
+            var laneIdx = li;
+            <div style="@LaneRowStyle(li, lane)">
+                @for (int ii = 0; ii < lane.Items.Count; ii++)
+                {
+                    var item = lane.Items[ii];
+                    var itemIdx = ii;
+
+                    @if (!(IsPreviewMode && item.Hidden))
+                    {
+                        <div id="@($"item-{laneIdx}-{itemIdx}")"
+                             @onclick="@(IsPreviewMode ? null : () => OnItemClick.InvokeAsync(new ItemClickEventArgs { LaneIndex = laneIdx, ItemIndex = itemIdx, Item = item }))"
+                             @onclick:stopPropagation="@(!IsPreviewMode)"
+                             class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]") roadmap-item-resizable"
+                             style="@ItemStyle(item, lane, itemIdx)"
+                             data-lane-index="@laneIdx"
+                             data-item-index="@itemIdx">
+                        @{
+                            var hasDetails = item.Details != null && item.Details.Count > 0;
+                            var hasSubs = hasDetails && item.Details.Any(d => d.Subs != null && d.Subs.Count > 0);
+                            var hasTitle = !string.IsNullOrWhiteSpace(item.Title);
+                        }
+                        <div style="@ThemeService.ItemHeaderStyle(hasDetails, hasSubs, hasTitle, item.Length, lane.Color)">
+                            @if (!string.IsNullOrEmpty(item.Icon))
+                            {
+                                <Icon IconType="@item.Icon"
+                                      Color="@(item.Color ?? "#10b981")"
+                                      Size="@ThemeService.GetIconSize(hasDetails, hasSubs, hasTitle)"
+                                      DropShadow="true" />
+                            }
+                            @if (hasTitle)
+                            {
+                                <h4 style="@ThemeService.ItemTitleStyle(hasDetails, hasSubs)">
+                                    @item.Title
+                                </h4>
+                            }
+                            @if (!string.IsNullOrEmpty(item.LinkedRoadmapId))
+                            {
+                                var linkedTab = SessionManager?.Tabs.FirstOrDefault(t => t.Id == item.LinkedRoadmapId);
+                                <span @onclick="@(() => OnRoadmapLinkClick.InvokeAsync(item.LinkedRoadmapId))"
+                                      @onclick:stopPropagation="true"
+                                      style="margin-left: auto; font-size: 14px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s, transform 0.2s;"
+                                      title="Linked to: @(linkedTab?.Name ?? "Unknown roadmap")">
+                                    🔗
+                                </span>
+                            }
+                            @if (item.Hidden && !IsPreviewMode)
+                            {
+                                <span style="margin-left: auto; font-size: 16px; opacity: 0.5;" title="Hidden in preview mode">👁</span>
+                            }
+                        </div>
+                        <ul style="margin: 0; padding: 0; list-style: none;">
+                            @if (item.Details != null)
+                            {
+                                @foreach (var detail in item.Details)
+                                {
+                                    <li style="@ThemeService.DetailItemStyle(detail)">
+                                        <div style="@ThemeService.DetailTextStyle(lane.Color)">
+                                            <span style="@ThemeService.BulletStyle(lane.Color)">•</span>
+                                            @detail.Text
+                                        </div>
+                                        @if (detail.Subs != null && detail.Subs.Count > 0)
+                                        {
+                                            <ul style="margin: 2px 0 4px 0; padding: 0; list-style: none;">
+                                                @foreach (var sub in detail.Subs)
+                                                {
+                                                    <li style="@ThemeService.SubBulletStyle()">
+                                                        <span style="@ThemeService.SubBulletDashStyle()">–</span>
+                                                        @sub
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public RoadmapData Data { get; set; } = null!;
+    [Parameter] public bool IsPreviewMode { get; set; }
+    [Parameter] public bool IsVibeMode { get; set; }
+    [Parameter] public List<TabSession>? AvailableRoadmaps { get; set; }
+    [Parameter] public SessionManager? SessionManager { get; set; }
+
+    [Parameter] public EventCallback<ColumnClickEventArgs> OnColumnClick { get; set; }
+    [Parameter] public EventCallback<MilestoneClickEventArgs> OnMilestoneClick { get; set; }
+    [Parameter] public EventCallback<ItemClickEventArgs> OnItemClick { get; set; }
+    [Parameter] public EventCallback<string> OnRoadmapLinkClick { get; set; }
+
+    private string GetElementClass(string jsonPath)
+    {
+        if (IsPreviewMode) return "";
+
+        var baseClass = "clickable-element";
+        if (SelectionState.SelectedPath == jsonPath)
+        {
+            baseClass += " selected-element";
+        }
+        return baseClass;
+    }
+
+    private string GridColumnStyle(int index)
+    {
+        return ThemeService.GridColumnStyle(index, Data.Columns.Count);
+    }
+
+    private string LaneRowStyle(int index, Lane lane)
+    {
+        return ThemeService.LaneRowStyle(index, lane, Data.Lanes.Count, Data);
+    }
+
+    private string ItemStyle(Item item, Lane lane, int itemIdx)
+    {
+        return ThemeService.ItemStyle(item, lane, itemIdx, Data.Columns.Count, Data);
+    }
+}

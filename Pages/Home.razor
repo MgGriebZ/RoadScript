@@ -13,6 +13,8 @@
 @inject SelectionState SelectionState
 @inject StorageService StorageService
 @inject UrlNavigationService UrlNavigation
+@inject ThemeService ThemeService
+@inject RoadmapStateManager StateManager
 @implements IDisposable
 
 <div class="container-fluid vh-100 d-flex p-0">
@@ -20,9 +22,9 @@
     <CommandCenter FolderManager="_folderManager"
                    SessionManager="_sessionManager"
                    ActiveTab="_activeTab"
-                   IsPreviewMode="_isPreviewMode"
-                   IsVibeMode="_isVibeMode"
-                   CurrentTheme="_currentTheme"
+                   IsPreviewMode="@StateManager.IsPreviewMode"
+                   IsVibeMode="@ThemeService.IsVibeMode"
+                   CurrentTheme="@ThemeService.CurrentTheme"
                    OnToggleFolderSelector="ToggleFolderSelector"
                    OnTabDelete="HandleCollapsedTabDelete"
                    OnTabSwitch="HandleTabSwitch"
@@ -35,433 +37,28 @@
                    OnCycleTheme="CycleSeasonalTheme"
                    OnTemplateApply="ApplyTemplate" />
 
-    <div class="preview-pane" style="@PreviewPaneStyle()">
+    <div class="preview-pane" style="@ThemeService.PreviewPaneStyle()">
         @if (_data != null)
         {
-            <div style="@RoadmapWrapperStyle()">
-                <div class="roadmap roadmap-container" style="@RoadmapContainerStyle()">
+            <RoadmapRenderer Data="@_data"
+                           IsPreviewMode="@StateManager.IsPreviewMode"
+                           ActiveTab="@_activeTab"
+                           SessionManager="@_sessionManager"
+                           AvailableRoadmaps="@(_sessionManager?.Tabs)"
+                           OnElementClick="@HandleElementClick"
+                           OnItemClick="@HandleItemClick"
+                           OnMilestoneJumpToStart="@JumpMilestoneToStart"
+                           OnMilestoneJumpToEnd="@JumpMilestoneToEnd"
+                           OnMilestoneAdjustPosition="@((args) => AdjustMilestonePosition(args.MilestoneIndex, args.Delta))"
+                           OnMilestoneAdjustByColumn="@((args) => AdjustMilestoneByColumn(args.MilestoneIndex, args.Direction))"
+                           OnRoadmapLinkClick="@HandleRoadmapLinkClick"
+                           OnTitleClick="@HandleTitleClick"
+                           OnShareClick="@HandleQuickShare" />
 
-                @* Static Milestone Navigation Controls - Top Center Position *@
-                @{
-                    var selectedMilestoneIndex = -1;
-                    Milestone? selectedMilestone = null;
-
-                    for (int mi = 0; mi < _data.Milestones.Count; mi++)
-                    {
-                        if (SelectionState.SelectedPath == $"milestones[{mi}]")
-                        {
-                            selectedMilestoneIndex = mi;
-                            selectedMilestone = _data.Milestones[mi];
-                            break;
-                        }
-                    }
-
-                    var showNavControls = selectedMilestoneIndex >= 0 && !_isPreviewMode;
-                }
-
-                @if (showNavControls && selectedMilestone != null)
-                {
-                    <div style="position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 150; display: flex; align-items: center; gap: 6px;">
-                        <button type="button"
-                                @onclick="@(async () => await JumpMilestoneToStart(selectedMilestoneIndex))"
-                                title="Jump to Start (0%)"
-                                style="@StaticNavButtonStyle("jump")">
-                            <div style="font-size: 18px; font-weight: 800;">⏮</div>
-                        </button>
-                        <button type="button"
-                                @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, -1))"
-                                title="Previous Column"
-                                style="@StaticNavButtonStyle("column")">
-                            <div style="font-size: 18px;">⏪</div>
-                        </button>
-                        <button type="button"
-                                @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, -0.25))"
-                                title="Nudge Left (0.25)"
-                                style="@StaticNavButtonStyle("nudge")">
-                            <div style="font-size: 16px;">◀</div>
-                        </button>
-                        <button type="button"
-                                @onclick="@(async () => await AdjustMilestonePosition(selectedMilestoneIndex, 0.25))"
-                                title="Nudge Right (0.25)"
-                                style="@StaticNavButtonStyle("nudge")">
-                            <div style="font-size: 16px;">▶</div>
-                        </button>
-                        <button type="button"
-                                @onclick="@(async () => await AdjustMilestoneByColumn(selectedMilestoneIndex, 1))"
-                                title="Next Column"
-                                style="@StaticNavButtonStyle("column")">
-                            <div style="font-size: 18px;">⏩</div>
-                        </button>
-                        <button type="button"
-                                @onclick="@(async () => await JumpMilestoneToEnd(selectedMilestoneIndex))"
-                                title="Jump to End (100%)"
-                                style="@StaticNavButtonStyle("jump")">
-                            <div style="font-size: 18px; font-weight: 800;">⏭</div>
-                        </button>
-                    </div>
-                }
-
-                @{
-                    var hasTitleText = !string.IsNullOrWhiteSpace(_data.Title);
-                    var hasSubtitleText = !string.IsNullOrWhiteSpace(_data.Subtitle);
-                    var hasTitleContent = hasTitleText || hasSubtitleText;
-                    var titlePadding = hasTitleContent ? "padding: 6px 10px;" : "padding: 6px 10px; min-height: 48px;";
-                }
-
-                <div class="@GetElementClass("title")"
-                     style="@(TitleContainerStyle() + " " + titlePadding + " min-width: 560px;")">
-
-                    @* Top row: Icon | Title | Icon *@
-                    <div style="display: flex; align-items: center; justify-content: space-between; min-height: 36px; width: 100%; position: relative;">
-                        @* GitHub button - Left *@
-                        <div style="width: 36px; flex-shrink: 0;">
-                            <a href="https://github.com/MgGriebZ/RoadScript"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               class="quick-action-button"
-                               title="View on GitHub"
-                               style="text-decoration: none; display: block;">
-                                <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
-                                    <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
-                                </div>
-                            </a>
-                        </div>
-
-                        @* Title (centered) - uses absolute positioning to truly center *@
-                        <div style="position: absolute; left: 50%; transform: translateX(-50%); max-width: calc(100% - 100px); pointer-events: none;">
-                            <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
-                                 style="text-align: center; min-height: 20px; pointer-events: auto; @(_isPreviewMode ? "" : "cursor: pointer;")">
-                                @if (hasTitleText)
-                                {
-                                    <h1 style="@TitleStyle()">@_data.Title</h1>
-                                }
-                                else
-                                {
-                                    @* Invisible placeholder to maintain layout *@
-                                    <span style="visibility: hidden; font-size: 0;">&#8203;</span>
-                                }
-                            </div>
-                        </div>
-
-                        @* Share button - Right *@
-                        <div style="width: 36px; flex-shrink: 0;">
-                            <div @onclick="HandleQuickShare"
-                                 class="quick-action-button"
-                                 title="Share this roadmap"
-                                 style="cursor: pointer; display: block;">
-                                <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
-                                    <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    @* Bottom row: Subtitle (full width, centered) *@
-                    @if (hasSubtitleText)
-                    {
-                        <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
-                             style="text-align: center; margin-top: 4px; @(_isPreviewMode ? "" : "cursor: pointer;")">
-                            <p style="@SubtitleStyle()">@_data.Subtitle</p>
-                        </div>
-                    }
-                </div>
-
-                <div style="display: flex; height: calc(100% - 66px);">
-                    <div style="width: 175px; flex-shrink: 0; padding-right: 14px; display: flex; flex-direction: column;">
-                        @* Spacer for column headers + milestone scale *@
-                        <div style="height: 88px;"></div>
-
-                        @* Lane titles *@
-                        @for (int li = 0; li < _data.Lanes.Count; li++)
-                        {
-                            var lane = _data.Lanes[li];
-                            var laneIndex = li;
-                            <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"lanes[{laneIndex}]", "lane", lane))"
-                                 class="@GetElementClass($"lanes[{laneIndex}]")"
-                                 style="@LaneLabelWrapStyle(lane)">
-                                <div style="display: flex; align-items: flex-start; gap: 12px;">
-                                    <div style="@LaneBarStyle(lane.Color)"></div>
-                                    <div style="display: flex; flex-direction: column; gap: 6px;">
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            @if (!string.IsNullOrEmpty(lane.Icon))
-                                            {
-                                                <Icon IconType="@lane.Icon" Color="@lane.Color" Size="18" DropShadow="true" />
-                                            }
-                                            <span style="@LaneTitleStyle()">
-                                                @((MarkupString)lane.Title.Replace("&", "&amp;<br/>"))
-                                            </span>
-                                        </div>
-                                        @if (lane.History != null)
-                                        {
-                                            <div style="display: flex; flex-direction: column; gap: 2px;">
-                                                <div style="@HistoryBarContainerStyle()">
-                                                    @{
-                                                        var origin = lane.History.Origin ?? "left";
-                                                        if (origin == "left")
-                                                        {
-                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.Percent)"></div>
-                                                            <div style="@HistoryEmptyStyle(100 - lane.History.Percent)"></div>
-                                                        }
-                                                        else if (origin == "middle")
-                                                        {
-                                                            var emptyPct = (100 - lane.History.Percent) / 2.0;
-                                                            <div style="@HistoryEmptyStyle(emptyPct)"></div>
-                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.Percent)"></div>
-                                                            <div style="@HistoryEmptyStyle(emptyPct)"></div>
-                                                        }
-                                                        else if (origin == "right")
-                                                        {
-                                                            <div style="@HistoryEmptyStyle(100 - lane.History.Percent)"></div>
-                                                            <div style="@HistoryProgressStyle(lane.Color, lane.History.Percent)"></div>
-                                                        }
-                                                    }
-                                                </div>
-                                                <div style="display: flex; justify-content: space-between; width: 90px;">
-                                                    @{
-                                                        var hasStartContent = !string.IsNullOrEmpty(lane.History.StartIcon) || !string.IsNullOrWhiteSpace(lane.History.Start);
-                                                        var hasEndContent = !string.IsNullOrEmpty(lane.History.EndIcon) || !string.IsNullOrWhiteSpace(lane.History.End);
-                                                    }
-                                                    @if (hasStartContent)
-                                                    {
-                                                        <div style="display: flex; align-items: center; gap: 3px;">
-                                                            @if (!string.IsNullOrEmpty(lane.History.StartIcon))
-                                                            {
-                                                                <Icon IconType="@lane.History.StartIcon" Color="@lane.Color" Size="10" DropShadow="false" />
-                                                            }
-                                                            @if (!string.IsNullOrWhiteSpace(lane.History.Start))
-                                                            {
-                                                                <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.Start</span>
-                                                            }
-                                                        </div>
-                                                    }
-                                                    @if (hasEndContent)
-                                                    {
-                                                        <div style="display: flex; align-items: center; gap: 3px; margin-left: auto;">
-                                                            @if (!string.IsNullOrEmpty(lane.History.EndIcon))
-                                                            {
-                                                                <Icon IconType="@lane.History.EndIcon" Color="@lane.Color" Size="10" DropShadow="false" />
-                                                            }
-                                                            @if (!string.IsNullOrWhiteSpace(lane.History.End))
-                                                            {
-                                                                <span style="font-size: 9px; color: #9ca3af; font-weight: 500;">@lane.History.End</span>
-                                                            }
-                                                        </div>
-                                                    }
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-
-                    <div style="flex: 1; display: flex; flex-direction: column;">
-                        <div style="@ColumnHeaderContainerStyle()">
-                            @for (int i = 0; i < _data.Columns.Count; i++)
-                            {
-                                var col = _data.Columns[i];
-                                var colIndex = i;
-                                <div @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"columns[{colIndex}]", "column", col))"
-                                     class="@GetElementClass($"columns[{colIndex}]")"
-                                     style="@ColumnHeaderStyle(i)">
-                                    @{
-                                        var hasTitle = !string.IsNullOrWhiteSpace(col.Label);
-                                        var hasSub = !string.IsNullOrWhiteSpace(col.Sub);
-                                        var hasIcon = !string.IsNullOrEmpty(col.Icon);
-                                    }
-
-                                    @if (hasIcon && hasTitle)
-                                    {
-                                        @* Icon inline with title *@
-                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-                                            <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="14" DropShadow="true" />
-                                            <span style="@ColumnLabelStyle()">@col.Label</span>
-                                        </div>
-                                        @if (hasSub)
-                                        {
-                                            <span style="@ColumnSubStyle()">@col.Sub</span>
-                                        }
-                                    }
-                                    else if (hasIcon && !hasTitle)
-                                    {
-                                        @* Large centered icon (no title) *@
-                                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 100%;">
-                                            <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="@(hasSub ? 24 : 28)" DropShadow="true" />
-                                            @if (hasSub)
-                                            {
-                                                <span style="@ColumnSubStyle()">@col.Sub</span>
-                                            }
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        @* No icon - standard text layout *@
-                                        @if (hasTitle)
-                                        {
-                                            <span style="@ColumnLabelStyle()">@col.Label</span>
-                                        }
-                                        @if (hasSub)
-                                        {
-                                            <span style="@ColumnSubStyle()">@col.Sub</span>
-                                        }
-                                    }
-                                </div>
-                            }
-                        </div>
-
-                        @* Milestone Scale *@
-                        <div style="@MilestoneScaleContainerStyle()">
-                            @for (int mi = 0; mi < _data.Milestones.Count; mi++)
-                            {
-                                var milestone = _data.Milestones[mi];
-                                var msIndex = mi;
-                                var isSelected = SelectionState.SelectedPath == $"milestones[{msIndex}]";
-                                <div id="@($"milestone-{msIndex}")"
-                                     @onclick="@(_isPreviewMode ? null : () => HandleElementClick($"milestones[{msIndex}]", "milestone", milestone))"
-                                     @onclick:stopPropagation="@(!_isPreviewMode)"
-                                     class="@GetElementClass($"milestones[{msIndex}]")"
-                                     style="@MilestoneStyle(milestone.Start)">
-                                    <div style="@MilestoneContainerStyle()">
-                                        <Icon IconType="@(milestone.Icon ?? "diamond")"
-                                              Color="@milestone.Color"
-                                              Size="24"
-                                              DropShadow="true" />
-                                        @if (!string.IsNullOrWhiteSpace(milestone.Title))
-                                        {
-                                            <span style="@MilestoneLabelStyle(milestone.Color)">
-                                                @milestone.Title
-                                            </span>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
-                        <div style="flex: 1; position: relative;">
-                            <div style="position: absolute; inset: 0; display: flex; pointer-events: none;">
-                                @for (int i = 0; i < _data.Columns.Count; i++)
-                                {
-                                    <div style="@GridColumnStyle(i)"></div>
-                                }
-                            </div>
-
-                            @for (int li = 0; li < _data.Lanes.Count; li++)
-                            {
-                                var lane = _data.Lanes[li];
-                                var laneIdx = li;
-                                <div style="@LaneRowStyle(li, lane)">
-                                    @for (int ii = 0; ii < lane.Items.Count; ii++)
-                                    {
-                                        var item = lane.Items[ii];
-                                        var itemIdx = ii;
-
-                                        @if (!(_isPreviewMode && item.Hidden))
-                                        {
-                                            <div id="@($"item-{laneIdx}-{itemIdx}")"
-                                                 @onclick="@(_isPreviewMode ? null : async () => await HandleItemClick(laneIdx, itemIdx, item))"
-                                                 @onclick:stopPropagation="@(!_isPreviewMode)"
-                                                 class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]") roadmap-item-resizable"
-                                                 style="@ItemStyle(item, lane, itemIdx)"
-                                                 data-lane-index="@laneIdx"
-                                                 data-item-index="@itemIdx">
-                                            @{
-                                                var hasDetails = item.Details != null && item.Details.Count > 0;
-                                                var hasSubs = hasDetails && item.Details.Any(d => d.Subs != null && d.Subs.Count > 0);
-                                                var hasTitle = !string.IsNullOrWhiteSpace(item.Title);
-                                            }
-                                            <div style="@ItemHeaderStyle(hasDetails, hasSubs, hasTitle, item.Length, lane.Color)">
-                                                @if (!string.IsNullOrEmpty(item.Icon))
-                                                {
-                                                    <Icon IconType="@item.Icon"
-                                                          Color="@(item.Color ?? "#10b981")"
-                                                          Size="@GetIconSize(hasDetails, hasSubs, hasTitle)"
-                                                          DropShadow="true" />
-                                                }
-                                                @if (hasTitle)
-                                                {
-                                                    <h4 style="@ItemTitleStyle(hasDetails, hasSubs)">
-                                                        @item.Title
-                                                    </h4>
-                                                }
-                                                @if (!string.IsNullOrEmpty(item.LinkedRoadmapId))
-                                                {
-                                                    var linkedTab = _sessionManager?.Tabs.FirstOrDefault(t => t.Id == item.LinkedRoadmapId);
-                                                    <span @onclick="@(async () => await HandleRoadmapLinkClick(item.LinkedRoadmapId))"
-                                                          @onclick:stopPropagation="true"
-                                                          style="margin-left: auto; font-size: 14px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s, transform 0.2s;"
-                                                          title="Linked to: @(linkedTab?.Name ?? "Unknown roadmap")">
-                                                        🔗
-                                                    </span>
-                                                }
-                                                @if (item.Hidden && !_isPreviewMode)
-                                                {
-                                                    <span style="margin-left: auto; font-size: 16px; opacity: 0.5;" title="Hidden in preview mode">👁</span>
-                                                }
-                                            </div>
-                                            <ul style="margin: 0; padding: 0; list-style: none;">
-                                                @if (item.Details != null)
-                                                {
-                                                    @foreach (var detail in item.Details)
-                                                    {
-                                                        <li style="@DetailItemStyle(detail)">
-                                                            <div style="@DetailTextStyle(lane.Color)">
-                                                                <span style="@BulletStyle(lane.Color)">•</span>
-                                                                @detail.Text
-                                                            </div>
-                                                            @if (detail.Subs != null && detail.Subs.Count > 0)
-                                                            {
-                                                                <ul style="margin: 2px 0 4px 0; padding: 0; list-style: none;">
-                                                                    @foreach (var sub in detail.Subs)
-                                                                    {
-                                                                        <li style="@SubBulletStyle()">
-                                                                            <span style="@SubBulletDashStyle()">–</span>
-                                                                            @sub
-                                                                        </li>
-                                                                    }
-                                                                </ul>
-                                                            }
-                                                        </li>
-                                                    }
-                                                }
-                                            </ul>
-                                        </div>
-                                        }
-                                    }
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </div>
-
-        @if (!_isPreviewMode && _activeTab != null && _data != null)
-        {
-            <div style="@FooterBarStyle()">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Active Tab:</span>
-                        <span style="font-size: 12px; color: @(_isVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@_activeTab.Name</span>
-                    </div>
-                    <div style="height: 16px; width: 1px; background: @(_isVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Last Modified:</span>
-                        <span style="font-size: 12px; color: @(_isVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@_activeTab.LastModified.ToLocalTime().ToString("MMM d, h:mm tt")</span>
-                    </div>
-                    <div style="height: 16px; width: 1px; background: @(_isVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Columns:</span>
-                        <span style="font-size: 12px; color: @(_isVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@_data.Columns.Count</span>
-                    </div>
-                    <div style="height: 16px; width: 1px; background: @(_isVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 12px; color: @(_isVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Lanes:</span>
-                        <span style="font-size: 12px; color: @(_isVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@_data.Lanes.Count</span>
-                    </div>
-                </div>
-            </div>
-        }
+            <RoadmapFooter ActiveTab="@_activeTab"
+                          Data="@_data"
+                          IsVibeMode="@ThemeService.IsVibeMode"
+                          IsPreviewMode="@StateManager.IsPreviewMode" />
         }
         else if (_error != null)
         {
@@ -478,7 +75,7 @@
     <InputFile @ref="_allDataImportInput" OnChange="HandleAllDataImport" accept=".json" style="display: none;" />
 
     @* Right Sidebar: Properties Panel OR JSON Editor *@
-    @if (!_jsonEditorMode)
+    @if (!StateManager.IsJsonEditorMode)
     {
         @* Properties Mode: Standard property editing panel *@
         <PropertyPanel OnPropertyChange="HandlePropertyChange"
@@ -490,7 +87,7 @@
                       OnHidePanel="ToggleProperties"
                       OnToggleJsonEditor="ToggleJsonEditorMode"
                       OnSelectTitle="HandleSelectTitle"
-                      IsCollapsed="@(!_showProperties)"
+                      IsCollapsed="@(!StateManager.ShowProperties)"
                       ColumnCount="@(_data?.Columns.Count ?? 4)"
                       LaneCount="@(_data?.Lanes.Count ?? 1)"
                       MilestoneCount="@(_data?.Milestones.Count ?? 0)"
@@ -606,7 +203,7 @@
 
     @if (_folderManager != null)
     {
-        <RoadmapManager IsVisible="@_showRoadmapManager"
+        <RoadmapManager IsVisible="@StateManager.ShowRoadmapManager"
                        Folders="@_folderManager.Folders"
                        ActiveFolderId="@_folderManager.ActiveFolderId"
                        MaxFolders="@_folderManager.MaxFolders"
@@ -623,7 +220,7 @@
                        OnRoadmapDuplicate="HandleRoadmapDuplicateFromManager"
                        OnRoadmapDelete="HandleRoadmapDeleteFromManager" />
 
-        <FolderSelector IsVisible="@_showFolderSettings"
+        <FolderSelector IsVisible="@StateManager.ShowFolderSettings"
                        Folders="@_folderManager.Folders"
                        ActiveFolderId="@_folderManager.ActiveFolderId"
                        MaxFolders="@_folderManager.MaxFolders"
@@ -638,18 +235,18 @@
                        OnIconChange="HandleFolderIconChange" />
     }
 
-    <ShareModal IsVisible="@_showShareModal"
-               ShareUrl="@_shareUrl"
-               ErrorMessage="@_shareError"
+    <ShareModal IsVisible="@StateManager.ShowShareModal"
+               ShareUrl="@StateManager.ShareUrl"
+               ErrorMessage="@StateManager.ShareError"
                OnClose="CloseShareModal" />
 
-    <ImportModal IsVisible="@_showImportModal"
-                RoadmapData="@_importRoadmapData"
+    <ImportModal IsVisible="@StateManager.ShowImportModal"
+                RoadmapData="@StateManager.ImportRoadmapData"
                 AvailableFolders="@(_folderManager?.Folders ?? new())"
                 OnClose="CloseImportModal"
                 OnImport="HandleImportSharedRoadmap" />
 
-    <TemplateSelector IsVisible="@_showTemplateSelector"
+    <TemplateSelector IsVisible="@StateManager.ShowTemplateSelector"
                      OnClose="CloseTemplateSelector"
                      OnTemplateSelect="HandleTemplateSelect" />
 </div>
@@ -661,12 +258,7 @@
     private bool _isUpdating = false;
     private bool _lastUpdateSuccess = false;
     private string _currentJson = "";
-    private bool _isVibeMode = false;
-    private SeasonalTheme _currentTheme = SeasonalTheme.Classic;
     private bool _editorReady = false;
-    private bool _isPreviewMode = false;       // Toggle between Edit Mode and Preview Mode
-    private bool _jsonEditorMode = false;      // Toggle between Properties Mode and JSON Editor Mode
-    private bool _showProperties = true;       // Show/hide properties panel (right sidebar) - open by default
     private DotNetObjectReference<Home>? _dotNetRef;
     private InputFile? _folderImportInput;
     private InputFile? _allDataImportInput;
@@ -684,14 +276,6 @@
     private DateTime _lastSaveTime = DateTime.MinValue;
 
     private bool _showFolderSelector = false; // Legacy - keeping for backward compatibility
-    private bool _showRoadmapManager = false;
-    private bool _showFolderSettings = false;
-    private bool _showShareModal = false;
-    private bool _showImportModal = false;
-    private string _shareUrl = "";
-    private string _shareError = "";
-    private RoadmapData? _importRoadmapData = null;
-    private bool _showTemplateSelector = false;
     private bool _isCreatingNewFolder = false;
     private string? _pendingFolderName = null;
     private string? _pendingAddToFolderId = null;
@@ -879,6 +463,10 @@
     {
         await InitializeFolderManagerAsync();
 
+        // Subscribe to service state changes
+        StateManager.OnStateChanged += HandleStateChanged;
+        ThemeService.OnThemeChanged += HandleThemeChanged;
+
         // Handle URL-based navigation and sharing
         await HandleUrlNavigation();
 
@@ -887,6 +475,16 @@
             ParseJson(_currentJson);
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private void HandleStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleThemeChanged()
+    {
+        InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleUrlNavigation()
@@ -902,8 +500,7 @@
                 var sharedData = ShareService.ParseShareUrl(shareCode);
                 if (sharedData != null)
                 {
-                    _importRoadmapData = sharedData;
-                    _showImportModal = true;
+                    StateManager.ShowImportDialog(sharedData);
                 }
             }
             else if (!string.IsNullOrEmpty(folderId) && !string.IsNullOrEmpty(tabId) && _folderManager != null)
@@ -1000,7 +597,7 @@
         }
 
         // Setup resize/move handlers for all items (runs on every render to handle new items)
-        if (!_isPreviewMode && _dotNetRef != null && _data != null)
+        if (!StateManager.IsPreviewMode && _dotNetRef != null && _data != null)
         {
             try
             {
@@ -1215,7 +812,7 @@
     [JSInvokable]
     public void StartResize(int laneIndex, int itemIndex, string edge, double clientX)
     {
-        if (_data == null || _isPreviewMode) return;
+        if (_data == null || StateManager.IsPreviewMode) return;
 
         SaveHistorySnapshot();
 
@@ -1326,7 +923,7 @@
     [JSInvokable]
     public void StartMove(int laneIndex, int itemIndex, double clientX)
     {
-        if (_data == null || _isPreviewMode) return;
+        if (_data == null || StateManager.IsPreviewMode) return;
 
         SaveHistorySnapshot();
 
@@ -1412,7 +1009,7 @@
     [JSInvokable]
     public void StartMoveMilestone(int milestoneIndex, double clientX)
     {
-        if (_data == null || _isPreviewMode) return;
+        if (_data == null || StateManager.IsPreviewMode) return;
 
         SaveHistorySnapshot();
 
@@ -1597,6 +1194,10 @@
 
     public void Dispose()
     {
+        // Unsubscribe from service events
+        StateManager.OnStateChanged -= HandleStateChanged;
+        ThemeService.OnThemeChanged -= HandleThemeChanged;
+
         _dotNetRef?.Dispose();
         _saveCancellation?.Cancel();
         _saveCancellation?.Dispose();
@@ -1952,43 +1553,31 @@
 
     private void ToggleTheme(ChangeEventArgs? e = null)
     {
-        _isVibeMode = !_isVibeMode;
-        StateHasChanged();
+        ThemeService.ToggleVibeMode();
     }
 
     private void CycleSeasonalTheme()
     {
-        _currentTheme = _currentTheme switch
-        {
-            SeasonalTheme.Classic => SeasonalTheme.Spring,
-            SeasonalTheme.Spring => SeasonalTheme.Summer,
-            SeasonalTheme.Summer => SeasonalTheme.Autumn,
-            SeasonalTheme.Autumn => SeasonalTheme.Winter,
-            SeasonalTheme.Winter => SeasonalTheme.Classic,
-            _ => SeasonalTheme.Classic
-        };
-        StateHasChanged();
+        ThemeService.CycleSeasonalTheme();
     }
 
     private async Task ToggleViewMode(ChangeEventArgs? e = null)
     {
-        _isPreviewMode = !_isPreviewMode;
-        _showProperties = !_isPreviewMode;
-        if (_isPreviewMode)
+        StateManager.TogglePreviewMode();
+        StateManager.ShowProperties = !StateManager.IsPreviewMode;
+        if (StateManager.IsPreviewMode)
         {
             // Auto-deselect any active elements when entering preview mode
             SelectionState.Clear();
             // Clear any lingering hover effects for pristine preview
             await JSRuntime.InvokeVoidAsync("RoadScriptInterop.clearAllHoverEffects");
         }
-        StateHasChanged();
     }
 
 
     private void ToggleProperties()
     {
-        _showProperties = !_showProperties;
-        StateHasChanged();
+        StateManager.ToggleProperties();
     }
 
     private void ParseJson(string json)
@@ -2011,775 +1600,11 @@
         }
     }
 
-    private string UpdateButtonStyle() =>
-        _editorReady
-            ? "background: #0e639c; color: #fff; border: none; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.2s;"
-            : "background: #555; color: #888; border: none; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: not-allowed;";
 
-    private string ThemeToggleStyle() =>
-        _isVibeMode
-            ? "width: 50px; height: 24px; border-radius: 12px; border: none; cursor: pointer; " +
-              "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); " +
-              "padding: 2px; transition: all 0.3s ease; position: relative; box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);"
-            : "width: 50px; height: 24px; border-radius: 12px; border: 1px solid #555; cursor: pointer; " +
-              "background: #3c3c3c; padding: 2px; transition: all 0.3s ease; position: relative;";
-
-    private string ThemeToggleIndicatorStyle() =>
-        _isVibeMode
-            ? "width: 18px; height: 18px; border-radius: 50%; background: #fff; " +
-              "transition: all 0.3s ease; transform: translateX(26px); box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);"
-            : "width: 18px; height: 18px; border-radius: 50%; background: #ccc; " +
-              "transition: all 0.3s ease; transform: translateX(0);";
-
-    private string PreviewPaneStyle()
-    {
-        // Subtle noise texture overlay for depth
-        var noiseOverlay = "background-image: url(\"data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E\");";
-
-        if (_isVibeMode)
-        {
-            return $"flex: 1; background: {GetSeasonalVibeBackground()}; {noiseOverlay} overflow: auto; display: flex; flex-direction: column;";
-        }
-        return $"flex: 1; background: {GetSeasonalLiteBackground()}; {noiseOverlay} overflow: auto; display: flex; flex-direction: column;";
-    }
-
-    private string PreviewControlBarStyle() =>
-        _isVibeMode
-            ? "background: rgba(30, 30, 46, 0.9); padding: 8px 16px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #3a3a4e;"
-            : "background: rgba(255, 255, 255, 0.95); padding: 8px 16px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #d1d5db; box-shadow: 0 1px 3px rgba(0,0,0,0.1);";
-
-    private string ViewModeToggleStyle() =>
-        _isPreviewMode
-            ? "background: #0e639c; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s; flex: 1;"
-            : "background: #667eea; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s; flex: 1;";
-
-    private string CollapsedViewModeToggleStyle() =>
-        _isPreviewMode
-            ? "background: #0e639c; color: #fff; border: none; padding: 8px; border-radius: 4px; font-size: 16px; cursor: pointer; transition: all 0.2s; writing-mode: horizontal-tb;"
-            : "background: #667eea; color: #fff; border: none; padding: 8px; border-radius: 4px; font-size: 16px; cursor: pointer; transition: all 0.2s; writing-mode: horizontal-tb;";
-
-    private string PanelToggleStyle() =>
-        _isVibeMode
-            ? "background: #2a2a3e; color: #d1d5db; border: 1px solid #3a3a4e; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;"
-            : "background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;";
-
-
-    private string GetTabIndicatorStyle(bool isActive)
-    {
-        if (isActive)
-        {
-            return "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4); display: flex; align-items: center; justify-content: center;";
-        }
-        return "background: #2a2a3e; color: #888; border: 1px solid #3a3a4e; width: 32px; height: 32px; border-radius: 50%; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;";
-    }
-
-    private string GetFolderIndicatorStyle(bool isActive, bool hasFolder, string folderColor)
-    {
-        if (isActive && hasFolder)
-        {
-            return $"background: linear-gradient(135deg, {folderColor} 0%, {folderColor}dd 100%); color: #fff; border: 2px solid {folderColor}; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px {folderColor}66; display: flex; align-items: center; justify-content: center;";
-        }
-        else if (hasFolder)
-        {
-            return $"background: #2a2a3e; color: #888; border: 1px solid {folderColor}44; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.6;";
-        }
-        else
-        {
-            return "background: #1e1e2e; color: #555; border: 1px dashed #3a3a4e; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.4;";
-        }
-    }
-
-    private string GetCollapsedToggleStyle(bool isActive)
-    {
-        if (isActive)
-        {
-            return "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; width: 44px; height: 44px; border-radius: 8px; font-size: 22px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); display: flex; align-items: center; justify-content: center;";
-        }
-        return "background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 22px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;";
-    }
-
-
-    private string RoadmapWrapperStyle()
-    {
-        if (_isPreviewMode)
-        {
-            return "flex: 1; display: flex; justify-content: center; align-items: flex-start; overflow: auto;";
-        }
-        else
-        {
-            return "flex: 1; display: flex; align-items: flex-start; overflow: auto; padding: 16px;";
-        }
-    }
-
-    private string RoadmapContainerStyle()
-    {
-        var maxWidthStyle = _isPreviewMode ? "max-width: 1700px;" : "";
-        var widthStyle = _isPreviewMode ? "width: 100%;" : "width: 100%;";
-        var minWidthStyle = "min-width: 600px;"; // Prevent container from getting too narrow
-
-        if (_isVibeMode)
-        {
-            return $"{widthStyle} {maxWidthStyle} {minWidthStyle} aspect-ratio: 16/9; " +
-                  $"background: {GetSeasonalVibeContainer()}; " +
-                  "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
-                  "padding: 22px 30px; border: 2px solid #667eea; position: relative; " +
-                  "box-shadow: 0 0 40px rgba(102, 126, 234, 0.3), 0 8px 32px rgba(0, 0, 0, 0.6);";
-        }
-        return $"{widthStyle} {maxWidthStyle} {minWidthStyle} aspect-ratio: 16/9; background: {GetSeasonalLiteContainer()}; " +
-              "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
-              "padding: 22px 30px; border: 1px solid #d1d5db; position: relative;";
-    }
-
-    private string LaneLabelWrapStyle(Lane lane)
-    {
-        var laneCount = _data?.Lanes.Count ?? 1;
-        var totalHeight = _data?.Lanes.Sum(l => l.Height ?? 1.0) ?? laneCount;
-        var laneHeight = lane.Height ?? 1.0;
-        var heightPercent = (laneHeight / totalHeight) * 100.0;
-        return $"height: {heightPercent}%; display: flex; align-items: center;";
-    }
-
-    private string LaneBarStyle(string color)
-    {
-        if (_isVibeMode)
-        {
-            var vibeColor = GetVibeColor(color);
-            return $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {vibeColor}; box-shadow: 0 0 15px {vibeColor}, 0 0 5px {vibeColor}80;";
-        }
-        return $"width: 5px; min-height: 44px; border-radius: 2px; margin-top: 2px; background: {color};";
-    }
-
-    private string HistoryBarContainerStyle() =>
-        _isVibeMode
-            ? "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.1);"
-            : "display: flex; height: 5px; border-radius: 3px; overflow: hidden; width: 90px; background: #e5e7eb;";
-
-    private string HistoryProgressStyle(string color, double pct)
-    {
-        if (_isVibeMode)
-        {
-            var vibeColor = GetVibeColor(color);
-            return $"width: {pct:F2}%; background: {vibeColor}; box-shadow: 0 0 12px {vibeColor};";
-        }
-        return $"width: {pct:F2}%; background: {color};";
-    }
-
-    private string HistoryEmptyStyle(double pct)
-    {
-        if (_isVibeMode)
-        {
-            return $"width: {pct:F2}%; background: repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.15) 4px, rgba(255,255,255,0.15) 8px);";
-        }
-        return $"width: {pct:F2}%; background: repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.2) 4px, rgba(255,255,255,0.2) 8px);";
-    }
-
-    private string ColumnHeaderStyle(int index)
-    {
-        if (_isVibeMode)
-        {
-            var bg = index % 2 == 0
-                ? "background: linear-gradient(180deg, rgba(26, 26, 46, 0.95) 0%, rgba(18, 18, 36, 0.95) 100%);"
-                : "background: linear-gradient(180deg, rgba(18, 18, 36, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%);";
-            var border = index > 0 ? "border-left: 1px solid rgba(102, 126, 234, 0.3);" : "";
-            return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} {bg}";
-        }
-        else
-        {
-            var bg = index % 2 == 0 ? "#f8f9fa" : "#fff";
-            var border = index > 0 ? "border-left: 1px solid #e5e7eb;" : "";
-            return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} background: {bg};";
-        }
-    }
-
-    private string MilestoneScaleContainerStyle()
-    {
-        if (_isVibeMode)
-        {
-            return "position: relative; height: 40px; border-bottom: 2px solid rgba(102, 126, 234, 0.4); display: flex; align-items: center; background: linear-gradient(180deg, rgba(18, 18, 36, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);";
-        }
-        return "position: relative; height: 40px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; background: #f8f9fa;";
-    }
-
-    private string StaticNavButtonStyle(string type)
-    {
-        if (_isVibeMode)
-        {
-            // Different styles based on button type
-            return type switch
-            {
-                "jump" => "width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: 3px solid #047857; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);",
-                "column" => "width: 44px; height: 44px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.3) 100%); color: #ffffff; border: 2px solid rgba(102, 126, 234, 0.7); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);",
-                "nudge" => "width: 40px; height: 40px; background: rgba(30, 30, 46, 0.8); color: #a0a0c0; border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 600; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);",
-                _ => "width: 44px; height: 44px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.2) 100%); color: #ffffff; border: 2px solid rgba(102, 126, 234, 0.6); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);"
-            };
-        }
-
-        return type switch
-        {
-            "jump" => "width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: 3px solid #047857; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6);",
-            "column" => "width: 44px; height: 44px; background: linear-gradient(135deg, #667eea 0%, #5568d3 100%); color: #ffffff; border: 2px solid #4c51bf; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);",
-            "nudge" => "width: 40px; height: 40px; background: rgba(200, 200, 220, 0.3); color: #4c51bf; border: 1px solid #9ca3af; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 600; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);",
-            _ => "width: 44px; height: 44px; background: linear-gradient(135deg, #667eea 0%, #5568d3 100%); color: #ffffff; border: 2px solid #4c51bf; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);"
-        };
-    }
-
-    private string MilestoneStyle(double position) =>
-        $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10; padding: 8px; min-width: 40px; cursor: move;";
-
-    private string MilestoneContainerStyle() =>
-        "display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none;";
-
-    private string MilestoneLabelStyle(string color)
-    {
-        if (_isVibeMode)
-        {
-            var vibeColor = GetVibeColor(color);
-            return $"font-size: 15px; font-weight: 700; line-height: 1.3; color: {vibeColor}; white-space: nowrap; text-shadow: 0 0 10px {vibeColor}80, 0 1px 3px rgba(0,0,0,0.8); background: rgba(13, 13, 26, 0.95); padding: 4px 10px; border-radius: 4px; border: 1px solid {vibeColor}60; border-left: 3px solid {vibeColor}; box-shadow: 0 0 15px {vibeColor}40;";
-        }
-        return $"font-size: 15px; font-weight: 700; line-height: 1.3; color: #374151; white-space: nowrap; background: rgba(255, 255, 255, 0.98); padding: 4px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 3px solid {color};";
-    }
-
-    private string MilestoneButtonsStyle() =>
-        _isVibeMode
-            ? "display: flex; gap: 2px; margin-bottom: 4px; pointer-events: auto; background: rgba(13, 13, 26, 0.95); border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 6px; padding: 2px;"
-            : "display: flex; gap: 2px; margin-bottom: 4px; pointer-events: auto; background: rgba(255, 255, 255, 0.98); border: 1px solid #e5e7eb; border-radius: 6px; padding: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);";
-
-    private string MilestoneButtonStyle() =>
-        _isVibeMode
-            ? "width: 24px; height: 24px; background: rgba(102, 126, 234, 0.2); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;"
-            : "width: 24px; height: 24px; background: #f8f9fa; color: #667eea; border: 1px solid #e5e7eb; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;";
-
-    private double GetColumnPercentage()
-    {
-        var columnCount = _data?.Columns.Count ?? 4;
-        return columnCount > 0 ? 100.0 / columnCount : 25.0;
-    }
-
-    private string GridColumnStyle(int index)
-    {
-        var (even, odd) = GetSeasonalColumnColors();
-        var bg = index % 2 == 0 ? even : odd;
-
-        if (_isVibeMode)
-        {
-            var bgStyle = $"background: {bg};";
-            var border = index > 0 ? "border-left: 1px solid rgba(102, 126, 234, 0.15);" : "";
-            return $"flex: 1; {border} {bgStyle}";
-        }
-        else
-        {
-            var border = index > 0 ? "border-left: 1px solid #e5e7eb;" : "";
-            return $"flex: 1; {border} background: {bg};";
-        }
-    }
-
-    private string LaneRowStyle(int index, Lane lane)
-    {
-        var laneCount = _data?.Lanes.Count ?? 1;
-        var totalHeight = _data?.Lanes.Sum(l => l.Height ?? 1.0) ?? laneCount;
-        var laneHeight = lane.Height ?? 1.0;
-        var heightPercent = (laneHeight / totalHeight) * 100.0;
-        var borderColor = _isVibeMode ? "rgba(102, 126, 234, 0.2)" : "#e5e7eb";
-        var border = index < laneCount - 1 ? $"border-bottom: 1px solid {borderColor};" : "";
-        return $"height: {heightPercent}%; position: relative; {border}";
-    }
-
-    private string ItemStyle(Item item, Lane lane, int itemIdx)
-    {
-        var cols = _data?.Columns.Count ?? 4;
-        var leftPct = (item.Start / cols) * 100;
-        var widthPct = (item.Length / cols) * 100;
-        var greyedOutStyle = item.Greyed ? "opacity: 0.5; filter: grayscale(0.6);" : "";
-
-        // Support row view based on ANY overlap (not just same start position)
-        // Find the complete overlap group (transitive closure) to avoid gaps
-        var itemEnd = item.Start + item.Length;
-
-        // Helper function to check if two items overlap
-        bool DoItemsOverlap(Item a, Item b)
-        {
-            var aEnd = a.Start + a.Length;
-            var bEnd = b.Start + b.Length;
-            return a.Start < bEnd && b.Start < aEnd;
-        }
-
-        // Find all items in the same overlap group (transitive closure)
-        var overlapGroup = new HashSet<int> { itemIdx };
-        var toProcess = new Queue<int>();
-        toProcess.Enqueue(itemIdx);
-
-        while (toProcess.Count > 0)
-        {
-            var currentIdx = toProcess.Dequeue();
-            var currentItem = lane.Items[currentIdx];
-
-            for (int i = 0; i < lane.Items.Count; i++)
-            {
-                if (!overlapGroup.Contains(i) && DoItemsOverlap(currentItem, lane.Items[i]))
-                {
-                    overlapGroup.Add(i);
-                    toProcess.Enqueue(i);
-                }
-            }
-        }
-
-        // Row assignment algorithm (Gantt-chart style)
-        // Sort items in the overlap group by start position, then by index
-        var sortedItems = overlapGroup
-            .Select(idx => new { Index = idx, Item = lane.Items[idx] })
-            .OrderBy(x => x.Item.Start)
-            .ThenBy(x => x.Index)
-            .ToList();
-
-        // Assign each item to the first available row where it doesn't overlap
-        var itemToRow = new Dictionary<int, int>();
-        var rows = new List<List<int>>(); // Each row contains item indices
-
-        foreach (var itemData in sortedItems)
-        {
-            var idx = itemData.Index;
-            var itm = itemData.Item;
-
-            // Find the first row where this item doesn't overlap with any existing items
-            int assignedRow = -1;
-            for (int rowIdx = 0; rowIdx < rows.Count; rowIdx++)
-            {
-                var canFit = true;
-                foreach (var existingIdx in rows[rowIdx])
-                {
-                    if (DoItemsOverlap(itm, lane.Items[existingIdx]))
-                    {
-                        canFit = false;
-                        break;
-                    }
-                }
-
-                if (canFit)
-                {
-                    assignedRow = rowIdx;
-                    break;
-                }
-            }
-
-            // If no existing row works, create a new row
-            if (assignedRow == -1)
-            {
-                assignedRow = rows.Count;
-                rows.Add(new List<int>());
-            }
-
-            rows[assignedRow].Add(idx);
-            itemToRow[idx] = assignedRow;
-        }
-
-        var positionStyle = "";
-        var totalRows = rows.Count;
-
-        if (totalRows > 1)
-        {
-            var rowIndex = itemToRow[itemIdx];
-            var rowHeight = 100.0 / totalRows;
-            var topPct = rowHeight * rowIndex;
-            var bottomPct = 100 - (topPct + rowHeight);
-            positionStyle = $"top: calc({topPct}% + 6px); bottom: calc({bottomPct}% + 6px);";
-        }
-        else
-        {
-            positionStyle = "top: 6px; bottom: 6px;";
-        }
-
-        var color = lane.Color;
-
-        if (_isVibeMode)
-        {
-            var vibeColor = GetVibeColor(color);
-            var vibeGradient = GetVibeGradient(color);
-
-            var borderStyle = item.Spanning
-                ? $"border: 2px dashed {vibeColor}; border-left: 4px solid {vibeColor};"
-                : $"border: 1px solid {vibeColor}; border-left: 4px solid {vibeColor};";
-
-            var shadow = item.Spanning
-                ? $"box-shadow: 0 0 20px {vibeColor}40, 0 4px 12px rgba(0,0,0,0.4);"
-                : $"box-shadow: 0 0 15px {vibeColor}30, 0 4px 12px rgba(0,0,0,0.4);";
-
-            if (item.Greyed)
-            {
-                shadow = $"box-shadow: inset 0 4px 10px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.6);";
-            }
-
-            return $"position: absolute; left: calc({leftPct}% + 6px); {positionStyle} " +
-                   $"width: calc({widthPct}% - 12px); {vibeGradient} border-radius: 8px; " +
-                   $"padding: 12px 16px; overflow: hidden; {borderStyle} {shadow} {greyedOutStyle}";
-        }
-        else
-        {
-            var borderStyle = item.Spanning
-                ? $"border: 2px dashed {color}50; border-left: 5px solid {color};"
-                : $"border: 1px solid {color}30; border-left: 5px solid {color};";
-
-            var shadow = item.Spanning ? "" : "box-shadow: 0 1px 4px rgba(0,0,0,0.08);";
-
-            if (item.Greyed)
-            {
-                shadow = "box-shadow: inset 0 2px 6px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1);";
-            }
-
-            return $"position: absolute; left: calc({leftPct}% + 6px); {positionStyle} " +
-                   $"width: calc({widthPct}% - 12px); background: #fff; border-radius: 6px; " +
-                   $"padding: 12px 16px; overflow: hidden; {borderStyle} {shadow} {greyedOutStyle}";
-        }
-    }
-
-    private string DetailItemStyle(Detail detail) =>
-        detail.Subs != null && detail.Subs.Count > 0 ? "margin-bottom: 2px;" : "margin-bottom: 3px;";
-
-    private string DetailTextStyle(string color)
-    {
-        if (_isVibeMode)
-        {
-            return $"font-size: 18px; color: #e5e7eb; line-height: 1.5; padding-left: 14px; position: relative;";
-        }
-        return $"font-size: 18px; color: #4b5563; line-height: 1.5; padding-left: 14px; position: relative;";
-    }
-
-    private string BulletStyle(string color)
-    {
-        if (_isVibeMode)
-        {
-            var vibeColor = GetVibeColor(color);
-            return $"position: absolute; left: 0; color: {vibeColor}; font-weight: 700; text-shadow: 0 0 12px {vibeColor}, 0 0 4px {vibeColor}80;";
-        }
-        return $"position: absolute; left: 0; color: {color}; font-weight: 700;";
-    }
-
-
-    private string TitleStyle() =>
-        _isVibeMode
-            ? "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 35%, #e0c3fc 50%, #c4b5fd 65%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 2px 4px rgba(165, 180, 252, 0.3)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;"
-            : "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #1a1a2e 0%, #2a2a3e 50%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;";
-
-    private string SubtitleStyle() =>
-        _isVibeMode
-            ? "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #c4b5fd; font-weight: 500; text-shadow: 0 0 8px rgba(196, 181, 253, 0.4);"
-            : "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #6b7280; font-weight: 500;";
-
-    private string TitleContainerStyle()
-    {
-        var baseGradient = _isVibeMode
-            ? "background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 50%, rgba(102, 126, 234, 0.08) 100%); border: 1px solid rgba(102, 126, 234, 0.15); box-shadow: inset 0 1px 2px rgba(102, 126, 234, 0.1);"
-            : "background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(248, 249, 250, 0.4) 50%, rgba(255, 255, 255, 0.6) 100%); border: 1px solid rgba(209, 213, 219, 0.3); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);";
-
-        // Padding is now set conditionally in the component based on content
-        // Cursor is set on individual clickable sections (title/buttons), not container
-        return $"margin-bottom: 16px; border-radius: 6px; transition: all 0.2s; {baseGradient}";
-    }
-
-    private string LaneTitleStyle() =>
-        _isVibeMode
-            ? "font-size: 16px; font-weight: 700; color: #e5e7eb; line-height: 1.3; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);"
-            : "font-size: 16px; font-weight: 700; color: #374151; line-height: 1.3;";
-
-    private string ColumnHeaderContainerStyle() =>
-        _isVibeMode
-            ? "display: flex; height: 48px; border-bottom: 2px solid rgba(102, 126, 234, 0.4); position: relative; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(102, 126, 234, 0.1); background: linear-gradient(180deg, rgba(102, 126, 234, 0.05) 0%, transparent 100%);"
-            : "display: flex; height: 48px; border-bottom: 2px solid #e5e7eb; position: relative; background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 100%); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);";
-
-    private string ColumnLabelStyle() =>
-        _isVibeMode
-            ? "font-size: 20px; font-weight: 700; line-height: 1.3; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 0 10px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 1px 3px rgba(165, 180, 252, 0.3));"
-            : "font-size: 20px; font-weight: 700; line-height: 1.3; background: linear-gradient(135deg, #1f2937 0%, #374151 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.1));";
-
-    private string ColumnSubStyle() =>
-        _isVibeMode
-            ? "font-size: 13px; line-height: 1.4; color: #c4b5fd; font-weight: 500;"
-            : "font-size: 13px; line-height: 1.4; color: #9ca3af; font-weight: 500;";
-
-    private string ItemHeaderStyle(bool hasDetails, bool hasSubs, bool hasTitle, double span, string laneColor)
-    {
-        // Icon-only items: center and expand the icon
-        if (!hasTitle)
-        {
-            var iconOnlyMargin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
-
-            if (_isVibeMode)
-            {
-                var vibeColor = GetVibeColor(laneColor);
-                var rgb = HexToRgb(vibeColor);
-                var background = $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.25) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.10) 100%);";
-                var border = $"border-bottom: 2px solid rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.4);";
-                var shadow = $"box-shadow: 0 3px 10px rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.2);";
-
-                return $"display: flex; align-items: center; justify-content: center; padding: 14px; {background} {border} {shadow} {iconOnlyMargin}";
-            }
-            else
-            {
-                var background = $"background: {laneColor}08;";
-                var border = $"border-bottom: 1px solid {laneColor}15;";
-
-                return $"display: flex; align-items: center; justify-content: center; padding: 14px; {background} {border} {iconOnlyMargin}";
-            }
-        }
-
-        // Adjust gap and padding based on details and subs
-        var gap = hasDetails ? (hasSubs ? "7px" : "8px") : "10px";
-        var padding = hasDetails ? (hasSubs ? "7px 11px" : "8px 12px") : "10px 14px";
-
-        if (_isVibeMode)
-        {
-            var vibeColor = GetVibeColor(laneColor);
-            var rgb = HexToRgb(vibeColor);
-            var background = $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.25) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.10) 100%);";
-            var border = $"border-bottom: 2px solid rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.4);";
-            var shadow = $"box-shadow: 0 3px 10px rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.2);";
-            var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
-
-            return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {shadow} {margin}";
-        }
-        else
-        {
-            var background = $"background: {laneColor}08;";
-            var border = $"border-bottom: 1px solid {laneColor}15;";
-            var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
-
-            return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {margin}";
-        }
-    }
-
-    private string ItemTitleStyle(bool hasDetails, bool hasSubs)
-    {
-        // Adjust font size based on details and subs
-        var baseSize = hasDetails ? (hasSubs ? "21px" : "22px") : "24px";
-        var margin = hasDetails ? "margin: 0 0 8px 0;" : "margin: 0;";
-
-        return _isVibeMode
-            ? $"{margin} font-size: {baseSize}; font-weight: 700; color: #f9fafb; line-height: 1.25; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);"
-            : $"{margin} font-size: {baseSize}; font-weight: 700; color: #1f2937; line-height: 1.25;";
-    }
-
-    private int GetIconSize(bool hasDetails, bool hasSubs, bool hasTitle)
-    {
-        // Icon-only items get larger icon that scales with container
-        if (!hasTitle)
-        {
-            return hasDetails ? 32 : 48;
-        }
-
-        // Regular items with text
-        if (hasDetails)
-        {
-            return hasSubs ? 18 : 20;
-        }
-
-        return 24;
-    }
-
-    private string CompletedBadgeStyle() =>
-        _isVibeMode
-            ? "width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4); flex-shrink: 0;"
-            : "width: 26px; height: 26px; border-radius: 50%; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); flex-shrink: 0;";
-
-    private string SubBulletStyle() =>
-        _isVibeMode
-            ? "font-size: 15px; color: #d1d5db; line-height: 1.5; padding-left: 22px; position: relative; margin-bottom: 2px;"
-            : "font-size: 15px; color: #6b7280; line-height: 1.5; padding-left: 22px; position: relative; margin-bottom: 2px;";
-
-    private string SubBulletDashStyle() =>
-        _isVibeMode
-            ? "position: absolute; left: 14px; color: #9ca3af; font-size: 15px;"
-            : "position: absolute; left: 14px; color: #9ca3af; font-size: 15px;";
-
-    private string GetVibeColor(string hexColor)
-    {
-        var rgb = HexToRgb(hexColor);
-        var hsl = RgbToHsl(rgb.r, rgb.g, rgb.b);
-
-        // Boost saturation for neon effect (min 80%)
-        hsl.s = Math.Max(0.80, hsl.s * 1.4);
-        hsl.s = Math.Min(1.0, hsl.s);
-
-        // Increase lightness for dark backgrounds (aim for 60-75%)
-        hsl.l = Math.Max(0.60, Math.Min(0.75, hsl.l * 1.3));
-
-        var vibeRgb = HslToRgb(hsl.h, hsl.s, hsl.l);
-        return $"#{vibeRgb.r:X2}{vibeRgb.g:X2}{vibeRgb.b:X2}";
-    }
-
-    private string GetVibeGradient(string hexColor)
-    {
-        var vibeColor = GetVibeColor(hexColor);
-        var rgb = HexToRgb(vibeColor);
-
-        // Create gradient with transparency for layering effect
-        return $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.20) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.08) 100%);";
-    }
-
-    // Get seasonal background gradient for Vibe Mode
-    private string GetSeasonalVibeBackground()
-    {
-        return _currentTheme switch
-        {
-            SeasonalTheme.Classic => "linear-gradient(135deg, #0a0a14 0%, #121220 25%, #1a1a2e 50%, #121220 75%, #0a0a14 100%)",
-            SeasonalTheme.Spring => "linear-gradient(135deg, #0a140a 0%, #122012 25%, #1a2e1a 50%, #122012 75%, #0a140a 100%)",
-            SeasonalTheme.Summer => "linear-gradient(135deg, #14100a 0%, #201812 25%, #2e251a 50%, #201812 75%, #14100a 100%)",
-            SeasonalTheme.Autumn => "linear-gradient(135deg, #140a0a 0%, #201212 25%, #2e1a1a 50%, #201212 75%, #140a0a 100%)",
-            SeasonalTheme.Winter => "linear-gradient(135deg, #0a0f14 0%, #121820 25%, #1a252e 50%, #121820 75%, #0a0f14 100%)",
-            _ => "linear-gradient(135deg, #0a0a14 0%, #121220 25%, #1a1a2e 50%, #121220 75%, #0a0a14 100%)"
-        };
-    }
-
-    // Get seasonal background color for Lite Mode
-    private string GetSeasonalLiteBackground()
-    {
-        return _currentTheme switch
-        {
-            SeasonalTheme.Classic => "#e8eaed",
-            SeasonalTheme.Spring => "#e8f4e8",
-            SeasonalTheme.Summer => "#fef4e8",
-            SeasonalTheme.Autumn => "#f4ebe8",
-            SeasonalTheme.Winter => "#e8f0f4",
-            _ => "#e8eaed"
-        };
-    }
-
-    // Get seasonal container background for Vibe Mode
-    private string GetSeasonalVibeContainer()
-    {
-        return _currentTheme switch
-        {
-            SeasonalTheme.Classic => "linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 50%, #0d0d1a 100%)",
-            SeasonalTheme.Spring => "linear-gradient(135deg, #0d1a0d 0%, #1a2e1a 50%, #0d1a0d 100%)",
-            SeasonalTheme.Summer => "linear-gradient(135deg, #1a150d 0%, #2e281a 50%, #1a150d 100%)",
-            SeasonalTheme.Autumn => "linear-gradient(135deg, #1a0d0d 0%, #2e1a1a 50%, #1a0d0d 100%)",
-            SeasonalTheme.Winter => "linear-gradient(135deg, #0d131a 0%, #1a252e 50%, #0d131a 100%)",
-            _ => "linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 50%, #0d0d1a 100%)"
-        };
-    }
-
-    // Get seasonal container background for Lite Mode
-    private string GetSeasonalLiteContainer()
-    {
-        return _currentTheme switch
-        {
-            SeasonalTheme.Classic => "#fafbfc",
-            SeasonalTheme.Spring => "#f0faf0",
-            SeasonalTheme.Summer => "#fffaf0",
-            SeasonalTheme.Autumn => "#faf5f0",
-            SeasonalTheme.Winter => "#f0f7fa",
-            _ => "#fafbfc"
-        };
-    }
-
-    // Get seasonal column background colors for alternating stripes
-    private (string even, string odd) GetSeasonalColumnColors()
-    {
-        if (_isVibeMode)
-        {
-            return _currentTheme switch
-            {
-                SeasonalTheme.Classic => ("linear-gradient(180deg, rgba(18, 18, 36, 0.4) 0%, rgba(26, 26, 46, 0.4) 100%)",
-                                         "linear-gradient(180deg, rgba(13, 13, 26, 0.4) 0%, rgba(18, 18, 36, 0.4) 100%)"),
-                SeasonalTheme.Spring => ("linear-gradient(180deg, rgba(18, 28, 18, 0.4) 0%, rgba(26, 38, 26, 0.4) 100%)",
-                                        "linear-gradient(180deg, rgba(13, 20, 13, 0.4) 0%, rgba(18, 28, 18, 0.4) 100%)"),
-                SeasonalTheme.Summer => ("linear-gradient(180deg, rgba(28, 22, 18, 0.4) 0%, rgba(38, 32, 26, 0.4) 100%)",
-                                        "linear-gradient(180deg, rgba(20, 16, 13, 0.4) 0%, rgba(28, 22, 18, 0.4) 100%)"),
-                SeasonalTheme.Autumn => ("linear-gradient(180deg, rgba(28, 18, 18, 0.4) 0%, rgba(38, 26, 26, 0.4) 100%)",
-                                        "linear-gradient(180deg, rgba(20, 13, 13, 0.4) 0%, rgba(28, 18, 18, 0.4) 100%)"),
-                SeasonalTheme.Winter => ("linear-gradient(180deg, rgba(18, 22, 28, 0.4) 0%, rgba(26, 32, 38, 0.4) 100%)",
-                                        "linear-gradient(180deg, rgba(13, 16, 20, 0.4) 0%, rgba(18, 22, 28, 0.4) 100%)"),
-                _ => ("linear-gradient(180deg, rgba(18, 18, 36, 0.4) 0%, rgba(26, 26, 46, 0.4) 100%)",
-                     "linear-gradient(180deg, rgba(13, 13, 26, 0.4) 0%, rgba(18, 18, 36, 0.4) 100%)")
-            };
-        }
-        else
-        {
-            return _currentTheme switch
-            {
-                SeasonalTheme.Classic => ("#f8f9fa", "#fff"),
-                SeasonalTheme.Spring => ("#f0faf0", "#f8fff8"),
-                SeasonalTheme.Summer => ("#fff8f0", "#fffef8"),
-                SeasonalTheme.Autumn => ("#faf3f0", "#fff9f8"),
-                SeasonalTheme.Winter => ("#f0f6fa", "#f8fcff"),
-                _ => ("#f8f9fa", "#fff")
-            };
-        }
-    }
-
-    private (int r, int g, int b) HexToRgb(string hex)
-    {
-        hex = hex.TrimStart('#');
-        if (hex.Length == 3)
-        {
-            hex = $"{hex[0]}{hex[0]}{hex[1]}{hex[1]}{hex[2]}{hex[2]}";
-        }
-
-        var r = Convert.ToInt32(hex.Substring(0, 2), 16);
-        var g = Convert.ToInt32(hex.Substring(2, 2), 16);
-        var b = Convert.ToInt32(hex.Substring(4, 2), 16);
-
-        return (r, g, b);
-    }
-
-    private (double h, double s, double l) RgbToHsl(int r, int g, int b)
-    {
-        double rd = r / 255.0;
-        double gd = g / 255.0;
-        double bd = b / 255.0;
-
-        double max = Math.Max(rd, Math.Max(gd, bd));
-        double min = Math.Min(rd, Math.Min(gd, bd));
-        double delta = max - min;
-
-        double h = 0, s = 0, l = (max + min) / 2.0;
-
-        if (delta != 0)
-        {
-            s = l > 0.5 ? delta / (2.0 - max - min) : delta / (max + min);
-
-            if (max == rd)
-                h = ((gd - bd) / delta + (gd < bd ? 6 : 0)) / 6.0;
-            else if (max == gd)
-                h = ((bd - rd) / delta + 2) / 6.0;
-            else
-                h = ((rd - gd) / delta + 4) / 6.0;
-        }
-
-        return (h, s, l);
-    }
-
-    private (int r, int g, int b) HslToRgb(double h, double s, double l)
-    {
-        double r, g, b;
-
-        if (s == 0)
-        {
-            r = g = b = l;
-        }
-        else
-        {
-            double q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            double p = 2 * l - q;
-            r = HueToRgb(p, q, h + 1.0/3.0);
-            g = HueToRgb(p, q, h);
-            b = HueToRgb(p, q, h - 1.0/3.0);
-        }
-
-        return ((int)(r * 255), (int)(g * 255), (int)(b * 255));
-    }
-
-    private double HueToRgb(double p, double q, double t)
-    {
-        if (t < 0) t += 1;
-        if (t > 1) t -= 1;
-        if (t < 1.0/6.0) return p + (q - p) * 6 * t;
-        if (t < 1.0/2.0) return q;
-        if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6;
-        return p;
-    }
 
     private string GetElementClass(string jsonPath)
     {
-        if (_isPreviewMode) return "";
+        if (StateManager.IsPreviewMode) return "";
 
         var baseClass = "clickable-element";
         if (SelectionState.SelectedPath == jsonPath)
@@ -2789,24 +1614,24 @@
         return baseClass;
     }
 
-    private async Task HandleItemClick(int laneIndex, int itemIndex, Item item)
+    private async Task HandleItemClick((int LaneIndex, int ItemIndex, Item Item) args)
     {
-        var jsonPath = $"lanes[{laneIndex}].items[{itemIndex}]";
-        SelectionState.Select(jsonPath, "item", item);
+        var jsonPath = $"lanes[{args.LaneIndex}].items[{args.ItemIndex}]";
+        SelectionState.Select(jsonPath, "item", args.Item);
 
-        if (_jsonEditorMode)
+        if (StateManager.IsJsonEditorMode)
         {
             await JumpToJsonLocation(jsonPath);
         }
     }
 
-    private async Task HandleElementClick(string jsonPath, string elementType, object element)
+    private async Task HandleElementClick((string Path, string ElementType, object Element) args)
     {
-        SelectionState.Select(jsonPath, elementType, element);
+        SelectionState.Select(args.Path, args.ElementType, args.Element);
 
-        if (_jsonEditorMode)
+        if (StateManager.IsJsonEditorMode)
         {
-            await JumpToJsonLocation(jsonPath);
+            await JumpToJsonLocation(args.Path);
         }
     }
 
@@ -2815,7 +1640,7 @@
         if (_data != null)
         {
             SelectionState.Select("title", "title", _data);
-            if (_jsonEditorMode)
+            if (StateManager.IsJsonEditorMode)
             {
                 _ = JumpToJsonLocation("title");
             }
@@ -3221,10 +2046,9 @@
             SelectionState.Select("title", "title", _data);
 
             // Make sure properties panel is visible
-            if (!_showProperties)
+            if (!StateManager.ShowProperties)
             {
-                _showProperties = true;
-                await InvokeAsync(StateHasChanged);
+                StateManager.ShowProperties = true;
             }
         }
         catch (Exception ex)
@@ -3808,7 +2632,7 @@
             return;
         }
 
-        _showTemplateSelector = true;
+        StateManager.ShowTemplateSelectorDialog();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -3881,7 +2705,7 @@
         }
 
         // Close the modal immediately and refresh state
-        _showTemplateSelector = false;
+        StateManager.CloseTemplateSelectorDialog();
         SelectionState.Clear();
 
         // Force state update to refresh sidebar
@@ -3958,7 +2782,7 @@
                 _activeTab = null;
                 _data = null;
                 _currentJson = null;
-                _showTemplateSelector = true;
+                StateManager.ShowTemplateSelectorDialog();
                 _isCreatingNewFolder = true;
                 _pendingFolderName = "Folder 1";
             }
@@ -4022,14 +2846,19 @@
     private void ToggleFolderSelector()
     {
         // Legacy method - now opens RoadmapManager instead
-        _showRoadmapManager = !_showRoadmapManager;
-        StateHasChanged();
+        if (StateManager.ShowRoadmapManager)
+        {
+            StateManager.CloseRoadmapManagerDialog();
+        }
+        else
+        {
+            StateManager.ShowRoadmapManagerDialog();
+        }
     }
 
     private void CloseRoadmapManager()
     {
-        _showRoadmapManager = false;
-        StateHasChanged();
+        StateManager.CloseRoadmapManagerDialog();
     }
 
     private async Task HandleDeleteFolderFromManager(string folderId)
@@ -4074,8 +2903,7 @@
 
     private void CloseFolderSettings()
     {
-        _showFolderSettings = false;
-        StateHasChanged();
+        StateManager.CloseFolderSettingsDialog();
     }
 
     private async Task HandleAddRoadmapToFolder(string folderId)
@@ -4091,7 +2919,7 @@
         // Store the pending info and show template selector
         _pendingAddToFolderId = folderId;
         _pendingRoadmapName = tabName.Trim();
-        _showTemplateSelector = true;
+        StateManager.ShowTemplateSelectorDialog();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -4127,8 +2955,7 @@
     {
         // Open roadmap and close modal
         await HandleRoadmapClickFromManager(args);
-        _showRoadmapManager = false;
-        await InvokeAsync(StateHasChanged);
+        StateManager.CloseRoadmapManagerDialog();
     }
 
     private async Task HandleColorChangeFromManager((string FolderId, string Color) args)
@@ -4172,39 +2999,30 @@
         try
         {
             var baseUrl = await UrlNavigation.GetBaseUrl();
-            _shareUrl = ShareService.GenerateShareUrl(data, baseUrl);
-            _shareError = "";
+            var shareUrl = ShareService.GenerateShareUrl(data, baseUrl);
+            var shareError = "";
 
-            if (_shareUrl.Length > 2000)
+            if (shareUrl.Length > 2000)
             {
-                _shareError = "This roadmap is quite large and may produce a very long URL. Consider simplifying the roadmap or exporting as JSON instead.";
+                shareError = "This roadmap is quite large and may produce a very long URL. Consider simplifying the roadmap or exporting as JSON instead.";
             }
 
-            _showShareModal = true;
-            StateHasChanged();
+            StateManager.ShowShareDialog(shareUrl, shareError);
         }
         catch (Exception ex)
         {
-            _shareError = $"Failed to generate share URL: {ex.Message}";
-            _shareUrl = "";
-            _showShareModal = true;
-            StateHasChanged();
+            StateManager.ShowShareDialog("", $"Failed to generate share URL: {ex.Message}");
         }
     }
 
     private void CloseShareModal()
     {
-        _showShareModal = false;
-        _shareUrl = "";
-        _shareError = "";
-        StateHasChanged();
+        StateManager.CloseShareDialog();
     }
 
     private void CloseImportModal()
     {
-        _showImportModal = false;
-        _importRoadmapData = null;
-        StateHasChanged();
+        StateManager.CloseImportDialog();
     }
 
     private async Task HandleImportSharedRoadmap((string FolderId, string RoadmapName, RoadmapData Data) import)
@@ -4334,7 +3152,7 @@
 
     private void ToggleJsonEditorMode()
     {
-        if (!_jsonEditorMode && _data != null)
+        if (!StateManager.IsJsonEditorMode && _data != null)
         {
             // When entering JSON Editor Mode, sync current data to JSON and ensure sidebar is visible
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
@@ -4342,10 +3160,9 @@
                 WriteIndented = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.Never
             });
-            _showProperties = true; // Ensure sidebar is visible
+            StateManager.ShowProperties = true; // Ensure sidebar is visible
         }
-        _jsonEditorMode = !_jsonEditorMode;
-        StateHasChanged();
+        StateManager.ToggleJsonEditorMode();
     }
 
     private void HandleJsonModalKeyDown(KeyboardEventArgs e)
@@ -4503,12 +3320,11 @@
 
     private void CloseTemplateSelector()
     {
-        _showTemplateSelector = false;
+        StateManager.CloseTemplateSelectorDialog();
         _isCreatingNewFolder = false;
         _pendingFolderName = null;
         _pendingAddToFolderId = null;
         _pendingRoadmapName = null;
-        StateHasChanged();
     }
 
     private async Task HandleFolderSelect(string folderId)
@@ -4539,8 +3355,7 @@
         }
         SelectionState.Clear();
         _showFolderSelector = false;
-        _showFolderSettings = false;
-        await InvokeAsync(StateHasChanged);
+        StateManager.CloseFolderSettingsDialog();
     }
 
     private async Task HandleFolderClick(int folderIndex)
@@ -4573,7 +3388,7 @@
         _pendingFolderName = folderName;
         _isCreatingNewFolder = true;
         _showFolderSelector = false;
-        _showTemplateSelector = true;
+        StateManager.ShowTemplateSelectorDialog();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -4740,16 +3555,7 @@
 
         TemplateService.ApplyTemplate(_data, templateType);
 
-        // Randomize seasonal theme when applying a new template
-        var themes = new[]
-        {
-            SeasonalTheme.Classic,
-            SeasonalTheme.Spring,
-            SeasonalTheme.Summer,
-            SeasonalTheme.Autumn,
-            SeasonalTheme.Winter
-        };
-        _currentTheme = themes[Random.Shared.Next(themes.Length)];
+        // Note: Seasonal theme randomization removed - theme can be changed manually via cycle button
 
         _activeTab.Name = tabNameSuffix;
         _activeTab.TemplateType = GetTemplateTypeString(templateType);
@@ -4786,50 +3592,6 @@
             TemplateService.TemplateType.Retrospective => "Retro",
             _ => null
         };
-    }
-
-    private string FooterBarStyle()
-    {
-        if (_isVibeMode)
-        {
-            return "background: rgba(30, 30, 46, 0.98); padding: 10px 24px; border-top: 1px solid #3a3a4e; " +
-                   "width: 100%; flex-shrink: 0;";
-        }
-        return "background: rgba(248, 249, 250, 0.98); padding: 10px 24px; border-top: 1px solid #d1d5db; " +
-               "width: 100%; flex-shrink: 0;";
-    }
-
-
-    private string GetViewModeToggleStyle() =>
-        "width: 100%; height: 44px; padding: 4px; background: #1e1e1e; border: 1px solid #3a3a4e; border-radius: 8px; cursor: pointer; transition: all 0.2s;";
-
-    private string GetViewModeOptionStyle(bool isPreview)
-    {
-        var isActive = _isPreviewMode == isPreview;
-        if (isActive)
-        {
-            return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
-                   "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 6px; " +
-                   "transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);";
-        }
-        return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
-               "background: transparent; color: #666; transition: all 0.2s;";
-    }
-
-    private string GetThemeModeToggleStyle() =>
-        "width: 100%; height: 44px; padding: 4px; background: #1e1e1e; border: 1px solid #3a3a4e; border-radius: 8px; cursor: pointer; transition: all 0.2s;";
-
-    private string GetThemeModeOptionStyle(bool isVibe)
-    {
-        var isActive = _isVibeMode == isVibe;
-        if (isActive)
-        {
-            return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
-                   "background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); color: #fff; border-radius: 6px; " +
-                   "transition: all 0.2s; box-shadow: 0 2px 8px rgba(118, 75, 162, 0.4);";
-        }
-        return "flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; " +
-               "background: transparent; color: #666; transition: all 0.2s;";
     }
 
 }
