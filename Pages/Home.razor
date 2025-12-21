@@ -112,40 +112,46 @@
                      style="@(TitleContainerStyle() + " " + titlePadding)">
 
                     @* Top row: Icon | Title | Icon *@
-                    <div style="display: flex; align-items: center; gap: 16px; min-height: 36px; width: 100%;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; min-height: 36px; width: 100%; position: relative;">
                         @* GitHub button - Left *@
-                        <a href="https://github.com/MgGriebZ/RoadScript"
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           class="quick-action-button"
-                           title="View on GitHub"
-                           style="text-decoration: none; flex-shrink: 0;">
-                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
-                                <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
-                            </div>
-                        </a>
+                        <div style="width: 36px; flex-shrink: 0;">
+                            <a href="https://github.com/MgGriebZ/RoadScript"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="quick-action-button"
+                               title="View on GitHub"
+                               style="text-decoration: none; display: block;">
+                                <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
+                                    <Icon IconType="github" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                                </div>
+                            </a>
+                        </div>
 
-                        @* Title (centered) *@
-                        <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
-                             style="text-align: center; min-height: 20px; flex: 1; @(_isPreviewMode ? "" : "cursor: pointer;")">
-                            @if (hasTitleText)
-                            {
-                                <h1 style="@TitleStyle()">@_data.Title</h1>
-                            }
-                            else
-                            {
-                                @* Invisible placeholder to maintain layout *@
-                                <span style="visibility: hidden; font-size: 0;">&#8203;</span>
-                            }
+                        @* Title (centered) - uses absolute positioning to truly center *@
+                        <div style="position: absolute; left: 50%; transform: translateX(-50%); max-width: calc(100% - 100px); pointer-events: none;">
+                            <div @onclick="@(_isPreviewMode ? null : () => HandleTitleClick())"
+                                 style="text-align: center; min-height: 20px; pointer-events: auto; @(_isPreviewMode ? "" : "cursor: pointer;")">
+                                @if (hasTitleText)
+                                {
+                                    <h1 style="@TitleStyle()">@_data.Title</h1>
+                                }
+                                else
+                                {
+                                    @* Invisible placeholder to maintain layout *@
+                                    <span style="visibility: hidden; font-size: 0;">&#8203;</span>
+                                }
+                            </div>
                         </div>
 
                         @* Share button - Right *@
-                        <div @onclick="HandleQuickShare"
-                             class="quick-action-button"
-                             title="Share this roadmap"
-                             style="cursor: pointer; flex-shrink: 0;">
-                            <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
-                                <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                        <div style="width: 36px; flex-shrink: 0;">
+                            <div @onclick="HandleQuickShare"
+                                 class="quick-action-button"
+                                 title="Share this roadmap"
+                                 style="cursor: pointer; display: block;">
+                                <div class="quick-action-icon" style="background: @(_isVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
+                                    <Icon IconType="globe" Size="20" Color="@(_isVibeMode ? "#c7d2fe" : "#374151")" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2449,8 +2455,8 @@
 
     private string TitleStyle() =>
         _isVibeMode
-            ? "margin: 0; font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 35%, #e0c3fc 50%, #c4b5fd 65%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 2px 4px rgba(165, 180, 252, 0.3));"
-            : "margin: 0; font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #1a1a2e 0%, #2a2a3e 50%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));";
+            ? "margin: 0; font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 35%, #e0c3fc 50%, #c4b5fd 65%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 2px 4px rgba(165, 180, 252, 0.3)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+            : "margin: 0; font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #1a1a2e 0%, #2a2a3e 50%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;";
 
     private string SubtitleStyle() =>
         _isVibeMode
