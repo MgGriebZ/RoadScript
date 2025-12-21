@@ -109,7 +109,7 @@
                 }
 
                 <div class="@GetElementClass("title")"
-                     style="@(TitleContainerStyle() + " " + titlePadding)">
+                     style="@(TitleContainerStyle() + " " + titlePadding + " min-width: 560px;")">
 
                     @* Top row: Icon | Title | Icon *@
                     <div style="display: flex; align-items: center; justify-content: space-between; min-height: 36px; width: 100%; position: relative;">
@@ -2115,16 +2115,17 @@
     {
         var maxWidthStyle = _isPreviewMode ? "max-width: 1700px;" : "";
         var widthStyle = _isPreviewMode ? "width: 100%;" : "width: 100%;";
+        var minWidthStyle = "min-width: 600px;"; // Prevent container from getting too narrow
 
         if (_isVibeMode)
         {
-            return $"{widthStyle} {maxWidthStyle} aspect-ratio: 16/9; " +
+            return $"{widthStyle} {maxWidthStyle} {minWidthStyle} aspect-ratio: 16/9; " +
                   $"background: {GetSeasonalVibeContainer()}; " +
                   "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
                   "padding: 22px 30px; border: 2px solid #667eea; position: relative; " +
                   "box-shadow: 0 0 40px rgba(102, 126, 234, 0.3), 0 8px 32px rgba(0, 0, 0, 0.6);";
         }
-        return $"{widthStyle} {maxWidthStyle} aspect-ratio: 16/9; background: {GetSeasonalLiteContainer()}; " +
+        return $"{widthStyle} {maxWidthStyle} {minWidthStyle} aspect-ratio: 16/9; background: {GetSeasonalLiteContainer()}; " +
               "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
               "padding: 22px 30px; border: 1px solid #d1d5db; position: relative;";
     }
@@ -2455,8 +2456,8 @@
 
     private string TitleStyle() =>
         _isVibeMode
-            ? "margin: 0; font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 35%, #e0c3fc 50%, #c4b5fd 65%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 2px 4px rgba(165, 180, 252, 0.3)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-            : "margin: 0; font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #1a1a2e 0%, #2a2a3e 50%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;";
+            ? "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 35%, #e0c3fc 50%, #c4b5fd 65%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 2px 4px rgba(165, 180, 252, 0.3)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;"
+            : "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #1a1a2e 0%, #2a2a3e 50%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;";
 
     private string SubtitleStyle() =>
         _isVibeMode
