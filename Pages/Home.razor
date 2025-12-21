@@ -1614,10 +1614,10 @@
         return baseClass;
     }
 
-    private async Task HandleItemClick(int laneIndex, int itemIndex, Item item)
+    private async Task HandleItemClick((int LaneIndex, int ItemIndex, Item Item) args)
     {
-        var jsonPath = $"lanes[{laneIndex}].items[{itemIndex}]";
-        SelectionState.Select(jsonPath, "item", item);
+        var jsonPath = $"lanes[{args.LaneIndex}].items[{args.ItemIndex}]";
+        SelectionState.Select(jsonPath, "item", args.Item);
 
         if (StateManager.IsJsonEditorMode)
         {
@@ -1625,13 +1625,13 @@
         }
     }
 
-    private async Task HandleElementClick(string jsonPath, string elementType, object element)
+    private async Task HandleElementClick((string Path, string ElementType, object Element) args)
     {
-        SelectionState.Select(jsonPath, elementType, element);
+        SelectionState.Select(args.Path, args.ElementType, args.Element);
 
         if (StateManager.IsJsonEditorMode)
         {
-            await JumpToJsonLocation(jsonPath);
+            await JumpToJsonLocation(args.Path);
         }
     }
 
