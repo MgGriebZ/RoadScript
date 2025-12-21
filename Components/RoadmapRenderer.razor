@@ -1,0 +1,177 @@
+@using RoadScript.Models
+@using RoadScript.Services
+@inject ThemeService ThemeService
+@inject SelectionState SelectionState
+
+@if (Data != null)
+{
+    <div style="@ThemeService.RoadmapWrapperStyle()">
+        <div class="roadmap roadmap-container" style="@ThemeService.RoadmapContainerStyle()">
+
+            @* Milestone Navigation Controls *@
+            @{
+                var selectedMilestoneIndex = -1;
+                Milestone? selectedMilestone = null;
+
+                for (int mi = 0; mi < Data.Milestones.Count; mi++)
+                {
+                    if (SelectionState.SelectedPath == $"milestones[{mi}]")
+                    {
+                        selectedMilestoneIndex = mi;
+                        selectedMilestone = Data.Milestones[mi];
+                        break;
+                    }
+                }
+
+                var showMilestoneNav = selectedMilestoneIndex >= 0 && !IsPreviewMode;
+            }
+
+            <MilestoneNavigationControls SelectedMilestoneIndex="@selectedMilestoneIndex"
+                                        SelectedMilestone="@selectedMilestone"
+                                        IsPreviewMode="@IsPreviewMode"
+                                        IsVibeMode="@ThemeService.IsVibeMode"
+                                        JumpToStart="@OnMilestoneJumpToStart"
+                                        JumpToEnd="@OnMilestoneJumpToEnd"
+                                        AdjustPosition="@OnMilestoneAdjustPosition"
+                                        AdjustByColumn="@OnMilestoneAdjustByColumn" />
+
+            @* Roadmap Title *@
+            <RoadmapTitle Title="@Data.Title"
+                         Subtitle="@Data.Subtitle"
+                         IsPreviewMode="@IsPreviewMode"
+                         IsVibeMode="@ThemeService.IsVibeMode"
+                         OnTitleClick="@OnTitleClick"
+                         OnShareClick="@OnShareClick" />
+
+            @* Main Content Area *@
+            <div style="display: flex; height: calc(100% - 66px);">
+                @* Lane Labels *@
+                <RoadmapLaneLabels Data="@Data"
+                                  IsPreviewMode="@IsPreviewMode"
+                                  IsVibeMode="@ThemeService.IsVibeMode"
+                                  OnLaneClick="@HandleLaneClick" />
+
+                @* Roadmap Content (Columns, Milestones, Grid, Items) *@
+                <RoadmapContent Data="@Data"
+                               IsPreviewMode="@IsPreviewMode"
+                               IsVibeMode="@ThemeService.IsVibeMode"
+                               SessionManager="@SessionManager"
+                               AvailableRoadmaps="@AvailableRoadmaps"
+                               OnColumnClick="@HandleColumnClick"
+                               OnMilestoneClick="@HandleMilestoneClick"
+                               OnItemClick="@HandleItemClick"
+                               OnRoadmapLinkClick="@OnRoadmapLinkClick" />
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// The roadmap data to render
+    /// </summary>
+    [Parameter]
+    public RoadmapData Data { get; set; } = null!;
+
+    /// <summary>
+    /// Whether the component is in preview mode (disables editing)
+    /// </summary>
+    [Parameter]
+    public bool IsPreviewMode { get; set; }
+
+    /// <summary>
+    /// The active tab session
+    /// </summary>
+    [Parameter]
+    public TabSession? ActiveTab { get; set; }
+
+    /// <summary>
+    /// The session manager for accessing available roadmaps
+    /// </summary>
+    [Parameter]
+    public SessionManager? SessionManager { get; set; }
+
+    /// <summary>
+    /// List of available roadmaps for linking
+    /// </summary>
+    [Parameter]
+    public List<TabSession>? AvailableRoadmaps { get; set; }
+
+    // Event Callbacks
+
+    /// <summary>
+    /// Callback fired when a generic element (lane, column, milestone) is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback<(string Path, string ElementType, object Element)> OnElementClick { get; set; }
+
+    /// <summary>
+    /// Callback fired when an item is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback<(int LaneIndex, int ItemIndex, Item Item)> OnItemClick { get; set; }
+
+    /// <summary>
+    /// Callback fired when milestone Jump to Start is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnMilestoneJumpToStart { get; set; }
+
+    /// <summary>
+    /// Callback fired when milestone Jump to End is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnMilestoneJumpToEnd { get; set; }
+
+    /// <summary>
+    /// Callback fired when milestone position is adjusted (nudge)
+    /// </summary>
+    [Parameter]
+    public EventCallback<(int MilestoneIndex, double Delta)> OnMilestoneAdjustPosition { get; set; }
+
+    /// <summary>
+    /// Callback fired when milestone is moved by column
+    /// </summary>
+    [Parameter]
+    public EventCallback<(int MilestoneIndex, int Direction)> OnMilestoneAdjustByColumn { get; set; }
+
+    /// <summary>
+    /// Callback fired when a roadmap link icon is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnRoadmapLinkClick { get; set; }
+
+    /// <summary>
+    /// Callback fired when the title is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnTitleClick { get; set; }
+
+    /// <summary>
+    /// Callback fired when the share button is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnShareClick { get; set; }
+
+    // Event handlers that translate from sub-component events to parent callbacks
+
+    private async Task HandleLaneClick((string Path, Lane Lane) args)
+    {
+        await OnElementClick.InvokeAsync((args.Path, "lane", args.Lane));
+    }
+
+    private async Task HandleColumnClick(ColumnClickEventArgs args)
+    {
+        await OnElementClick.InvokeAsync(($"columns[{args.Index}]", "column", args.Column));
+    }
+
+    private async Task HandleMilestoneClick(MilestoneClickEventArgs args)
+    {
+        await OnElementClick.InvokeAsync(($"milestones[{args.Index}]", "milestone", args.Milestone));
+    }
+
+    private async Task HandleItemClick(ItemClickEventArgs args)
+    {
+        await OnItemClick.InvokeAsync((args.LaneIndex, args.ItemIndex, args.Item));
+    }
+}

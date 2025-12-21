@@ -1,0 +1,96 @@
+@using RoadScript.Models
+@inject ThemeService ThemeService
+
+@if (!IsPreviewMode && SelectedMilestoneIndex >= 0 && SelectedMilestone != null)
+{
+    <div style="position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 150; display: flex; align-items: center; gap: 6px;">
+        <button type="button"
+                @onclick="@(async () => await JumpToStart.InvokeAsync(SelectedMilestoneIndex))"
+                title="Jump to Start (0%)"
+                style="@ThemeService.StaticNavButtonStyle("jump")">
+            <div style="font-size: 18px; font-weight: 800;">⏮</div>
+        </button>
+        <button type="button"
+                @onclick="@(async () => await AdjustByColumn.InvokeAsync((SelectedMilestoneIndex, -1)))"
+                title="Previous Column"
+                style="@ThemeService.StaticNavButtonStyle("column")">
+            <div style="font-size: 18px;">⏪</div>
+        </button>
+        <button type="button"
+                @onclick="@(async () => await AdjustPosition.InvokeAsync((SelectedMilestoneIndex, -0.25)))"
+                title="Nudge Left (0.25)"
+                style="@ThemeService.StaticNavButtonStyle("nudge")">
+            <div style="font-size: 16px;">◀</div>
+        </button>
+        <button type="button"
+                @onclick="@(async () => await AdjustPosition.InvokeAsync((SelectedMilestoneIndex, 0.25)))"
+                title="Nudge Right (0.25)"
+                style="@ThemeService.StaticNavButtonStyle("nudge")">
+            <div style="font-size: 16px;">▶</div>
+        </button>
+        <button type="button"
+                @onclick="@(async () => await AdjustByColumn.InvokeAsync((SelectedMilestoneIndex, 1)))"
+                title="Next Column"
+                style="@ThemeService.StaticNavButtonStyle("column")">
+            <div style="font-size: 18px;">⏩</div>
+        </button>
+        <button type="button"
+                @onclick="@(async () => await JumpToEnd.InvokeAsync(SelectedMilestoneIndex))"
+                title="Jump to End (100%)"
+                style="@ThemeService.StaticNavButtonStyle("jump")">
+            <div style="font-size: 18px; font-weight: 800;">⏭</div>
+        </button>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// The index of the currently selected milestone
+    /// </summary>
+    [Parameter]
+    public int SelectedMilestoneIndex { get; set; } = -1;
+
+    /// <summary>
+    /// The currently selected milestone object
+    /// </summary>
+    [Parameter]
+    public Milestone? SelectedMilestone { get; set; }
+
+    /// <summary>
+    /// Callback fired when user clicks the "Jump to Start" button
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> JumpToStart { get; set; }
+
+    /// <summary>
+    /// Callback fired when user clicks the "Jump to End" button
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> JumpToEnd { get; set; }
+
+    /// <summary>
+    /// Callback fired when user clicks nudge left/right buttons
+    /// Receives a tuple of (milestoneIndex, deltaAmount)
+    /// </summary>
+    [Parameter]
+    public EventCallback<(int, double)> AdjustPosition { get; set; }
+
+    /// <summary>
+    /// Callback fired when user clicks previous/next column buttons
+    /// Receives a tuple of (milestoneIndex, direction)
+    /// </summary>
+    [Parameter]
+    public EventCallback<(int, int)> AdjustByColumn { get; set; }
+
+    /// <summary>
+    /// Whether the preview mode is active - controls visibility
+    /// </summary>
+    [Parameter]
+    public bool IsPreviewMode { get; set; }
+
+    /// <summary>
+    /// Whether vibe mode is active - affects button styling
+    /// </summary>
+    [Parameter]
+    public bool IsVibeMode { get; set; }
+}

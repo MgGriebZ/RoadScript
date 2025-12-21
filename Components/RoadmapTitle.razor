@@ -1,0 +1,113 @@
+@inject ThemeService ThemeService
+
+@{
+    var hasTitleText = !string.IsNullOrWhiteSpace(Title);
+    var hasSubtitleText = !string.IsNullOrWhiteSpace(Subtitle);
+    var hasTitleContent = hasTitleText || hasSubtitleText;
+    var titlePadding = hasTitleContent ? "padding: 6px 10px;" : "padding: 6px 10px; min-height: 48px;";
+}
+
+<div class="@GetElementClass()"
+     style="@(ThemeService.TitleContainerStyle() + " " + titlePadding + " min-width: 560px;")">
+
+    @* Top row: Icon | Title | Icon *@
+    <div style="display: flex; align-items: center; justify-content: space-between; min-height: 36px; width: 100%; position: relative;">
+        @* GitHub button - Left *@
+        <div style="width: 36px; flex-shrink: 0;">
+            <a href="https://github.com/MgGriebZ/RoadScript"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="quick-action-button"
+               title="View on GitHub"
+               style="text-decoration: none; display: block;">
+                <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
+                    <Icon IconType="github" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
+                </div>
+            </a>
+        </div>
+
+        @* Title (centered) - uses absolute positioning to truly center *@
+        <div style="position: absolute; left: 50%; transform: translateX(-50%); max-width: calc(100% - 100px); pointer-events: none;">
+            <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
+                 style="text-align: center; min-height: 20px; pointer-events: auto; @(IsPreviewMode ? "" : "cursor: pointer;")">
+                @if (hasTitleText)
+                {
+                    <h1 style="@ThemeService.TitleStyle()">@Title</h1>
+                }
+                else
+                {
+                    @* Invisible placeholder to maintain layout *@
+                    <span style="visibility: hidden; font-size: 0;">&#8203;</span>
+                }
+            </div>
+        </div>
+
+        @* Share button - Right *@
+        <div style="width: 36px; flex-shrink: 0;">
+            <div @onclick="OnShareClick.InvokeAsync"
+                 class="quick-action-button"
+                 title="Share this roadmap"
+                 style="cursor: pointer; display: block;">
+                <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
+                    <Icon IconType="globe" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Bottom row: Subtitle (full width, centered) *@
+    @if (hasSubtitleText)
+    {
+        <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
+             style="text-align: center; margin-top: 4px; @(IsPreviewMode ? "" : "cursor: pointer;")">
+            <p style="@ThemeService.SubtitleStyle()">@Subtitle</p>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// The title text to display
+    /// </summary>
+    [Parameter]
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// The subtitle text to display
+    /// </summary>
+    [Parameter]
+    public string? Subtitle { get; set; }
+
+    /// <summary>
+    /// Whether the component is in preview mode (disables editing)
+    /// </summary>
+    [Parameter]
+    public bool IsPreviewMode { get; set; }
+
+    /// <summary>
+    /// Whether vibe mode is enabled for styling
+    /// </summary>
+    [Parameter]
+    public bool IsVibeMode { get; set; }
+
+    /// <summary>
+    /// Callback fired when the title or subtitle is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnTitleClick { get; set; }
+
+    /// <summary>
+    /// Callback fired when the share button is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnShareClick { get; set; }
+
+    /// <summary>
+    /// Determines CSS classes based on preview mode
+    /// </summary>
+    private string GetElementClass()
+    {
+        if (IsPreviewMode) return "";
+        return "clickable-element";
+    }
+}

@@ -1,0 +1,70 @@
+@using RoadScript.Models
+@using RoadScript.Services
+@inject ThemeService ThemeService
+
+@if (!IsPreviewMode && ActiveTab != null && Data != null)
+{
+    <div style="@FooterBarStyle()">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Active Tab:</span>
+                <span style="font-size: 12px; color: @(IsVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@ActiveTab.Name</span>
+            </div>
+            <div style="height: 16px; width: 1px; background: @(IsVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Last Modified:</span>
+                <span style="font-size: 12px; color: @(IsVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@ActiveTab.LastModified.ToLocalTime().ToString("MMM d, h:mm tt")</span>
+            </div>
+            <div style="height: 16px; width: 1px; background: @(IsVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Columns:</span>
+                <span style="font-size: 12px; color: @(IsVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@Data.Columns.Count</span>
+            </div>
+            <div style="height: 16px; width: 1px; background: @(IsVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Lanes:</span>
+                <span style="font-size: 12px; color: @(IsVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@Data.Lanes.Count</span>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// The active tab session containing name and last modified information.
+    /// </summary>
+    [Parameter]
+    public TabSession? ActiveTab { get; set; }
+
+    /// <summary>
+    /// The roadmap data containing columns and lanes information.
+    /// </summary>
+    [Parameter]
+    public RoadmapData? Data { get; set; }
+
+    /// <summary>
+    /// Indicates whether the application is in vibe mode (dark theme).
+    /// </summary>
+    [Parameter]
+    public bool IsVibeMode { get; set; }
+
+    /// <summary>
+    /// Indicates whether the roadmap is in preview mode. When true, footer is hidden.
+    /// </summary>
+    [Parameter]
+    public bool IsPreviewMode { get; set; }
+
+    /// <summary>
+    /// Generates the CSS style string for the footer bar based on the current theme.
+    /// </summary>
+    private string FooterBarStyle()
+    {
+        if (IsVibeMode)
+        {
+            return "background: rgba(30, 30, 46, 0.98); padding: 10px 24px; border-top: 1px solid #3a3a4e; " +
+                   "width: 100%; flex-shrink: 0;";
+        }
+        return "background: rgba(248, 249, 250, 0.98); padding: 10px 24px; border-top: 1px solid #d1d5db; " +
+               "width: 100%; flex-shrink: 0;";
+    }
+}

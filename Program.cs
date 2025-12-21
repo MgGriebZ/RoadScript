@@ -15,5 +15,7 @@ builder.Services.AddSingleton<SelectionState>();
 builder.Services.AddSingleton<EditorInteropService>();
 builder.Services.AddScoped<StorageService>();
 builder.Services.AddScoped<UrlNavigationService>();
+builder.Services.AddScoped<ThemeService>();
+builder.Services.AddScoped<RoadmapStateManager>();
 
 await builder.Build().RunAsync();
