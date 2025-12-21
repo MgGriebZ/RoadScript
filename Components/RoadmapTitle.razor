@@ -4,16 +4,22 @@
     var hasTitleText = !string.IsNullOrWhiteSpace(Title);
     var hasSubtitleText = !string.IsNullOrWhiteSpace(Subtitle);
     var hasTitleContent = hasTitleText || hasSubtitleText;
-    var titlePadding = hasTitleContent ? "padding: 6px 10px;" : "padding: 6px 10px; min-height: 48px;";
+    var titlePadding = hasTitleContent ? "padding: 8px 12px;" : "padding: 8px 12px; min-height: 58px;";
+
+    // Button label styling
+    var buttonLabelStyle = ThemeService.IsVibeMode
+        ? "font-size: 9px; color: #9ca3af; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;"
+        : "font-size: 9px; color: #6b7280; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;";
 }
 
 <div class="@GetElementClass()"
      style="@(ThemeService.TitleContainerStyle() + " " + titlePadding + " min-width: 560px;")">
 
-    @* Top row: Icon | Title | Icon *@
-    <div style="display: flex; align-items: center; justify-content: space-between; min-height: 36px; width: 100%; position: relative;">
+    @* Top row: Button Column | Title | Button Column *@
+    <div style="display: grid; grid-template-columns: minmax(50px, auto) 1fr minmax(50px, auto); align-items: start; gap: 12px; width: 100%;">
+
         @* GitHub button - Left *@
-        <div style="width: 36px; flex-shrink: 0;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; justify-self: start;">
             <a href="https://github.com/MgGriebZ/RoadScript"
                target="_blank"
                rel="noopener noreferrer"
@@ -24,12 +30,13 @@
                     <Icon IconType="github" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
                 </div>
             </a>
+            <span style="@buttonLabelStyle">Repo</span>
         </div>
 
-        @* Title (centered) - uses absolute positioning to truly center *@
-        <div style="position: absolute; left: 50%; transform: translateX(-50%); max-width: calc(100% - 100px); pointer-events: none;">
+        @* Title (centered) *@
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 36px;">
             <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
-                 style="text-align: center; min-height: 20px; pointer-events: auto; @(IsPreviewMode ? "" : "cursor: pointer;")">
+                 style="text-align: center; width: 100%; @(IsPreviewMode ? "" : "cursor: pointer;")">
                 @if (hasTitleText)
                 {
                     <h1 style="@ThemeService.TitleStyle()">@Title</h1>
@@ -43,7 +50,7 @@
         </div>
 
         @* Share button - Right *@
-        <div style="width: 36px; flex-shrink: 0;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; justify-self: end;">
             <div @onclick="@(() => OnShareClick.InvokeAsync())"
                  class="quick-action-button"
                  title="Share this roadmap"
@@ -52,6 +59,7 @@
                     <Icon IconType="globe" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
                 </div>
             </div>
+            <span style="@buttonLabelStyle">Share</span>
         </div>
     </div>
 
@@ -59,7 +67,7 @@
     @if (hasSubtitleText)
     {
         <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
-             style="text-align: center; margin-top: 4px; @(IsPreviewMode ? "" : "cursor: pointer;")">
+             style="text-align: center; margin-top: 6px; @(IsPreviewMode ? "" : "cursor: pointer;")">
             <p style="@ThemeService.SubtitleStyle()">@Subtitle</p>
         </div>
     }
