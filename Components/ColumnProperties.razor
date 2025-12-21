@@ -24,158 +24,121 @@
         </div>
     </div>
 
-    @* Quick Fill Presets for Label - Always Visible *@
-    <div class="form-group" style="margin-top: 12px;">
-        <label style="font-size: 11px; margin-bottom: 8px; color: #888;">Quick Fill</label>
+    @* Quick Fill Presets for Label - ALWAYS EXPANDED *@
+    <div class="form-group" style="margin-top: 8px;">
+        <label style="font-size: 11px; margin-bottom: 6px; color: #888;">Quick Fill</label>
 
-        @* Days Section *@
-        <div style="margin-bottom: 10px;">
-            <button type="button"
-                    @onclick="@(() => _daysExpanded = !_daysExpanded)"
-                    style="width: 100%; padding: 6px 8px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 4px; color: #c7d2fe; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                <span>Days</span>
-                <span style="font-size: 9px; transition: transform 0.2s; transform: rotate(@(_daysExpanded ? "180deg" : "0deg"));">▼</span>
-            </button>
-
-            @if (_daysExpanded)
-            {
-                <div style="margin-top: 6px; padding: 6px; background: #252538; border-radius: 4px; border: 1px solid #3a3a4e;">
-                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 4px;">
-                        @foreach (var day in _dayPresets)
-                        {
-                            <button type="button"
-                                    @onclick="@(() => OnChange.InvokeAsync(("label", day.Abbr)))"
-                                    title="@day.Abbr"
-                                    style="@GetQuickButtonStyle(day.Abbr, Column.Label)">
-                                <div style="font-size: 9px; font-weight: 700;">@day.Abbr</div>
-                            </button>
-                        }
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;">
-                        @foreach (var day in _dayPresets)
-                        {
-                            <button type="button"
-                                    @onclick="@(() => OnChange.InvokeAsync(("label", day.Full)))"
-                                    title="@day.Full"
-                                    style="@GetQuickButtonStyle(day.Full, Column.Label)">
-                                <div style="font-size: 8px; font-weight: 600;">@day.Full</div>
-                            </button>
-                        }
-                    </div>
-                </div>
-            }
+        @* Days - Always Visible *@
+        <div style="margin-bottom: 6px;">
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 2px;">
+                @foreach (var day in _dayPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => OnChange.InvokeAsync(("label", day.Abbr)))"
+                            title="@day.Abbr"
+                            style="@GetQuickButtonStyle(day.Abbr, Column.Label, 28)">
+                        <div style="font-size: 11px; font-weight: 700;">@day.Abbr</div>
+                    </button>
+                }
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;">
+                @foreach (var day in _dayPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => OnChange.InvokeAsync(("label", day.Full)))"
+                            title="@day.Full"
+                            style="@GetQuickButtonStyle(day.Full, Column.Label, 28)">
+                        <div style="font-size: 10px; font-weight: 600;">@day.Full</div>
+                    </button>
+                }
+            </div>
         </div>
 
-        @* Months Section *@
-        <div style="margin-bottom: 10px;">
-            <button type="button"
-                    @onclick="@(() => _monthsExpanded = !_monthsExpanded)"
-                    style="width: 100%; padding: 6px 8px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 4px; color: #c7d2fe; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                <span>Months</span>
-                <span style="font-size: 9px; transition: transform 0.2s; transform: rotate(@(_monthsExpanded ? "180deg" : "0deg"));">▼</span>
-            </button>
-
-            @if (_monthsExpanded)
-            {
-                <div style="margin-top: 6px; padding: 6px; background: #252538; border-radius: 4px; border: 1px solid #3a3a4e;">
-                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin-bottom: 4px;">
-                        @foreach (var month in _monthPresets)
-                        {
-                            <button type="button"
-                                    @onclick="@(() => OnChange.InvokeAsync(("label", month.Abbr)))"
-                                    title="@month.Abbr"
-                                    style="@GetQuickButtonStyle(month.Abbr, Column.Label)">
-                                <div style="font-size: 9px; font-weight: 700;">@month.Abbr</div>
-                            </button>
-                        }
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
-                        @foreach (var month in _monthPresets)
-                        {
-                            <button type="button"
-                                    @onclick="@(() => OnChange.InvokeAsync(("label", month.Full)))"
-                                    title="@month.Full"
-                                    style="@GetQuickButtonStyle(month.Full, Column.Label)">
-                                <div style="font-size: 8px; font-weight: 600;">@month.Full</div>
-                            </button>
-                        }
-                    </div>
-                </div>
-            }
+        @* Months - Always Visible *@
+        <div style="margin-bottom: 6px;">
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; margin-bottom: 2px;">
+                @foreach (var month in _monthPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => OnChange.InvokeAsync(("label", month.Abbr)))"
+                            title="@month.Abbr"
+                            style="@GetQuickButtonStyle(month.Abbr, Column.Label, 28)">
+                        <div style="font-size: 11px; font-weight: 700;">@month.Abbr</div>
+                    </button>
+                }
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px;">
+                @foreach (var month in _monthPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => OnChange.InvokeAsync(("label", month.Full)))"
+                            title="@month.Full"
+                            style="@GetQuickButtonStyle(month.Full, Column.Label, 28)">
+                        <div style="font-size: 10px; font-weight: 600;">@month.Full</div>
+                    </button>
+                }
+            </div>
         </div>
 
-        @* More Options Section *@
-        <div style="margin-bottom: 10px;">
-            <button type="button"
-                    @onclick="@(() => _moreExpanded = !_moreExpanded)"
-                    style="width: 100%; padding: 6px 8px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 4px; color: #c7d2fe; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                <span>More Options</span>
-                <span style="font-size: 9px; transition: transform 0.2s; transform: rotate(@(_moreExpanded ? "180deg" : "0deg"));">▼</span>
-            </button>
+        @* Quarters & Years - Always Visible *@
+        <div style="margin-bottom: 6px;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-bottom: 2px;">
+                @foreach (var quarter in _quarterPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => OnChange.InvokeAsync(("label", quarter)))"
+                            title="@quarter"
+                            style="@GetQuickButtonStyle(quarter, Column.Label, 28)">
+                        <div style="font-size: 11px; font-weight: 700;">@quarter</div>
+                    </button>
+                }
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;">
+                @foreach (var year in _yearPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => OnChange.InvokeAsync(("label", year)))"
+                            title="@year"
+                            style="@GetQuickButtonStyle(year, Column.Label, 28)">
+                        <div style="font-size: 11px; font-weight: 700;">@year</div>
+                    </button>
+                }
+            </div>
+        </div>
 
-            @if (_moreExpanded)
-            {
-                <div style="margin-top: 6px; padding: 6px; background: #252538; border-radius: 4px; border: 1px solid #3a3a4e;">
-                    <div style="font-size: 9px; color: #888; margin-bottom: 4px; font-weight: 600;">Quarters</div>
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-bottom: 8px;">
-                        @foreach (var quarter in _quarterPresets)
-                        {
-                            <button type="button"
-                                    @onclick="@(() => OnChange.InvokeAsync(("label", quarter)))"
-                                    title="@quarter"
-                                    style="@GetQuickButtonStyle(quarter, Column.Label)">
-                                <div style="font-size: 9px; font-weight: 700;">@quarter</div>
-                            </button>
-                        }
-                    </div>
-
-                    <div style="font-size: 9px; color: #888; margin-bottom: 4px; font-weight: 600;">Years</div>
-                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-bottom: 8px;">
-                        @foreach (var year in _yearPresets)
-                        {
-                            <button type="button"
-                                    @onclick="@(() => OnChange.InvokeAsync(("label", year)))"
-                                    title="@year"
-                                    style="@GetQuickButtonStyle(year, Column.Label)">
-                                <div style="font-size: 9px; font-weight: 700;">@year</div>
-                            </button>
-                        }
-                    </div>
-
-                    <div style="font-size: 9px; color: #888; margin-bottom: 4px; font-weight: 600;">Hours</div>
-                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
-                        @foreach (var hour in _hourPresets)
-                        {
-                            <button type="button"
-                                    @onclick="@(() => OnChange.InvokeAsync(("label", hour)))"
-                                    title="@hour"
-                                    style="@GetQuickButtonStyle(hour, Column.Label)">
-                                <div style="font-size: 8px; font-weight: 600;">@hour</div>
-                            </button>
-                        }
-                    </div>
-                </div>
-            }
+        @* Hours - Always Visible *@
+        <div style="margin-bottom: 6px;">
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px;">
+                @foreach (var hour in _hourPresets)
+                {
+                    <button type="button"
+                            @onclick="@(() => OnChange.InvokeAsync(("label", hour)))"
+                            title="@hour"
+                            style="@GetQuickButtonStyle(hour, Column.Label, 26)">
+                        <div style="font-size: 10px; font-weight: 600;">@hour</div>
+                    </button>
+                }
+            </div>
         </div>
 
         @* Date Picker *@
-        <div style="display: flex; gap: 6px;">
+        <div style="display: flex; gap: 4px;">
             <button type="button"
                     @onclick="HandleTodayLabel"
                     title="Insert today's date"
-                    style="flex: 1; height: 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.4);">
-                <Icon IconType="calendar" Color="#fff" Size="12" />
+                    style="flex: 1; height: 34px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.4);">
+                <Icon IconType="calendar" Color="#fff" Size="14" />
                 <span>Today</span>
             </button>
             <input type="date"
                    @onchange="@HandleDateSelectLabel"
                    class="form-control"
-                   style="flex: 1; height: 32px; font-size: 11px; background: #252538; border: 1px solid #667eea; color: #ffffff; color-scheme: dark; border-radius: 4px; padding: 0 6px;" />
+                   style="flex: 1; height: 34px; font-size: 12px; background: #252538; border: 1px solid #667eea; color: #ffffff; color-scheme: dark; border-radius: 4px; padding: 0 8px;" />
         </div>
     </div>
 
     @* Sub-Label Input *@
-    <div class="form-group" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
+    <div class="form-group" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a4e;">
         <label>Sub-Label</label>
         <div style="position: relative;">
             <input type="text"
@@ -196,18 +159,132 @@
             }
         </div>
 
-        @* Quick year button for sublabel *@
-        <button type="button"
-                @onclick="@(() => OnChange.InvokeAsync(("sub", DateTime.Now.Year.ToString())))"
-                title="Insert current year"
-                style="width: 100%; height: 32px; margin-top: 6px; background: #667eea; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);">
-            <Icon IconType="calendar" Color="#fff" Size="12" />
-            <span>@DateTime.Now.Year</span>
-        </button>
+        @* Quick Fill for Sub-Label - COLLAPSIBLE *@
+        <div style="margin-top: 8px;">
+            <button type="button"
+                    @onclick="@(() => _subPresetsExpanded = !_subPresetsExpanded)"
+                    style="width: 100%; padding: 8px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 4px; color: #c7d2fe; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; font-size: 11px; font-weight: 600;">
+                <span>Quick Fill Options</span>
+                <span style="font-size: 10px; transition: transform 0.2s; transform: rotate(@(_subPresetsExpanded ? "180deg" : "0deg"));">▼</span>
+            </button>
+
+            @if (_subPresetsExpanded)
+            {
+                <div style="margin-top: 6px; padding: 4px; background: #252538; border-radius: 4px; border: 1px solid #3a3a4e;">
+                    @* Days *@
+                    <div style="margin-bottom: 4px;">
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 2px;">
+                            @foreach (var day in _dayPresets)
+                            {
+                                <button type="button"
+                                        @onclick="@(() => OnChange.InvokeAsync(("sub", day.Abbr)))"
+                                        title="@day.Abbr"
+                                        style="@GetQuickButtonStyle(day.Abbr, Column.Sub, 26)">
+                                    <div style="font-size: 10px; font-weight: 700;">@day.Abbr</div>
+                                </button>
+                            }
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;">
+                            @foreach (var day in _dayPresets)
+                            {
+                                <button type="button"
+                                        @onclick="@(() => OnChange.InvokeAsync(("sub", day.Full)))"
+                                        title="@day.Full"
+                                        style="@GetQuickButtonStyle(day.Full, Column.Sub, 26)">
+                                    <div style="font-size: 9px; font-weight: 600;">@day.Full</div>
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    @* Months *@
+                    <div style="margin-bottom: 4px;">
+                        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; margin-bottom: 2px;">
+                            @foreach (var month in _monthPresets)
+                            {
+                                <button type="button"
+                                        @onclick="@(() => OnChange.InvokeAsync(("sub", month.Abbr)))"
+                                        title="@month.Abbr"
+                                        style="@GetQuickButtonStyle(month.Abbr, Column.Sub, 26)">
+                                    <div style="font-size: 10px; font-weight: 700;">@month.Abbr</div>
+                                </button>
+                            }
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px;">
+                            @foreach (var month in _monthPresets)
+                            {
+                                <button type="button"
+                                        @onclick="@(() => OnChange.InvokeAsync(("sub", month.Full)))"
+                                        title="@month.Full"
+                                        style="@GetQuickButtonStyle(month.Full, Column.Sub, 26)">
+                                    <div style="font-size: 9px; font-weight: 600;">@month.Full</div>
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    @* Quarters & Years *@
+                    <div style="margin-bottom: 4px;">
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-bottom: 2px;">
+                            @foreach (var quarter in _quarterPresets)
+                            {
+                                <button type="button"
+                                        @onclick="@(() => OnChange.InvokeAsync(("sub", quarter)))"
+                                        title="@quarter"
+                                        style="@GetQuickButtonStyle(quarter, Column.Sub, 26)">
+                                    <div style="font-size: 10px; font-weight: 700;">@quarter</div>
+                                </button>
+                            }
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;">
+                            @foreach (var year in _yearPresets)
+                            {
+                                <button type="button"
+                                        @onclick="@(() => OnChange.InvokeAsync(("sub", year)))"
+                                        title="@year"
+                                        style="@GetQuickButtonStyle(year, Column.Sub, 26)">
+                                    <div style="font-size: 10px; font-weight: 700;">@year</div>
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    @* Hours *@
+                    <div style="margin-bottom: 4px;">
+                        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px;">
+                            @foreach (var hour in _hourPresets)
+                            {
+                                <button type="button"
+                                        @onclick="@(() => OnChange.InvokeAsync(("sub", hour)))"
+                                        title="@hour"
+                                        style="@GetQuickButtonStyle(hour, Column.Sub, 24)">
+                                    <div style="font-size: 9px; font-weight: 600;">@hour</div>
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    @* Date Picker for Sub *@
+                    <div style="display: flex; gap: 4px;">
+                        <button type="button"
+                                @onclick="HandleTodaySub"
+                                title="Insert today's date"
+                                style="flex: 1; height: 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.4);">
+                            <Icon IconType="calendar" Color="#fff" Size="12" />
+                            <span>Today</span>
+                        </button>
+                        <input type="date"
+                               @onchange="@HandleDateSelectSub"
+                               class="form-control"
+                               style="flex: 1; height: 32px; font-size: 11px; background: #252538; border: 1px solid #667eea; color: #ffffff; color-scheme: dark; border-radius: 4px; padding: 0 6px;" />
+                    </div>
+                </div>
+            }
+        </div>
     </div>
 
     @* Column Icon Section *@
-    <div class="form-group" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
+    <div class="form-group" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a4e;">
         <label style="font-size: 11px; margin-bottom: 8px; color: #888;">Column Icon</label>
 
         @* Large Icon Preview Button *@
@@ -285,10 +362,10 @@
     </div>
 
     @* Column Management Section *@
-    <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #3a3a4e;">
-        <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Column Management</label>
+    <div class="form-group" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a4e;">
+        <label style="margin-bottom: 8px; font-weight: 600; color: #e0e7ff;">Column Management</label>
 
-        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+        <div style="display: flex; gap: 6px;">
             <button @onclick="AddColumn"
                     type="button"
                     title="Add new column"
@@ -332,9 +409,7 @@
     [Parameter]
     public EventCallback<string> OnDuplicate { get; set; }
 
-    private bool _daysExpanded = true;
-    private bool _monthsExpanded = false;
-    private bool _moreExpanded = false;
+    private bool _subPresetsExpanded = false;
     private bool _columnIconPickerExpanded = false;
 
     private record Preset(string Abbr, string Full);
@@ -404,6 +479,22 @@
         }
     }
 
+    private async Task HandleTodaySub()
+    {
+        var today = DateTime.Now.ToString("MM/dd/yyyy");
+        await OnChange.InvokeAsync(("sub", today));
+    }
+
+    private async Task HandleDateSelectSub(ChangeEventArgs e)
+    {
+        var dateValue = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(dateValue) && DateTime.TryParse(dateValue, out var date))
+        {
+            var formattedDate = date.ToString("MM/dd/yyyy");
+            await OnChange.InvokeAsync(("sub", formattedDate));
+        }
+    }
+
     private void AddColumn()
     {
         OnAdd.InvokeAsync("column");
@@ -468,7 +559,7 @@
                $"background: #1a1a2e; transition: all 0.2s; {border}";
     }
 
-    private string GetQuickButtonStyle(string value, string? currentValue)
+    private string GetQuickButtonStyle(string value, string? currentValue, int height)
     {
         var isActive = value.Equals(currentValue, StringComparison.OrdinalIgnoreCase);
 
@@ -482,9 +573,9 @@
 
         var color = isActive ? "#fff" : "#ccc";
 
-        return $"width: 100%; height: 24px; {bg} color: {color}; {border} " +
+        return $"width: 100%; height: {height}px; {bg} color: {color}; {border} " +
                "border-radius: 3px; cursor: pointer; transition: all 0.2s; " +
                "display: flex; align-items: center; justify-content: center; " +
-               "font-weight: 600;";
+               "font-weight: 600; padding: 0;";
     }
 }
