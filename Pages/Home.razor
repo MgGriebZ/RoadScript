@@ -1225,7 +1225,7 @@
             {
                 if (_folderManager != null)
                 {
-                    await DebouncedSave();
+                    await StorageService.SaveFolderManagerAsync(_folderManager);
                     _lastSaveTime = DateTime.UtcNow;
                     _hasUnsavedJsonChanges = false;
                 }
@@ -1255,7 +1255,7 @@
         {
             if (_folderManager != null)
             {
-                await DebouncedSave();
+                await StorageService.SaveFolderManagerAsync(_folderManager);
                 _lastSaveTime = DateTime.UtcNow;
                 _hasUnsavedJsonChanges = false;
             }
