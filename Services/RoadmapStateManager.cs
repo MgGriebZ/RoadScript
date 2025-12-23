@@ -12,7 +12,7 @@ namespace RoadScript.Services
         // Private backing fields
         private bool _isPreviewMode;
         private bool _isJsonEditorMode;
-        private bool _showProperties;
+        private bool _showProperties = true; // Default to open (collapsed only in preview mode)
         private bool _showFolderSettings;
         private bool _showRoadmapManager;
         private bool _showShareModal;
