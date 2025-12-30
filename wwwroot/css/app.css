@@ -273,6 +273,38 @@ html, body, #app {
     .roadmap > div:first-child {
         margin-bottom: 12px !important;
         padding: 5px 8px !important;
+        min-width: 0 !important; /* Override hardcoded 560px min-width for tablet screens */
+        max-width: 100% !important; /* Prevent overflow */
+    }
+
+    /* Title container grid - reduce gap for tablet screens */
+    .roadmap > div:first-child > div {
+        gap: 8px !important; /* Reduce from 12px to give more breathing room */
+    }
+
+    /* Quick action buttons - slightly smaller for tablets */
+    .quick-action-icon {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    /* Button labels under icons - smaller font */
+    .roadmap > div:first-child span[style*="font-size: 9px"] {
+        font-size: 8px !important;
+    }
+
+    /* Title text - ensure it doesn't overflow on tablets */
+    .roadmap > div:first-child h1 {
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* Subtitle text - same overflow protection */
+    .roadmap > div:first-child p {
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
 
     /* Lane label area - narrower for more timeline space */
