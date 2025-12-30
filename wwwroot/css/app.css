@@ -271,7 +271,7 @@ html, body, #app {
 
     /* Title container - responsive sizing for tablets */
     .roadmap-title-container {
-        min-width: 0 !important; /* Override 560px min-width for tablet screens */
+        min-width: 420px !important; /* Reduced from 560px but maintains content width */
         max-width: 100% !important; /* Prevent overflow */
         margin-bottom: 12px !important;
         padding: 5px 8px !important;
@@ -297,7 +297,7 @@ html, body, #app {
     .roadmap > div:first-child {
         margin-bottom: 12px !important;
         padding: 5px 8px !important;
-        min-width: 0 !important;
+        min-width: 420px !important;
         max-width: 100% !important;
     }
 
