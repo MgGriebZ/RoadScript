@@ -269,28 +269,40 @@ html, body, #app {
 
     /* ========== LAYOUT OPTIMIZATION ========== */
 
-    /* Title container spacing */
-    .roadmap > div:first-child {
+    /* Title container - responsive sizing for tablets */
+    .roadmap-title-container {
+        min-width: 0 !important; /* Override 560px min-width for tablet screens */
+        max-width: 100% !important; /* Prevent overflow */
         margin-bottom: 12px !important;
         padding: 5px 8px !important;
-        min-width: 0 !important; /* Override hardcoded 560px min-width for tablet screens */
-        max-width: 100% !important; /* Prevent overflow */
     }
 
-    /* Title container grid - reduce gap for tablet screens */
-    .roadmap > div:first-child > div {
+    /* Title grid - reduce gap for tablet screens */
+    .roadmap-title-grid {
         gap: 8px !important; /* Reduce from 12px to give more breathing room */
     }
 
-    /* Quick action buttons - slightly smaller for tablets */
+    /* Quick action buttons - smaller for tablets */
     .quick-action-icon {
         width: 32px !important;
         height: 32px !important;
     }
 
-    /* Button labels under icons - smaller font */
-    .roadmap > div:first-child span[style*="font-size: 9px"] {
+    /* Button labels - smaller font for tablets */
+    .button-label {
         font-size: 8px !important;
+    }
+
+    /* Legacy selectors for backwards compatibility */
+    .roadmap > div:first-child {
+        margin-bottom: 12px !important;
+        padding: 5px 8px !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .roadmap > div:first-child > div {
+        gap: 8px !important;
     }
 
     /* Title text - ensure it doesn't overflow on tablets */
@@ -750,4 +762,19 @@ input[type="color"] {
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.2s ease;
+}
+
+/* Button labels under action buttons */
+.button-label {
+    font-size: 9px;
+}
+
+/* Title container - default settings */
+.roadmap-title-container {
+    min-width: 560px;
+}
+
+/* Title grid - default gap */
+.roadmap-title-grid {
+    gap: 12px;
 }
