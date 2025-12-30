@@ -277,9 +277,10 @@ html, body, #app {
         padding: 5px 8px !important;
     }
 
-    /* Title grid - reduce gap for tablet screens */
+    /* Title grid - reduce gap and optimize columns for tablet screens */
     .roadmap-title-grid {
         gap: 8px !important; /* Reduce from 12px to give more breathing room */
+        grid-template-columns: auto 1fr auto !important; /* Let side columns fit content, center takes remaining space */
     }
 
     /* Quick action buttons - smaller for tablets */
