@@ -272,17 +272,21 @@ html, body, #app {
     /* Title container - responsive sizing for tablets */
     .roadmap-title-container {
         width: 100% !important; /* Ensure full width */
-        min-width: 420px !important; /* Reduced from 560px but maintains content width */
+        min-width: 0 !important; /* Remove min-width constraint to allow flexibility */
         max-width: 100% !important; /* Prevent overflow */
         margin-bottom: 12px !important;
         padding: 5px 8px !important;
+        box-sizing: border-box !important; /* Include padding in width calculation */
     }
 
     /* Title grid - reduce gap and optimize columns for tablet screens */
     .roadmap-title-grid {
+        display: grid !important; /* Ensure grid display */
         width: 100% !important; /* Force full width to prevent left-side squishing */
         gap: 8px !important; /* Reduce from 12px to give more breathing room */
         grid-template-columns: auto 1fr auto !important; /* Let side columns fit content, center takes remaining space */
+        align-items: start !important;
+        box-sizing: border-box !important;
     }
 
     /* Quick action buttons - smaller for tablets */
@@ -301,13 +305,16 @@ html, body, #app {
         width: 100% !important; /* Ensure full width */
         margin-bottom: 12px !important;
         padding: 5px 8px !important;
-        min-width: 420px !important;
+        min-width: 0 !important; /* Remove min-width constraint */
         max-width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .roadmap > div:first-child > div {
+        display: grid !important;
         width: 100% !important; /* Force full width to prevent left-side squishing */
         gap: 8px !important;
+        box-sizing: border-box !important;
     }
 
     /* Title text - ensure it doesn't overflow on tablets */
@@ -677,19 +684,19 @@ input[type="color"] {
 }
 
 /* Responsive - Property Panel */
-@media (max-width: 1400px) {
+@media (max-width: 767px) {
+    /* Mobile: Hide property panel completely (use MobilePropertySheet instead) */
     .property-panel {
-        position: fixed;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        z-index: 1000;
-        box-shadow: -4px 0 12px rgba(0,0,0,0.3);
-        transform: translateX(0);
+        display: none !important;
     }
+}
 
-    .property-panel:not(:has(.selected-element)) {
-        transform: translateX(100%);
+@media (min-width: 768px) and (max-width: 1023px) {
+    /* Tablet: Keep property panel visible but narrower */
+    .property-panel {
+        width: 260px !important;
+        min-width: 260px !important;
+        max-width: 280px !important;
     }
 }
 
@@ -777,9 +784,14 @@ input[type="color"] {
 /* Title container - default settings */
 .roadmap-title-container {
     min-width: 560px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* Title grid - default gap */
 .roadmap-title-grid {
     gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
 }
