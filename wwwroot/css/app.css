@@ -271,15 +271,16 @@ html, body, #app {
 
     /* Title container - responsive sizing for tablets */
     .roadmap-title-container {
-        min-width: 0 !important; /* Override 560px min-width for tablet screens */
+        min-width: 420px !important; /* Reduced from 560px but maintains content width */
         max-width: 100% !important; /* Prevent overflow */
         margin-bottom: 12px !important;
         padding: 5px 8px !important;
     }
 
-    /* Title grid - reduce gap for tablet screens */
+    /* Title grid - reduce gap and optimize columns for tablet screens */
     .roadmap-title-grid {
         gap: 8px !important; /* Reduce from 12px to give more breathing room */
+        grid-template-columns: auto 1fr auto !important; /* Let side columns fit content, center takes remaining space */
     }
 
     /* Quick action buttons - smaller for tablets */
@@ -297,7 +298,7 @@ html, body, #app {
     .roadmap > div:first-child {
         margin-bottom: 12px !important;
         padding: 5px 8px !important;
-        min-width: 0 !important;
+        min-width: 420px !important;
         max-width: 100% !important;
     }
 
