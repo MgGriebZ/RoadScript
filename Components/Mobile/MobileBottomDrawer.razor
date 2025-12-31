@@ -1,0 +1,141 @@
+@inject ResponsiveService ResponsiveService
+
+@if (ResponsiveService.IsMobile() && IsOpen)
+{
+    <!-- Backdrop -->
+    <div class="mobile-drawer-backdrop @(IsOpen ? "visible" : "")" @onclick="Close"></div>
+
+    <!-- Bottom Drawer -->
+    <div class="mobile-bottom-drawer @(IsOpen ? "open" : "")" @onclick:stopPropagation="true">
+        <!-- Drag handle -->
+        <div class="mobile-drawer-handle"></div>
+
+        <!-- Header -->
+        <div class="mobile-drawer-header">
+            <div class="mobile-drawer-title">@Title</div>
+            <button class="mobile-drawer-close" @onclick="Close" title="Close">
+                ×
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="mobile-drawer-content">
+            @ChildContent
+        </div>
+
+        <!-- Optional footer with actions -->
+        @if (ShowFooter)
+        {
+            <div style="padding: 16px 20px; border-top: 1px solid #3a3a4e; display: flex; gap: 12px;">
+                @if (ShowCancelButton)
+                {
+                    <button @onclick="Cancel"
+                            style="flex: 1; padding: 12px; background: #2a2a3e; color: #e0e7ff; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer;">
+                        @CancelButtonText
+                    </button>
+                }
+                @if (ShowSaveButton)
+                {
+                    <button @onclick="Save"
+                            style="flex: 1; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer;">
+                        @SaveButtonText
+                    </button>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Whether the drawer is open
+    /// </summary>
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    /// <summary>
+    /// Callback when IsOpen changes
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
+    /// <summary>
+    /// Title displayed in the drawer header
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = "Properties";
+
+    /// <summary>
+    /// Content to display in the drawer
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Show footer with action buttons
+    /// </summary>
+    [Parameter]
+    public bool ShowFooter { get; set; } = true;
+
+    /// <summary>
+    /// Show cancel button in footer
+    /// </summary>
+    [Parameter]
+    public bool ShowCancelButton { get; set; } = true;
+
+    /// <summary>
+    /// Show save button in footer
+    /// </summary>
+    [Parameter]
+    public bool ShowSaveButton { get; set; } = true;
+
+    /// <summary>
+    /// Text for cancel button
+    /// </summary>
+    [Parameter]
+    public string CancelButtonText { get; set; } = "Cancel";
+
+    /// <summary>
+    /// Text for save button
+    /// </summary>
+    [Parameter]
+    public string SaveButtonText { get; set; } = "Save";
+
+    /// <summary>
+    /// Callback when drawer is closed
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    /// <summary>
+    /// Callback when save is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnSave { get; set; }
+
+    /// <summary>
+    /// Callback when cancel is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private async Task Close()
+    {
+        IsOpen = false;
+        await IsOpenChanged.InvokeAsync(false);
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task Save()
+    {
+        await OnSave.InvokeAsync();
+        // Optionally close drawer after save
+        // await Close();
+    }
+
+    private async Task Cancel()
+    {
+        await OnCancel.InvokeAsync();
+        await Close();
+    }
+}

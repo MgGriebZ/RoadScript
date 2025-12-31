@@ -1,0 +1,62 @@
+@inject ResponsiveService ResponsiveService
+
+@if (ResponsiveService.IsMobile() && IsOpen)
+{
+    <!-- Backdrop -->
+    <div class="mobile-drawer-backdrop @(IsOpen ? "visible" : "")" @onclick="Close"></div>
+
+    <!-- Side Drawer -->
+    <div class="mobile-side-drawer @(IsOpen ? "open" : "")" @onclick:stopPropagation="true">
+        <!-- Header -->
+        <div class="mobile-drawer-header">
+            <div class="mobile-drawer-title">@Title</div>
+            <button class="mobile-drawer-close" @onclick="Close" title="Close">
+                ×
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="mobile-drawer-content">
+            @ChildContent
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Whether the drawer is open
+    /// </summary>
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    /// <summary>
+    /// Callback when IsOpen changes
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
+    /// <summary>
+    /// Title displayed in the drawer header
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = "Menu";
+
+    /// <summary>
+    /// Content to display in the drawer
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Callback when drawer is closed
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private async Task Close()
+    {
+        IsOpen = false;
+        await IsOpenChanged.InvokeAsync(false);
+        await OnClose.InvokeAsync();
+    }
+}
