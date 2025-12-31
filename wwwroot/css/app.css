@@ -789,9 +789,51 @@ input[type="color"] {
     box-sizing: border-box;
 }
 
-/* Title grid - default gap */
+/* Title grid - default layout and gap */
 .roadmap-title-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     gap: 12px;
     width: 100%;
     box-sizing: border-box;
+    align-items: start;
+}
+
+/* Grid column common styles */
+.title-grid-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Left column (GitHub button) */
+.title-grid-left {
+    justify-self: start;
+}
+
+/* Center column (Title) */
+.title-grid-center {
+    justify-content: center;
+    min-height: 36px;
+}
+
+/* Right column (Share button) */
+.title-grid-right {
+    justify-self: end;
+}
+
+/* Title text wrapper */
+.title-text-wrapper {
+    text-align: center;
+    width: 100%;
+}
+
+/* Quick action icon styling */
+.quick-action-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
 }
