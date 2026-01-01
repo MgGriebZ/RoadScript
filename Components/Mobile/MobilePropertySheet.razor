@@ -33,23 +33,40 @@
             </div>
 
             <!-- Property Editors (rendered based on selection type) -->
-            @if (SelectionState.SelectedElement is RoadmapItem item)
+            @if (SelectionState.SelectedElement is Item item && SelectionState.SelectedPath != null)
             {
                 <ItemProperties Item="@item"
-                               Data="@Data"
-                               OnItemUpdated="@OnItemUpdated" />
+                               JsonPath="@SelectionState.SelectedPath"
+                               ColumnCount="@(Data?.Columns?.Count ?? 0)"
+                               ItemIndex="0"
+                               ItemCount="1"
+                               LaneIndex="0"
+                               LaneCount="@(Data?.Lanes?.Count ?? 0)"
+                               AvailableRoadmaps="@(new List<string>())"
+                               OnChange="@((e) => Task.CompletedTask)"
+                               OnAdd="@((e) => Task.CompletedTask)"
+                               OnRemove="@((e) => Task.CompletedTask)"
+                               OnDuplicate="@(() => DuplicateElement())"
+                               OnMoveItem="@((e) => Task.CompletedTask)"
+                               OnMoveLane="@((e) => Task.CompletedTask)" />
             }
-            else if (SelectionState.SelectedElement is Lane lane)
+            else if (SelectionState.SelectedElement is Lane lane && SelectionState.SelectedPath != null)
             {
                 <LaneProperties Lane="@lane"
-                               Data="@Data"
-                               OnLaneUpdated="@OnLaneUpdated" />
+                               JsonPath="@SelectionState.SelectedPath"
+                               OnChange="@((e) => Task.CompletedTask)"
+                               OnAdd="@((e) => Task.CompletedTask)"
+                               OnRemove="@((e) => Task.CompletedTask)"
+                               OnDuplicate="@(() => DuplicateElement())" />
             }
-            else if (SelectionState.SelectedElement is Column column)
+            else if (SelectionState.SelectedElement is Column column && SelectionState.SelectedPath != null)
             {
                 <ColumnProperties Column="@column"
-                                 Data="@Data"
-                                 OnColumnUpdated="@OnColumnUpdated" />
+                                 JsonPath="@SelectionState.SelectedPath"
+                                 OnChange="@((e) => Task.CompletedTask)"
+                                 OnAdd="@((e) => Task.CompletedTask)"
+                                 OnRemove="@((e) => Task.CompletedTask)"
+                                 OnDuplicate="@(() => DuplicateElement())" />
             }
         </div>
     }
@@ -83,24 +100,6 @@
     /// </summary>
     [Parameter]
     public RoadmapData? Data { get; set; }
-
-    /// <summary>
-    /// Callback when an item is updated
-    /// </summary>
-    [Parameter]
-    public EventCallback<RoadmapItem> OnItemUpdated { get; set; }
-
-    /// <summary>
-    /// Callback when a lane is updated
-    /// </summary>
-    [Parameter]
-    public EventCallback<Lane> OnLaneUpdated { get; set; }
-
-    /// <summary>
-    /// Callback when a column is updated
-    /// </summary>
-    [Parameter]
-    public EventCallback<Column> OnColumnUpdated { get; set; }
 
     /// <summary>
     /// Callback when an element should be duplicated
@@ -150,7 +149,7 @@
 
         return SelectionState.SelectedElement switch
         {
-            RoadmapItem item => $"Edit: {item.Title ?? "Item"}",
+            Item item => $"Edit: {item.Title ?? "Item"}",
             Lane lane => $"Edit: {lane.Name ?? "Lane"}",
             Column column => $"Edit: {column.Label ?? "Column"}",
             _ => "Properties"
