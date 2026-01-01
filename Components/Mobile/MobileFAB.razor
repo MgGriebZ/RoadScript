@@ -1,0 +1,167 @@
+@inject ResponsiveService ResponsiveService
+
+@if (ResponsiveService.IsMobile())
+{
+    <div class="mobile-fab @(IsExpanded ? "expanded" : "")" @onclick:stopPropagation="true">
+        <!-- Sub-menu actions (shown when expanded) -->
+        <div class="mobile-fab-menu">
+            @if (ShowEditAction)
+            {
+                <button class="mobile-fab-action" @onclick="OnEditClick" title="Edit Mode">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+            }
+
+            @if (ShowAddAction)
+            {
+                <button class="mobile-fab-action" @onclick="OnAddClick" title="Add Element">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+            }
+
+            @if (ShowTemplatesAction)
+            {
+                <button class="mobile-fab-action" @onclick="OnTemplatesClick" title="Templates">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </button>
+            }
+
+            @if (ShowShareAction)
+            {
+                <button class="mobile-fab-action" @onclick="OnShareClick" title="Share">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                </button>
+            }
+        </div>
+
+        <!-- Main FAB button -->
+        <button class="mobile-fab-main touch-ripple" @onclick="ToggleExpanded" title="Actions">
+            @if (IsExpanded)
+            {
+                <!-- Close icon (X) -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            }
+            else
+            {
+                <!-- Menu icon (three dots) -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="1" fill="currentColor"></circle>
+                    <circle cx="12" cy="5" r="1" fill="currentColor"></circle>
+                    <circle cx="12" cy="19" r="1" fill="currentColor"></circle>
+                </svg>
+            }
+        </button>
+    </div>
+
+    <!-- Backdrop to close menu when clicking outside -->
+    @if (IsExpanded)
+    {
+        <div class="mobile-drawer-backdrop visible" @onclick="CloseMenu"></div>
+    }
+}
+
+@code {
+    private bool IsExpanded = false;
+
+    /// <summary>
+    /// Show the Edit action button
+    /// </summary>
+    [Parameter]
+    public bool ShowEditAction { get; set; } = true;
+
+    /// <summary>
+    /// Show the Add action button
+    /// </summary>
+    [Parameter]
+    public bool ShowAddAction { get; set; } = true;
+
+    /// <summary>
+    /// Show the Templates action button
+    /// </summary>
+    [Parameter]
+    public bool ShowTemplatesAction { get; set; } = true;
+
+    /// <summary>
+    /// Show the Share action button
+    /// </summary>
+    [Parameter]
+    public bool ShowShareAction { get; set; } = true;
+
+    /// <summary>
+    /// Callback when Edit is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnEditClicked { get; set; }
+
+    /// <summary>
+    /// Callback when Add is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnAddClicked { get; set; }
+
+    /// <summary>
+    /// Callback when Templates is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnTemplatesClicked { get; set; }
+
+    /// <summary>
+    /// Callback when Share is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnShareClicked { get; set; }
+
+    private void ToggleExpanded()
+    {
+        IsExpanded = !IsExpanded;
+    }
+
+    private void CloseMenu()
+    {
+        IsExpanded = false;
+    }
+
+    private async Task OnEditClick()
+    {
+        CloseMenu();
+        await OnEditClicked.InvokeAsync();
+    }
+
+    private async Task OnAddClick()
+    {
+        CloseMenu();
+        await OnAddClicked.InvokeAsync();
+    }
+
+    private async Task OnTemplatesClick()
+    {
+        CloseMenu();
+        await OnTemplatesClicked.InvokeAsync();
+    }
+
+    private async Task OnShareClick()
+    {
+        CloseMenu();
+        await OnShareClicked.InvokeAsync();
+    }
+}

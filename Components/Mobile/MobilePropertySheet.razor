@@ -1,0 +1,177 @@
+@inject ResponsiveService ResponsiveService
+@inject SelectionState SelectionState
+@using RoadScript.Models
+
+<MobileBottomDrawer IsOpen="@IsPropertySheetOpen"
+                    IsOpenChanged="@HandlePropertySheetOpenChanged"
+                    Title="@GetPropertySheetTitle()"
+                    ShowFooter="false">
+    @if (SelectionState.SelectedElement != null)
+    {
+        <div style="padding-bottom: 20px;">
+            <!-- Quick Actions Row -->
+            <div style="display: flex; gap: 8px; margin-bottom: 16px; padding: 0 4px;">
+                <button @onclick="DuplicateElement"
+                        class="touch-ripple"
+                        style="flex: 1; padding: 12px; background: #2a2a3e; color: #e0e7ff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Duplicate
+                </button>
+
+                <button @onclick="DeleteElement"
+                        class="touch-ripple"
+                        style="flex: 1; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Delete
+                </button>
+            </div>
+
+            <!-- Property Editors (rendered based on selection type) -->
+            @if (SelectionState.SelectedElement is RoadmapItem item)
+            {
+                <ItemProperties Item="@item"
+                               Data="@Data"
+                               OnItemUpdated="@OnItemUpdated" />
+            }
+            else if (SelectionState.SelectedElement is Lane lane)
+            {
+                <LaneProperties Lane="@lane"
+                               Data="@Data"
+                               OnLaneUpdated="@OnLaneUpdated" />
+            }
+            else if (SelectionState.SelectedElement is Column column)
+            {
+                <ColumnProperties Column="@column"
+                                 Data="@Data"
+                                 OnColumnUpdated="@OnColumnUpdated" />
+            }
+        </div>
+    }
+    else
+    {
+        <div style="text-align: center; padding: 40px 20px; color: #9ca3af;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 16px;">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            <p style="font-size: 15px; margin: 0;">Tap an element to edit its properties</p>
+        </div>
+    }
+</MobileBottomDrawer>
+
+@code {
+    /// <summary>
+    /// Whether the property sheet is open
+    /// </summary>
+    [Parameter]
+    public bool IsPropertySheetOpen { get; set; }
+
+    /// <summary>
+    /// Callback when property sheet open state changes
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> IsPropertySheetOpenChanged { get; set; }
+
+    /// <summary>
+    /// The roadmap data being edited
+    /// </summary>
+    [Parameter]
+    public RoadmapData? Data { get; set; }
+
+    /// <summary>
+    /// Callback when an item is updated
+    /// </summary>
+    [Parameter]
+    public EventCallback<RoadmapItem> OnItemUpdated { get; set; }
+
+    /// <summary>
+    /// Callback when a lane is updated
+    /// </summary>
+    [Parameter]
+    public EventCallback<Lane> OnLaneUpdated { get; set; }
+
+    /// <summary>
+    /// Callback when a column is updated
+    /// </summary>
+    [Parameter]
+    public EventCallback<Column> OnColumnUpdated { get; set; }
+
+    /// <summary>
+    /// Callback when an element should be duplicated
+    /// </summary>
+    [Parameter]
+    public EventCallback OnDuplicateElement { get; set; }
+
+    /// <summary>
+    /// Callback when an element should be deleted
+    /// </summary>
+    [Parameter]
+    public EventCallback OnDeleteElement { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to selection changes to auto-open property sheet on mobile
+        SelectionState.OnSelectionChanged += HandleSelectionChanged;
+    }
+
+    private void HandleSelectionChanged()
+    {
+        if (ResponsiveService.IsMobile() && SelectionState.SelectedElement != null)
+        {
+            // Auto-open property sheet when element is selected on mobile
+            IsPropertySheetOpen = true;
+            IsPropertySheetOpenChanged.InvokeAsync(true);
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandlePropertySheetOpenChanged(bool isOpen)
+    {
+        IsPropertySheetOpen = isOpen;
+        await IsPropertySheetOpenChanged.InvokeAsync(isOpen);
+
+        // Clear selection when closing property sheet
+        if (!isOpen)
+        {
+            SelectionState.ClearSelection();
+        }
+    }
+
+    private string GetPropertySheetTitle()
+    {
+        if (SelectionState.SelectedElement == null)
+            return "Properties";
+
+        return SelectionState.SelectedElement switch
+        {
+            RoadmapItem item => $"Edit: {item.Title ?? "Item"}",
+            Lane lane => $"Edit: {lane.Name ?? "Lane"}",
+            Column column => $"Edit: {column.Label ?? "Column"}",
+            _ => "Properties"
+        };
+    }
+
+    private async Task DuplicateElement()
+    {
+        await OnDuplicateElement.InvokeAsync();
+    }
+
+    private async Task DeleteElement()
+    {
+        await OnDeleteElement.InvokeAsync();
+        // Close property sheet after deletion
+        IsPropertySheetOpen = false;
+        await IsPropertySheetOpenChanged.InvokeAsync(false);
+    }
+
+    public void Dispose()
+    {
+        SelectionState.OnSelectionChanged -= HandleSelectionChanged;
+    }
+}

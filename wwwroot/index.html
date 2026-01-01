@@ -3,10 +3,26 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Mobile-optimized viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#1e1e2f" />
+
+    <!-- Touch Icons -->
+    <meta name="apple-mobile-web-app-title" content="RoadScript" />
+
     <title>RoadScript</title>
     <base href="/" />
+
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/mobile.css" />
+
     <!-- BlazorMonaco bundled CSS -->
     <link rel="stylesheet" data-name="vs/editor/editor.main"
           href="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.css" />
@@ -34,6 +50,8 @@
 
     <!-- RoadScript custom interop -->
     <script src="js/roadscript-interop.js"></script>
+    <script src="js/responsive-interop.js"></script>
+    <script src="js/touch-gestures.js"></script>
 
     <!-- Blazor framework -->
     <script src="_framework/blazor.webassembly.js"></script>

@@ -16,17 +16,17 @@
      style="@(ThemeService.TitleContainerStyle() + " " + titlePadding)">
 
     @* Top row: Button Column | Title | Button Column *@
-    <div class="roadmap-title-grid" style="display: grid; grid-template-columns: minmax(50px, auto) 1fr minmax(50px, auto); align-items: start; width: 100%;">
+    <div class="roadmap-title-grid">
 
         @* GitHub button - Left *@
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; justify-self: start;">
+        <div class="title-grid-column title-grid-left">
             <a href="https://github.com/MgGriebZ/RoadScript"
                target="_blank"
                rel="noopener noreferrer"
                class="quick-action-button"
                title="View on GitHub"
                style="text-decoration: none; display: block;">
-                <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
+                <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
                     <Icon IconType="github" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
                 </div>
             </a>
@@ -34,9 +34,10 @@
         </div>
 
         @* Title (centered) *@
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 36px;">
+        <div class="title-grid-column title-grid-center">
             <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
-                 style="text-align: center; width: 100%; @(IsPreviewMode ? "" : "cursor: pointer;")">
+                 class="title-text-wrapper"
+                 style="@(IsPreviewMode ? "" : "cursor: pointer;")">
                 @if (hasTitleText)
                 {
                     <h1 style="@ThemeService.TitleStyle()">@Title</h1>
@@ -50,12 +51,12 @@
         </div>
 
         @* Share button - Right *@
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; justify-self: end;">
+        <div class="title-grid-column title-grid-right">
             <div @onclick="@(() => OnShareClick.InvokeAsync())"
                  class="quick-action-button"
                  title="Share this roadmap"
                  style="cursor: pointer; display: block;">
-                <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)"); display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
+                <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
                     <Icon IconType="globe" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
                 </div>
             </div>

@@ -18,4 +18,8 @@ builder.Services.AddScoped<UrlNavigationService>();
 builder.Services.AddScoped<ThemeService>();
 builder.Services.AddScoped<RoadmapStateManager>();
 
+// Register mobile/responsive services
+builder.Services.AddScoped<ResponsiveService>();
+builder.Services.AddScoped<GestureService>();
+
 await builder.Build().RunAsync();
