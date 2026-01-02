@@ -698,6 +698,42 @@ input[type="color"] {
         min-width: 260px !important;
         max-width: 280px !important;
     }
+
+    /* Title grid - ensure proper 3-column layout on tablets */
+    .roadmap-title-grid {
+        display: grid !important;
+        grid-template-columns: auto 1fr auto !important;
+        gap: 12px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        align-items: start !important;
+    }
+
+    /* Title container - ensure full width */
+    .roadmap-title-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1200px) {
+    /* Small desktop: Ensure title grid maintains proper layout */
+    .roadmap-title-grid {
+        display: grid !important;
+        grid-template-columns: auto 1fr auto !important;
+        gap: 12px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        align-items: start !important;
+    }
+
+    /* Title container - ensure full width */
+    .roadmap-title-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
 }
 
 /* Scrollbar for Property Panel */
