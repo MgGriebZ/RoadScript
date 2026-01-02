@@ -42,7 +42,7 @@
                                ItemCount="1"
                                LaneIndex="0"
                                LaneCount="@(Data?.Lanes?.Count ?? 0)"
-                               AvailableRoadmaps="@(new List<string>())"
+                               AvailableRoadmaps="@(new List<TabSession>())"
                                OnChange="@((e) => Task.CompletedTask)"
                                OnAdd="@((e) => Task.CompletedTask)"
                                OnRemove="@((e) => Task.CompletedTask)"
@@ -138,7 +138,7 @@
         // Clear selection when closing property sheet
         if (!isOpen)
         {
-            SelectionState.ClearSelection();
+            SelectionState.Clear();
         }
     }
 
@@ -150,7 +150,7 @@
         return SelectionState.SelectedElement switch
         {
             Item item => $"Edit: {item.Title ?? "Item"}",
-            Lane lane => $"Edit: {lane.Name ?? "Lane"}",
+            Lane lane => $"Edit: {lane.Title ?? "Lane"}",
             Column column => $"Edit: {column.Label ?? "Column"}",
             _ => "Properties"
         };
