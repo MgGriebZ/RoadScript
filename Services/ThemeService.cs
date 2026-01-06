@@ -344,7 +344,8 @@ public class ThemeService
             positionStyle = "top: 6px; bottom: 6px;";
         }
 
-        var color = lane.Color;
+        // Use item color if specified, otherwise fall back to lane color
+        var color = !string.IsNullOrEmpty(item.Color) ? item.Color : lane.Color;
 
         if (IsVibeMode)
         {
