@@ -119,7 +119,7 @@
                             var hasSubs = hasDetails && item.Details.Any(d => d.Subs != null && d.Subs.Count > 0);
                             var hasTitle = !string.IsNullOrWhiteSpace(item.Title);
                         }
-                        <div style="@ThemeService.ItemHeaderStyle(hasDetails, hasSubs, hasTitle, item.Length, lane.Color)">
+                        <div style="@ThemeService.ItemHeaderStyle(hasDetails, hasSubs, hasTitle, item.Length, item.Color ?? lane.Color)">
                             @if (!string.IsNullOrEmpty(item.Icon))
                             {
                                 <Icon IconType="@item.Icon"
