@@ -4,73 +4,56 @@
     var hasTitleText = !string.IsNullOrWhiteSpace(Title);
     var hasSubtitleText = !string.IsNullOrWhiteSpace(Subtitle);
     var hasTitleContent = hasTitleText || hasSubtitleText;
-    var titlePadding = hasTitleContent ? "padding: 8px 12px;" : "padding: 8px 12px; min-height: 58px;";
-
-    // Button label styling - responsive font size removed from inline, now in CSS
-    var buttonLabelStyle = ThemeService.IsVibeMode
-        ? "color: #9ca3af; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;"
-        : "color: #6b7280; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;";
+    var titlePadding = hasTitleContent ? "padding: 8px 60px;" : "padding: 8px 60px; min-height: 58px;";
 }
 
 <div class="@GetElementClass() roadmap-title-container"
      style="@(ThemeService.TitleContainerStyle() + " " + titlePadding)">
 
-    @* Title Row with Side Buttons - Using Grid for Perfect Centering *@
-    <div class="roadmap-title-grid">
-        @* Left Button Column *@
-        <div class="title-grid-column title-grid-left">
-            <a href="https://github.com/MgGriebZ/RoadScript"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="quick-action-button"
-               title="View on GitHub"
-               style="text-decoration: none; display: block;">
-                <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                    <Icon IconType="github" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
-                </div>
-            </a>
-            <span class="button-label" style="@buttonLabelStyle">Repo</span>
-        </div>
-
-        @* Center Title Column *@
-        <div class="title-grid-column title-grid-center">
-            <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
-                 class="title-text-wrapper"
-                 style="@(IsPreviewMode ? "" : "cursor: pointer;")">
-                @if (hasTitleText)
-                {
-                    <h1 style="@ThemeService.TitleStyle()">@Title</h1>
-                }
-                else
-                {
-                    @* Invisible placeholder to maintain layout *@
-                    <span style="visibility: hidden; font-size: 0;">&#8203;</span>
-                }
+    @* Absolutely Positioned Buttons - Don't affect centering *@
+    <div class="title-button-absolute title-button-left">
+        <a href="https://github.com/MgGriebZ/RoadScript"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="title-action-button"
+           title="View on GitHub">
+            <div class="title-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                <Icon IconType="github" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
             </div>
-        </div>
+            <span class="title-button-label">Repo</span>
+        </a>
+    </div>
 
-        @* Right Button Column *@
-        <div class="title-grid-column title-grid-right">
-            <div @onclick="@(() => OnShareClick.InvokeAsync())"
-                 class="quick-action-button"
-                 title="Share this roadmap"
-                 style="cursor: pointer; display: block;">
-                <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                    <Icon IconType="globe" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
-                </div>
+    <div class="title-button-absolute title-button-right">
+        <div @onclick="@(() => OnShareClick.InvokeAsync())"
+             class="title-action-button"
+             title="Share this roadmap"
+             style="cursor: pointer;">
+            <div class="title-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                <Icon IconType="globe" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
             </div>
-            <span class="button-label" style="@buttonLabelStyle">Share</span>
+            <span class="title-button-label">Share</span>
         </div>
     </div>
 
-    @* Bottom row: Subtitle (full width, centered) *@
-    @if (hasSubtitleText)
-    {
-        <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
-             style="text-align: center; margin-top: 6px; @(IsPreviewMode ? "" : "cursor: pointer;")">
-            <p style="@ThemeService.SubtitleStyle()">@Subtitle</p>
-        </div>
-    }
+    @* Centered Title and Subtitle - Simple text-align center *@
+    <div class="title-content-center">
+        @if (hasTitleText)
+        {
+            <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
+                 style="@(IsPreviewMode ? "" : "cursor: pointer;")">
+                <h1 style="@ThemeService.TitleStyle()">@Title</h1>
+            </div>
+        }
+
+        @if (hasSubtitleText)
+        {
+            <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
+                 style="margin-top: 6px; @(IsPreviewMode ? "" : "cursor: pointer;")">
+                <p style="@ThemeService.SubtitleStyle()">@Subtitle</p>
+            </div>
+        }
+    </div>
 </div>
 
 @code {

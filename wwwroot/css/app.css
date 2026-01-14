@@ -271,41 +271,25 @@ html, body, #app {
 
     /* Title container - responsive sizing for tablets */
     .roadmap-title-container {
-        width: 100% !important;
-        margin-bottom: 12px !important;
-        padding: 5px 8px !important;
-        box-sizing: border-box !important;
+        padding: 5px 50px !important; /* Smaller side padding for buttons */
     }
 
-    /* Title grid - tighter gap for tablets */
-    .roadmap-title-grid {
-        gap: 8px !important;
-    }
-
-    /* Quick action buttons - smaller for tablets */
-    .quick-action-icon {
+    /* Smaller buttons on tablets */
+    .title-action-icon {
         width: 32px !important;
         height: 32px !important;
     }
 
-    /* Button labels - smaller font for tablets */
-    .button-label {
+    .title-button-label {
         font-size: 8px !important;
     }
 
-    /* Legacy selectors for backwards compatibility */
-    .roadmap > div:first-child {
-        width: 100% !important;
-        margin-bottom: 12px !important;
-        padding: 5px 8px !important;
-        box-sizing: border-box !important;
+    .title-button-left {
+        left: 8px !important;
     }
 
-    /* Title text - ensure it doesn't overflow on tablets */
-    .roadmap > div:first-child h1 {
-        max-width: 100% !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
+    .title-button-right {
+        right: 8px !important;
     }
 
     /* Subtitle text - same overflow protection */
@@ -766,65 +750,51 @@ input[type="color"] {
     font-size: 9px;
 }
 
-/* Title container - default settings */
+/* ===== CLEAN CENTER TITLE DESIGN ===== */
+
+/* Title container - simple relative positioning for absolute buttons */
 .roadmap-title-container {
+    position: relative;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
 }
 
-/* Title grid - symmetric 3-column grid ensures true centering */
-.roadmap-title-grid {
-    display: grid;
-    grid-template-columns: minmax(60px, auto) 1fr minmax(60px, auto);
-    gap: 12px;
+/* Centered title/subtitle content */
+.title-content-center {
+    text-align: center;
     width: 100%;
-    align-items: start;
-    box-sizing: border-box;
 }
 
-/* Grid column common styles */
-.title-grid-column {
+/* Absolutely positioned button containers */
+.title-button-absolute {
+    position: absolute;
+    top: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 2px;
+    z-index: 1;
 }
 
-/* Left column */
-.title-grid-left {
-    justify-self: start;
+.title-button-left {
+    left: 12px;
 }
 
-/* Center column (Title) - takes full available space */
-.title-grid-center {
-    min-height: 36px;
-    min-width: 0; /* Allow grid to shrink below content size */
-    max-width: 100%; /* Prevent overflow */
-    width: 100%; /* Take full column width */
+.title-button-right {
+    right: 12px;
 }
 
-/* Right column */
-.title-grid-right {
-    justify-self: end;
+/* Button styling */
+.title-action-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none;
 }
 
-/* Title text wrapper - centered and contains h1 */
-.title-text-wrapper {
-    text-align: center;
-    width: 100%;
-    min-width: 0; /* Allow text to wrap/shrink */
-    overflow: hidden; /* Contain h1 overflow */
-}
-
-/* Ensure h1 properly truncates within wrapper */
-.title-text-wrapper h1 {
-    display: block;
-    width: 100%;
-}
-
-/* Quick action icon styling */
-.quick-action-icon {
+.title-action-icon {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -834,12 +804,15 @@ input[type="color"] {
     height: 40px;
 }
 
-.quick-action-icon:hover {
+.title-action-icon:hover {
     transform: scale(1.05);
 }
 
-/* Button labels */
-.button-label {
+.title-button-label {
     font-size: 9px;
     user-select: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    color: #6b7280;
 }
