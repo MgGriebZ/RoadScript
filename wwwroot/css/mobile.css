@@ -148,6 +148,7 @@
         min-width: 100% !important;
         width: 100% !important;
         padding: 8px 12px !important;
+        position: relative !important; /* For absolute button positioning */
     }
 
     /* Title grid - maintain centered layout on mobile */

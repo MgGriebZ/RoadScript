@@ -277,6 +277,7 @@ html, body, #app {
         margin-bottom: 12px !important;
         padding: 5px 8px !important;
         box-sizing: border-box !important; /* Include padding in width calculation */
+        position: relative !important; /* For absolute button positioning */
     }
 
     /* Title grid - maintain centered layout */
@@ -312,7 +313,7 @@ html, body, #app {
         font-size: 8px !important;
     }
 
-    /* Legacy selectors for backwards compatibility */
+    /* Legacy selectors for backwards compatibility - UPDATED for flex centering */
     .roadmap > div:first-child {
         width: 100% !important; /* Ensure full width */
         margin-bottom: 12px !important;
@@ -320,12 +321,12 @@ html, body, #app {
         min-width: 0 !important; /* Remove min-width constraint */
         max-width: 100% !important;
         box-sizing: border-box !important;
+        position: relative !important; /* For absolute button positioning */
     }
 
+    /* Removed display: grid rule to allow .roadmap-title-grid flex centering to work */
     .roadmap > div:first-child > div {
-        display: grid !important;
-        width: 100% !important; /* Force full width to prevent left-side squishing */
-        gap: 8px !important;
+        width: 100% !important;
         box-sizing: border-box !important;
     }
 
