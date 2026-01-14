@@ -49,7 +49,9 @@
                 <RoadmapLaneLabels Data="@Data"
                                   IsPreviewMode="@IsPreviewMode"
                                   IsVibeMode="@ThemeService.IsVibeMode"
-                                  OnLaneClick="@HandleLaneClick" />
+                                  SessionManager="@SessionManager"
+                                  OnLaneClick="@HandleLaneClick"
+                                  OnLaneLinkClick="@OnRoadmapLinkClick" />
 
                 @* Roadmap Content (Columns, Milestones, Grid, Items) *@
                 <RoadmapContent Data="@Data"

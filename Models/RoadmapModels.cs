@@ -73,6 +73,9 @@ public class Lane
     [JsonPropertyName("history")]
     public History? History { get; set; }  // Nullable - not all lanes need history
 
+    [JsonPropertyName("linkedRoadmapId")]
+    public string? LinkedRoadmapId { get; set; }  // Link to another roadmap (tab) in the same folder
+
     [JsonPropertyName("items")]
     public List<Item> Items { get; set; } = new();
 }
