@@ -271,35 +271,15 @@ html, body, #app {
 
     /* Title container - responsive sizing for tablets */
     .roadmap-title-container {
-        width: 100% !important; /* Ensure full width */
-        min-width: 0 !important; /* Remove min-width constraint to allow flexibility */
-        max-width: 100% !important; /* Prevent overflow */
+        width: 100% !important;
         margin-bottom: 12px !important;
         padding: 5px 8px !important;
-        box-sizing: border-box !important; /* Include padding in width calculation */
-        position: relative !important; /* For absolute button positioning */
-    }
-
-    /* Title grid - maintain centered layout */
-    .roadmap-title-grid {
-        display: flex !important;
-        justify-content: center !important;
-        width: 100% !important;
         box-sizing: border-box !important;
     }
 
-    /* Absolutely positioned buttons - adjust for tablets */
-    .title-button-left,
-    .title-button-right {
-        top: 6px !important;
-    }
-
-    .title-button-left {
-        left: 8px !important;
-    }
-
-    .title-button-right {
-        right: 8px !important;
+    /* Title grid - tighter gap for tablets */
+    .roadmap-title-grid {
+        gap: 8px !important;
     }
 
     /* Quick action buttons - smaller for tablets */
@@ -313,20 +293,11 @@ html, body, #app {
         font-size: 8px !important;
     }
 
-    /* Legacy selectors for backwards compatibility - UPDATED for flex centering */
+    /* Legacy selectors for backwards compatibility */
     .roadmap > div:first-child {
-        width: 100% !important; /* Ensure full width */
+        width: 100% !important;
         margin-bottom: 12px !important;
         padding: 5px 8px !important;
-        min-width: 0 !important; /* Remove min-width constraint */
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        position: relative !important; /* For absolute button positioning */
-    }
-
-    /* Removed display: grid rule to allow .roadmap-title-grid flex centering to work */
-    .roadmap > div:first-child > div {
-        width: 100% !important;
         box-sizing: border-box !important;
     }
 
@@ -712,39 +683,6 @@ input[type="color"] {
         max-width: 280px !important;
     }
 
-    /* Title grid - maintain centered layout */
-    .roadmap-title-grid {
-        display: flex !important;
-        justify-content: center !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    /* Title container - ensure full width */
-    .roadmap-title-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        position: relative !important;
-    }
-}
-
-@media (min-width: 1024px) and (max-width: 1200px) {
-    /* Small desktop: Ensure title grid maintains centered layout */
-    .roadmap-title-grid {
-        display: flex !important;
-        justify-content: center !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    /* Title container - ensure full width */
-    .roadmap-title-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        position: relative !important;
-    }
 }
 
 /* Scrollbar for Property Panel */
@@ -830,19 +768,18 @@ input[type="color"] {
 
 /* Title container - default settings */
 .roadmap-title-container {
-    min-width: 560px;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    position: relative;
 }
 
-/* Title grid - simplified for centered title only */
+/* Title grid - symmetric 3-column grid ensures true centering */
 .roadmap-title-grid {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: grid;
+    grid-template-columns: minmax(60px, auto) 1fr minmax(60px, auto);
+    gap: 12px;
     width: 100%;
+    align-items: start;
     box-sizing: border-box;
 }
 
@@ -854,37 +791,29 @@ input[type="color"] {
     gap: 2px;
 }
 
-/* Center column (Title) */
-.title-grid-center {
-    justify-content: center;
-    min-height: 36px;
-    width: 100%;
+/* Left column */
+.title-grid-left {
+    justify-self: start;
 }
 
-/* Title text wrapper - always centered */
+/* Center column (Title) - allows overflow */
+.title-grid-center {
+    justify-self: center;
+    min-height: 36px;
+    min-width: 0; /* Allow flexbox/grid to shrink below content size */
+    overflow: hidden; /* Contain long titles */
+}
+
+/* Right column */
+.title-grid-right {
+    justify-self: end;
+}
+
+/* Title text wrapper - centered */
 .title-text-wrapper {
     text-align: center;
     width: 100%;
-}
-
-/* Absolutely positioned button containers */
-.title-button-left,
-.title-button-right {
-    position: absolute;
-    top: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    z-index: 1;
-}
-
-.title-button-left {
-    left: 12px;
-}
-
-.title-button-right {
-    right: 12px;
+    min-width: 0; /* Allow text to wrap/shrink */
 }
 
 /* Quick action icon styling */

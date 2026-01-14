@@ -145,37 +145,18 @@
 
     /* Title container - full width mobile */
     .roadmap-title-container {
-        min-width: 100% !important;
         width: 100% !important;
         padding: 8px 12px !important;
-        position: relative !important; /* For absolute button positioning */
     }
 
-    /* Title grid - maintain centered layout on mobile */
+    /* Title grid - tighter spacing on mobile */
     .roadmap-title-grid {
-        display: flex !important;
-        justify-content: center !important;
-        text-align: center !important;
-        width: 100% !important;
+        gap: 6px !important;
     }
 
     /* Hide button labels on mobile to save space */
     .button-label {
         display: none !important;
-    }
-
-    /* Adjust button positions for mobile */
-    .title-button-left,
-    .title-button-right {
-        top: 8px !important;
-    }
-
-    .title-button-left {
-        left: 4px !important;
-    }
-
-    .title-button-right {
-        right: 4px !important;
     }
 
     /* Smaller icons on mobile */

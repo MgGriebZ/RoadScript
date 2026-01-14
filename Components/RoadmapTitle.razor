@@ -15,8 +15,24 @@
 <div class="@GetElementClass() roadmap-title-container"
      style="@(ThemeService.TitleContainerStyle() + " " + titlePadding)">
 
-    @* Centered Title Row *@
+    @* Title Row with Side Buttons - Using Grid for Perfect Centering *@
     <div class="roadmap-title-grid">
+        @* Left Button Column *@
+        <div class="title-grid-column title-grid-left">
+            <a href="https://github.com/MgGriebZ/RoadScript"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="quick-action-button"
+               title="View on GitHub"
+               style="text-decoration: none; display: block;">
+                <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                    <Icon IconType="github" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
+                </div>
+            </a>
+            <span class="button-label" style="@buttonLabelStyle">Repo</span>
+        </div>
+
+        @* Center Title Column *@
         <div class="title-grid-column title-grid-center">
             <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
                  class="title-text-wrapper"
@@ -32,33 +48,19 @@
                 }
             </div>
         </div>
-    </div>
 
-    @* Absolutely Positioned Buttons - Don't affect centering *@
-    <div class="title-button-left">
-        <a href="https://github.com/MgGriebZ/RoadScript"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="quick-action-button"
-           title="View on GitHub"
-           style="text-decoration: none; display: block;">
-            <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                <Icon IconType="github" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
+        @* Right Button Column *@
+        <div class="title-grid-column title-grid-right">
+            <div @onclick="@(() => OnShareClick.InvokeAsync())"
+                 class="quick-action-button"
+                 title="Share this roadmap"
+                 style="cursor: pointer; display: block;">
+                <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                    <Icon IconType="globe" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
+                </div>
             </div>
-        </a>
-        <span class="button-label" style="@buttonLabelStyle">Repo</span>
-    </div>
-
-    <div class="title-button-right">
-        <div @onclick="@(() => OnShareClick.InvokeAsync())"
-             class="quick-action-button"
-             title="Share this roadmap"
-             style="cursor: pointer; display: block;">
-            <div class="quick-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                <Icon IconType="globe" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
-            </div>
+            <span class="button-label" style="@buttonLabelStyle">Share</span>
         </div>
-        <span class="button-label" style="@buttonLabelStyle">Share</span>
     </div>
 
     @* Bottom row: Subtitle (full width, centered) *@
