@@ -275,6 +275,10 @@ html, body, #app {
     }
 
     /* Smaller buttons on tablets */
+    .title-button-absolute {
+        width: 48px !important; /* Adjusted for smaller buttons */
+    }
+
     .title-action-icon {
         width: 32px !important;
         height: 32px !important;
@@ -773,8 +777,9 @@ input[type="color"] {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
     z-index: 1;
+    width: 52px; /* Fixed width ensures perfect alignment */
 }
 
 .title-button-left {
@@ -790,7 +795,7 @@ input[type="color"] {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
     text-decoration: none;
 }
 
@@ -802,10 +807,18 @@ input[type="color"] {
     transition: all 0.2s;
     width: 40px;
     height: 40px;
+    flex-shrink: 0; /* Prevent icon from shrinking */
 }
 
 .title-action-icon:hover {
     transform: scale(1.05);
+}
+
+/* Ensure icons inside are perfectly centered */
+.title-action-icon > * {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .title-button-label {
@@ -815,4 +828,7 @@ input[type="color"] {
     letter-spacing: 0.5px;
     font-weight: 500;
     color: #6b7280;
+    text-align: center;
+    width: 100%;
+    white-space: nowrap;
 }

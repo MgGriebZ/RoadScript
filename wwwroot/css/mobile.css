@@ -154,6 +154,10 @@
     }
 
     /* Smaller buttons on mobile */
+    .title-button-absolute {
+        width: 44px !important; /* Adjusted for mobile buttons */
+    }
+
     .title-action-icon {
         width: 28px !important;
         height: 28px !important;
