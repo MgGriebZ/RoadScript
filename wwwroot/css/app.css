@@ -796,12 +796,12 @@ input[type="color"] {
     justify-self: start;
 }
 
-/* Center column (Title) - allows overflow */
+/* Center column (Title) - takes full available space */
 .title-grid-center {
-    justify-self: center;
     min-height: 36px;
-    min-width: 0; /* Allow flexbox/grid to shrink below content size */
-    overflow: hidden; /* Contain long titles */
+    min-width: 0; /* Allow grid to shrink below content size */
+    max-width: 100%; /* Prevent overflow */
+    width: 100%; /* Take full column width */
 }
 
 /* Right column */
@@ -809,11 +809,18 @@ input[type="color"] {
     justify-self: end;
 }
 
-/* Title text wrapper - centered */
+/* Title text wrapper - centered and contains h1 */
 .title-text-wrapper {
     text-align: center;
     width: 100%;
     min-width: 0; /* Allow text to wrap/shrink */
+    overflow: hidden; /* Contain h1 overflow */
+}
+
+/* Ensure h1 properly truncates within wrapper */
+.title-text-wrapper h1 {
+    display: block;
+    width: 100%;
 }
 
 /* Quick action icon styling */
