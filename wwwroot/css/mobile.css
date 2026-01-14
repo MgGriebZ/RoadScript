@@ -150,16 +150,37 @@
         padding: 8px 12px !important;
     }
 
-    /* Title grid - stack on mobile */
+    /* Title grid - maintain centered layout on mobile */
     .roadmap-title-grid {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
+        display: flex !important;
+        justify-content: center !important;
         text-align: center !important;
+        width: 100% !important;
     }
 
-    /* Center all grid items on mobile */
-    .roadmap-title-grid > div {
-        justify-self: center !important;
+    /* Hide button labels on mobile to save space */
+    .button-label {
+        display: none !important;
+    }
+
+    /* Adjust button positions for mobile */
+    .title-button-left,
+    .title-button-right {
+        top: 8px !important;
+    }
+
+    .title-button-left {
+        left: 4px !important;
+    }
+
+    .title-button-right {
+        right: 4px !important;
+    }
+
+    /* Smaller icons on mobile */
+    .quick-action-icon {
+        width: 28px !important;
+        height: 28px !important;
     }
 
     /* Title - smaller on mobile */

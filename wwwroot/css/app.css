@@ -279,14 +279,26 @@ html, body, #app {
         box-sizing: border-box !important; /* Include padding in width calculation */
     }
 
-    /* Title grid - reduce gap and optimize columns for tablet screens */
+    /* Title grid - maintain centered layout */
     .roadmap-title-grid {
-        display: grid !important; /* Ensure grid display */
-        width: 100% !important; /* Force full width to prevent left-side squishing */
-        gap: 8px !important; /* Reduce from 12px to give more breathing room */
-        grid-template-columns: auto 1fr auto !important; /* Let side columns fit content, center takes remaining space */
-        align-items: start !important;
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
         box-sizing: border-box !important;
+    }
+
+    /* Absolutely positioned buttons - adjust for tablets */
+    .title-button-left,
+    .title-button-right {
+        top: 6px !important;
+    }
+
+    .title-button-left {
+        left: 8px !important;
+    }
+
+    .title-button-right {
+        right: 8px !important;
     }
 
     /* Quick action buttons - smaller for tablets */
@@ -699,14 +711,12 @@ input[type="color"] {
         max-width: 280px !important;
     }
 
-    /* Title grid - ensure proper 3-column layout on tablets */
+    /* Title grid - maintain centered layout */
     .roadmap-title-grid {
-        display: grid !important;
-        grid-template-columns: auto 1fr auto !important;
-        gap: 12px !important;
+        display: flex !important;
+        justify-content: center !important;
         width: 100% !important;
         box-sizing: border-box !important;
-        align-items: start !important;
     }
 
     /* Title container - ensure full width */
@@ -714,18 +724,17 @@ input[type="color"] {
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
+        position: relative !important;
     }
 }
 
 @media (min-width: 1024px) and (max-width: 1200px) {
-    /* Small desktop: Ensure title grid maintains proper layout */
+    /* Small desktop: Ensure title grid maintains centered layout */
     .roadmap-title-grid {
-        display: grid !important;
-        grid-template-columns: auto 1fr auto !important;
-        gap: 12px !important;
+        display: flex !important;
+        justify-content: center !important;
         width: 100% !important;
         box-sizing: border-box !important;
-        align-items: start !important;
     }
 
     /* Title container - ensure full width */
@@ -733,6 +742,7 @@ input[type="color"] {
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
+        position: relative !important;
     }
 }
 
@@ -823,16 +833,16 @@ input[type="color"] {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    position: relative;
 }
 
-/* Title grid - default layout and gap */
+/* Title grid - simplified for centered title only */
 .roadmap-title-grid {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 100%;
     box-sizing: border-box;
-    align-items: start;
 }
 
 /* Grid column common styles */
@@ -843,26 +853,37 @@ input[type="color"] {
     gap: 2px;
 }
 
-/* Left column (GitHub button) */
-.title-grid-left {
-    justify-self: start;
-}
-
 /* Center column (Title) */
 .title-grid-center {
     justify-content: center;
     min-height: 36px;
+    width: 100%;
 }
 
-/* Right column (Share button) */
-.title-grid-right {
-    justify-self: end;
-}
-
-/* Title text wrapper */
+/* Title text wrapper - always centered */
 .title-text-wrapper {
     text-align: center;
     width: 100%;
+}
+
+/* Absolutely positioned button containers */
+.title-button-left,
+.title-button-right {
+    position: absolute;
+    top: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    z-index: 1;
+}
+
+.title-button-left {
+    left: 12px;
+}
+
+.title-button-right {
+    right: 12px;
 }
 
 /* Quick action icon styling */
@@ -872,4 +893,16 @@ input[type="color"] {
     justify-content: center;
     border-radius: 8px;
     transition: all 0.2s;
+    width: 40px;
+    height: 40px;
+}
+
+.quick-action-icon:hover {
+    transform: scale(1.05);
+}
+
+/* Button labels */
+.button-label {
+    font-size: 9px;
+    user-select: none;
 }
