@@ -54,6 +54,15 @@
                     <Icon IconType="globe" Size="14" Color="@(IsVibeMode ? "#c7d2fe" : "#374151")" />
                     <span class="footer-button-label" style="font-size: 11px; font-weight: 600; color: @(IsVibeMode ? "#c7d2fe" : "#374151"); text-transform: uppercase; letter-spacing: 0.3px;">Share</span>
                 </div>
+                <div @onclick="@(() => OnImportClick.InvokeAsync())"
+                     class="footer-button"
+                     style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: @(IsVibeMode ? "rgba(16, 185, 129, 0.15)" : "rgba(16, 185, 129, 0.08)"); border-radius: 6px; transition: all 0.2s; cursor: pointer;"
+                     title="Import roadmap or session data"
+                     onmouseover="this.style.background='@(IsVibeMode ? "rgba(16, 185, 129, 0.25)" : "rgba(16, 185, 129, 0.12)")'"
+                     onmouseout="this.style.background='@(IsVibeMode ? "rgba(16, 185, 129, 0.15)" : "rgba(16, 185, 129, 0.08)")'">
+                    <Icon IconType="download" Size="14" Color="@(IsVibeMode ? "#6ee7b7" : "#059669")" />
+                    <span class="footer-button-label" style="font-size: 11px; font-weight: 600; color: @(IsVibeMode ? "#6ee7b7" : "#059669"); text-transform: uppercase; letter-spacing: 0.3px;">Import</span>
+                </div>
             </div>
         </div>
     </div>
@@ -89,6 +98,12 @@
     /// </summary>
     [Parameter]
     public EventCallback OnShareClick { get; set; }
+
+    /// <summary>
+    /// Callback fired when the import button is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnImportClick { get; set; }
 
     /// <summary>
     /// Generates the CSS style string for the footer bar based on the current theme.

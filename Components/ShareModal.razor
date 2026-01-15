@@ -3,68 +3,127 @@
 <div class="share-modal-overlay @(IsVisible ? "visible" : "")" @onclick="Close">
     <div class="share-modal-content" @onclick:stopPropagation="true">
         <div class="share-modal-header">
-            <h3>🔗 Share Roadmap</h3>
+            <h3>📤 Share & Export</h3>
             <button class="close-button" @onclick="Close">×</button>
         </div>
 
         <div class="share-modal-body">
-            @if (!string.IsNullOrEmpty(ErrorMessage))
-            {
-                <div class="share-error">
-                    <div class="share-error-icon">⚠️</div>
+            @* Share This Roadmap Section *@
+            <div class="share-section">
+                <div class="share-section-header">
+                    <div class="share-section-icon">🔗</div>
                     <div>
-                        <div class="share-error-title">Unable to Generate Share Link</div>
-                        <div class="share-error-message">@ErrorMessage</div>
-                    </div>
-                </div>
-            }
-            else if (!string.IsNullOrEmpty(ShareUrl))
-            {
-                <div class="share-info">
-                    <div class="share-info-icon">✨</div>
-                    <div class="share-info-text">
-                        Anyone with this link can import this roadmap into their own RoadScript.
-                        The link contains all the roadmap data - no server needed!
+                        <h4>Share This Roadmap</h4>
+                        <p>Generate a shareable link for the current roadmap</p>
                     </div>
                 </div>
 
-                <div class="share-url-container">
-                    <input type="text"
-                           readonly
-                           value="@ShareUrl"
-                           @ref="_urlInput"
-                           class="share-url-input" />
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div class="share-error">
+                        <div class="share-error-icon">⚠️</div>
+                        <div>
+                            <div class="share-error-title">Unable to Generate Share Link</div>
+                            <div class="share-error-message">@ErrorMessage</div>
+                        </div>
+                    </div>
+                }
+                else if (!string.IsNullOrEmpty(ShareUrl))
+                {
+                    <div class="share-info">
+                        <div class="share-info-icon">✨</div>
+                        <div class="share-info-text">
+                            Anyone with this link can import this roadmap into their own RoadScript.
+                            The link contains all the roadmap data - no server needed!
+                        </div>
+                    </div>
+
+                    <div class="share-url-container">
+                        <input type="text"
+                               readonly
+                               value="@ShareUrl"
+                               @ref="_urlInput"
+                               class="share-url-input" />
+                    </div>
+
+                    <div class="share-stats">
+                        <div class="share-stat">
+                            <span class="share-stat-label">URL Length:</span>
+                            <span class="share-stat-value">@ShareUrl.Length chars</span>
+                        </div>
+                        <div class="share-stat">
+                            <span class="share-stat-label">Status:</span>
+                            <span class="share-stat-value share-stat-@(ShareUrl.Length < 2000 ? "good" : "warning")">
+                                @(ShareUrl.Length < 2000 ? "✓ Safe to share" : "⚠ Very long URL")
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="share-actions">
+                        <button @onclick="CopyToClipboard" class="btn-share-primary">
+                            @(_copied ? "✓ Copied!" : "📋 Copy Link")
+                        </button>
+                        <button @onclick="OpenInNewTab" class="btn-share-secondary">
+                            🌐 Open in New Tab
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="share-loading">
+                        <div class="share-spinner"></div>
+                        <div>Generating share link...</div>
+                    </div>
+                }
+            </div>
+
+            @* Divider *@
+            <div class="share-divider">
+                <span>OR</span>
+            </div>
+
+            @* Export Session Data Section *@
+            <div class="share-section">
+                <div class="share-section-header">
+                    <div class="share-section-icon">📦</div>
+                    <div>
+                        <h4>Export Session Data</h4>
+                        <p>Download all folders and roadmaps as a JSON file</p>
+                    </div>
                 </div>
 
-                <div class="share-stats">
-                    <div class="share-stat">
-                        <span class="share-stat-label">URL Length:</span>
-                        <span class="share-stat-value">@ShareUrl.Length chars</span>
-                    </div>
-                    <div class="share-stat">
-                        <span class="share-stat-label">Status:</span>
-                        <span class="share-stat-value share-stat-@(ShareUrl.Length < 2000 ? "good" : "warning")">
-                            @(ShareUrl.Length < 2000 ? "✓ Safe to share" : "⚠ Very long URL")
-                        </span>
+                <div class="export-info">
+                    <div class="export-info-icon">💡</div>
+                    <div class="export-info-text">
+                        Exports your entire session including all folders, roadmaps, and cross-folder links.
+                        Perfect for backups or sharing complex multi-roadmap projects.
                     </div>
                 </div>
 
-                <div class="share-actions">
-                    <button @onclick="CopyToClipboard" class="btn-share-primary">
-                        @(_copied ? "✓ Copied!" : "📋 Copy Link")
+                @if (SessionStats != null)
+                {
+                    <div class="session-stats">
+                        <div class="session-stat">
+                            <div class="session-stat-value">@SessionStats.FolderCount</div>
+                            <div class="session-stat-label">Folders</div>
+                        </div>
+                        <div class="session-stat">
+                            <div class="session-stat-value">@SessionStats.TotalRoadmaps</div>
+                            <div class="session-stat-label">Roadmaps</div>
+                        </div>
+                        <div class="session-stat">
+                            <div class="session-stat-value">@SessionStats.TotalLinks</div>
+                            <div class="session-stat-label">Linked Items</div>
+                        </div>
+                    </div>
+                }
+
+                <div class="export-actions">
+                    <button @onclick="ExportSessionData" class="btn-export-primary">
+                        📥 Download Session Data
                     </button>
-                    <button @onclick="OpenInNewTab" class="btn-share-secondary">
-                        🌐 Open in New Tab
-                    </button>
                 </div>
-            }
-            else
-            {
-                <div class="share-loading">
-                    <div class="share-spinner"></div>
-                    <div>Generating share link...</div>
-                </div>
-            }
+            </div>
         </div>
     </div>
 </div>
@@ -73,7 +132,9 @@
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public string ShareUrl { get; set; } = "";
     [Parameter] public string ErrorMessage { get; set; } = "";
+    [Parameter] public SessionStatsModel? SessionStats { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnExportSession { get; set; }
 
     private ElementReference _urlInput;
     private bool _copied = false;
@@ -105,6 +166,18 @@
         {
             await JSRuntime.InvokeVoidAsync("open", ShareUrl, "_blank");
         }
+    }
+
+    private async Task ExportSessionData()
+    {
+        await OnExportSession.InvokeAsync();
+    }
+
+    public class SessionStatsModel
+    {
+        public int FolderCount { get; set; }
+        public int TotalRoadmaps { get; set; }
+        public int TotalLinks { get; set; }
     }
 }
 
@@ -346,5 +419,137 @@
 
     @@keyframes spin {
         to { transform: rotate(360deg); }
+    }
+
+    /* New section styles */
+    .share-section {
+        margin-bottom: 24px;
+    }
+
+    .share-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .share-section-header {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .share-section-icon {
+        font-size: 28px;
+        flex-shrink: 0;
+    }
+
+    .share-section-header h4 {
+        margin: 0 0 4px 0;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .share-section-header p {
+        margin: 0;
+        color: #888;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .share-divider {
+        position: relative;
+        text-align: center;
+        margin: 32px 0;
+        border-top: 1px solid #333;
+    }
+
+    .share-divider span {
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e1e1e;
+        padding: 0 12px;
+        color: #666;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .export-info {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .export-info-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .export-info-text {
+        color: #6ee7b7;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .session-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: #252525;
+        border-radius: 8px;
+    }
+
+    .session-stat {
+        text-align: center;
+    }
+
+    .session-stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #10b981;
+        margin-bottom: 6px;
+    }
+
+    .session-stat-label {
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .export-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-export-primary {
+        flex: 1;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-export-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-export-primary:active {
+        transform: translateY(0);
     }
 </style>

@@ -58,7 +58,8 @@
                           Data="@_data"
                           IsVibeMode="@ThemeService.IsVibeMode"
                           IsPreviewMode="@StateManager.IsPreviewMode"
-                          OnShareClick="@HandleQuickShare" />
+                          OnShareClick="@HandleQuickShare"
+                          OnImportClick="@HandleFooterImportClick" />
         }
         else if (_error != null)
         {
@@ -221,7 +222,9 @@
     <ShareModal IsVisible="@StateManager.ShowShareModal"
                ShareUrl="@StateManager.ShareUrl"
                ErrorMessage="@StateManager.ShareError"
-               OnClose="CloseShareModal" />
+               SessionStats="@GetSessionStats()"
+               OnClose="CloseShareModal"
+               OnExportSession="HandleExportSessionFromShareModal" />
 
     <ImportModal IsVisible="@StateManager.ShowImportModal"
                 RoadmapData="@StateManager.ImportRoadmapData"
@@ -3058,6 +3061,57 @@
     private void CloseShareModal()
     {
         StateManager.CloseShareDialog();
+    }
+
+    private ShareModal.SessionStatsModel? GetSessionStats()
+    {
+        if (_folderManager == null) return null;
+
+        var totalLinks = 0;
+        foreach (var folder in _folderManager.Folders)
+        {
+            foreach (var tab in folder.SessionManager.Tabs)
+            {
+                var data = tab.Data;
+                // Count title link
+                if (!string.IsNullOrEmpty(data.LinkedRoadmapId)) totalLinks++;
+
+                // Count lane links
+                if (data.Lanes != null)
+                {
+                    foreach (var lane in data.Lanes)
+                    {
+                        if (!string.IsNullOrEmpty(lane.LinkedRoadmapId)) totalLinks++;
+
+                        // Count item links
+                        if (lane.Items != null)
+                        {
+                            totalLinks += lane.Items.Count(i => !string.IsNullOrEmpty(i.LinkedRoadmapId));
+                        }
+                    }
+                }
+            }
+        }
+
+        return new ShareModal.SessionStatsModel
+        {
+            FolderCount = _folderManager.Folders.Count,
+            TotalRoadmaps = _folderManager.Folders.Sum(f => f.SessionManager.Tabs.Count),
+            TotalLinks = totalLinks
+        };
+    }
+
+    private async Task HandleExportSessionFromShareModal()
+    {
+        // Call the existing export method
+        await ExportAllData();
+        // Don't close the modal - let the user see both options
+    }
+
+    private async Task HandleFooterImportClick()
+    {
+        // Trigger the import session data file picker
+        await ImportAllData();
     }
 
     private void CloseImportModal()
