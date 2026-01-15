@@ -145,7 +145,16 @@
 
     /* Title container - minimal padding on mobile */
     .roadmap-title-container {
-        padding: 8px 10px !important;
+        padding: 8px 12px !important;
+    }
+
+    /* Hide footer button labels on mobile to prevent overflow */
+    .footer-button-label {
+        display: none !important;
+    }
+
+    .footer-button {
+        padding: 6px 8px !important;
     }
 
     /* Title - smaller on mobile */

@@ -271,7 +271,7 @@ html, body, #app {
 
     /* Title container - responsive sizing for tablets */
     .roadmap-title-container {
-        padding: 6px 10px !important;
+        padding: 8px 12px !important;
     }
 
     /* Subtitle text - same overflow protection */
@@ -746,4 +746,15 @@ input[type="color"] {
 .title-content-center {
     text-align: center;
     width: 100%;
+}
+
+/* Footer action buttons - responsive */
+@media (max-width: 1400px) {
+    .footer-button-label {
+        display: none !important;
+    }
+
+    .footer-button {
+        padding: 6px 8px !important;
+    }
 }
