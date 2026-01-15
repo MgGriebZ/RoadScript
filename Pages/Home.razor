@@ -1505,22 +1505,43 @@
                 return;
             }
 
-            // Regenerate all IDs to prevent conflicts
+            // Build ID mapping and regenerate all IDs to prevent conflicts
+            var idMapping = new Dictionary<string, string>();
+
             foreach (var folder in importedFolderManager.Folders)
             {
-                folder.Id = Guid.NewGuid().ToString();
+                var oldFolderId = folder.Id;
+                var newFolderId = Guid.NewGuid().ToString();
+                folder.Id = newFolderId;
                 folder.LastModified = DateTime.UtcNow;
+
+                // Add folder ID to mapping
+                idMapping[oldFolderId] = newFolderId;
 
                 foreach (var tab in folder.SessionManager.Tabs)
                 {
-                    tab.Id = $"tab-{Guid.NewGuid().ToString("N")[..8]}";
+                    var oldTabId = tab.Id;
+                    var newTabId = $"tab-{Guid.NewGuid().ToString("N")[..8]}";
+                    tab.Id = newTabId;
                     tab.LastModified = DateTime.UtcNow;
+
+                    // Add tab ID to mapping
+                    idMapping[oldTabId] = newTabId;
                 }
 
                 // Update active tab ID to first tab if tabs exist
                 if (folder.SessionManager.Tabs.Count > 0)
                 {
                     folder.SessionManager.ActiveTabId = folder.SessionManager.Tabs[0].Id;
+                }
+            }
+
+            // Remap all linkedRoadmapId values in all roadmap data
+            foreach (var folder in importedFolderManager.Folders)
+            {
+                foreach (var tab in folder.SessionManager.Tabs)
+                {
+                    RemapLinkedRoadmapIds(tab.Data, idMapping);
                 }
             }
 
@@ -3051,6 +3072,9 @@
         var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == import.FolderId);
         if (folder == null || folder.SessionManager.Tabs.Count >= folder.SessionManager.MaxTabs) return;
 
+        // Clear linked roadmap IDs since the referenced roadmaps don't exist in this session
+        ClearLinkedRoadmapIds(import.Data);
+
         StorageService.AddTab(folder.SessionManager, import.RoadmapName, import.Data);
         folder.LastModified = DateTime.UtcNow;
 
@@ -3639,6 +3663,119 @@
             TemplateService.TemplateType.Retrospective => "Retro",
             _ => null
         };
+    }
+
+    /// <summary>
+    /// Clears all linkedRoadmapId values in roadmap data.
+    /// Used when importing a singular roadmap where the linked roadmaps don't exist in the target session.
+    /// </summary>
+    /// <param name="data">The roadmap data to process</param>
+    private void ClearLinkedRoadmapIds(RoadmapData data)
+    {
+        if (data == null) return;
+
+        // Clear title linked roadmap
+        data.LinkedRoadmapId = null;
+
+        // Clear lane linked roadmaps
+        if (data.Lanes != null)
+        {
+            foreach (var lane in data.Lanes)
+            {
+                lane.LinkedRoadmapId = null;
+
+                // Clear item linked roadmaps
+                if (lane.Items != null)
+                {
+                    foreach (var item in lane.Items)
+                    {
+                        item.LinkedRoadmapId = null;
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Remaps linkedRoadmapId values in roadmap data using the provided ID mapping.
+    /// Handles both old format (tabId) and new format (folderId/tabId).
+    /// </summary>
+    /// <param name="data">The roadmap data to process</param>
+    /// <param name="idMapping">Dictionary mapping old IDs to new IDs (both folder and tab IDs)</param>
+    private void RemapLinkedRoadmapIds(RoadmapData data, Dictionary<string, string> idMapping)
+    {
+        if (data == null) return;
+
+        // Remap title linked roadmap
+        if (!string.IsNullOrEmpty(data.LinkedRoadmapId))
+        {
+            data.LinkedRoadmapId = RemapSingleId(data.LinkedRoadmapId, idMapping);
+        }
+
+        // Remap lane linked roadmaps
+        if (data.Lanes != null)
+        {
+            foreach (var lane in data.Lanes)
+            {
+                if (!string.IsNullOrEmpty(lane.LinkedRoadmapId))
+                {
+                    lane.LinkedRoadmapId = RemapSingleId(lane.LinkedRoadmapId, idMapping);
+                }
+
+                // Remap item linked roadmaps
+                if (lane.Items != null)
+                {
+                    foreach (var item in lane.Items)
+                    {
+                        if (!string.IsNullOrEmpty(item.LinkedRoadmapId))
+                        {
+                            item.LinkedRoadmapId = RemapSingleId(item.LinkedRoadmapId, idMapping);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Remaps a single linkedRoadmapId using the provided mapping.
+    /// Returns null if the ID cannot be remapped.
+    /// </summary>
+    private string? RemapSingleId(string linkedId, Dictionary<string, string> idMapping)
+    {
+        if (string.IsNullOrEmpty(linkedId)) return null;
+
+        // Check if it's new format (folderId/tabId)
+        if (linkedId.Contains("/"))
+        {
+            var parts = linkedId.Split('/');
+            if (parts.Length == 2)
+            {
+                var oldFolderId = parts[0];
+                var oldTabId = parts[1];
+
+                // Try to remap both IDs
+                var newFolderId = idMapping.ContainsKey(oldFolderId) ? idMapping[oldFolderId] : null;
+                var newTabId = idMapping.ContainsKey(oldTabId) ? idMapping[oldTabId] : null;
+
+                // If both IDs can be remapped, return the new format
+                if (newFolderId != null && newTabId != null)
+                {
+                    return $"{newFolderId}/{newTabId}";
+                }
+            }
+        }
+        else
+        {
+            // Old format (just tabId) - try to remap
+            if (idMapping.ContainsKey(linkedId))
+            {
+                return idMapping[linkedId];
+            }
+        }
+
+        // If we can't remap, return null to break the link
+        return null;
     }
 
 }
