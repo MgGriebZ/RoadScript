@@ -38,33 +38,36 @@
                         </div>
                     </div>
 
-                    <div class="share-url-container">
-                        <input type="text"
-                               readonly
-                               value="@ShareUrl"
-                               @ref="_urlInput"
-                               class="share-url-input" />
-                    </div>
-
-                    <div class="share-stats">
-                        <div class="share-stat">
-                            <span class="share-stat-label">URL Length:</span>
-                            <span class="share-stat-value">@ShareUrl.Length chars</span>
+                    @if (RoadmapStats != null)
+                    {
+                        <div class="roadmap-stats">
+                            <div class="roadmap-stat">
+                                <div class="roadmap-stat-value">@RoadmapStats.ColumnCount</div>
+                                <div class="roadmap-stat-label">Columns</div>
+                            </div>
+                            <div class="roadmap-stat">
+                                <div class="roadmap-stat-value">@RoadmapStats.LaneCount</div>
+                                <div class="roadmap-stat-label">Swim Lanes</div>
+                            </div>
+                            <div class="roadmap-stat">
+                                <div class="roadmap-stat-value">@RoadmapStats.ItemCount</div>
+                                <div class="roadmap-stat-label">Items</div>
+                            </div>
                         </div>
-                        <div class="share-stat">
-                            <span class="share-stat-label">Status:</span>
-                            <span class="share-stat-value share-stat-@(ShareUrl.Length < 2000 ? "good" : "warning")">
-                                @(ShareUrl.Length < 2000 ? "✓ Safe to share" : "⚠ Very long URL")
-                            </span>
-                        </div>
-                    </div>
+                    }
 
-                    <div class="share-actions">
-                        <button @onclick="CopyToClipboard" class="btn-share-primary">
+                    <div class="share-url-actions">
+                        <div class="share-url-input-wrapper">
+                            <input type="text"
+                                   readonly
+                                   value="@ShareUrl"
+                                   @ref="_urlInput"
+                                   class="share-url-input"
+                                   @onclick="SelectUrl" />
+                            <div class="url-length-hint">@ShareUrl.Length chars @(ShareUrl.Length < 2000 ? "✓" : "⚠")</div>
+                        </div>
+                        <button @onclick="CopyToClipboard" class="btn-copy-link">
                             @(_copied ? "✓ Copied!" : "📋 Copy Link")
-                        </button>
-                        <button @onclick="OpenInNewTab" class="btn-share-secondary">
-                            🌐 Open in New Tab
                         </button>
                     </div>
                 }
@@ -132,6 +135,7 @@
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public string ShareUrl { get; set; } = "";
     [Parameter] public string ErrorMessage { get; set; } = "";
+    [Parameter] public RoadmapStatsModel? RoadmapStats { get; set; }
     [Parameter] public SessionStatsModel? SessionStats { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnExportSession { get; set; }
@@ -143,6 +147,15 @@
     {
         _copied = false;
         await OnClose.InvokeAsync();
+    }
+
+    private async Task SelectUrl()
+    {
+        // Select all text in the URL input for easy copying
+        if (_urlInput.Id != null)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", $"document.querySelector('input.share-url-input').select()");
+        }
     }
 
     private async Task CopyToClipboard()
@@ -160,17 +173,16 @@
         }
     }
 
-    private async Task OpenInNewTab()
-    {
-        if (!string.IsNullOrEmpty(ShareUrl))
-        {
-            await JSRuntime.InvokeVoidAsync("open", ShareUrl, "_blank");
-        }
-    }
-
     private async Task ExportSessionData()
     {
         await OnExportSession.InvokeAsync();
+    }
+
+    public class RoadmapStatsModel
+    {
+        public int ColumnCount { get; set; }
+        public int LaneCount { get; set; }
+        public int ItemCount { get; set; }
     }
 
     public class SessionStatsModel
@@ -205,7 +217,7 @@
         border: 1px solid #444;
         border-radius: 12px;
         width: 90%;
-        max-width: 600px;
+        max-width: 750px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
 
@@ -297,69 +309,86 @@
         opacity: 0.9;
     }
 
-    .share-url-container {
-        margin-bottom: 16px;
+    /* Roadmap stats section - similar to session stats */
+    .roadmap-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: #252525;
+        border-radius: 8px;
+    }
+
+    .roadmap-stat {
+        text-align: center;
+    }
+
+    .roadmap-stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 6px;
+    }
+
+    .roadmap-stat-label {
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Integrated URL input and copy button */
+    .share-url-actions {
+        display: flex;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .share-url-input-wrapper {
+        flex: 1;
+        position: relative;
     }
 
     .share-url-input {
         width: 100%;
-        padding: 12px;
+        padding: 14px 16px;
+        padding-bottom: 32px; /* Space for hint */
         background: #2a2a2a;
         border: 1px solid #444;
-        border-radius: 6px;
+        border-radius: 8px;
         color: #00D9FF;
         font-family: 'Courier New', monospace;
         font-size: 13px;
         word-break: break-all;
+        cursor: pointer;
+        transition: all 0.2s;
+        height: 100%;
+        box-sizing: border-box;
+    }
+
+    .share-url-input:hover {
+        border-color: #667eea;
+        background: #2d2d2d;
     }
 
     .share-url-input:focus {
         outline: none;
         border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
-    .share-stats {
-        display: flex;
-        gap: 24px;
-        margin-bottom: 20px;
-        padding: 12px;
-        background: #252525;
-        border-radius: 6px;
+    .url-length-hint {
+        position: absolute;
+        bottom: 8px;
+        left: 16px;
+        font-size: 10px;
+        color: #666;
+        font-family: system-ui, -apple-system, sans-serif;
     }
 
-    .share-stat {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-    }
-
-    .share-stat-label {
-        font-size: 12px;
-        color: #888;
-    }
-
-    .share-stat-value {
-        font-size: 13px;
-        color: #ffffff;
-        font-weight: 600;
-    }
-
-    .share-stat-good {
-        color: #10b981 !important;
-    }
-
-    .share-stat-warning {
-        color: #f59e0b !important;
-    }
-
-    .share-actions {
-        display: flex;
-        gap: 12px;
-    }
-
-    .btn-share-primary {
-        flex: 1;
-        padding: 14px 24px;
+    .btn-copy-link {
+        padding: 14px 32px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: #fff;
         border: none;
@@ -369,33 +398,17 @@
         cursor: pointer;
         transition: all 0.2s;
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        white-space: nowrap;
+        min-width: 150px;
     }
 
-    .btn-share-primary:hover {
+    .btn-copy-link:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
     }
 
-    .btn-share-primary:active {
+    .btn-copy-link:active {
         transform: translateY(0);
-    }
-
-    .btn-share-secondary {
-        flex: 1;
-        padding: 14px 24px;
-        background: #2a2a2a;
-        color: #fff;
-        border: 1px solid #444;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-share-secondary:hover {
-        background: #333;
-        border-color: #667eea;
     }
 
     .share-loading {

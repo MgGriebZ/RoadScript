@@ -222,6 +222,7 @@
     <ShareModal IsVisible="@StateManager.ShowShareModal"
                ShareUrl="@StateManager.ShareUrl"
                ErrorMessage="@StateManager.ShareError"
+               RoadmapStats="@GetRoadmapStats()"
                SessionStats="@GetSessionStats()"
                OnClose="CloseShareModal"
                OnExportSession="HandleExportSessionFromShareModal" />
@@ -3061,6 +3062,30 @@
     private void CloseShareModal()
     {
         StateManager.CloseShareDialog();
+    }
+
+    private ShareModal.RoadmapStatsModel? GetRoadmapStats()
+    {
+        if (_data == null) return null;
+
+        var itemCount = 0;
+        if (_data.Lanes != null)
+        {
+            foreach (var lane in _data.Lanes)
+            {
+                if (lane.Items != null)
+                {
+                    itemCount += lane.Items.Count;
+                }
+            }
+        }
+
+        return new ShareModal.RoadmapStatsModel
+        {
+            ColumnCount = _data.Columns?.Count ?? 0,
+            LaneCount = _data.Lanes?.Count ?? 0,
+            ItemCount = itemCount
+        };
     }
 
     private ShareModal.SessionStatsModel? GetSessionStats()
