@@ -85,16 +85,19 @@
                             </div>
                         </div>
                     }
-                    @* Lane Link Icon - Centered Below Lane Content *@
+                    @* Lane Link Icon - Left-Aligned Below Lane Content *@
                     @if (!string.IsNullOrEmpty(lane.LinkedRoadmapId) && !IsPreviewMode)
                     {
                         var linkedTab = SessionManager?.Tabs.FirstOrDefault(t => t.Id == lane.LinkedRoadmapId);
-                        <div style="display: flex; justify-content: center; width: 100%; margin-top: 8px;">
+                        <div style="display: flex; justify-content: flex-start; width: 100%; margin-top: 8px; padding-left: 8px;">
                             <span @onclick="@(() => OnLaneLinkClick.InvokeAsync(lane.LinkedRoadmapId))"
                                   @onclick:stopPropagation="true"
-                                  style="font-size: 16px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s, transform 0.2s; padding: 4px 8px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 4px;"
-                                  onmouseover="this.style.opacity='1'; this.style.transform='scale(1.15)';"
-                                  onmouseout="this.style.opacity='0.7'; this.style.transform='scale(1)';"
+                                  style="font-size: 16px; cursor: pointer; opacity: 0.6;
+                                         transition: opacity 0.2s, transform 0.2s;
+                                         filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+                                         display: flex; align-items: center; justify-content: center;"
+                                  onmouseover="this.style.opacity='1'; this.style.transform='scale(1.2)';"
+                                  onmouseout="this.style.opacity='0.6'; this.style.transform='scale(1)';"
                                   title="Linked to: @(linkedTab?.Name ?? "Unknown roadmap")">
                                 🔗
                             </span>
