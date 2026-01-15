@@ -26,12 +26,12 @@
                     var linkedTab = SessionManager?.Tabs.FirstOrDefault(t => t.Id == LinkedRoadmapId);
                     <span @onclick="@(() => OnRoadmapLinkClick.InvokeAsync(LinkedRoadmapId))"
                           @onclick:stopPropagation="true"
-                          style="font-size: 20px; cursor: pointer; opacity: 0.7;
-                                 transition: opacity 0.2s, transform 0.2s; padding: 6px 10px;
-                                 background: rgba(102, 126, 234, 0.15); border: 1px solid rgba(102, 126, 234, 0.4);
-                                 border-radius: 6px; display: flex; align-items: center; justify-content: center;"
-                          onmouseover="this.style.opacity='1'; this.style.transform='scale(1.15)';"
-                          onmouseout="this.style.opacity='0.7'; this.style.transform='scale(1)';"
+                          style="font-size: 20px; cursor: pointer; opacity: 0.6;
+                                 transition: opacity 0.2s, transform 0.2s;
+                                 filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+                                 display: flex; align-items: center; justify-content: center;"
+                          onmouseover="this.style.opacity='1'; this.style.transform='scale(1.2)';"
+                          onmouseout="this.style.opacity='0.6'; this.style.transform='scale(1)';"
                           title="Linked to: @(linkedTab?.Name ?? "Unknown roadmap")">
                         🔗
                     </span>
