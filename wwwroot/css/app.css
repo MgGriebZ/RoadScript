@@ -271,29 +271,23 @@ html, body, #app {
 
     /* Title container - responsive sizing for tablets */
     .roadmap-title-container {
-        padding: 5px 50px !important; /* Smaller side padding for buttons */
+        padding: 6px 10px !important; /* Minimal padding with stacked buttons */
     }
 
-    /* Smaller buttons on tablets */
-    .title-button-absolute {
-        width: 48px !important; /* Adjusted for smaller buttons */
+    /* Smaller stacked buttons on tablets */
+    .title-buttons-stack {
+        top: 6px !important;
+        right: 10px !important;
+        gap: 3px !important;
     }
 
-    .title-action-icon {
-        width: 32px !important;
-        height: 32px !important;
+    .title-button-icon {
+        width: 24px !important;
+        height: 24px !important;
     }
 
-    .title-button-label {
-        font-size: 8px !important;
-    }
-
-    .title-button-left {
-        left: 8px !important;
-    }
-
-    .title-button-right {
-        right: 8px !important;
+    .title-button-text {
+        font-size: 9px !important;
     }
 
     /* Subtitle text - same overflow protection */
@@ -754,9 +748,9 @@ input[type="color"] {
     font-size: 9px;
 }
 
-/* ===== CLEAN CENTER TITLE DESIGN ===== */
+/* ===== STACKED RIGHT-ALIGNED TITLE BUTTONS ===== */
 
-/* Title container - simple relative positioning for absolute buttons */
+/* Title container - simple relative positioning */
 .roadmap-title-container {
     position: relative;
     width: 100%;
@@ -770,65 +764,53 @@ input[type="color"] {
     width: 100%;
 }
 
-/* Absolutely positioned button containers */
-.title-button-absolute {
+/* Right-aligned button stack */
+.title-buttons-stack {
     position: absolute;
     top: 8px;
+    right: 12px;
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 4px;
     z-index: 1;
-    width: 52px; /* Fixed width ensures perfect alignment */
 }
 
-.title-button-left {
-    left: 12px;
-}
-
-.title-button-right {
-    right: 12px;
-}
-
-/* Button styling */
-.title-action-button {
+/* Individual button row (icon + label inline) */
+.title-button-row {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     text-decoration: none;
+    transition: opacity 0.2s;
 }
 
-.title-action-icon {
+.title-button-row:hover {
+    opacity: 0.8;
+}
+
+/* Button icon container */
+.title-button-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
-    transition: all 0.2s;
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0; /* Prevent icon from shrinking */
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    transition: transform 0.2s;
 }
 
-.title-action-icon:hover {
+.title-button-row:hover .title-button-icon {
     transform: scale(1.05);
 }
 
-/* Ensure icons inside are perfectly centered */
-.title-action-icon > * {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.title-button-label {
-    font-size: 9px;
-    user-select: none;
+/* Button text label */
+.title-button-text {
+    font-size: 10px;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-weight: 500;
     color: #6b7280;
-    text-align: center;
-    width: 100%;
+    user-select: none;
     white-space: nowrap;
 }

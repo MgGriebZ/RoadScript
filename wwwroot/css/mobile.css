@@ -145,30 +145,24 @@
 
     /* Title container - minimal padding on mobile */
     .roadmap-title-container {
-        padding: 8px 40px !important; /* Minimal side padding for small buttons */
+        padding: 8px 10px !important; /* Minimal padding with compact buttons */
     }
 
     /* Hide button labels on mobile to save space */
-    .title-button-label {
+    .title-button-text {
         display: none !important;
     }
 
-    /* Smaller buttons on mobile */
-    .title-button-absolute {
-        width: 44px !important; /* Adjusted for mobile buttons */
+    /* Compact stacked buttons on mobile */
+    .title-buttons-stack {
+        top: 8px !important;
+        right: 6px !important;
+        gap: 2px !important;
     }
 
-    .title-action-icon {
-        width: 28px !important;
-        height: 28px !important;
-    }
-
-    .title-button-left {
-        left: 4px !important;
-    }
-
-    .title-button-right {
-        right: 4px !important;
+    .title-button-icon {
+        width: 32px !important;
+        height: 32px !important;
     }
 
     /* Title - smaller on mobile */

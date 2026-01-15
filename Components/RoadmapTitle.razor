@@ -4,39 +4,13 @@
     var hasTitleText = !string.IsNullOrWhiteSpace(Title);
     var hasSubtitleText = !string.IsNullOrWhiteSpace(Subtitle);
     var hasTitleContent = hasTitleText || hasSubtitleText;
-    var titlePadding = hasTitleContent ? "padding: 8px 60px;" : "padding: 8px 60px; min-height: 58px;";
+    var titlePadding = hasTitleContent ? "padding: 8px 12px;" : "padding: 8px 12px; min-height: 58px;";
 }
 
 <div class="@GetElementClass() roadmap-title-container"
      style="@(ThemeService.TitleContainerStyle() + " " + titlePadding)">
 
-    @* Absolutely Positioned Buttons - Don't affect centering *@
-    <div class="title-button-absolute title-button-left">
-        <a href="https://github.com/MgGriebZ/RoadScript"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="title-action-button"
-           title="View on GitHub">
-            <div class="title-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                <Icon IconType="github" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
-            </div>
-            <span class="title-button-label">Repo</span>
-        </a>
-    </div>
-
-    <div class="title-button-absolute title-button-right">
-        <div @onclick="@(() => OnShareClick.InvokeAsync())"
-             class="title-action-button"
-             title="Share this roadmap"
-             style="cursor: pointer;">
-            <div class="title-action-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                <Icon IconType="globe" Size="20" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
-            </div>
-            <span class="title-button-label">Share</span>
-        </div>
-    </div>
-
-    @* Centered Title and Subtitle - Simple text-align center *@
+    @* Centered Title and Subtitle *@
     <div class="title-content-center">
         @if (hasTitleText)
         {
@@ -53,6 +27,30 @@
                 <p style="@ThemeService.SubtitleStyle()">@Subtitle</p>
             </div>
         }
+    </div>
+
+    @* Right-aligned stacked buttons with inline labels *@
+    <div class="title-buttons-stack">
+        <a href="https://github.com/MgGriebZ/RoadScript"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="title-button-row"
+           title="View on GitHub">
+            <div class="title-button-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                <Icon IconType="github" Size="16" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
+            </div>
+            <span class="title-button-text">Repo</span>
+        </a>
+
+        <div @onclick="@(() => OnShareClick.InvokeAsync())"
+             class="title-button-row"
+             title="Share this roadmap"
+             style="cursor: pointer;">
+            <div class="title-button-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
+                <Icon IconType="globe" Size="16" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
+            </div>
+            <span class="title-button-text">Share</span>
+        </div>
     </div>
 </div>
 
