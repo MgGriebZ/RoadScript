@@ -83,7 +83,9 @@ else
             {
                 <TitleProperties Title="@roadmapData.Title"
                                 Subtitle="@roadmapData.Subtitle"
+                                LinkedRoadmapId="@roadmapData.LinkedRoadmapId"
                                 JsonPath="@SelectionState.SelectedPath"
+                                AvailableRoadmaps="@AvailableRoadmaps"
                                 OnChange="HandlePropertyChange"
                                 OnAdd="HandleAddElement" />
             }

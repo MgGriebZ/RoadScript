@@ -38,9 +38,12 @@
             @* Roadmap Title *@
             <RoadmapTitle Title="@Data.Title"
                          Subtitle="@Data.Subtitle"
+                         LinkedRoadmapId="@Data.LinkedRoadmapId"
+                         SessionManager="@SessionManager"
                          IsPreviewMode="@IsPreviewMode"
                          IsVibeMode="@ThemeService.IsVibeMode"
-                         OnTitleClick="@OnTitleClick" />
+                         OnTitleClick="@OnTitleClick"
+                         OnRoadmapLinkClick="@OnRoadmapLinkClick" />
 
             @* Main Content Area *@
             <div style="display: flex; height: calc(100% - 66px);">
