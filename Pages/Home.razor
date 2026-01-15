@@ -44,7 +44,7 @@
                            IsPreviewMode="@StateManager.IsPreviewMode"
                            ActiveTab="@_activeTab"
                            SessionManager="@_sessionManager"
-                           AvailableRoadmaps="@(_sessionManager?.Tabs)"
+                           AvailableRoadmaps="@AllRoadmapsAcrossFolders"
                            OnElementClick="@HandleElementClick"
                            OnItemClick="@HandleItemClick"
                            OnMilestoneJumpToStart="@JumpMilestoneToStart"
@@ -94,7 +94,7 @@
                       ItemIndex="@GetSelectedItemIndex()"
                       ItemCount="@GetSelectedItemCount()"
                       LaneIndex="@GetSelectedLaneIndex()"
-                      AvailableRoadmaps="@(_sessionManager?.Tabs)" />
+                      AvailableRoadmaps="@AllRoadmapsAcrossFolders" />
     }
     else
     {
@@ -151,23 +151,6 @@
                             style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; width: 100%; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);">
                         💾 Save Roadmap
                     </button>
-                </div>
-
-                @* Current Folder Section *@
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <div style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
-                        Current Folder
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                        <button @onclick="SaveCurrentFolder"
-                                style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.2);">
-                            💾 Save Folder
-                        </button>
-                        <button @onclick="ImportFolder"
-                                style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s; box-shadow: 0 2px 6px rgba(139, 92, 246, 0.2);">
-                            📥 Update Folder
-                        </button>
-                    </div>
                 </div>
 
                 @* All Session Data Section *@
@@ -302,6 +285,42 @@
     private int _movingMilestoneIndex = -1;
     private double _milestoneMoveStartX = 0;
     private double _milestoneMoveOriginalStart = 0;
+
+    // Property to get all roadmaps across all folders, organized by folder
+    private List<RoadmapReference> AllRoadmapsAcrossFolders
+    {
+        get
+        {
+            var roadmaps = new List<RoadmapReference>();
+
+            if (_folderManager?.Folders == null) return roadmaps;
+
+            foreach (var folder in _folderManager.Folders)
+            {
+                if (folder.SessionManager?.Tabs == null) continue;
+
+                foreach (var tab in folder.SessionManager.Tabs)
+                {
+                    roadmaps.Add(new RoadmapReference
+                    {
+                        FolderId = folder.Id,
+                        FolderName = folder.Name,
+                        TabId = tab.Id,
+                        TabName = tab.Name,
+                        IsCurrentFolder = folder.Id == _activeFolder?.Id,
+                        IsCurrentTab = tab.Id == _activeTab?.Id
+                    });
+                }
+            }
+
+            // Sort: current folder first, then alphabetically by folder name, then by tab name
+            return roadmaps
+                .OrderByDescending(r => r.IsCurrentFolder)
+                .ThenBy(r => r.FolderName)
+                .ThenBy(r => r.TabName)
+                .ToList();
+        }
+    }
 
     private const string DefaultJson = @"{
   ""title"": ""Bi-Weekly Sprint Roadmap"",
@@ -3436,7 +3455,35 @@
     {
         if (string.IsNullOrEmpty(linkedRoadmapId)) return;
 
-        await HandleTabSwitch(linkedRoadmapId);
+        // Check if linkedRoadmapId is in the new cross-folder format (folderId/tabId)
+        if (linkedRoadmapId.Contains("/"))
+        {
+            var parts = linkedRoadmapId.Split('/');
+            if (parts.Length == 2)
+            {
+                var folderId = parts[0];
+                var tabId = parts[1];
+
+                // Switch folder if needed
+                if (_activeFolder?.Id != folderId)
+                {
+                    await HandleFolderSelect(folderId);
+                    // HandleFolderSelect already switches to the active tab of that folder
+                    // Now we need to switch to the specific tab
+                    await HandleTabSwitch(tabId);
+                }
+                else
+                {
+                    // Same folder, just switch tab
+                    await HandleTabSwitch(tabId);
+                }
+            }
+        }
+        else
+        {
+            // Old format: just tabId (backward compatibility)
+            await HandleTabSwitch(linkedRoadmapId);
+        }
     }
 
     private async Task HandleMoveFolderLeft(string folderId)

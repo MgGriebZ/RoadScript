@@ -215,3 +215,20 @@ public class FolderManager
     [JsonPropertyName("maxFolders")]
     public int MaxFolders { get; set; } = 3;
 }
+
+// Helper class for organizing roadmaps by folder in dropdowns
+public class RoadmapReference
+{
+    public string FolderId { get; set; } = "";
+    public string FolderName { get; set; } = "";
+    public string TabId { get; set; } = "";
+    public string TabName { get; set; } = "";
+    public bool IsCurrentFolder { get; set; }
+    public bool IsCurrentTab { get; set; }
+
+    // Full ID in format "folderId/tabId" for cross-folder references
+    public string FullId => $"{FolderId}/{TabId}";
+
+    // Display name for dropdown with folder context
+    public string DisplayName => IsCurrentFolder ? TabName : $"{FolderName} → {TabName}";
+}

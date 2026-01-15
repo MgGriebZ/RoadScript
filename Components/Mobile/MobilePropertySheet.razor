@@ -42,7 +42,7 @@
                                ItemCount="1"
                                LaneIndex="0"
                                LaneCount="@(Data?.Lanes?.Count ?? 0)"
-                               AvailableRoadmaps="@(new List<TabSession>())"
+                               AvailableRoadmaps="@(new List<RoadmapReference>())"
                                OnChange="@((e) => Task.CompletedTask)"
                                OnAdd="@((e) => Task.CompletedTask)"
                                OnRemove="@((e) => Task.CompletedTask)"
@@ -54,7 +54,7 @@
             {
                 <LaneProperties Lane="@lane"
                                JsonPath="@SelectionState.SelectedPath"
-                               AvailableRoadmaps="@(new List<TabSession>())"
+                               AvailableRoadmaps="@(new List<RoadmapReference>())"
                                OnChange="@((e) => Task.CompletedTask)"
                                OnAdd="@((e) => Task.CompletedTask)"
                                OnRemove="@((e) => Task.CompletedTask)"
