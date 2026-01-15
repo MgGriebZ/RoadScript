@@ -52,13 +52,13 @@
                            OnMilestoneAdjustPosition="@((args) => AdjustMilestonePosition(args.MilestoneIndex, args.Delta))"
                            OnMilestoneAdjustByColumn="@((args) => AdjustMilestoneByColumn(args.MilestoneIndex, args.Direction))"
                            OnRoadmapLinkClick="@HandleRoadmapLinkClick"
-                           OnTitleClick="@HandleTitleClick"
-                           OnShareClick="@HandleQuickShare" />
+                           OnTitleClick="@HandleTitleClick" />
 
             <RoadmapFooter ActiveTab="@_activeTab"
                           Data="@_data"
                           IsVibeMode="@ThemeService.IsVibeMode"
-                          IsPreviewMode="@StateManager.IsPreviewMode" />
+                          IsPreviewMode="@StateManager.IsPreviewMode"
+                          OnShareClick="@HandleQuickShare" />
         }
         else if (_error != null)
         {

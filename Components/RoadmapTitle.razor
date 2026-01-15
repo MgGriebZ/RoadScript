@@ -28,30 +28,6 @@
             </div>
         }
     </div>
-
-    @* Right-aligned stacked buttons with inline labels *@
-    <div class="title-buttons-stack">
-        <a href="https://github.com/MgGriebZ/RoadScript"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="title-button-row"
-           title="View on GitHub">
-            <div class="title-button-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                <Icon IconType="github" Size="16" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
-            </div>
-            <span class="title-button-text">Repo</span>
-        </a>
-
-        <div @onclick="@(() => OnShareClick.InvokeAsync())"
-             class="title-button-row"
-             title="Share this roadmap"
-             style="cursor: pointer;">
-            <div class="title-button-icon" style="background: @(ThemeService.IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)");">
-                <Icon IconType="globe" Size="16" Color="@(ThemeService.IsVibeMode ? "#c7d2fe" : "#374151")" />
-            </div>
-            <span class="title-button-text">Share</span>
-        </div>
-    </div>
 </div>
 
 @code {
@@ -84,12 +60,6 @@
     /// </summary>
     [Parameter]
     public EventCallback OnTitleClick { get; set; }
-
-    /// <summary>
-    /// Callback fired when the share button is clicked
-    /// </summary>
-    [Parameter]
-    public EventCallback OnShareClick { get; set; }
 
     /// <summary>
     /// Determines CSS classes based on preview mode

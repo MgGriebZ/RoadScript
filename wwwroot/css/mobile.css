@@ -145,24 +145,7 @@
 
     /* Title container - minimal padding on mobile */
     .roadmap-title-container {
-        padding: 8px 10px !important; /* Minimal padding with compact buttons */
-    }
-
-    /* Hide button labels on mobile to save space */
-    .title-button-text {
-        display: none !important;
-    }
-
-    /* Compact stacked buttons on mobile */
-    .title-buttons-stack {
-        top: 8px !important;
-        right: 6px !important;
-        gap: 2px !important;
-    }
-
-    .title-button-icon {
-        width: 32px !important;
-        height: 32px !important;
+        padding: 8px 10px !important;
     }
 
     /* Title - smaller on mobile */
