@@ -5,25 +5,55 @@
 @if (!IsPreviewMode && ActiveTab != null && Data != null)
 {
     <div style="@FooterBarStyle()">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Active Tab:</span>
-                <span style="font-size: 12px; color: @(IsVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@ActiveTab.Name</span>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;">
+            @* Status info *@
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Active Tab:</span>
+                    <span style="font-size: 12px; color: @(IsVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@ActiveTab.Name</span>
+                </div>
+                <div style="height: 16px; width: 1px; background: @(IsVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Last Modified:</span>
+                    <span style="font-size: 12px; color: @(IsVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@ActiveTab.LastModified.ToLocalTime().ToString("MMM d, h:mm tt")</span>
+                </div>
+                <div style="height: 16px; width: 1px; background: @(IsVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Columns:</span>
+                    <span style="font-size: 12px; color: @(IsVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@Data.Columns.Count</span>
+                </div>
+                <div style="height: 16px; width: 1px; background: @(IsVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Lanes:</span>
+                    <span style="font-size: 12px; color: @(IsVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@Data.Lanes.Count</span>
+                </div>
             </div>
+
+            @* Divider *@
             <div style="height: 16px; width: 1px; background: @(IsVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Last Modified:</span>
-                <span style="font-size: 12px; color: @(IsVibeMode ? "#e0e7ff" : "#1f2937"); font-weight: 600;">@ActiveTab.LastModified.ToLocalTime().ToString("MMM d, h:mm tt")</span>
-            </div>
-            <div style="height: 16px; width: 1px; background: @(IsVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Columns:</span>
-                <span style="font-size: 12px; color: @(IsVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@Data.Columns.Count</span>
-            </div>
-            <div style="height: 16px; width: 1px; background: @(IsVibeMode ? "#3a3a4e" : "#d1d5db");"></div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; color: @(IsVibeMode ? "#9ca3af" : "#6b7280"); font-weight: 500;">Lanes:</span>
-                <span style="font-size: 12px; color: @(IsVibeMode ? "#667eea" : "#667eea"); font-weight: 600;">@Data.Lanes.Count</span>
+
+            @* Action buttons *@
+            <div class="footer-action-buttons" style="display: flex; align-items: center; gap: 8px;">
+                <a href="https://github.com/MgGriebZ/RoadScript"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="footer-button"
+                   style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: @(IsVibeMode ? "rgba(102, 126, 234, 0.15)" : "rgba(0, 0, 0, 0.05)"); border-radius: 6px; text-decoration: none; transition: all 0.2s; cursor: pointer;"
+                   title="View on GitHub"
+                   onmouseover="this.style.background='@(IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)")'"
+                   onmouseout="this.style.background='@(IsVibeMode ? "rgba(102, 126, 234, 0.15)" : "rgba(0, 0, 0, 0.05)")'">
+                    <Icon IconType="github" Size="14" Color="@(IsVibeMode ? "#c7d2fe" : "#374151")" />
+                    <span class="footer-button-label" style="font-size: 11px; font-weight: 600; color: @(IsVibeMode ? "#c7d2fe" : "#374151"); text-transform: uppercase; letter-spacing: 0.3px;">Repo</span>
+                </a>
+                <div @onclick="@(() => OnShareClick.InvokeAsync())"
+                     class="footer-button"
+                     style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: @(IsVibeMode ? "rgba(102, 126, 234, 0.15)" : "rgba(0, 0, 0, 0.05)"); border-radius: 6px; transition: all 0.2s; cursor: pointer;"
+                     title="Share this roadmap"
+                     onmouseover="this.style.background='@(IsVibeMode ? "rgba(102, 126, 234, 0.25)" : "rgba(0, 0, 0, 0.08)")'"
+                     onmouseout="this.style.background='@(IsVibeMode ? "rgba(102, 126, 234, 0.15)" : "rgba(0, 0, 0, 0.05)")'">
+                    <Icon IconType="globe" Size="14" Color="@(IsVibeMode ? "#c7d2fe" : "#374151")" />
+                    <span class="footer-button-label" style="font-size: 11px; font-weight: 600; color: @(IsVibeMode ? "#c7d2fe" : "#374151"); text-transform: uppercase; letter-spacing: 0.3px;">Share</span>
+                </div>
             </div>
         </div>
     </div>
@@ -53,6 +83,12 @@
     /// </summary>
     [Parameter]
     public bool IsPreviewMode { get; set; }
+
+    /// <summary>
+    /// Callback fired when the share button is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnShareClick { get; set; }
 
     /// <summary>
     /// Generates the CSS style string for the footer bar based on the current theme.

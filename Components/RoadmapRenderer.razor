@@ -40,8 +40,7 @@
                          Subtitle="@Data.Subtitle"
                          IsPreviewMode="@IsPreviewMode"
                          IsVibeMode="@ThemeService.IsVibeMode"
-                         OnTitleClick="@OnTitleClick"
-                         OnShareClick="@OnShareClick" />
+                         OnTitleClick="@OnTitleClick" />
 
             @* Main Content Area *@
             <div style="display: flex; height: calc(100% - 66px);">
@@ -49,7 +48,9 @@
                 <RoadmapLaneLabels Data="@Data"
                                   IsPreviewMode="@IsPreviewMode"
                                   IsVibeMode="@ThemeService.IsVibeMode"
-                                  OnLaneClick="@HandleLaneClick" />
+                                  SessionManager="@SessionManager"
+                                  OnLaneClick="@HandleLaneClick"
+                                  OnLaneLinkClick="@OnRoadmapLinkClick" />
 
                 @* Roadmap Content (Columns, Milestones, Grid, Items) *@
                 <RoadmapContent Data="@Data"
@@ -146,12 +147,6 @@
     /// </summary>
     [Parameter]
     public EventCallback OnTitleClick { get; set; }
-
-    /// <summary>
-    /// Callback fired when the share button is clicked
-    /// </summary>
-    [Parameter]
-    public EventCallback OnShareClick { get; set; }
 
     // Event handlers that translate from sub-component events to parent callbacks
 

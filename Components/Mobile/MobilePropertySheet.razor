@@ -54,6 +54,7 @@
             {
                 <LaneProperties Lane="@lane"
                                JsonPath="@SelectionState.SelectedPath"
+                               AvailableRoadmaps="@(new List<TabSession>())"
                                OnChange="@((e) => Task.CompletedTask)"
                                OnAdd="@((e) => Task.CompletedTask)"
                                OnRemove="@((e) => Task.CompletedTask)"

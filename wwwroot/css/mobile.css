@@ -143,23 +143,18 @@
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Title container - full width mobile */
+    /* Title container - minimal padding on mobile */
     .roadmap-title-container {
-        min-width: 100% !important;
-        width: 100% !important;
         padding: 8px 12px !important;
     }
 
-    /* Title grid - stack on mobile */
-    .roadmap-title-grid {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-        text-align: center !important;
+    /* Hide footer button labels on mobile to prevent overflow */
+    .footer-button-label {
+        display: none !important;
     }
 
-    /* Center all grid items on mobile */
-    .roadmap-title-grid > div {
-        justify-self: center !important;
+    .footer-button {
+        padding: 6px 8px !important;
     }
 
     /* Title - smaller on mobile */

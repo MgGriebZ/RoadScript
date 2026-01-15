@@ -85,6 +85,21 @@
                             </div>
                         </div>
                     }
+                    @* Lane Link Icon - Centered Below Lane Content *@
+                    @if (!string.IsNullOrEmpty(lane.LinkedRoadmapId) && !IsPreviewMode)
+                    {
+                        var linkedTab = SessionManager?.Tabs.FirstOrDefault(t => t.Id == lane.LinkedRoadmapId);
+                        <div style="display: flex; justify-content: center; width: 100%; margin-top: 8px;">
+                            <span @onclick="@(() => OnLaneLinkClick.InvokeAsync(lane.LinkedRoadmapId))"
+                                  @onclick:stopPropagation="true"
+                                  style="font-size: 16px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s, transform 0.2s; padding: 4px 8px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 4px;"
+                                  onmouseover="this.style.opacity='1'; this.style.transform='scale(1.15)';"
+                                  onmouseout="this.style.opacity='0.7'; this.style.transform='scale(1)';"
+                                  title="Linked to: @(linkedTab?.Name ?? "Unknown roadmap")">
+                                🔗
+                            </span>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -115,6 +130,18 @@
     /// </summary>
     [Parameter]
     public EventCallback<(string Path, Lane Lane)> OnLaneClick { get; set; }
+
+    /// <summary>
+    /// Session manager for accessing available roadmaps
+    /// </summary>
+    [Parameter]
+    public SessionManager? SessionManager { get; set; }
+
+    /// <summary>
+    /// Callback fired when a lane's roadmap link is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnLaneLinkClick { get; set; }
 
     /// <summary>
     /// Determines CSS classes based on selection state and preview mode
