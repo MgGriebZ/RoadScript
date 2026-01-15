@@ -10,6 +10,9 @@ public class RoadmapData
     [JsonPropertyName("subtitle")]
     public string Subtitle { get; set; } = "";
 
+    [JsonPropertyName("linkedRoadmapId")]
+    public string? LinkedRoadmapId { get; set; }  // Link to another roadmap (tab) in the same folder
+
     [JsonPropertyName("columns")]
     public List<Column> Columns { get; set; } = new();
 

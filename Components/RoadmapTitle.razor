@@ -1,4 +1,5 @@
 @inject ThemeService ThemeService
+@using RoadScript.Models
 
 @{
     var hasTitleText = !string.IsNullOrWhiteSpace(Title);
@@ -14,9 +15,27 @@
     <div class="title-content-center">
         @if (hasTitleText)
         {
-            <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
-                 style="@(IsPreviewMode ? "" : "cursor: pointer;")">
-                <h1 style="@ThemeService.TitleStyle()">@Title</h1>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
+                     style="@(IsPreviewMode ? "" : "cursor: pointer;")">
+                    <h1 style="@ThemeService.TitleStyle()">@Title</h1>
+                </div>
+
+                @if (!string.IsNullOrEmpty(LinkedRoadmapId) && !IsPreviewMode)
+                {
+                    var linkedTab = SessionManager?.Tabs.FirstOrDefault(t => t.Id == LinkedRoadmapId);
+                    <span @onclick="@(() => OnRoadmapLinkClick.InvokeAsync(LinkedRoadmapId))"
+                          @onclick:stopPropagation="true"
+                          style="font-size: 20px; cursor: pointer; opacity: 0.6;
+                                 transition: opacity 0.2s, transform 0.2s;
+                                 filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+                                 display: flex; align-items: center; justify-content: center;"
+                          onmouseover="this.style.opacity='1'; this.style.transform='scale(1.2)';"
+                          onmouseout="this.style.opacity='0.6'; this.style.transform='scale(1)';"
+                          title="Linked to: @(linkedTab?.Name ?? "Unknown roadmap")">
+                        🔗
+                    </span>
+                }
             </div>
         }
 
@@ -44,6 +63,18 @@
     public string? Subtitle { get; set; }
 
     /// <summary>
+    /// The linked roadmap ID
+    /// </summary>
+    [Parameter]
+    public string? LinkedRoadmapId { get; set; }
+
+    /// <summary>
+    /// The session manager for accessing available roadmaps
+    /// </summary>
+    [Parameter]
+    public SessionManager? SessionManager { get; set; }
+
+    /// <summary>
     /// Whether the component is in preview mode (disables editing)
     /// </summary>
     [Parameter]
@@ -60,6 +91,12 @@
     /// </summary>
     [Parameter]
     public EventCallback OnTitleClick { get; set; }
+
+    /// <summary>
+    /// Callback fired when a roadmap link icon is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnRoadmapLinkClick { get; set; }
 
     /// <summary>
     /// Determines CSS classes based on preview mode
