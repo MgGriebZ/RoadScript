@@ -3171,6 +3171,10 @@
         await UrlNavigation.UpdateUrl(folder.Id, newTab.Id);
 
         await DebouncedSave();
+
+        // Close the import modal
+        CloseImportModal();
+
         await InvokeAsync(StateHasChanged);
     }
 
