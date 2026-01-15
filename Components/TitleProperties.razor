@@ -62,7 +62,20 @@
                 <option value="">None</option>
                 @foreach (var roadmap in AvailableRoadmaps)
                 {
-                    <option value="@roadmap.Id">🔗 @roadmap.Name</option>
+                    if (roadmap.IsCurrentTab)
+                    {
+                        continue; // Skip current roadmap to prevent self-linking
+                    }
+                    <option value="@roadmap.FullId">
+                        @if (roadmap.IsCurrentFolder)
+                        {
+                            <text>  🔗 @roadmap.TabName</text>
+                        }
+                        else
+                        {
+                            <text>📁 @roadmap.FolderName → @roadmap.TabName</text>
+                        }
+                    </option>
                 }
             </select>
             @if (!string.IsNullOrEmpty(LinkedRoadmapId))
@@ -103,7 +116,7 @@
     public string JsonPath { get; set; } = "";
 
     [Parameter]
-    public List<TabSession>? AvailableRoadmaps { get; set; }
+    public List<RoadmapReference>? AvailableRoadmaps { get; set; }
 
     [Parameter]
     public EventCallback<(string PropertyName, object Value)> OnChange { get; set; }
