@@ -412,8 +412,8 @@ public class ThemeService
 
     public string TitleStyle() =>
         IsVibeMode
-            ? "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 35%, #e0c3fc 50%, #c4b5fd 65%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 2px 4px rgba(165, 180, 252, 0.3)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;"
-            : "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #1a1a2e 0%, #2a2a3e 50%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;";
+            ? "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 35%, #e0c3fc 50%, #c4b5fd 65%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 2px 4px rgba(165, 180, 252, 0.3));"
+            : "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #1a1a2e 0%, #2a2a3e 50%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));";
 
     public string SubtitleStyle() =>
         IsVibeMode

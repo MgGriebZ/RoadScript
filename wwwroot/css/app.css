@@ -280,8 +280,9 @@ html, body, #app {
 
     /* Title content centering */
     .title-content-center {
+        width: 100% !important;
         max-width: 100% !important;
-        overflow: hidden !important;
+        text-align: center !important;
     }
 
     /* Subtitle text - same overflow protection */
@@ -763,7 +764,6 @@ input[type="color"] {
     text-align: center;
     width: 100%;
     max-width: 100%;
-    overflow: hidden;
 }
 
 /* Footer action buttons - responsive */
