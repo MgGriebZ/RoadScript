@@ -276,6 +276,8 @@ html, body, #app {
         padding: 8px 12px !important;
         margin-left: -18px !important;
         margin-right: -18px !important;
+        width: calc(100% + 36px) !important;
+        max-width: calc(100% + 36px) !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: stretch !important;
