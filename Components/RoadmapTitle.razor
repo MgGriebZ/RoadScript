@@ -15,9 +15,9 @@
     <div class="title-content-center">
         @if (hasTitleText)
         {
-            <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%;">
                 <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
-                     style="@(IsPreviewMode ? "" : "cursor: pointer;")">
+                     style="@(IsPreviewMode ? "" : "cursor: pointer;") text-align: center; flex: 1;">
                     <h1 style="@ThemeService.TitleStyle()">@Title</h1>
                 </div>
 
@@ -29,7 +29,8 @@
                           style="font-size: 20px; cursor: pointer; opacity: 0.6;
                                  transition: opacity 0.2s, transform 0.2s;
                                  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-                                 display: flex; align-items: center; justify-content: center;"
+                                 display: flex; align-items: center; justify-content: center;
+                                 flex-shrink: 0;"
                           onmouseover="this.style.opacity='1'; this.style.transform='scale(1.2)';"
                           onmouseout="this.style.opacity='0.6'; this.style.transform='scale(1)';"
                           title="Linked to: @(linkedTab?.Name ?? "Unknown roadmap")">
@@ -42,7 +43,7 @@
         @if (hasSubtitleText)
         {
             <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
-                 style="margin-top: 6px; @(IsPreviewMode ? "" : "cursor: pointer;")">
+                 style="margin-top: 6px; @(IsPreviewMode ? "" : "cursor: pointer;") text-align: center; width: 100%;">
                 <p style="@ThemeService.SubtitleStyle()">@Subtitle</p>
             </div>
         }

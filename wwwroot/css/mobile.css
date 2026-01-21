@@ -165,8 +165,7 @@
     }
 
     /* Subtitle - smaller on mobile */
-    .roadmap > div:first-child > p,
-    .roadmap p {
+    .roadmap-title-container p {
         font-size: 13px !important;
         line-height: 1.4 !important;
     }

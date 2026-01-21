@@ -67,11 +67,11 @@ public class ThemeService
     {
         if (false) // _isPreviewMode - this would need to be passed as parameter or managed elsewhere
         {
-            return "flex: 1; display: flex; justify-content: center; align-items: flex-start; overflow: auto;";
+            return "flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; overflow: auto;";
         }
         else
         {
-            return "flex: 1; display: flex; align-items: flex-start; overflow: auto; padding: 16px;";
+            return "flex: 1; display: flex; flex-direction: column; align-items: flex-start; overflow: auto; padding: 16px;";
         }
     }
 
@@ -412,13 +412,13 @@ public class ThemeService
 
     public string TitleStyle() =>
         IsVibeMode
-            ? "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 35%, #e0c3fc 50%, #c4b5fd 65%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 2px 4px rgba(165, 180, 252, 0.3)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;"
-            : "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #1a1a2e 0%, #2a2a3e 50%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;";
+            ? "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 35%, #e0c3fc 50%, #c4b5fd 65%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 0 30px rgba(165, 180, 252, 0.5); filter: drop-shadow(0 2px 4px rgba(165, 180, 252, 0.3)); text-align: center;"
+            : "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #1a1a2e 0%, #2a2a3e 50%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1)); text-align: center;";
 
     public string SubtitleStyle() =>
         IsVibeMode
-            ? "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #c4b5fd; font-weight: 500; text-shadow: 0 0 8px rgba(196, 181, 253, 0.4);"
-            : "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #6b7280; font-weight: 500;";
+            ? "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #c4b5fd; font-weight: 500; text-shadow: 0 0 8px rgba(196, 181, 253, 0.4); word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; text-align: center;"
+            : "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #6b7280; font-weight: 500; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; text-align: center;";
 
     public string TitleContainerStyle()
     {

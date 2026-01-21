@@ -6,6 +6,17 @@
 @if (Data != null)
 {
     <div style="@ThemeService.RoadmapWrapperStyle()">
+
+        @* Roadmap Title - Separated from container for independent layout *@
+        <RoadmapTitle Title="@Data.Title"
+                     Subtitle="@Data.Subtitle"
+                     LinkedRoadmapId="@Data.LinkedRoadmapId"
+                     SessionManager="@SessionManager"
+                     IsPreviewMode="@IsPreviewMode"
+                     IsVibeMode="@ThemeService.IsVibeMode"
+                     OnTitleClick="@OnTitleClick"
+                     OnRoadmapLinkClick="@OnRoadmapLinkClick" />
+
         <div class="roadmap roadmap-container" style="@ThemeService.RoadmapContainerStyle()">
 
             @* Milestone Navigation Controls *@
@@ -34,16 +45,6 @@
                                         JumpToEnd="@OnMilestoneJumpToEnd"
                                         AdjustPosition="@OnMilestoneAdjustPosition"
                                         AdjustByColumn="@OnMilestoneAdjustByColumn" />
-
-            @* Roadmap Title *@
-            <RoadmapTitle Title="@Data.Title"
-                         Subtitle="@Data.Subtitle"
-                         LinkedRoadmapId="@Data.LinkedRoadmapId"
-                         SessionManager="@SessionManager"
-                         IsPreviewMode="@IsPreviewMode"
-                         IsVibeMode="@ThemeService.IsVibeMode"
-                         OnTitleClick="@OnTitleClick"
-                         OnRoadmapLinkClick="@OnRoadmapLinkClick" />
 
             @* Main Content Area *@
             <div style="display: flex; height: calc(100% - 66px);">
