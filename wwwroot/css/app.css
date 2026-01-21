@@ -278,6 +278,7 @@ html, body, #app {
         margin-right: -18px !important;
         width: calc(100% + 36px) !important;
         max-width: calc(100% + 36px) !important;
+        box-sizing: border-box !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: stretch !important;
@@ -289,13 +290,12 @@ html, body, #app {
         width: 100% !important;
         max-width: 100% !important;
         text-align: center !important;
+        box-sizing: border-box !important;
     }
 
-    /* Subtitle text - same overflow protection */
+    /* Subtitle text - allow natural wrapping */
     .roadmap > div:first-child p {
         max-width: 100% !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
     }
@@ -770,6 +770,7 @@ input[type="color"] {
     text-align: center;
     width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* Footer action buttons - responsive */
