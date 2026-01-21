@@ -204,10 +204,6 @@ html, body, #app {
     /* Container padding - tight but breathable */
     .roadmap-container {
         padding: 14px 18px !important;
-        aspect-ratio: auto !important;
-        min-width: auto !important;
-        width: 100% !important;
-        max-width: 100% !important;
     }
 
     /* ========== TYPOGRAPHY SCALE - Proportional to desktop ========== */
@@ -221,7 +217,7 @@ html, body, #app {
     }
 
     /* Subtitle: 16px → 14px (-13%) */
-    .roadmap > div:first-child > p {
+    .roadmap-title-container p {
         font-size: 14px !important;
         line-height: 1.4 !important;
         text-align: center !important;
@@ -275,33 +271,11 @@ html, body, #app {
 
     /* ========== LAYOUT OPTIMIZATION ========== */
 
-    /* Title container - break out of parent padding to use full width */
+    /* Title container - clean, simple full-width layout */
     .roadmap-title-container {
-        padding: 8px 12px !important;
-        margin-left: -18px !important;
-        margin-right: -18px !important;
-        width: calc(100% + 36px) !important;
-        max-width: calc(100% + 36px) !important;
-        box-sizing: border-box !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: stretch !important;
-        justify-content: center !important;
-    }
-
-    /* Title content centering */
-    .title-content-center {
         width: 100% !important;
-        max-width: 100% !important;
-        text-align: center !important;
-        box-sizing: border-box !important;
-    }
-
-    /* Subtitle text - allow natural wrapping */
-    .roadmap > div:first-child p {
-        max-width: 100% !important;
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
+        padding: 12px 16px !important;
+        margin-bottom: 12px !important;
     }
 
     /* Lane label area - narrower for more timeline space */
@@ -755,9 +729,9 @@ input[type="color"] {
     font-size: 9px;
 }
 
-/* ===== STACKED RIGHT-ALIGNED TITLE BUTTONS ===== */
+/* ===== ROADMAP TITLE (INDEPENDENT COMPONENT) ===== */
 
-/* Title container - simple relative positioning with centering */
+/* Title container - separated from roadmap grid for independent layout */
 .roadmap-title-container {
     position: relative;
     width: 100%;
