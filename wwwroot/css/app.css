@@ -204,6 +204,10 @@ html, body, #app {
     /* Container padding - tight but breathable */
     .roadmap-container {
         padding: 14px 18px !important;
+        aspect-ratio: auto !important;
+        min-width: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
     }
 
     /* ========== TYPOGRAPHY SCALE - Proportional to desktop ========== */
