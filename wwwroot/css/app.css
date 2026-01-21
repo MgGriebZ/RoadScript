@@ -213,12 +213,14 @@ html, body, #app {
         font-size: 30px !important;
         letter-spacing: -0.4px !important;
         line-height: 1.2 !important;
+        text-align: center !important;
     }
 
     /* Subtitle: 16px → 14px (-13%) */
     .roadmap > div:first-child > p {
         font-size: 14px !important;
         line-height: 1.4 !important;
+        text-align: center !important;
     }
 
     /* Column labels: 20px → 17px (-15%) */
