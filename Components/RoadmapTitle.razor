@@ -17,7 +17,7 @@
         {
             <div style="display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; max-width: 100%; overflow: hidden;">
                 <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
-                     style="@(IsPreviewMode ? "" : "cursor: pointer;") flex: 1 1 auto; min-width: 0; overflow: hidden;">
+                     style="@(IsPreviewMode ? "" : "cursor: pointer;") flex: 1 1 auto; min-width: 0; overflow: hidden; text-align: center;">
                     <h1 style="@ThemeService.TitleStyle()">@Title</h1>
                 </div>
 
@@ -43,7 +43,7 @@
         @if (hasSubtitleText)
         {
             <div @onclick="@(IsPreviewMode ? null : () => OnTitleClick.InvokeAsync())"
-                 style="margin-top: 6px; @(IsPreviewMode ? "" : "cursor: pointer;") width: 100%; max-width: 100%; overflow: hidden;">
+                 style="margin-top: 6px; @(IsPreviewMode ? "" : "cursor: pointer;") width: 100%; max-width: 100%; overflow: hidden; text-align: center;">
                 <p style="@ThemeService.SubtitleStyle()">@Subtitle</p>
             </div>
         }
