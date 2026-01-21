@@ -417,8 +417,8 @@ public class ThemeService
 
     public string SubtitleStyle() =>
         IsVibeMode
-            ? "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #c4b5fd; font-weight: 500; text-shadow: 0 0 8px rgba(196, 181, 253, 0.4);"
-            : "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #6b7280; font-weight: 500;";
+            ? "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #c4b5fd; font-weight: 500; text-shadow: 0 0 8px rgba(196, 181, 253, 0.4); word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;"
+            : "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #6b7280; font-weight: 500; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;";
 
     public string TitleContainerStyle()
     {
