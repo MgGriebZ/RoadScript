@@ -196,14 +196,21 @@ html, body, #app {
 @media (min-width: 1201px) and (max-width: 1650px) {
     /* ========== MAXIMIZE SPACE - Reduce all padding/margins ========== */
 
-    /* Wrapper padding */
+    /* Wrapper padding - minimal on tablets */
     .preview-pane > div {
-        padding: 8px !important;
+        padding: 4px !important;
     }
 
-    /* Container padding - tight but breathable */
+    /* Override RoadmapWrapperStyle inline padding */
+    .preview-pane > div > div {
+        padding: 4px !important;
+    }
+
+    /* Container padding - maximally reduced for more title space */
     .roadmap-container {
-        padding: 14px 18px !important;
+        padding: 10px 12px !important;
+        aspect-ratio: auto !important; /* Remove aspect ratio constraint */
+        min-width: auto !important; /* Remove min-width constraint */
     }
 
     /* ========== TYPOGRAPHY SCALE - Proportional to desktop ========== */
@@ -271,7 +278,7 @@ html, body, #app {
 
     /* Title container - responsive sizing for tablets */
     .roadmap-title-container {
-        padding: 8px 12px !important;
+        padding: 6px 8px !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: stretch !important;
