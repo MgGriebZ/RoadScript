@@ -67,11 +67,11 @@ public class ThemeService
     {
         if (false) // _isPreviewMode - this would need to be passed as parameter or managed elsewhere
         {
-            return "flex: 1; display: flex; justify-content: center; align-items: flex-start; overflow: auto;";
+            return "flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; overflow: auto;";
         }
         else
         {
-            return "flex: 1; display: flex; align-items: flex-start; overflow: auto; padding: 16px;";
+            return "flex: 1; display: flex; flex-direction: column; align-items: flex-start; overflow: auto; padding: 16px;";
         }
     }
 
