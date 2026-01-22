@@ -71,7 +71,7 @@ public class ThemeService
         }
         else
         {
-            return "flex: 1; display: flex; flex-direction: column; align-items: flex-start; overflow: auto; padding: 16px;";
+            return "flex: 1; display: flex; flex-direction: column; align-items: flex-start; overflow: auto; padding: 16px 16px 0 16px;";
         }
     }
 
@@ -86,12 +86,12 @@ public class ThemeService
             return $"{widthStyle} {maxWidthStyle} {minWidthStyle} aspect-ratio: 16/9; " +
                   $"background: {GetSeasonalVibeContainer()}; " +
                   "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
-                  "padding: 22px 30px; border: 2px solid #667eea; position: relative; " +
+                  "padding: 22px 30px 0 30px; border: 2px solid #667eea; position: relative; " +
                   "box-shadow: 0 0 40px rgba(102, 126, 234, 0.3), 0 8px 32px rgba(0, 0, 0, 0.6);";
         }
         return $"{widthStyle} {maxWidthStyle} {minWidthStyle} aspect-ratio: 16/9; background: {GetSeasonalLiteContainer()}; " +
               "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
-              "padding: 22px 30px; border: 1px solid #d1d5db; position: relative;";
+              "padding: 22px 30px 0 30px; border: 1px solid #d1d5db; position: relative;";
     }
 
     public string LaneLabelWrapStyle(Lane lane, RoadmapData data)
