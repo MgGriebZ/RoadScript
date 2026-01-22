@@ -71,7 +71,7 @@ public class ThemeService
         }
         else
         {
-            return "flex: 1; display: flex; flex-direction: column; align-items: flex-start; overflow: auto; padding: 16px;";
+            return "flex: 1; display: flex; flex-direction: column; align-items: flex-start; overflow: auto; padding: 16px 16px 0 16px;";
         }
     }
 
