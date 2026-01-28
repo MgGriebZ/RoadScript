@@ -96,13 +96,6 @@
             @(IsPreviewMode ? "👁️" : "✏️")
         </button>
 
-        <button @onclick="@(() => OnToggleTheme.InvokeAsync())"
-                title="@(IsVibeMode ? "Switch to Lite Theme" : "Switch to Vibe Theme")"
-                class="cc-icon-btn"
-                style="@GetCollapsedToggleStyle(IsVibeMode)">
-            @(IsVibeMode ? "🌙" : "☀️")
-        </button>
-
         <button @onclick="@(() => OnCycleTheme.InvokeAsync())"
                 title="@GetSeasonalThemeTitle()"
                 class="cc-icon-btn"
@@ -148,15 +141,6 @@
                 style="background: linear-gradient(135deg, rgba(248, 131, 121, 0.2) 0%, rgba(248, 131, 121, 0.05) 100%); color: #F88379; border: 1px solid rgba(248, 131, 121, 0.4); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(248, 131, 121, 0.2);">
             <Icon IconType="target" Size="24" Color="#F88379" />
         </button>
-
-        <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 8px 0;"></div>
-
-        <button @onclick="ApplyRandomTemplate"
-                title="🎲 Apply Random Template - Feeling Lucky?"
-                class="cc-icon-btn"
-                style="background: linear-gradient(135deg, rgba(0, 217, 255, 0.25) 0%, rgba(0, 240, 255, 0.15) 100%); color: #00D9FF; border: 1px solid rgba(0, 217, 255, 0.6); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0, 217, 255, 0.4);">
-            <Icon IconType="dice" Size="24" Color="#00D9FF" />
-        </button>
     </div>
 </div>
 
@@ -165,7 +149,6 @@
     [Parameter] public SessionManager? SessionManager { get; set; }
     [Parameter] public TabSession? ActiveTab { get; set; }
     [Parameter] public bool IsPreviewMode { get; set; }
-    [Parameter] public bool IsVibeMode { get; set; }
     [Parameter] public SeasonalTheme CurrentTheme { get; set; }
 
     // Event callbacks
@@ -177,7 +160,6 @@
     [Parameter] public EventCallback OnTabAdd { get; set; }
     [Parameter] public EventCallback OnExportPng { get; set; }
     [Parameter] public EventCallback OnToggleViewMode { get; set; }
-    [Parameter] public EventCallback OnToggleTheme { get; set; }
     [Parameter] public EventCallback OnCycleTheme { get; set; }
     [Parameter] public EventCallback<TemplateService.TemplateType> OnTemplateApply { get; set; }
 
@@ -189,26 +171,6 @@
         {
             await OnTabRename.InvokeAsync((tabId, newName.Trim()));
         }
-    }
-
-    private async Task ApplyRandomTemplate()
-    {
-        // Get all available template types
-        var templates = new[]
-        {
-            TemplateService.TemplateType.ScrumSprintCycle,
-            TemplateService.TemplateType.ProjectTimelines,
-            TemplateService.TemplateType.AnnualRoadmap,
-            TemplateService.TemplateType.Retrospective,
-            TemplateService.TemplateType.ScrumBoard
-        };
-
-        // Pick a random template
-        var random = new Random();
-        var randomTemplate = templates[random.Next(templates.Length)];
-
-        // Apply it!
-        await OnTemplateApply.InvokeAsync(randomTemplate);
     }
 
     private string GetTabIndicatorStyle(bool isActive)
@@ -258,6 +220,10 @@
             SeasonalTheme.Summer => "☀️",
             SeasonalTheme.Autumn => "🍂",
             SeasonalTheme.Winter => "❄️",
+            SeasonalTheme.Dawn => "🌅",
+            SeasonalTheme.Dusk => "🌆",
+            SeasonalTheme.Ocean => "🌊",
+            SeasonalTheme.Forest => "🌲",
             _ => "🎨"
         };
     }
@@ -271,6 +237,10 @@
             SeasonalTheme.Summer => "Summer",
             SeasonalTheme.Autumn => "Autumn",
             SeasonalTheme.Winter => "Winter",
+            SeasonalTheme.Dawn => "Dawn",
+            SeasonalTheme.Dusk => "Dusk",
+            SeasonalTheme.Ocean => "Ocean",
+            SeasonalTheme.Forest => "Forest",
             _ => "Classic"
         };
         return $"Current: {themeName} Theme (Click to cycle)";
@@ -285,6 +255,10 @@
             SeasonalTheme.Summer => ("#fbbf24", "linear-gradient(135deg, #fbbf24 0%, #60a5fa 100%)"),
             SeasonalTheme.Autumn => ("#fb923c", "linear-gradient(135deg, #fb923c 0%, #dc2626 100%)"),
             SeasonalTheme.Winter => ("#7dd3fc", "linear-gradient(135deg, #7dd3fc 0%, #c7d2fe 100%)"),
+            SeasonalTheme.Dawn => ("#fda4af", "linear-gradient(135deg, #fda4af 0%, #fb923c 100%)"),
+            SeasonalTheme.Dusk => ("#c084fc", "linear-gradient(135deg, #c084fc 0%, #818cf8 100%)"),
+            SeasonalTheme.Ocean => ("#22d3ee", "linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%)"),
+            SeasonalTheme.Forest => ("#34d399", "linear-gradient(135deg, #34d399 0%, #059669 100%)"),
             _ => ("#667eea", "linear-gradient(135deg, #667eea 0%, #764ba2 100%)")
         };
 

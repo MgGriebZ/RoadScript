@@ -23,7 +23,6 @@
                    SessionManager="_sessionManager"
                    ActiveTab="_activeTab"
                    IsPreviewMode="@StateManager.IsPreviewMode"
-                   IsVibeMode="@ThemeService.IsVibeMode"
                    CurrentTheme="@ThemeService.CurrentTheme"
                    OnToggleFolderSelector="ToggleFolderSelector"
                    OnTabDelete="HandleCollapsedTabDelete"
@@ -33,7 +32,6 @@
                    OnTabAdd="HandleTabAdd"
                    OnExportPng="ExportAsPng"
                    OnToggleViewMode="@(async () => await ToggleViewMode(null))"
-                   OnToggleTheme="@(() => ToggleTheme(null))"
                    OnCycleTheme="CycleSeasonalTheme"
                    OnTemplateApply="ApplyTemplate" />
 
@@ -56,7 +54,6 @@
 
             <RoadmapFooter ActiveTab="@_activeTab"
                           Data="@_data"
-                          IsVibeMode="@ThemeService.IsVibeMode"
                           IsPreviewMode="@StateManager.IsPreviewMode"
                           OnShareClick="@HandleQuickShare"
                           OnImportClick="@HandleFooterImportClick" />
@@ -640,9 +637,6 @@
         {
             case "TogglePreview":
                 await ToggleViewMode();
-                break;
-            case "ToggleTheme":
-                ToggleTheme();
                 break;
             case "ClearSelection":
                 SelectionState.Clear();
@@ -1593,11 +1587,6 @@
             Console.WriteLine($"Error importing session data: {ex.Message}");
             await JSRuntime.InvokeVoidAsync("alert", $"❌ Error importing session data:\n{ex.Message}");
         }
-    }
-
-    private void ToggleTheme(ChangeEventArgs? e = null)
-    {
-        ThemeService.ToggleVibeMode();
     }
 
     private void CycleSeasonalTheme()
