@@ -289,7 +289,7 @@ public class ThemeService
     }
 
     public string TitleStyle() =>
-        "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 35%, #a855f7 50%, #7c3aed 65%, #4f46e5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; line-height: 1.2; text-align: center;";
+        "margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; color: #111827; letter-spacing: -0.5px; line-height: 1.2; text-align: center;";
 
     public string SubtitleStyle() =>
         "margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #6b7280; font-weight: 500; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; text-align: center;";
@@ -310,7 +310,7 @@ public class ThemeService
         "display: flex; height: 48px; border-bottom: 2px solid #d1d5db; position: relative; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); background: linear-gradient(180deg, #fafbfc 0%, transparent 100%);";
 
     public string ColumnLabelStyle() =>
-        "font-size: 20px; font-weight: 700; line-height: 1.3; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;";
+        "font-size: 20px; font-weight: 700; line-height: 1.3; color: #1f2937;";
 
     public string ColumnSubStyle() =>
         "font-size: 13px; line-height: 1.4; color: #6b7280; font-weight: 500;";
