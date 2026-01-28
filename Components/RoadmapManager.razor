@@ -102,11 +102,24 @@
                         </div>
                     }
 
-                    <div class="roadmaps-list">
-                        @foreach (var tab in GetFilteredTabs(folder))
+                    <div class="roadmaps-list @(_dragOverFolderId == folder.Id ? "folder-drag-over" : "")"
+                         @ondragover="() => HandleFolderDragOver(folder.Id)"
+                         @ondragover:preventDefault
+                         @ondragleave="HandleFolderDragLeave"
+                         @ondrop="() => HandleFolderDrop(folder.Id)"
+                         @ondrop:preventDefault>
+                        @{
+                            var tabList = GetFilteredTabs(folder);
+                            var tabIndex = 0;
+                        }
+                        @foreach (var tab in tabList)
                         {
                             var isActive = isActiveFolder && tab.Id == folder.SessionManager.ActiveTabId;
+                            var currentIndex = tabIndex;
                             <RoadmapCard RoadmapName="@tab.Name"
+                                        FolderId="@folder.Id"
+                                        TabId="@tab.Id"
+                                        Index="@currentIndex"
                                         IsActive="@isActive"
                                         IsOnlyRoadmap="@(folder.SessionManager.Tabs.Count == 1)"
                                         Stats="@GetRoadmapStats(tab.Data)"
@@ -115,12 +128,16 @@
                                         OnOpen="@(() => HandleRoadmapOpen(folder.Id, tab.Id))"
                                         OnRename="@(() => HandleRoadmapRename(folder.Id, tab.Id))"
                                         OnDuplicate="@(() => HandleRoadmapDuplicate(folder.Id, tab.Id))"
-                                        OnDelete="@(() => HandleRoadmapDelete(folder.Id, tab.Id))" />
+                                        OnDelete="@(() => HandleRoadmapDelete(folder.Id, tab.Id))"
+                                        OnDragStart="@HandleRoadmapDragStart"
+                                        OnDrop="@HandleRoadmapDrop" />
+                            tabIndex++;
                         }
                         @if (folder.SessionManager.Tabs.Count == 0)
                         {
                             <div class="empty-folder">
                                 <span>No roadmaps in this folder</span>
+                                <span class="empty-folder-hint">Drop a roadmap here to move it</span>
                             </div>
                         }
                     </div>
@@ -172,11 +189,24 @@
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapRename { get; set; }
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapDuplicate { get; set; }
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapDelete { get; set; }
+    [Parameter] public EventCallback<RoadmapMoveData> OnRoadmapMove { get; set; }
 
     private string SearchQuery { get; set; } = "";
     private string? _expandedFolderId = null;
     private bool _showIconPicker = false;
     private string? _iconPickerFolderId = null;
+    private RoadmapCard.DragEventData? _draggedRoadmap = null;
+    private string? _dragOverFolderId = null;
+
+    public class RoadmapMoveData
+    {
+        public string SourceFolderId { get; set; } = "";
+        public string SourceTabId { get; set; } = "";
+        public int SourceIndex { get; set; }
+        public string TargetFolderId { get; set; } = "";
+        public string? TargetTabId { get; set; }
+        public int TargetIndex { get; set; }
+    }
 
     private async Task Close()
     {
@@ -310,6 +340,61 @@
         await OnRoadmapDelete.InvokeAsync((folderId, tabId));
     }
 
+    private void HandleRoadmapDragStart(RoadmapCard.DragEventData eventData)
+    {
+        _draggedRoadmap = eventData;
+    }
+
+    private async Task HandleRoadmapDrop(RoadmapCard.DragEventData eventData)
+    {
+        if (_draggedRoadmap == null) return;
+
+        // Combine source and target information
+        var moveData = new RoadmapMoveData
+        {
+            SourceFolderId = _draggedRoadmap.SourceFolderId,
+            SourceTabId = _draggedRoadmap.SourceTabId,
+            SourceIndex = _draggedRoadmap.SourceIndex,
+            TargetFolderId = eventData.TargetFolderId,
+            TargetTabId = eventData.TargetTabId,
+            TargetIndex = eventData.TargetIndex
+        };
+
+        await OnRoadmapMove.InvokeAsync(moveData);
+        _draggedRoadmap = null;
+        _dragOverFolderId = null;
+    }
+
+    private void HandleFolderDragOver(string folderId)
+    {
+        _dragOverFolderId = folderId;
+    }
+
+    private void HandleFolderDragLeave()
+    {
+        _dragOverFolderId = null;
+    }
+
+    private async Task HandleFolderDrop(string targetFolderId)
+    {
+        if (_draggedRoadmap == null) return;
+
+        // Drop on folder (append to end)
+        var moveData = new RoadmapMoveData
+        {
+            SourceFolderId = _draggedRoadmap.SourceFolderId,
+            SourceTabId = _draggedRoadmap.SourceTabId,
+            SourceIndex = _draggedRoadmap.SourceIndex,
+            TargetFolderId = targetFolderId,
+            TargetTabId = null, // Append to end
+            TargetIndex = -1 // -1 means append
+        };
+
+        await OnRoadmapMove.InvokeAsync(moveData);
+        _draggedRoadmap = null;
+        _dragOverFolderId = null;
+    }
+
     private record ColorPreset(string Name, string Value);
 
     private readonly List<ColorPreset> _colorPresets = new()
@@ -336,8 +421,8 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(4px);
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
         display: none;
         align-items: center;
         justify-content: center;
@@ -349,13 +434,13 @@
     }
 
     .roadmap-manager-content {
-        background: #1e1e1e;
-        border: 1px solid #444;
-        border-radius: 12px;
+        background: #151515;
+        border: 2px solid #3a3a3a;
+        border-radius: 16px;
         width: 95%;
         max-width: 1400px;
         max-height: 90vh;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
         display: flex;
         flex-direction: column;
     }
@@ -364,58 +449,72 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 20px 24px;
-        border-bottom: 1px solid #333;
+        padding: 24px 28px;
+        border-bottom: 2px solid #2a2a2a;
         flex-shrink: 0;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
     }
 
     .roadmap-manager-header h3 {
         margin: 0;
         color: #ffffff;
-        font-size: 20px;
-        font-weight: 600;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
     }
 
     .close-button {
-        background: none;
-        border: none;
-        color: #999;
-        font-size: 32px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        color: #aaa;
+        font-size: 28px;
         cursor: pointer;
         padding: 0;
-        width: 32px;
-        height: 32px;
+        width: 44px;
+        height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
         line-height: 1;
-        transition: color 0.2s;
+        transition: all 0.2s;
+        border-radius: 10px;
     }
 
     .close-button:hover {
         color: #ffffff;
+        background: rgba(239, 68, 68, 0.2);
+        border-color: #ef4444;
+        transform: scale(1.05);
     }
 
     .roadmap-manager-search {
-        padding: 16px 24px;
-        border-bottom: 1px solid #333;
+        padding: 20px 28px;
+        border-bottom: 2px solid #2a2a2a;
         flex-shrink: 0;
+        background: #1a1a1a;
     }
 
     .search-input {
         width: 100%;
-        padding: 12px 16px;
-        background: #2a2a2a;
-        border: 1px solid #444;
-        border-radius: 8px;
+        padding: 14px 18px;
+        background: #252525;
+        border: 2px solid #3a3a3a;
+        border-radius: 10px;
         color: #ffffff;
-        font-size: 14px;
+        font-size: 15px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .search-input::placeholder {
+        color: #666;
     }
 
     .search-input:focus {
         outline: none;
         border-color: #667eea;
-        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        background: #2a2a2a;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
     }
 
     .roadmap-manager-body {
@@ -438,21 +537,26 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 14px 16px;
-        background: #252525;
-        border-radius: 8px;
+        padding: 18px 20px;
+        background: linear-gradient(135deg, #222 0%, #2a2a2a 100%);
+        border: 2px solid #3a3a3a;
+        border-radius: 12px;
         margin-bottom: 0;
         transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     .folder-header:hover {
-        background: #2a2a2a;
+        background: linear-gradient(135deg, #2a2a2a 0%, #303030 100%);
+        border-color: #4a4a4a;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
 
     .folder-header-left {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         flex: 1;
         cursor: pointer;
         user-select: none;
@@ -460,20 +564,29 @@
 
     .folder-name {
         color: #ffffff;
-        font-size: 16px;
-        font-weight: 600;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.2px;
     }
 
     .folder-count {
-        color: #888;
-        font-size: 13px;
+        color: #999;
+        font-size: 14px;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 4px 10px;
+        border-radius: 8px;
     }
 
     .folder-expand-arrow {
-        color: #666;
-        font-size: 10px;
+        color: #888;
+        font-size: 12px;
         margin-left: auto;
-        transition: transform 0.2s;
+        transition: transform 0.2s, color 0.2s;
+    }
+
+    .folder-header:hover .folder-expand-arrow {
+        color: #aaa;
     }
 
     .folder-expand-arrow.expanded {
@@ -483,48 +596,57 @@
     .folder-active-badge {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: #fff;
-        font-size: 10px;
-        padding: 3px 8px;
-        border-radius: 10px;
-        font-weight: 600;
+        font-size: 11px;
+        padding: 5px 12px;
+        border-radius: 12px;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
     }
 
     .folder-header-actions {
         display: flex;
-        gap: 6px;
+        gap: 8px;
     }
 
     .folder-action-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.15);
         color: #fff;
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 600;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
+        position: relative;
     }
 
     .folder-action-btn:hover:not(:disabled) {
-        background: rgba(102, 126, 234, 0.3);
+        background: rgba(102, 126, 234, 0.25);
         border-color: #667eea;
+        transform: scale(1.08);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .folder-action-btn:active:not(:disabled) {
+        transform: scale(1.02);
     }
 
     .folder-action-btn:disabled {
-        opacity: 0.3;
+        opacity: 0.25;
         cursor: not-allowed;
     }
 
     .folder-action-delete:hover:not(:disabled) {
-        background: rgba(239, 68, 68, 0.3);
+        background: rgba(239, 68, 68, 0.25);
         border-color: #ef4444;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
     }
 
     .folder-config-panel {
@@ -619,6 +741,14 @@
         max-height: 600px;
         overflow-y: auto;
         margin-top: 12px;
+        min-height: 60px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .roadmaps-list.folder-drag-over {
+        background: rgba(102, 126, 234, 0.1);
+        border: 2px dashed #667eea;
     }
 
     .empty-folder {
@@ -630,6 +760,14 @@
         background: #252525;
         border-radius: 8px;
         border: 1px dashed #3a3a3a;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .empty-folder-hint {
+        font-size: 11px;
+        color: #555;
     }
 
     .empty-state {
@@ -668,34 +806,149 @@
 
     .btn-add-folder {
         width: 100%;
-        padding: 14px;
+        padding: 16px 20px;
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: #fff;
-        border: none;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 600;
+        border: 2px solid transparent;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
         cursor: pointer;
         transition: all 0.2s;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 10px;
+        letter-spacing: 0.3px;
     }
 
     .btn-add-folder:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
     }
 
     .btn-add-folder:active:not(:disabled) {
-        transform: translateY(0);
+        transform: translateY(-1px);
     }
 
     .btn-add-folder:disabled {
-        opacity: 0.5;
+        opacity: 0.4;
         cursor: not-allowed;
         transform: none;
+        background: #555;
+        box-shadow: none;
+    }
+
+    /* Tablet breakpoint (768px and up) */
+    @media (min-width: 768px) {
+        .roadmap-manager-content {
+            width: 90%;
+            max-width: 1500px;
+        }
+
+        .roadmap-manager-header h3 {
+            font-size: 26px;
+        }
+
+        .search-input {
+            font-size: 16px;
+            padding: 16px 20px;
+        }
+
+        .folder-name {
+            font-size: 19px;
+        }
+
+        .folder-count {
+            font-size: 15px;
+        }
+
+        .folder-action-btn {
+            width: 42px;
+            height: 42px;
+            font-size: 18px;
+        }
+
+        .btn-add-folder {
+            padding: 18px 24px;
+            font-size: 17px;
+        }
+
+        .close-button {
+            width: 48px;
+            height: 48px;
+            font-size: 30px;
+        }
+    }
+
+    /* Desktop breakpoint (1024px and up) */
+    @media (min-width: 1024px) {
+        .roadmap-manager-content {
+            width: 85%;
+            max-width: 1600px;
+        }
+
+        .roadmap-manager-header {
+            padding: 28px 32px;
+        }
+
+        .roadmap-manager-header h3 {
+            font-size: 28px;
+        }
+
+        .roadmap-manager-search {
+            padding: 24px 32px;
+        }
+
+        .search-input {
+            font-size: 17px;
+            padding: 18px 22px;
+        }
+
+        .roadmap-manager-body {
+            padding: 24px 32px;
+        }
+
+        .folder-header {
+            padding: 20px 24px;
+        }
+
+        .folder-name {
+            font-size: 20px;
+        }
+
+        .folder-count {
+            font-size: 16px;
+        }
+
+        .folder-action-btn {
+            width: 44px;
+            height: 44px;
+            font-size: 19px;
+        }
+
+        .roadmap-manager-footer {
+            padding: 20px 32px;
+        }
+
+        .btn-add-folder {
+            padding: 20px 28px;
+            font-size: 18px;
+        }
+
+        .close-button {
+            width: 52px;
+            height: 52px;
+            font-size: 32px;
+        }
+    }
+
+    /* Large desktop breakpoint (1440px and up) */
+    @media (min-width: 1440px) {
+        .roadmap-manager-body {
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        }
     }
 </style>

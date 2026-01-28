@@ -1,6 +1,18 @@
 @using RoadScript.Models
 
-<div class="roadmap-card @(IsActive ? "active" : "")" @onclick="HandleClick">
+<div class="roadmap-card @(IsActive ? "active" : "") @(IsDragging ? "dragging" : "") @(IsDragOver ? "drag-over" : "")"
+     @onclick="HandleClick"
+     draggable="true"
+     @ondragstart="HandleDragStart"
+     @ondragend="HandleDragEnd"
+     @ondragover="HandleDragOver"
+     @ondragover:preventDefault
+     @ondragleave="HandleDragLeave"
+     @ondrop="HandleDrop"
+     @ondrop:preventDefault>
+
+    <div class="drag-handle" title="Drag to move">⋮⋮</div>
+
     <div class="roadmap-card-header">
         <div class="roadmap-card-title">
             <span class="roadmap-name">@RoadmapName</span>
@@ -69,6 +81,9 @@
 
 @code {
     [Parameter] public string RoadmapName { get; set; } = "";
+    [Parameter] public string FolderId { get; set; } = "";
+    [Parameter] public string TabId { get; set; } = "";
+    [Parameter] public int Index { get; set; }
     [Parameter] public bool IsActive { get; set; }
     [Parameter] public bool IsOnlyRoadmap { get; set; }
     [Parameter] public RoadmapStats Stats { get; set; } = new();
@@ -78,6 +93,21 @@
     [Parameter] public EventCallback OnRename { get; set; }
     [Parameter] public EventCallback OnDuplicate { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback<DragEventData> OnDragStart { get; set; }
+    [Parameter] public EventCallback<DragEventData> OnDrop { get; set; }
+
+    private bool IsDragging { get; set; } = false;
+    private bool IsDragOver { get; set; } = false;
+
+    public class DragEventData
+    {
+        public string SourceFolderId { get; set; } = "";
+        public string SourceTabId { get; set; } = "";
+        public int SourceIndex { get; set; }
+        public string TargetFolderId { get; set; } = "";
+        public string TargetTabId { get; set; } = "";
+        public int TargetIndex { get; set; }
+    }
 
     private async Task HandleClick()
     {
@@ -107,6 +137,45 @@
         }
     }
 
+    private async Task HandleDragStart()
+    {
+        IsDragging = true;
+        var eventData = new DragEventData
+        {
+            SourceFolderId = FolderId,
+            SourceTabId = TabId,
+            SourceIndex = Index
+        };
+        await OnDragStart.InvokeAsync(eventData);
+    }
+
+    private void HandleDragEnd()
+    {
+        IsDragging = false;
+    }
+
+    private void HandleDragOver()
+    {
+        IsDragOver = true;
+    }
+
+    private void HandleDragLeave()
+    {
+        IsDragOver = false;
+    }
+
+    private async Task HandleDrop()
+    {
+        IsDragOver = false;
+        var eventData = new DragEventData
+        {
+            TargetFolderId = FolderId,
+            TargetTabId = TabId,
+            TargetIndex = Index
+        };
+        await OnDrop.InvokeAsync(eventData);
+    }
+
     private string GetTemplateIcon()
     {
         return TemplateType?.ToLower() switch
@@ -131,11 +200,13 @@
 
 <style>
     .roadmap-card {
+        position: relative;
         background: #2a2a2a;
         border: 1px solid #3a3a3a;
         border-radius: 8px;
         padding: 12px;
-        cursor: pointer;
+        padding-left: 32px;
+        cursor: grab;
         transition: all 0.2s;
         margin-bottom: 8px;
     }
@@ -150,6 +221,41 @@
         background: rgba(102, 126, 234, 0.15);
         border-color: #667eea;
         box-shadow: 0 0 0 1px rgba(102, 126, 234, 0.3);
+    }
+
+    .roadmap-card.dragging {
+        opacity: 0.5;
+        cursor: grabbing;
+        transform: scale(0.95);
+    }
+
+    .roadmap-card.drag-over {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: #667eea;
+        border-style: dashed;
+        border-width: 2px;
+        transform: translateY(-2px);
+    }
+
+    .drag-handle {
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #555;
+        font-size: 16px;
+        line-height: 1;
+        cursor: grab;
+        user-select: none;
+        transition: color 0.2s;
+    }
+
+    .roadmap-card:hover .drag-handle {
+        color: #888;
+    }
+
+    .roadmap-card.dragging .drag-handle {
+        cursor: grabbing;
     }
 
     .roadmap-card-header {
@@ -200,46 +306,55 @@
     }
 
     .roadmap-action-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.15);
         color: #fff;
-        width: 28px;
-        height: 28px;
-        border-radius: 4px;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 13px;
+        font-size: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
         padding: 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .roadmap-action-btn:hover {
         background: rgba(102, 126, 234, 0.3);
         border-color: #667eea;
-        transform: scale(1.1);
+        transform: scale(1.15);
+        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .roadmap-action-btn:active {
+        transform: scale(1.05);
     }
 
     .roadmap-action-btn:disabled {
-        opacity: 0.3;
+        opacity: 0.25;
         cursor: not-allowed;
     }
 
     .roadmap-action-btn:disabled:hover {
         transform: none;
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .roadmap-action-open:hover {
         background: rgba(16, 185, 129, 0.3);
         border-color: #10b981;
+        box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
     }
 
     .roadmap-action-delete:hover:not(:disabled) {
         background: rgba(239, 68, 68, 0.3);
         border-color: #ef4444;
+        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
     }
 
     .roadmap-card-stats {
@@ -285,5 +400,89 @@
         padding: 4px 8px;
         border-radius: 4px;
         font-weight: 500;
+    }
+
+    /* Tablet breakpoint (768px and up) */
+    @media (min-width: 768px) {
+        .roadmap-card {
+            padding: 14px;
+            padding-left: 36px;
+            margin-bottom: 10px;
+        }
+
+        .drag-handle {
+            left: 10px;
+            font-size: 18px;
+        }
+
+        .roadmap-name {
+            font-size: 15px;
+        }
+
+        .active-badge {
+            font-size: 11px;
+            padding: 3px 10px;
+        }
+
+        .roadmap-action-btn {
+            width: 34px;
+            height: 34px;
+            font-size: 15px;
+        }
+
+        .roadmap-stat-value {
+            font-size: 14px;
+        }
+
+        .roadmap-stat-label {
+            font-size: 13px;
+        }
+
+        .roadmap-template-badge {
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+    }
+
+    /* Desktop breakpoint (1024px and up) */
+    @media (min-width: 1024px) {
+        .roadmap-card {
+            padding: 16px;
+            padding-left: 40px;
+            margin-bottom: 12px;
+        }
+
+        .drag-handle {
+            left: 12px;
+            font-size: 20px;
+        }
+
+        .roadmap-name {
+            font-size: 16px;
+        }
+
+        .active-badge {
+            font-size: 12px;
+            padding: 4px 12px;
+        }
+
+        .roadmap-action-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+        }
+
+        .roadmap-stat-value {
+            font-size: 15px;
+        }
+
+        .roadmap-stat-label {
+            font-size: 14px;
+        }
+
+        .roadmap-template-badge {
+            font-size: 13px;
+            padding: 6px 12px;
+        }
     }
 </style>
