@@ -13,7 +13,6 @@
                      LinkedRoadmapId="@Data.LinkedRoadmapId"
                      SessionManager="@SessionManager"
                      IsPreviewMode="@IsPreviewMode"
-                     IsVibeMode="@ThemeService.IsVibeMode"
                      OnTitleClick="@OnTitleClick"
                      OnRoadmapLinkClick="@OnRoadmapLinkClick" />
 
@@ -40,7 +39,6 @@
             <MilestoneNavigationControls SelectedMilestoneIndex="@selectedMilestoneIndex"
                                         SelectedMilestone="@selectedMilestone"
                                         IsPreviewMode="@IsPreviewMode"
-                                        IsVibeMode="@ThemeService.IsVibeMode"
                                         JumpToStart="@OnMilestoneJumpToStart"
                                         JumpToEnd="@OnMilestoneJumpToEnd"
                                         AdjustPosition="@OnMilestoneAdjustPosition"
@@ -51,7 +49,6 @@
                 @* Lane Labels *@
                 <RoadmapLaneLabels Data="@Data"
                                   IsPreviewMode="@IsPreviewMode"
-                                  IsVibeMode="@ThemeService.IsVibeMode"
                                   SessionManager="@SessionManager"
                                   OnLaneClick="@HandleLaneClick"
                                   OnLaneLinkClick="@OnRoadmapLinkClick" />
@@ -59,7 +56,6 @@
                 @* Roadmap Content (Columns, Milestones, Grid, Items) *@
                 <RoadmapContent Data="@Data"
                                IsPreviewMode="@IsPreviewMode"
-                               IsVibeMode="@ThemeService.IsVibeMode"
                                SessionManager="@SessionManager"
                                AvailableRoadmaps="@AvailableRoadmaps"
                                OnColumnClick="@HandleColumnClick"
