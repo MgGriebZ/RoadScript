@@ -296,11 +296,11 @@ public class ThemeService
 
     public string TitleContainerStyle()
     {
-        var baseGradient = "background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #f9fafb 100%); border: 1px solid #e5e7eb; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);";
+        var (background, border) = GetSeasonalTitleContainer();
 
         // Padding is now set conditionally in the component based on content
         // Cursor is set on individual clickable sections (title/buttons), not container
-        return $"margin-bottom: 16px; border-radius: 6px; transition: all 0.2s; {baseGradient}";
+        return $"margin-bottom: 16px; border-radius: 6px; transition: all 0.2s; {background} {border} box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);";
     }
 
     public string LaneTitleStyle() =>
@@ -427,6 +427,54 @@ public class ThemeService
             SeasonalTheme.Ocean => ("#f6f9fa", "#ffffff"),
             SeasonalTheme.Forest => ("#f6faf8", "#ffffff"),
             _ => ("#f8f9fa", "#ffffff")
+        };
+    }
+
+    // Get seasonal title container background and border
+    public (string background, string border) GetSeasonalTitleContainer()
+    {
+        return CurrentTheme switch
+        {
+            SeasonalTheme.Classic => (
+                "background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #f9fafb 100%);",
+                "border: 1px solid #e5e7eb;"
+            ),
+            SeasonalTheme.Spring => (
+                "background: linear-gradient(135deg, #f0faf0 0%, #e6f4e6 50%, #f0faf0 100%);",
+                "border: 1px solid #d1e7d1;"
+            ),
+            SeasonalTheme.Summer => (
+                "background: linear-gradient(135deg, #fff8f0 0%, #fef2e6 50%, #fff8f0 100%);",
+                "border: 1px solid #f9e4c8;"
+            ),
+            SeasonalTheme.Autumn => (
+                "background: linear-gradient(135deg, #faf3f0 0%, #f5e9e4 50%, #faf3f0 100%);",
+                "border: 1px solid #f0d9ce;"
+            ),
+            SeasonalTheme.Winter => (
+                "background: linear-gradient(135deg, #f0f7fa 0%, #e6f1f7 50%, #f0f7fa 100%);",
+                "border: 1px solid #d1e6ed;"
+            ),
+            SeasonalTheme.Dawn => (
+                "background: linear-gradient(135deg, #faf0f5 0%, #f5e6ef 50%, #faf0f5 100%);",
+                "border: 1px solid #f0d6e5;"
+            ),
+            SeasonalTheme.Dusk => (
+                "background: linear-gradient(135deg, #f5f0fa 0%, #ebe6f5 50%, #f5f0fa 100%);",
+                "border: 1px solid #ddd1ed;"
+            ),
+            SeasonalTheme.Ocean => (
+                "background: linear-gradient(135deg, #f0f7fa 0%, #e6f2f7 50%, #f0f7fa 100%);",
+                "border: 1px solid #c8e4ed;"
+            ),
+            SeasonalTheme.Forest => (
+                "background: linear-gradient(135deg, #f0faf5 0%, #e6f4ee 50%, #f0faf5 100%);",
+                "border: 1px solid #d1e7dc;"
+            ),
+            _ => (
+                "background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #f9fafb 100%);",
+                "border: 1px solid #e5e7eb;"
+            )
         };
     }
 
