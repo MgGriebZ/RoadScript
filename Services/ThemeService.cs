@@ -323,27 +323,23 @@ public class ThemeService
 
     public string ItemHeaderStyle(bool hasDetails, bool hasSubs, bool hasTitle, double span, string laneColor)
     {
+        // Calculate common vibe color values
+        var vibeColor = GetVibeColor(laneColor);
+        var rgb = HexToRgb(vibeColor);
+        var background = $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.25) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.10) 100%);";
+        var border = $"border-bottom: 2px solid rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.4);";
+        var shadow = $"box-shadow: 0 3px 10px rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.2);";
+
         // Icon-only items: center and expand the icon
         if (!hasTitle)
         {
             var iconOnlyMargin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
-            var vibeColor = GetVibeColor(laneColor);
-            var rgb = HexToRgb(vibeColor);
-            var background = $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.25) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.10) 100%);";
-            var border = $"border-bottom: 2px solid rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.4);";
-            var shadow = $"box-shadow: 0 3px 10px rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.2);";
-
             return $"display: flex; align-items: center; justify-content: center; padding: 14px; {background} {border} {shadow} {iconOnlyMargin}";
         }
 
         // Adjust gap and padding based on details and subs
         var gap = hasDetails ? (hasSubs ? "7px" : "8px") : "10px";
         var padding = hasDetails ? (hasSubs ? "7px 11px" : "8px 12px") : "10px 14px";
-        var vibeColor = GetVibeColor(laneColor);
-        var rgb = HexToRgb(vibeColor);
-        var background = $"background: linear-gradient(135deg, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.25) 0%, rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.10) 100%);";
-        var border = $"border-bottom: 2px solid rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.4);";
-        var shadow = $"box-shadow: 0 3px 10px rgba({rgb.r}, {rgb.g}, {rgb.b}, 0.2);";
         var margin = hasDetails ? "margin: -12px -16px 12px -16px;" : "margin: -12px -16px -12px -16px; height: 100%;";
 
         return $"display: flex; align-items: center; gap: {gap}; padding: {padding}; {background} {border} {shadow} {margin}";
