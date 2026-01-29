@@ -17,6 +17,7 @@ builder.Services.AddScoped<StorageService>();
 builder.Services.AddScoped<UrlNavigationService>();
 builder.Services.AddScoped<ThemeService>();
 builder.Services.AddScoped<RoadmapStateManager>();
+builder.Services.AddScoped<DependencyDetectionService>();
 
 // Register mobile/responsive services
 builder.Services.AddScoped<ResponsiveService>();
