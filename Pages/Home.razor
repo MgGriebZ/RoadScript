@@ -3384,7 +3384,7 @@
         sourceFolder.LastModified = DateTime.UtcNow;
 
         // Add to target folder at specified position
-        if (moveData.TargetIndex >= 0 && moveData.TargetIndex < targetFolder.SessionManager.Tabs.Count && moveData.TargetTabId != null)
+        if (moveData.TargetIndex >= 0 && moveData.TargetIndex < targetFolder.SessionManager.Tabs.Count)
         {
             // Insert at specific position
             targetFolder.SessionManager.Tabs.Insert(moveData.TargetIndex, sourceTab);
