@@ -62,12 +62,12 @@
             <span class="roadmap-stat-value">@Stats.Items</span>
             <span class="roadmap-stat-label">items</span>
         </div>
-        @if (Stats.Milestones > 0)
+        @if (Stats.LinkedMaps > 0)
         {
             <div class="roadmap-stat-separator">•</div>
             <div class="roadmap-stat">
-                <span class="roadmap-stat-value">@Stats.Milestones</span>
-                <span class="roadmap-stat-label">milestones</span>
+                <span class="roadmap-stat-value">@Stats.LinkedMaps</span>
+                <span class="roadmap-stat-label">linked maps</span>
             </div>
         }
     </div>
@@ -158,7 +158,7 @@
         public int Columns { get; set; }
         public int Lanes { get; set; }
         public int Items { get; set; }
-        public int Milestones { get; set; }
+        public int LinkedMaps { get; set; }
     }
 }
 

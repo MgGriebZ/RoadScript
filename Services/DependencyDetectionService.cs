@@ -236,4 +236,53 @@ public class DependencyDetectionService
         // Old format (just tabId) - assume same folder
         return (currentFolderId, reference);
     }
+
+    /// <summary>
+    /// Count the number of unique roadmaps that a given roadmap links to
+    /// </summary>
+    public int CountLinkedRoadmaps(RoadmapData data, string currentFolderId)
+    {
+        var linkedRoadmaps = new HashSet<string>();
+
+        // Check title-level link
+        if (!string.IsNullOrEmpty(data.LinkedRoadmapId))
+        {
+            var (folderId, tabId) = ParseReference(data.LinkedRoadmapId, currentFolderId);
+            if (!string.IsNullOrEmpty(tabId))
+            {
+                linkedRoadmaps.Add($"{folderId}/{tabId}");
+            }
+        }
+
+        // Check lane-level links
+        foreach (var lane in data.Lanes ?? new List<Lane>())
+        {
+            if (!string.IsNullOrEmpty(lane.LinkedRoadmapId))
+            {
+                var (folderId, tabId) = ParseReference(lane.LinkedRoadmapId, currentFolderId);
+                if (!string.IsNullOrEmpty(tabId))
+                {
+                    linkedRoadmaps.Add($"{folderId}/{tabId}");
+                }
+            }
+        }
+
+        // Check item-level links
+        foreach (var lane in data.Lanes ?? new List<Lane>())
+        {
+            foreach (var item in lane.Items ?? new List<Item>())
+            {
+                if (!string.IsNullOrEmpty(item.LinkedRoadmapId))
+                {
+                    var (folderId, tabId) = ParseReference(item.LinkedRoadmapId, currentFolderId);
+                    if (!string.IsNullOrEmpty(tabId))
+                    {
+                        linkedRoadmaps.Add($"{folderId}/{tabId}");
+                    }
+                }
+            }
+        }
+
+        return linkedRoadmaps.Count;
+    }
 }
