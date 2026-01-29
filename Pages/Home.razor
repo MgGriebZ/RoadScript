@@ -200,6 +200,8 @@
                        OnRoadmapRename="HandleRoadmapRenameFromManager"
                        OnRoadmapDuplicate="HandleRoadmapDuplicateFromManager"
                        OnRoadmapDelete="HandleRoadmapDeleteFromManager"
+                       OnRoadmapMoveUp="HandleRoadmapMoveUpFromManager"
+                       OnRoadmapMoveDown="HandleRoadmapMoveDownFromManager"
                        OnRoadmapMove="HandleRoadmapMoveFromManager" />
 
         <DependencyConfirmationModal IsVisible="@_showDependencyModal"
@@ -3266,9 +3268,52 @@
         }
     }
 
+    private async Task HandleRoadmapMoveUpFromManager((string FolderId, string TabId) args)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
+        if (folder == null) return;
+
+        var currentIndex = folder.SessionManager.Tabs.FindIndex(t => t.Id == args.TabId);
+        if (currentIndex <= 0) return; // Already at top or not found
+
+        // Swap with previous item
+        var temp = folder.SessionManager.Tabs[currentIndex];
+        folder.SessionManager.Tabs[currentIndex] = folder.SessionManager.Tabs[currentIndex - 1];
+        folder.SessionManager.Tabs[currentIndex - 1] = temp;
+
+        folder.LastModified = DateTime.UtcNow;
+        await DebouncedSave();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleRoadmapMoveDownFromManager((string FolderId, string TabId) args)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
+        if (folder == null) return;
+
+        var currentIndex = folder.SessionManager.Tabs.FindIndex(t => t.Id == args.TabId);
+        if (currentIndex < 0 || currentIndex >= folder.SessionManager.Tabs.Count - 1) return; // Already at bottom or not found
+
+        // Swap with next item
+        var temp = folder.SessionManager.Tabs[currentIndex];
+        folder.SessionManager.Tabs[currentIndex] = folder.SessionManager.Tabs[currentIndex + 1];
+        folder.SessionManager.Tabs[currentIndex + 1] = temp;
+
+        folder.LastModified = DateTime.UtcNow;
+        await DebouncedSave();
+        await InvokeAsync(StateHasChanged);
+    }
+
     private async Task HandleRoadmapMoveFromManager(RoadmapManager.RoadmapMoveData moveData)
     {
         if (_folderManager == null) return;
+
+        // This now only handles cross-folder drag-and-drop moves
+        // Same-folder reordering is handled by up/down buttons
 
         // Get source and target folders
         var sourceFolder = _folderManager.Folders.FirstOrDefault(f => f.Id == moveData.SourceFolderId);
@@ -3280,48 +3325,25 @@
         var sourceTab = sourceFolder.SessionManager.Tabs.FirstOrDefault(t => t.Id == moveData.SourceTabId);
         if (sourceTab == null) return;
 
-        // Check if it's just reordering within the same folder
-        if (moveData.SourceFolderId == moveData.TargetFolderId && moveData.TargetTabId != null)
+        // Only handle cross-folder moves - show dependency confirmation
+        if (moveData.SourceFolderId != moveData.TargetFolderId)
         {
-            // Reorder within same folder
-            var currentIndex = sourceFolder.SessionManager.Tabs.IndexOf(sourceTab);
-            var targetIndex = moveData.TargetIndex;
+            _pendingMoveData = moveData;
+            _movingRoadmapName = sourceTab.Name;
+            _moveSourceFolderName = sourceFolder.Name;
+            _moveTargetFolderName = targetFolder.Name;
 
-            if (currentIndex != targetIndex && targetIndex >= 0 && targetIndex < sourceFolder.SessionManager.Tabs.Count)
-            {
-                sourceFolder.SessionManager.Tabs.RemoveAt(currentIndex);
+            // Analyze dependencies
+            _dependencyAnalysisResult = _dependencyService.FindDependencies(
+                _folderManager,
+                moveData.SourceFolderId,
+                moveData.SourceTabId
+            );
 
-                // Adjust target index if moving down
-                if (currentIndex < targetIndex)
-                {
-                    targetIndex--;
-                }
-
-                sourceFolder.SessionManager.Tabs.Insert(targetIndex, sourceTab);
-                sourceFolder.LastModified = DateTime.UtcNow;
-
-                await DebouncedSave();
-                await InvokeAsync(StateHasChanged);
-            }
-            return;
+            // Show confirmation modal
+            _showDependencyModal = true;
+            await InvokeAsync(StateHasChanged);
         }
-
-        // Moving between folders - check for dependencies
-        _pendingMoveData = moveData;
-        _movingRoadmapName = sourceTab.Name;
-        _moveSourceFolderName = sourceFolder.Name;
-        _moveTargetFolderName = targetFolder.Name;
-
-        // Analyze dependencies
-        _dependencyAnalysisResult = _dependencyService.FindDependencies(
-            _folderManager,
-            moveData.SourceFolderId,
-            moveData.SourceTabId
-        );
-
-        // Show confirmation modal
-        _showDependencyModal = true;
-        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ConfirmRoadmapMove()

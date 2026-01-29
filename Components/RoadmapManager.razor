@@ -122,6 +122,8 @@
                                         Index="@currentIndex"
                                         IsActive="@isActive"
                                         IsOnlyRoadmap="@(folder.SessionManager.Tabs.Count == 1)"
+                                        IsFirstInFolder="@(currentIndex == 0)"
+                                        IsLastInFolder="@(currentIndex == tabList.Count - 1)"
                                         Stats="@GetRoadmapStats(tab.Data)"
                                         TemplateType="@tab.TemplateType"
                                         OnClick="@(() => HandleRoadmapClick(folder.Id, tab.Id))"
@@ -129,8 +131,9 @@
                                         OnRename="@(() => HandleRoadmapRename(folder.Id, tab.Id))"
                                         OnDuplicate="@(() => HandleRoadmapDuplicate(folder.Id, tab.Id))"
                                         OnDelete="@(() => HandleRoadmapDelete(folder.Id, tab.Id))"
-                                        OnDragStart="@HandleRoadmapDragStart"
-                                        OnDrop="@HandleRoadmapDrop" />
+                                        OnMoveUp="@(() => HandleRoadmapMoveUp(folder.Id, tab.Id))"
+                                        OnMoveDown="@(() => HandleRoadmapMoveDown(folder.Id, tab.Id))"
+                                        OnDragStart="@HandleRoadmapDragStart" />
                             tabIndex++;
                         }
                         @if (folder.SessionManager.Tabs.Count == 0)
@@ -189,6 +192,8 @@
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapRename { get; set; }
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapDuplicate { get; set; }
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapDelete { get; set; }
+    [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapMoveUp { get; set; }
+    [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapMoveDown { get; set; }
     [Parameter] public EventCallback<RoadmapMoveData> OnRoadmapMove { get; set; }
 
     private string SearchQuery { get; set; } = "";
@@ -345,24 +350,14 @@
         _draggedRoadmap = eventData;
     }
 
-    private async Task HandleRoadmapDrop(RoadmapCard.DragEventData eventData)
+    private async Task HandleRoadmapMoveUp(string folderId, string tabId)
     {
-        if (_draggedRoadmap == null) return;
+        await OnRoadmapMoveUp.InvokeAsync((folderId, tabId));
+    }
 
-        // Combine source and target information
-        var moveData = new RoadmapMoveData
-        {
-            SourceFolderId = _draggedRoadmap.SourceFolderId,
-            SourceTabId = _draggedRoadmap.SourceTabId,
-            SourceIndex = _draggedRoadmap.SourceIndex,
-            TargetFolderId = eventData.TargetFolderId,
-            TargetTabId = eventData.TargetTabId,
-            TargetIndex = eventData.TargetIndex
-        };
-
-        await OnRoadmapMove.InvokeAsync(moveData);
-        _draggedRoadmap = null;
-        _dragOverFolderId = null;
+    private async Task HandleRoadmapMoveDown(string folderId, string tabId)
+    {
+        await OnRoadmapMoveDown.InvokeAsync((folderId, tabId));
     }
 
     private void HandleFolderDragOver(string folderId)

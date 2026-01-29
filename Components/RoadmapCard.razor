@@ -1,17 +1,12 @@
 @using RoadScript.Models
 
-<div class="roadmap-card @(IsActive ? "active" : "") @(IsDragging ? "dragging" : "") @(IsDragOver ? "drag-over" : "")"
+<div class="roadmap-card @(IsActive ? "active" : "") @(IsDragging ? "dragging" : "")"
      @onclick="HandleClick"
      draggable="true"
      @ondragstart="HandleDragStart"
-     @ondragend="HandleDragEnd"
-     @ondragover="HandleDragOver"
-     @ondragover:preventDefault
-     @ondragleave="HandleDragLeave"
-     @ondrop="HandleDrop"
-     @ondrop:preventDefault>
+     @ondragend="HandleDragEnd">
 
-    <div class="drag-handle" title="Drag to move">⋮⋮</div>
+    <div class="drag-handle" title="Drag to folder">⋮⋮</div>
 
     <div class="roadmap-card-header">
         <div class="roadmap-card-title">
@@ -22,6 +17,18 @@
             }
         </div>
         <div class="roadmap-card-actions" @onclick:stopPropagation="true">
+            <button @onclick="HandleMoveUp"
+                    class="roadmap-action-btn roadmap-action-move"
+                    title="Move up"
+                    disabled="@IsFirstInFolder">
+                ▲
+            </button>
+            <button @onclick="HandleMoveDown"
+                    class="roadmap-action-btn roadmap-action-move"
+                    title="Move down"
+                    disabled="@IsLastInFolder">
+                ▼
+            </button>
             <button @onclick="HandleOpen"
                     class="roadmap-action-btn roadmap-action-open"
                     title="Open this roadmap">
@@ -86,6 +93,8 @@
     [Parameter] public int Index { get; set; }
     [Parameter] public bool IsActive { get; set; }
     [Parameter] public bool IsOnlyRoadmap { get; set; }
+    [Parameter] public bool IsFirstInFolder { get; set; }
+    [Parameter] public bool IsLastInFolder { get; set; }
     [Parameter] public RoadmapStats Stats { get; set; } = new();
     [Parameter] public string? TemplateType { get; set; }
     [Parameter] public EventCallback OnClick { get; set; }
@@ -93,20 +102,17 @@
     [Parameter] public EventCallback OnRename { get; set; }
     [Parameter] public EventCallback OnDuplicate { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnMoveUp { get; set; }
+    [Parameter] public EventCallback OnMoveDown { get; set; }
     [Parameter] public EventCallback<DragEventData> OnDragStart { get; set; }
-    [Parameter] public EventCallback<DragEventData> OnDrop { get; set; }
 
     private bool IsDragging { get; set; } = false;
-    private bool IsDragOver { get; set; } = false;
 
     public class DragEventData
     {
         public string SourceFolderId { get; set; } = "";
         public string SourceTabId { get; set; } = "";
         public int SourceIndex { get; set; }
-        public string TargetFolderId { get; set; } = "";
-        public string TargetTabId { get; set; } = "";
-        public int TargetIndex { get; set; }
     }
 
     private async Task HandleClick()
@@ -137,6 +143,22 @@
         }
     }
 
+    private async Task HandleMoveUp()
+    {
+        if (!IsFirstInFolder)
+        {
+            await OnMoveUp.InvokeAsync();
+        }
+    }
+
+    private async Task HandleMoveDown()
+    {
+        if (!IsLastInFolder)
+        {
+            await OnMoveDown.InvokeAsync();
+        }
+    }
+
     private async Task HandleDragStart()
     {
         IsDragging = true;
@@ -152,28 +174,6 @@
     private void HandleDragEnd()
     {
         IsDragging = false;
-    }
-
-    private void HandleDragOver()
-    {
-        IsDragOver = true;
-    }
-
-    private void HandleDragLeave()
-    {
-        IsDragOver = false;
-    }
-
-    private async Task HandleDrop()
-    {
-        IsDragOver = false;
-        var eventData = new DragEventData
-        {
-            TargetFolderId = FolderId,
-            TargetTabId = TabId,
-            TargetIndex = Index
-        };
-        await OnDrop.InvokeAsync(eventData);
     }
 
     private string GetTemplateIcon()
@@ -224,17 +224,9 @@
     }
 
     .roadmap-card.dragging {
-        opacity: 0.5;
+        opacity: 0.4;
         cursor: grabbing;
         transform: scale(0.95);
-    }
-
-    .roadmap-card.drag-over {
-        background: rgba(102, 126, 234, 0.2);
-        border-color: #667eea;
-        border-style: dashed;
-        border-width: 2px;
-        transform: translateY(-2px);
     }
 
     .drag-handle {
@@ -355,6 +347,12 @@
         background: rgba(239, 68, 68, 0.3);
         border-color: #ef4444;
         box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .roadmap-action-move:hover:not(:disabled) {
+        background: rgba(59, 130, 246, 0.3);
+        border-color: #3b82f6;
+        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
     }
 
     .roadmap-card-stats {
