@@ -1,6 +1,7 @@
 @using RoadScript.Models
 
 <div class="roadmap-card @(IsActive ? "active" : "")" @onclick="HandleClick">
+
     <div class="roadmap-card-header">
         <div class="roadmap-card-title">
             <span class="roadmap-name">@RoadmapName</span>
@@ -10,6 +11,18 @@
             }
         </div>
         <div class="roadmap-card-actions" @onclick:stopPropagation="true">
+            <button @onclick="HandleMoveUp"
+                    class="roadmap-action-btn roadmap-action-move"
+                    title="Move up"
+                    disabled="@IsFirstInFolder">
+                ▲
+            </button>
+            <button @onclick="HandleMoveDown"
+                    class="roadmap-action-btn roadmap-action-move"
+                    title="Move down"
+                    disabled="@IsLastInFolder">
+                ▼
+            </button>
             <button @onclick="HandleOpen"
                     class="roadmap-action-btn roadmap-action-open"
                     title="Open this roadmap">
@@ -49,12 +62,12 @@
             <span class="roadmap-stat-value">@Stats.Items</span>
             <span class="roadmap-stat-label">items</span>
         </div>
-        @if (Stats.Milestones > 0)
+        @if (Stats.LinkedMaps > 0)
         {
             <div class="roadmap-stat-separator">•</div>
             <div class="roadmap-stat">
-                <span class="roadmap-stat-value">@Stats.Milestones</span>
-                <span class="roadmap-stat-label">milestones</span>
+                <span class="roadmap-stat-value">@Stats.LinkedMaps</span>
+                <span class="roadmap-stat-label">linked maps</span>
             </div>
         }
     </div>
@@ -71,6 +84,8 @@
     [Parameter] public string RoadmapName { get; set; } = "";
     [Parameter] public bool IsActive { get; set; }
     [Parameter] public bool IsOnlyRoadmap { get; set; }
+    [Parameter] public bool IsFirstInFolder { get; set; }
+    [Parameter] public bool IsLastInFolder { get; set; }
     [Parameter] public RoadmapStats Stats { get; set; } = new();
     [Parameter] public string? TemplateType { get; set; }
     [Parameter] public EventCallback OnClick { get; set; }
@@ -78,6 +93,8 @@
     [Parameter] public EventCallback OnRename { get; set; }
     [Parameter] public EventCallback OnDuplicate { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnMoveUp { get; set; }
+    [Parameter] public EventCallback OnMoveDown { get; set; }
 
     private async Task HandleClick()
     {
@@ -107,6 +124,22 @@
         }
     }
 
+    private async Task HandleMoveUp()
+    {
+        if (!IsFirstInFolder)
+        {
+            await OnMoveUp.InvokeAsync();
+        }
+    }
+
+    private async Task HandleMoveDown()
+    {
+        if (!IsLastInFolder)
+        {
+            await OnMoveDown.InvokeAsync();
+        }
+    }
+
     private string GetTemplateIcon()
     {
         return TemplateType?.ToLower() switch
@@ -125,7 +158,7 @@
         public int Columns { get; set; }
         public int Lanes { get; set; }
         public int Items { get; set; }
-        public int Milestones { get; set; }
+        public int LinkedMaps { get; set; }
     }
 }
 
@@ -200,46 +233,61 @@
     }
 
     .roadmap-action-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.15);
         color: #fff;
-        width: 28px;
-        height: 28px;
-        border-radius: 4px;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 13px;
+        font-size: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
         padding: 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .roadmap-action-btn:hover {
         background: rgba(102, 126, 234, 0.3);
         border-color: #667eea;
-        transform: scale(1.1);
+        transform: scale(1.15);
+        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .roadmap-action-btn:active {
+        transform: scale(1.05);
     }
 
     .roadmap-action-btn:disabled {
-        opacity: 0.3;
+        opacity: 0.25;
         cursor: not-allowed;
     }
 
     .roadmap-action-btn:disabled:hover {
         transform: none;
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .roadmap-action-open:hover {
         background: rgba(16, 185, 129, 0.3);
         border-color: #10b981;
+        box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
     }
 
     .roadmap-action-delete:hover:not(:disabled) {
         background: rgba(239, 68, 68, 0.3);
         border-color: #ef4444;
+        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .roadmap-action-move:hover:not(:disabled) {
+        background: rgba(59, 130, 246, 0.3);
+        border-color: #3b82f6;
+        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
     }
 
     .roadmap-card-stats {
@@ -285,5 +333,77 @@
         padding: 4px 8px;
         border-radius: 4px;
         font-weight: 500;
+    }
+
+    /* Tablet breakpoint (768px and up) */
+    @@media (min-width: 768px) {
+        .roadmap-card {
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .roadmap-name {
+            font-size: 15px;
+        }
+
+        .active-badge {
+            font-size: 11px;
+            padding: 3px 10px;
+        }
+
+        .roadmap-action-btn {
+            width: 34px;
+            height: 34px;
+            font-size: 15px;
+        }
+
+        .roadmap-stat-value {
+            font-size: 14px;
+        }
+
+        .roadmap-stat-label {
+            font-size: 13px;
+        }
+
+        .roadmap-template-badge {
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+    }
+
+    /* Desktop breakpoint (1024px and up) */
+    @@media (min-width: 1024px) {
+        .roadmap-card {
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .roadmap-name {
+            font-size: 16px;
+        }
+
+        .active-badge {
+            font-size: 12px;
+            padding: 4px 12px;
+        }
+
+        .roadmap-action-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+        }
+
+        .roadmap-stat-value {
+            font-size: 15px;
+        }
+
+        .roadmap-stat-label {
+            font-size: 14px;
+        }
+
+        .roadmap-template-badge {
+            font-size: 13px;
+            padding: 6px 12px;
+        }
     }
 </style>

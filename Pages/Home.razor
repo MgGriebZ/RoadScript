@@ -199,7 +199,18 @@
                        OnRoadmapOpen="HandleRoadmapOpenFromManager"
                        OnRoadmapRename="HandleRoadmapRenameFromManager"
                        OnRoadmapDuplicate="HandleRoadmapDuplicateFromManager"
-                       OnRoadmapDelete="HandleRoadmapDeleteFromManager" />
+                       OnRoadmapDelete="HandleRoadmapDeleteFromManager"
+                       OnRoadmapMoveUp="HandleRoadmapMoveUpFromManager"
+                       OnRoadmapMoveDown="HandleRoadmapMoveDownFromManager"
+                       OnRoadmapMove="HandleRoadmapMoveFromManager" />
+
+        <DependencyConfirmationModal IsVisible="@_showDependencyModal"
+                                    RoadmapName="@_movingRoadmapName"
+                                    SourceFolderName="@_moveSourceFolderName"
+                                    TargetFolderName="@_moveTargetFolderName"
+                                    AnalysisResult="@_dependencyAnalysisResult"
+                                    OnConfirm="ConfirmRoadmapMove"
+                                    OnCancel="CancelRoadmapMove" />
 
         <FolderSelector IsVisible="@StateManager.ShowFolderSettings"
                        Folders="@_folderManager.Folders"
@@ -264,6 +275,15 @@
     private string? _pendingFolderName = null;
     private string? _pendingAddToFolderId = null;
     private string? _pendingRoadmapName = null;
+
+    // Roadmap move/drag-and-drop state with dependency tracking
+    private bool _showDependencyModal = false;
+    private RoadmapManager.RoadmapMoveData? _pendingMoveData = null;
+    private string _movingRoadmapName = "";
+    private string _moveSourceFolderName = "";
+    private string _moveTargetFolderName = "";
+    private DependencyDetectionService.DependencyAnalysisResult? _dependencyAnalysisResult = null;
+    private readonly DependencyDetectionService _dependencyService = new();
 
     // Drag-to-resize state
     private bool _isResizing = false;
@@ -3246,6 +3266,172 @@
                 await InvokeAsync(StateHasChanged);
             }
         }
+    }
+
+    private async Task HandleRoadmapMoveUpFromManager((string FolderId, string TabId) args)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
+        if (folder == null) return;
+
+        var currentIndex = folder.SessionManager.Tabs.FindIndex(t => t.Id == args.TabId);
+        if (currentIndex <= 0) return; // Already at top or not found
+
+        // Swap with previous item
+        var temp = folder.SessionManager.Tabs[currentIndex];
+        folder.SessionManager.Tabs[currentIndex] = folder.SessionManager.Tabs[currentIndex - 1];
+        folder.SessionManager.Tabs[currentIndex - 1] = temp;
+
+        folder.LastModified = DateTime.UtcNow;
+        await DebouncedSave();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleRoadmapMoveDownFromManager((string FolderId, string TabId) args)
+    {
+        if (_folderManager == null) return;
+
+        var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
+        if (folder == null) return;
+
+        var currentIndex = folder.SessionManager.Tabs.FindIndex(t => t.Id == args.TabId);
+        if (currentIndex < 0 || currentIndex >= folder.SessionManager.Tabs.Count - 1) return; // Already at bottom or not found
+
+        // Swap with next item
+        var temp = folder.SessionManager.Tabs[currentIndex];
+        folder.SessionManager.Tabs[currentIndex] = folder.SessionManager.Tabs[currentIndex + 1];
+        folder.SessionManager.Tabs[currentIndex + 1] = temp;
+
+        folder.LastModified = DateTime.UtcNow;
+        await DebouncedSave();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleRoadmapMoveFromManager((string SourceFolderId, string SourceTabId, string TargetFolderId) args)
+    {
+        if (_folderManager == null) return;
+
+        // Get source and target folders
+        var sourceFolder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.SourceFolderId);
+        var targetFolder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.TargetFolderId);
+
+        if (sourceFolder == null || targetFolder == null) return;
+
+        // Get the roadmap being moved
+        var sourceTab = sourceFolder.SessionManager.Tabs.FirstOrDefault(t => t.Id == args.SourceTabId);
+        if (sourceTab == null) return;
+
+        // Store as pending move data
+        _pendingMoveData = new RoadmapManager.RoadmapMoveData
+        {
+            SourceFolderId = args.SourceFolderId,
+            SourceTabId = args.SourceTabId,
+            TargetFolderId = args.TargetFolderId,
+            TargetIndex = -1 // Append to end
+        };
+
+        _movingRoadmapName = sourceTab.Name;
+        _moveSourceFolderName = sourceFolder.Name;
+        _moveTargetFolderName = targetFolder.Name;
+
+        // Analyze dependencies
+        _dependencyAnalysisResult = _dependencyService.FindDependencies(
+            _folderManager,
+            args.SourceFolderId,
+            args.SourceTabId
+        );
+
+        // Show confirmation modal
+        _showDependencyModal = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ConfirmRoadmapMove()
+    {
+        if (_folderManager == null || _pendingMoveData == null) return;
+
+        var moveData = _pendingMoveData;
+        var sourceFolder = _folderManager.Folders.FirstOrDefault(f => f.Id == moveData.SourceFolderId);
+        var targetFolder = _folderManager.Folders.FirstOrDefault(f => f.Id == moveData.TargetFolderId);
+
+        if (sourceFolder == null || targetFolder == null) return;
+
+        var sourceTab = sourceFolder.SessionManager.Tabs.FirstOrDefault(t => t.Id == moveData.SourceTabId);
+        if (sourceTab == null) return;
+
+        // Check if target folder has space
+        if (targetFolder.SessionManager.Tabs.Count >= targetFolder.SessionManager.MaxTabs)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Target folder '{targetFolder.Name}' is full (max {targetFolder.SessionManager.MaxTabs} roadmaps).");
+            _showDependencyModal = false;
+            _pendingMoveData = null;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        // Update all dependencies BEFORE moving
+        _dependencyService.UpdateReferences(
+            _folderManager,
+            moveData.SourceFolderId,
+            moveData.SourceTabId,
+            moveData.TargetFolderId,
+            moveData.SourceTabId // Tab ID stays the same
+        );
+
+        // Remove from source folder
+        sourceFolder.SessionManager.Tabs.Remove(sourceTab);
+        sourceFolder.LastModified = DateTime.UtcNow;
+
+        // Add to target folder at specified position
+        if (moveData.TargetIndex >= 0 && moveData.TargetIndex < targetFolder.SessionManager.Tabs.Count)
+        {
+            // Insert at specific position
+            targetFolder.SessionManager.Tabs.Insert(moveData.TargetIndex, sourceTab);
+        }
+        else
+        {
+            // Append to end
+            targetFolder.SessionManager.Tabs.Add(sourceTab);
+        }
+
+        targetFolder.LastModified = DateTime.UtcNow;
+
+        // Update source folder's active tab if needed
+        if (sourceFolder.SessionManager.ActiveTabId == sourceTab.Id && sourceFolder.SessionManager.Tabs.Count > 0)
+        {
+            sourceFolder.SessionManager.ActiveTabId = sourceFolder.SessionManager.Tabs[0].Id;
+        }
+
+        // Update active folder/tab if the moved roadmap was active
+        if (_activeFolder?.Id == sourceFolder.Id && _activeTab?.Id == sourceTab.Id)
+        {
+            _activeFolder = targetFolder;
+            _folderManager.ActiveFolderId = targetFolder.Id;
+            targetFolder.SessionManager.ActiveTabId = sourceTab.Id;
+            _sessionManager = targetFolder.SessionManager;
+            _activeTab = sourceTab;
+            _data = sourceTab.Data;
+            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+            // Update URL
+            await UrlNavigation.UpdateUrl(targetFolder.Id, sourceTab.Id);
+        }
+
+        await DebouncedSave();
+
+        // Close modal and clear state
+        _showDependencyModal = false;
+        _pendingMoveData = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CancelRoadmapMove()
+    {
+        _showDependencyModal = false;
+        _pendingMoveData = null;
+        _dependencyAnalysisResult = null;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleFolderRenameFromManager(string folderId)

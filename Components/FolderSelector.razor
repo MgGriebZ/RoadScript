@@ -188,7 +188,7 @@
         if (data == null) return "0 0 0";
         var columns = data.Columns?.Count ?? 0;
         var lanes = data.Lanes?.Count ?? 0;
-        var items = (data.Lanes?.Sum(l => l.Items?.Count ?? 0) ?? 0) + (data.Milestones?.Count ?? 0);
+        var items = data.Lanes?.Sum(l => l.Items?.Count ?? 0) ?? 0;
         return $"{columns} {lanes} {items}";
     }
 

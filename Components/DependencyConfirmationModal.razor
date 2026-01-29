@@ -1,0 +1,493 @@
+@using RoadScript.Services
+
+<div class="dependency-modal-overlay @(IsVisible ? "visible" : "")" @onclick="HandleCancel">
+    <div class="dependency-modal-content" @onclick:stopPropagation="true">
+        <div class="dependency-modal-header">
+            <h3>⚠️ Linked Roadmap Dependencies</h3>
+            <button class="modal-close-button" @onclick="HandleCancel">×</button>
+        </div>
+
+        <div class="dependency-modal-body">
+            <div class="dependency-info">
+                <p class="dependency-main-message">
+                    Moving <strong>@RoadmapName</strong> from <strong>@SourceFolderName</strong> to <strong>@TargetFolderName</strong>
+                </p>
+
+                @if (AnalysisResult?.HasDependencies == true)
+                {
+                    <div class="dependency-warning">
+                        <div class="warning-icon">🔗</div>
+                        <div class="warning-content">
+                            <p><strong>@AnalysisResult.TotalAffectedRoadmaps roadmap(s)</strong> have links to this roadmap.</p>
+                            <p>All references will be automatically updated to the new location.</p>
+                        </div>
+                    </div>
+
+                    <div class="dependency-list-container">
+                        <h4>Affected Roadmaps (@AnalysisResult.Dependencies.Count link(s)):</h4>
+                        <div class="dependency-list">
+                            @foreach (var group in GetGroupedDependencies())
+                            {
+                                <div class="dependency-group">
+                                    <div class="dependency-roadmap-header">
+                                        <span class="dependency-folder-badge">@group.FolderName</span>
+                                        <span class="dependency-roadmap-name">@group.RoadmapName</span>
+                                    </div>
+                                    <div class="dependency-items">
+                                        @foreach (var dep in group.Dependencies)
+                                        {
+                                            <div class="dependency-item">
+                                                <span class="dependency-type-badge type-@dep.DependencyType.ToLower()">
+                                                    @GetDependencyIcon(dep.DependencyType) @dep.DependencyType
+                                                </span>
+                                                <span class="dependency-location">@dep.DependencyLocation</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="dependency-success">
+                        <div class="success-icon">✓</div>
+                        <div class="success-content">
+                            <p>No dependencies found. This roadmap can be moved safely.</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="dependency-modal-footer">
+            <button class="btn-cancel" @onclick="HandleCancel">Cancel</button>
+            <button class="btn-confirm" @onclick="HandleConfirm">
+                @if (AnalysisResult?.HasDependencies == true)
+                {
+                    <span>Move & Update @AnalysisResult.TotalAffectedRoadmaps Roadmap(s)</span>
+                }
+                else
+                {
+                    <span>Move Roadmap</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string RoadmapName { get; set; } = "";
+    [Parameter] public string SourceFolderName { get; set; } = "";
+    [Parameter] public string TargetFolderName { get; set; } = "";
+    [Parameter] public DependencyDetectionService.DependencyAnalysisResult? AnalysisResult { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private class DependencyGroup
+    {
+        public string FolderName { get; set; } = "";
+        public string RoadmapName { get; set; } = "";
+        public List<DependencyDetectionService.Dependency> Dependencies { get; set; } = new();
+    }
+
+    private List<DependencyGroup> GetGroupedDependencies()
+    {
+        if (AnalysisResult?.Dependencies == null)
+            return new List<DependencyGroup>();
+
+        return AnalysisResult.Dependencies
+            .GroupBy(d => new { d.SourceFolderId, d.SourceFolderName, d.SourceTabId, d.SourceTabName })
+            .Select(g => new DependencyGroup
+            {
+                FolderName = g.Key.SourceFolderName,
+                RoadmapName = g.Key.SourceTabName,
+                Dependencies = g.ToList()
+            })
+            .ToList();
+    }
+
+    private string GetDependencyIcon(string type)
+    {
+        return type switch
+        {
+            "Title" => "📋",
+            "Lane" => "🏊",
+            "Item" => "📌",
+            _ => "🔗"
+        };
+    }
+
+    private async Task HandleConfirm()
+    {
+        await OnConfirm.InvokeAsync();
+    }
+
+    private async Task HandleCancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}
+
+<style>
+    .dependency-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(6px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .dependency-modal-overlay.visible {
+        display: flex;
+    }
+
+    .dependency-modal-content {
+        background: #1a1a1a;
+        border: 2px solid #444;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 700px;
+        max-height: 85vh;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @@keyframes slideUp {
+        from {
+            transform: translateY(30px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .dependency-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 28px;
+        border-bottom: 2px solid #333;
+        flex-shrink: 0;
+    }
+
+    .dependency-modal-header h3 {
+        margin: 0;
+        color: #FFA500;
+        font-size: 22px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modal-close-button {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 36px;
+        cursor: pointer;
+        padding: 0;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition: all 0.2s;
+        border-radius: 8px;
+    }
+
+    .modal-close-button:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .dependency-modal-body {
+        padding: 24px 28px;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .dependency-info {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .dependency-main-message {
+        font-size: 16px;
+        color: #ccc;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .dependency-main-message strong {
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .dependency-warning {
+        display: flex;
+        gap: 16px;
+        padding: 16px;
+        background: rgba(255, 165, 0, 0.1);
+        border: 2px solid rgba(255, 165, 0, 0.3);
+        border-radius: 12px;
+    }
+
+    .warning-icon {
+        font-size: 32px;
+        flex-shrink: 0;
+    }
+
+    .warning-content {
+        flex: 1;
+    }
+
+    .warning-content p {
+        margin: 0 0 8px 0;
+        color: #ffffff;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+
+    .warning-content p:last-child {
+        margin-bottom: 0;
+        color: #ccc;
+        font-size: 14px;
+    }
+
+    .dependency-success {
+        display: flex;
+        gap: 16px;
+        padding: 16px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 2px solid rgba(16, 185, 129, 0.3);
+        border-radius: 12px;
+    }
+
+    .success-icon {
+        font-size: 32px;
+        color: #10b981;
+        flex-shrink: 0;
+    }
+
+    .success-content p {
+        margin: 0;
+        color: #ffffff;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+
+    .dependency-list-container {
+        margin-top: 8px;
+    }
+
+    .dependency-list-container h4 {
+        margin: 0 0 12px 0;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .dependency-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
+    .dependency-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .dependency-list::-webkit-scrollbar-track {
+        background: #2a2a2a;
+        border-radius: 4px;
+    }
+
+    .dependency-list::-webkit-scrollbar-thumb {
+        background: #444;
+        border-radius: 4px;
+    }
+
+    .dependency-list::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .dependency-group {
+        background: #252525;
+        border: 1px solid #3a3a3a;
+        border-radius: 10px;
+        padding: 14px;
+    }
+
+    .dependency-roadmap-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .dependency-folder-badge {
+        background: rgba(102, 126, 234, 0.2);
+        color: #a5b4fc;
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .dependency-roadmap-name {
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .dependency-items {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-left: 12px;
+    }
+
+    .dependency-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    }
+
+    .dependency-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .dependency-type-badge.type-title {
+        background: rgba(139, 92, 246, 0.2);
+        color: #c4b5fd;
+    }
+
+    .dependency-type-badge.type-lane {
+        background: rgba(59, 130, 246, 0.2);
+        color: #93c5fd;
+    }
+
+    .dependency-type-badge.type-item {
+        background: rgba(236, 72, 153, 0.2);
+        color: #f9a8d4;
+    }
+
+    .dependency-location {
+        color: #aaa;
+        font-size: 13px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .dependency-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 20px 28px;
+        border-top: 2px solid #333;
+        flex-shrink: 0;
+    }
+
+    .btn-cancel,
+    .btn-confirm {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-cancel {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .btn-confirm {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-confirm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-confirm:active {
+        transform: translateY(0);
+    }
+
+    /* Tablet and Desktop breakpoints */
+    @@media (min-width: 768px) {
+        .dependency-modal-content {
+            width: 85%;
+            max-width: 750px;
+        }
+
+        .dependency-modal-header h3 {
+            font-size: 24px;
+        }
+
+        .dependency-main-message {
+            font-size: 17px;
+        }
+
+        .dependency-list {
+            max-height: 350px;
+        }
+    }
+
+    @@media (min-width: 1024px) {
+        .dependency-modal-content {
+            width: 70%;
+            max-width: 800px;
+        }
+    }
+</style>
