@@ -3308,42 +3308,43 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task HandleRoadmapMoveFromManager(RoadmapManager.RoadmapMoveData moveData)
+    private async Task HandleRoadmapMoveFromManager((string SourceFolderId, string SourceTabId, string TargetFolderId) args)
     {
         if (_folderManager == null) return;
 
-        // This now only handles cross-folder drag-and-drop moves
-        // Same-folder reordering is handled by up/down buttons
-
         // Get source and target folders
-        var sourceFolder = _folderManager.Folders.FirstOrDefault(f => f.Id == moveData.SourceFolderId);
-        var targetFolder = _folderManager.Folders.FirstOrDefault(f => f.Id == moveData.TargetFolderId);
+        var sourceFolder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.SourceFolderId);
+        var targetFolder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.TargetFolderId);
 
         if (sourceFolder == null || targetFolder == null) return;
 
         // Get the roadmap being moved
-        var sourceTab = sourceFolder.SessionManager.Tabs.FirstOrDefault(t => t.Id == moveData.SourceTabId);
+        var sourceTab = sourceFolder.SessionManager.Tabs.FirstOrDefault(t => t.Id == args.SourceTabId);
         if (sourceTab == null) return;
 
-        // Only handle cross-folder moves - show dependency confirmation
-        if (moveData.SourceFolderId != moveData.TargetFolderId)
+        // Store as pending move data
+        _pendingMoveData = new RoadmapManager.RoadmapMoveData
         {
-            _pendingMoveData = moveData;
-            _movingRoadmapName = sourceTab.Name;
-            _moveSourceFolderName = sourceFolder.Name;
-            _moveTargetFolderName = targetFolder.Name;
+            SourceFolderId = args.SourceFolderId,
+            SourceTabId = args.SourceTabId,
+            TargetFolderId = args.TargetFolderId,
+            TargetIndex = -1 // Append to end
+        };
 
-            // Analyze dependencies
-            _dependencyAnalysisResult = _dependencyService.FindDependencies(
-                _folderManager,
-                moveData.SourceFolderId,
-                moveData.SourceTabId
-            );
+        _movingRoadmapName = sourceTab.Name;
+        _moveSourceFolderName = sourceFolder.Name;
+        _moveTargetFolderName = targetFolder.Name;
 
-            // Show confirmation modal
-            _showDependencyModal = true;
-            await InvokeAsync(StateHasChanged);
-        }
+        // Analyze dependencies
+        _dependencyAnalysisResult = _dependencyService.FindDependencies(
+            _folderManager,
+            args.SourceFolderId,
+            args.SourceTabId
+        );
+
+        // Show confirmation modal
+        _showDependencyModal = true;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ConfirmRoadmapMove()

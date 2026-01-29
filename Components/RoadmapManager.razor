@@ -10,21 +10,18 @@
             <button class="close-button" @onclick="Close">×</button>
         </div>
 
-        @* Search Bar *@
-        <div class="roadmap-manager-search">
-            <input type="text"
-                   @bind="SearchQuery"
-                   @bind:event="oninput"
-                   class="search-input"
-                   placeholder="🔍 Search roadmaps..." />
-        </div>
-
         <div class="roadmap-manager-body">
-            @foreach (var folder in GetFilteredFolders())
+            @foreach (var folder in Folders)
             {
                 var isActiveFolder = folder.Id == ActiveFolderId;
+                var isDragTarget = _dragOverFolderId == folder.Id;
                 <div class="folder-section">
-                    <div class="folder-header">
+                    <div class="folder-header @(isDragTarget ? "drag-target" : "")"
+                         @ondragover="() => HandleFolderDragOver(folder.Id)"
+                         @ondragover:preventDefault
+                         @ondragleave="HandleFolderDragLeave"
+                         @ondrop="() => HandleFolderDrop(folder.Id)"
+                         @ondrop:preventDefault>
                         <div class="folder-header-left" @onclick="() => ToggleFolderConfig(folder.Id)">
                             <Icon IconType="@(folder.Icon ?? "folder")" Size="20" Color="@folder.Color" />
                             <span class="folder-name">@folder.Name</span>
@@ -102,45 +99,41 @@
                         </div>
                     }
 
-                    <div class="roadmaps-list @(_dragOverFolderId == folder.Id ? "folder-drag-over" : "")"
-                         @ondragover="() => HandleFolderDragOver(folder.Id)"
-                         @ondragover:preventDefault
-                         @ondragleave="HandleFolderDragLeave"
-                         @ondrop="() => HandleFolderDrop(folder.Id)"
-                         @ondrop:preventDefault>
+                    <div class="roadmaps-list">
                         @{
-                            var tabList = GetFilteredTabs(folder);
                             var tabIndex = 0;
                         }
-                        @foreach (var tab in tabList)
+                        @foreach (var tab in folder.SessionManager.Tabs)
                         {
                             var isActive = isActiveFolder && tab.Id == folder.SessionManager.ActiveTabId;
                             var currentIndex = tabIndex;
-                            <RoadmapCard RoadmapName="@tab.Name"
-                                        FolderId="@folder.Id"
-                                        TabId="@tab.Id"
-                                        Index="@currentIndex"
-                                        IsActive="@isActive"
-                                        IsOnlyRoadmap="@(folder.SessionManager.Tabs.Count == 1)"
-                                        IsFirstInFolder="@(currentIndex == 0)"
-                                        IsLastInFolder="@(currentIndex == tabList.Count - 1)"
-                                        Stats="@GetRoadmapStats(tab.Data)"
-                                        TemplateType="@tab.TemplateType"
-                                        OnClick="@(() => HandleRoadmapClick(folder.Id, tab.Id))"
-                                        OnOpen="@(() => HandleRoadmapOpen(folder.Id, tab.Id))"
-                                        OnRename="@(() => HandleRoadmapRename(folder.Id, tab.Id))"
-                                        OnDuplicate="@(() => HandleRoadmapDuplicate(folder.Id, tab.Id))"
-                                        OnDelete="@(() => HandleRoadmapDelete(folder.Id, tab.Id))"
-                                        OnMoveUp="@(() => HandleRoadmapMoveUp(folder.Id, tab.Id))"
-                                        OnMoveDown="@(() => HandleRoadmapMoveDown(folder.Id, tab.Id))"
-                                        OnDragStart="@HandleRoadmapDragStart" />
+                            <div class="roadmap-drag-wrapper"
+                                 draggable="true"
+                                 @ondragstart="() => HandleRoadmapDragStart(folder.Id, tab.Id)"
+                                 @ondragend="HandleDragEnd">
+                                <div class="drag-handle-inline" title="Drag to folder header">⋮⋮</div>
+                                <RoadmapCard RoadmapName="@tab.Name"
+                                            IsActive="@isActive"
+                                            IsOnlyRoadmap="@(folder.SessionManager.Tabs.Count == 1)"
+                                            IsFirstInFolder="@(currentIndex == 0)"
+                                            IsLastInFolder="@(currentIndex == folder.SessionManager.Tabs.Count - 1)"
+                                            Stats="@GetRoadmapStats(tab.Data)"
+                                            TemplateType="@tab.TemplateType"
+                                            OnClick="@(() => HandleRoadmapClick(folder.Id, tab.Id))"
+                                            OnOpen="@(() => HandleRoadmapOpen(folder.Id, tab.Id))"
+                                            OnRename="@(() => HandleRoadmapRename(folder.Id, tab.Id))"
+                                            OnDuplicate="@(() => HandleRoadmapDuplicate(folder.Id, tab.Id))"
+                                            OnDelete="@(() => HandleRoadmapDelete(folder.Id, tab.Id))"
+                                            OnMoveUp="@(() => HandleRoadmapMoveUp(folder.Id, tab.Id))"
+                                            OnMoveDown="@(() => HandleRoadmapMoveDown(folder.Id, tab.Id))" />
+                            </div>
                             tabIndex++;
                         }
                         @if (folder.SessionManager.Tabs.Count == 0)
                         {
                             <div class="empty-folder">
                                 <span>No roadmaps in this folder</span>
-                                <span class="empty-folder-hint">Drop a roadmap here to move it</span>
+                                <span class="empty-folder-hint">Drag roadmaps to this folder's header</span>
                             </div>
                         }
                     </div>
@@ -194,54 +187,26 @@
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapDelete { get; set; }
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapMoveUp { get; set; }
     [Parameter] public EventCallback<(string FolderId, string TabId)> OnRoadmapMoveDown { get; set; }
-    [Parameter] public EventCallback<RoadmapMoveData> OnRoadmapMove { get; set; }
+    [Parameter] public EventCallback<(string SourceFolderId, string SourceTabId, string TargetFolderId)> OnRoadmapMove { get; set; }
 
-    private string SearchQuery { get; set; } = "";
     private string? _expandedFolderId = null;
     private bool _showIconPicker = false;
     private string? _iconPickerFolderId = null;
-    private RoadmapCard.DragEventData? _draggedRoadmap = null;
+    private string? _draggedFolderId = null;
+    private string? _draggedTabId = null;
     private string? _dragOverFolderId = null;
 
     public class RoadmapMoveData
     {
         public string SourceFolderId { get; set; } = "";
         public string SourceTabId { get; set; } = "";
-        public int SourceIndex { get; set; }
         public string TargetFolderId { get; set; } = "";
-        public string? TargetTabId { get; set; }
         public int TargetIndex { get; set; }
     }
 
     private async Task Close()
     {
-        SearchQuery = "";
         await OnClose.InvokeAsync();
-    }
-
-    private List<Folder> GetFilteredFolders()
-    {
-        if (string.IsNullOrWhiteSpace(SearchQuery))
-        {
-            return Folders;
-        }
-
-        return Folders.Where(f =>
-            f.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
-            f.SessionManager.Tabs.Any(t => t.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
-        ).ToList();
-    }
-
-    private List<TabSession> GetFilteredTabs(Folder folder)
-    {
-        if (string.IsNullOrWhiteSpace(SearchQuery))
-        {
-            return folder.SessionManager.Tabs;
-        }
-
-        return folder.SessionManager.Tabs
-            .Where(t => t.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
-            .ToList();
     }
 
     private RoadmapStats GetRoadmapStats(RoadmapData data)
@@ -345,9 +310,15 @@
         await OnRoadmapDelete.InvokeAsync((folderId, tabId));
     }
 
-    private void HandleRoadmapDragStart(RoadmapCard.DragEventData eventData)
+    private void HandleRoadmapDragStart(string folderId, string tabId)
     {
-        _draggedRoadmap = eventData;
+        _draggedFolderId = folderId;
+        _draggedTabId = tabId;
+    }
+
+    private void HandleDragEnd()
+    {
+        // Clear drag state on drag end
     }
 
     private async Task HandleRoadmapMoveUp(string folderId, string tabId)
@@ -372,21 +343,17 @@
 
     private async Task HandleFolderDrop(string targetFolderId)
     {
-        if (_draggedRoadmap == null) return;
+        if (_draggedFolderId == null || _draggedTabId == null) return;
 
-        // Drop on folder (append to end)
-        var moveData = new RoadmapMoveData
+        // Only trigger move if it's a different folder
+        if (_draggedFolderId != targetFolderId)
         {
-            SourceFolderId = _draggedRoadmap.SourceFolderId,
-            SourceTabId = _draggedRoadmap.SourceTabId,
-            SourceIndex = _draggedRoadmap.SourceIndex,
-            TargetFolderId = targetFolderId,
-            TargetTabId = null, // Append to end
-            TargetIndex = -1 // -1 means append
-        };
+            await OnRoadmapMove.InvokeAsync((_draggedFolderId, _draggedTabId, targetFolderId));
+        }
 
-        await OnRoadmapMove.InvokeAsync(moveData);
-        _draggedRoadmap = null;
+        // Clear drag state
+        _draggedFolderId = null;
+        _draggedTabId = null;
         _dragOverFolderId = null;
     }
 
@@ -546,6 +513,15 @@
         border-color: #4a4a4a;
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .folder-header.drag-target {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+        border-color: #667eea;
+        border-width: 3px;
+        border-style: dashed;
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.4), 0 4px 16px rgba(0, 0, 0, 0.4);
+        transform: scale(1.02);
     }
 
     .folder-header-left {
@@ -732,18 +708,49 @@
     }
 
     .roadmaps-list {
-        padding-left: 32px;
+        padding-left: 8px;
         max-height: 600px;
         overflow-y: auto;
         margin-top: 12px;
         min-height: 60px;
         border-radius: 8px;
+    }
+
+    .roadmap-drag-wrapper {
+        position: relative;
+        display: flex;
+        align-items: stretch;
+        margin-bottom: 8px;
+        border-radius: 8px;
         transition: all 0.2s;
     }
 
-    .roadmaps-list.folder-drag-over {
-        background: rgba(102, 126, 234, 0.1);
-        border: 2px dashed #667eea;
+    .roadmap-drag-wrapper:hover .drag-handle-inline {
+        opacity: 1;
+    }
+
+    .drag-handle-inline {
+        position: absolute;
+        left: -24px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #555;
+        font-size: 18px;
+        line-height: 1;
+        cursor: grab;
+        user-select: none;
+        opacity: 0.3;
+        transition: all 0.2s;
+        z-index: 10;
+    }
+
+    .drag-handle-inline:hover {
+        color: #888;
+        opacity: 1;
+    }
+
+    .roadmap-drag-wrapper:active .drag-handle-inline {
+        cursor: grabbing;
     }
 
     .empty-folder {
