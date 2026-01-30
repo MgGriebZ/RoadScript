@@ -82,13 +82,6 @@
 
         <div style="width: 32px; height: 1px; background: #3a3a4e; margin: 4px 0;"></div>
 
-        <button @onclick="@(() => OnExportPng.InvokeAsync())"
-                title="Export roadmap as PNG image"
-                class="cc-icon-btn"
-                style="background: #3c3c3c; color: #ccc; border: 1px solid #555; width: 44px; height: 44px; border-radius: 8px; font-size: 24px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
-            📷
-        </button>
-
         <button @onclick="@(() => OnToggleViewMode.InvokeAsync())"
                 title="@(IsPreviewMode ? "Switch to Edit Mode" : "Switch to Preview Mode")"
                 class="cc-icon-btn"
@@ -158,7 +151,6 @@
     [Parameter] public EventCallback<(string TabId, string Name)> OnTabRename { get; set; }
     [Parameter] public EventCallback<int> OnFolderClick { get; set; }
     [Parameter] public EventCallback OnTabAdd { get; set; }
-    [Parameter] public EventCallback OnExportPng { get; set; }
     [Parameter] public EventCallback OnToggleViewMode { get; set; }
     [Parameter] public EventCallback OnCycleTheme { get; set; }
     [Parameter] public EventCallback<TemplateService.TemplateType> OnTemplateApply { get; set; }
