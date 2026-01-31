@@ -62,7 +62,6 @@ Get started quickly with 5 built-in templates:
 - **Vibe Mode** - Dark theme with neon effects
 - **Lite Mode** - Light, professional theme
 - **Preview Mode** - Clean presentation view
-- **PNG Export** - High-quality image downloads
 - **Automatic Row Splitting** - Items with same start position split into visual rows
 
 ---
@@ -117,7 +116,6 @@ FolderManager (root)
 
 - **Framework:** Blazor WebAssembly (.NET 9)
 - **Editor:** BlazorMonaco v3.4.0 with Monaco Editor v0.52.0
-- **Export:** html2canvas (dynamically loaded)
 - **Storage:** Browser LocalStorage API
 - **Styling:** Custom CSS with gradient effects
 
@@ -241,7 +239,7 @@ FolderManager (root)
 3. **Add elements** using the Quick Actions dashboard
 4. **Click elements** to edit via properties panel
 5. **Switch to JSON mode** for advanced editing
-6. **Export** as PNG or JSON when done
+6. **Export** as JSON when done
 
 ### Tips
 
