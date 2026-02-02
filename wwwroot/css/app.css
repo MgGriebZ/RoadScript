@@ -439,23 +439,31 @@ button:disabled {
 
 /* ========== INTERACTIVE EDITING FEATURES ========== */
 
-/* Clickable roadmap elements */
+/* Clickable roadmap elements - cursor changes are primary hover indicator */
 .clickable-element {
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.clickable-element:hover {
+/* General hover for non-item elements (columns, milestones) */
+.clickable-element:hover:not(.roadmap-item-resizable) {
     filter: brightness(1.1);
     transform: scale(1.01);
 }
 
-/* Selection highlight */
+/* Roadmap items - no visual hover effect, cursor changes indicate interactivity */
+.roadmap-item-resizable.clickable-element {
+    cursor: pointer;
+}
+
+.roadmap-item-resizable.clickable-element:hover {
+    /* No visual changes - cursor (pointer/move/col-resize) indicates interactivity */
+}
+
+/* Selection highlight - subtle left accent bar */
 .selected-element {
-    outline: 3px solid #667eea !important;
-    outline-offset: 2px;
+    box-shadow: inset 4px 0 0 0 #667eea !important;
     z-index: 100 !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3) !important;
 }
 
 /* Property Panel */

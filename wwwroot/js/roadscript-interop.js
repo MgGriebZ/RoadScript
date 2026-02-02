@@ -483,9 +483,11 @@ window.RoadScriptInterop = {
             // Remove existing listeners to avoid duplicates
             const oldMouseMove = element._roadscriptMouseMove;
             const oldMouseDown = element._roadscriptMouseDown;
+            const oldMouseLeave = element._roadscriptMouseLeave;
 
             if (oldMouseMove) element.removeEventListener('mousemove', oldMouseMove);
             if (oldMouseDown) element.removeEventListener('mousedown', oldMouseDown);
+            if (oldMouseLeave) element.removeEventListener('mouseleave', oldMouseLeave);
 
             // Create new listeners
             const handleMouseMove = function(e) {
@@ -506,6 +508,12 @@ window.RoadScriptInterop = {
                     element.style.cursor = 'move'; // Move cursor for middle area (slides entire item)
                     element.style.boxShadow = ''; // Clear box-shadow, restoring original
                 }
+            };
+
+            const handleMouseLeave = function(e) {
+                // Reset cursor and box-shadow when mouse leaves the element
+                element.style.cursor = 'pointer';
+                element.style.boxShadow = '';
             };
 
             const handleMouseDown = function(e) {
@@ -566,10 +574,12 @@ window.RoadScriptInterop = {
             // Store references for later removal
             element._roadscriptMouseMove = handleMouseMove;
             element._roadscriptMouseDown = handleMouseDown;
+            element._roadscriptMouseLeave = handleMouseLeave;
 
             // Add new listeners
             element.addEventListener('mousemove', handleMouseMove);
             element.addEventListener('mousedown', handleMouseDown);
+            element.addEventListener('mouseleave', handleMouseLeave);
         });
     },
 
