@@ -450,6 +450,25 @@ button:disabled {
     transform: scale(1.01);
 }
 
+/* Roadmap item hover - subtle title pulse instead of box highlight */
+.roadmap-item-resizable.clickable-element:hover {
+    filter: none;
+    transform: none;
+}
+
+.roadmap-item-resizable.clickable-element:hover h4 {
+    animation: subtle-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes subtle-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.85;
+    }
+}
+
 /* Selection highlight */
 .selected-element {
     outline: 3px solid #667eea !important;
