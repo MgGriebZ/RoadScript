@@ -850,3 +850,334 @@ Phase 1 (Shell) → Phase 2 (View) → Phase 3 (Touch) → Phase 4 (Edit) → Ph
 ```
 
 Each phase can be reviewed, tested, and merged independently, though they should be implemented in order.
+
+---
+
+## 10. Implementation Audit & Errata
+
+> This section was added after a comprehensive code audit that walked through the plan as-if implementing each phase. It documents bugs in the plan, missing details, hidden dependencies, and corrections.
+
+---
+
+### 10.1 Critical: MobileShell Parameter Explosion
+
+**Problem:** The plan says MobileShell should "accept same parameters as the desktop layout from Home.razor." Home.razor has **60+ handlers and 30+ state variables**. Passing all of these as `[Parameter]` EventCallbacks would create an unmanageable component signature.
+
+**Solution:** Do NOT pass 60+ parameters. Instead:
+
+1. **Keep Home.razor as the source of truth** for all business logic and state.
+2. **MobileShell should inject shared services directly** (`SelectionState`, `RoadmapStateManager`, `ThemeService`) rather than receiving them as parameters.
+3. **Only pass what MobileShell actually needs as parameters:**
+   - `RoadmapData Data` (the current roadmap)
+   - `FolderManager FolderManager` (for navigation drawer)
+   - `Folder ActiveFolder` / `TabSession ActiveTab` (current context)
+   - `bool IsPreviewMode`
+   - ~12 essential EventCallbacks (property change, add, delete, duplicate, move item, move lane, tab switch, folder click, undo, redo, toggle view mode, share)
+4. **Use a wrapper record/class** to bundle related callbacks:
+   ```csharp
+   public record MobileCallbacks(
+       EventCallback<(string, string, object)> OnPropertyChange,
+       EventCallback<(string, string)> OnAddElement,
+       EventCallback<(string, string)> OnRemoveElement,
+       EventCallback<(string, string)> OnDuplicateElement,
+       EventCallback<(string, string)> OnMoveItem,
+       EventCallback<(string, string)> OnMoveLane,
+       EventCallback<string> OnTabSwitch,
+       EventCallback<string> OnFolderSelect,
+       EventCallback OnUndo,
+       EventCallback OnRedo,
+       EventCallback OnToggleViewMode
+   );
+   ```
+5. **Handlers that don't apply on mobile** (60+ folder manager handlers, JSON editor, keyboard shortcuts, resize/move, template select) should NOT be passed through at all.
+
+**Impact on Phase 1:** The MobileShell component signature in Phase 1 should start with ~5 data parameters and ~12 callbacks, not 60+. Additional callbacks can be added in later phases as features are wired.
+
+---
+
+### 10.2 Critical: OnAfterRenderAsync JS Interop Must Be Gated
+
+**Problem:** Home.razor's `OnAfterRenderAsync` unconditionally calls two desktop-only JS interop functions on every render:
+
+```csharp
+// Runs on first render
+await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupKeyboardShortcuts", _dotNetRef);
+
+// Runs on EVERY render in edit mode
+await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupAllItemResize", _dotNetRef);
+```
+
+`setupAllItemResize` attaches `mousemove/mousedown/mouseleave` listeners to every `.roadmap-item-resizable` element. On mobile, these elements won't exist (we're rendering cards instead), but the JS will still scan the DOM for them every render cycle, wasting resources.
+
+`setupKeyboardShortcuts` registers global keyboard handlers including Delete, Arrow keys, and Ctrl+Z/Y. On mobile, these could interfere with soft keyboard input and form navigation.
+
+**Solution:** Add `ResponsiveService.IsMobile()` guard in `OnAfterRenderAsync`:
+
+```csharp
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (ResponsiveService.IsMobile()) return; // Skip all desktop JS setup
+
+    if (firstRender)
+    {
+        await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupKeyboardShortcuts", _dotNetRef);
+    }
+    // ... rest of desktop setup
+}
+```
+
+**Impact on Phase 1:** This is a required change in Phase 1 when adding the `IsMobile()` gate. Add to Phase 1 task list.
+
+---
+
+### 10.3 Critical: GestureService Element ID Dependency
+
+**Problem:** The plan says Phase 3 should "Initialize GestureService on the mobile content area." However, both `GestureService.cs` and `touch-gestures.js` default to looking for an element with `id="app"`. The `InitializeAsync()` method uses `document.getElementById(elementId)` and **silently fails** if the element is not found.
+
+**Hidden behavior:** If MobileShell's content area doesn't have `id="app"`, gestures will not attach and no error will be thrown.
+
+**Solution:** MobileShell must either:
+1. Give its content container `id="app"` (risky - may conflict with existing desktop element), OR
+2. Call `GestureService.InitializeAsync("mobile-content")` with an explicit element ID matching the mobile content div, OR
+3. Use `GestureService.EnableGesturesOnElement(elementId, options)` to attach to specific mobile elements after render.
+
+**Recommendation:** Option 3 is safest. Attach gestures to individual mobile components (`MobileRoadmapView`, `MobileLaneCard`, etc.) rather than a single root element. This avoids conflicts and gives per-component gesture control.
+
+**Impact on Phase 3:** Update task 1 to specify explicit element IDs for gesture attachment. Don't rely on the default `"app"` element.
+
+---
+
+### 10.4 Critical: ThemeService Has No Mobile Theme Lock
+
+**Problem:** The plan states "Classic theme only on mobile" but `ThemeService.cs` is a global singleton with no per-viewport theme enforcement. `CurrentTheme` applies to the entire application. There is no `IsMobile()` check, no per-component theme override, and no mechanism to lock mobile to Classic.
+
+If a user cycles themes on desktop then switches to mobile (or resizes), the non-Classic theme will be active.
+
+**Solution:** Two options:
+
+1. **Theme override in MobileShell** (simpler): MobileShell always passes Classic theme styles regardless of `ThemeService.CurrentTheme`. Since we're building entirely new mobile components, they can hardcode the Classic color palette rather than reading from ThemeService.
+
+2. **Add mobile guard in ThemeService** (more robust): Add a `GetEffectiveTheme()` method:
+   ```csharp
+   public SeasonalTheme GetEffectiveTheme(bool isMobile)
+       => isMobile ? SeasonalTheme.Classic : CurrentTheme;
+   ```
+
+**Recommendation:** Option 1 is cleaner. Mobile components should use a fixed color palette (the Classic theme colors) directly in their CSS/styles rather than going through ThemeService. This also simplifies mobile CSS since we don't need to handle 9 theme variants.
+
+**Impact on Phase 1:** Document that MobileShell uses Classic palette directly. No ThemeService changes needed.
+
+---
+
+### 10.5 High: Property Editor Reuse Is Valid But Needs a Wrapper
+
+**Problem:** The plan says "reuse existing property editor components inside the bottom sheet with CSS overrides." The audit confirms this is **valid** - all 5 property editors (Item, Lane, Column, Milestone, Title) have:
+- No JS interop dependencies
+- No ElementReference/@ref usage
+- No CascadingParameter dependencies
+- No fixed-width containers (all flex/grid)
+- All hardcoded dimensions are overrideable via CSS
+
+**However:** `PropertyPanel.razor` (the orchestrator that switches between editors) has hardcoded desktop sidebar dimensions (`width: 27%; min-width: 320px; max-width: 450px`) and injects `SelectionState` directly. It should NOT be reused on mobile.
+
+**Solution:** MobilePropertySheet should directly render the 5 individual property editor components (ItemProperties, LaneProperties, etc.) conditionally based on `SelectionState.ElementType`, bypassing PropertyPanel entirely. This is what MobilePropertySheet already attempts to do - it just needs the stub callbacks replaced with real ones.
+
+**Impact on Phase 4:** No change to the plan. The approach is correct. Just be explicit that MobilePropertySheet renders editors directly, NOT through PropertyPanel.
+
+---
+
+### 10.6 High: z-index Conflict Between Blazor Error UI and Mobile Drawer
+
+**Problem:** In `app.css` line 166, `#blazor-error-ui` has `z-index: 1000`. In `mobile.css`, `--z-mobile-drawer` is also `1000`. If a Blazor error occurs while a mobile drawer is open, layering is undefined.
+
+**Solution:** Add to Phase 1 CSS changes:
+```css
+#blazor-error-ui {
+    z-index: 2000; /* Above all mobile overlays */
+}
+```
+
+Or change mobile drawer to 1050 and adjust FAB/modal accordingly.
+
+**Impact on Phase 1:** Add this as a line item in the mobile.css update task.
+
+---
+
+### 10.7 High: Command Center Not Hidden by CSS on Mobile
+
+**Problem:** The plan assumes the `IsMobile()` gate in Home.razor will prevent the CommandCenter from rendering. This is correct IF the gate works. However, there's a timing issue: during Blazor WASM initial load, `ResponsiveService` may not have received the viewport size from JS yet. The `ResponsiveService` defaults to `Desktop` breakpoint when JS interop hasn't fired.
+
+This means on first render, mobile users may briefly see the desktop layout before `ResponsiveService` updates.
+
+**Solution:** Add a CSS safety net in `mobile.css`:
+```css
+@media (max-width: 767px) {
+    .command-center, .control-panel {
+        display: none !important;
+    }
+}
+```
+
+This ensures desktop elements are hidden by CSS immediately, even before Blazor/JS fully initializes.
+
+**Impact on Phase 1:** Add this CSS rule to the mobile.css update task. This is defense-in-depth alongside the `IsMobile()` gate.
+
+---
+
+### 10.8 High: Missing `touch-action: manipulation` on Root
+
+**Problem:** The `index.html` viewport meta tag is correctly set, but there's no `touch-action` CSS property anywhere. Without `touch-action: manipulation`, some browsers add a 300ms tap delay on mobile for double-tap-to-zoom detection.
+
+**Solution:** Add to mobile.css in Phase 1:
+```css
+html {
+    touch-action: manipulation;
+}
+```
+
+This eliminates the 300ms delay while still allowing scroll and pinch-zoom.
+
+**Impact on Phase 1:** Add to mobile.css update task.
+
+---
+
+### 10.9 Medium: EditorInteropService Dependency in HandlePropertyChange
+
+**Problem:** `Home.razor.HandlePropertyChange()` calls `EditorInterop.UpdateJsonValue(_currentJson, propertyPath, value)` to update the JSON string. The `EditorInteropService` may be coupled to the Monaco editor (which won't exist on mobile).
+
+**Audit finding:** `EditorInterop.UpdateJsonValue()` is actually a JSON manipulation utility that doesn't require Monaco - it parses JSON, updates a value at a path, and returns the updated JSON string. It works independently of any editor UI.
+
+**Resolution:** No issue. `EditorInterop.UpdateJsonValue()` is safe to call from mobile code paths. However, other `EditorInterop` methods that manipulate the Monaco editor instance should NOT be called on mobile.
+
+**Impact:** None. The plan is correct.
+
+---
+
+### 10.10 Medium: DebouncedSave Timing Difference
+
+**Problem:** The plan mentions debouncing property changes at 250ms in Phase 7 performance optimization. However, `Home.razor.DebouncedSave()` uses a 500ms debounce. These are different timers.
+
+**Clarification:** The 500ms `DebouncedSave()` in Home.razor is the persistence timer (how long before writing to localStorage). The 250ms mentioned in Phase 7 would be a UI debounce (how long before re-rendering the roadmap view after a property change).
+
+**Solution:** Use the existing 500ms `DebouncedSave()` for persistence (it's already correct). If needed, add a separate 250ms debounce for expensive UI re-renders in Phase 7, but don't change the save timer.
+
+**Impact:** Remove the "Debounce property changes (250ms)" item from Phase 7 task 8, or clarify it refers to UI re-rendering, not persistence.
+
+---
+
+### 10.11 Medium: Undo/Redo After Mobile Edits
+
+**Problem:** The plan says undo/redo will work via existing `SelectionState` history. The audit confirms this mechanism is correct: `PushHistory()` stores JSON snapshots, `Undo()`/`Redo()` return them. However, the undo flow in Home.razor calls `SaveState()` (immediate, not debounced) and also clears the selection.
+
+**Potential issue:** On mobile, if the bottom sheet is open showing property editors, and the user taps Undo in the header bar, the selection gets cleared which would close the property sheet. This might be confusing UX.
+
+**Solution:** Consider NOT clearing selection on undo/redo in mobile, or at minimum, re-select the same element after undo if it still exists. This is a Phase 7 polish item.
+
+**Impact:** Add to Phase 7 edge case handling: "Undo/redo should preserve current selection on mobile when possible."
+
+---
+
+### 10.12 Medium: ResponsiveService Reactivity vs Blazor Re-rendering
+
+**Problem:** The plan mentions "Resize from desktop to mobile: layout switches (requires page refresh for Blazor)" in the test matrix. The audit shows `ResponsiveService` IS reactive - it fires `OnBreakpointChanged` on viewport resize with a 150ms debounce.
+
+**However:** Home.razor doesn't currently subscribe to `ResponsiveService.OnBreakpointChanged`. Without subscribing and calling `StateHasChanged()`, the `IsMobile()` gate won't re-evaluate on resize.
+
+**Solution:** In Phase 1, when adding the `IsMobile()` gate to Home.razor, also subscribe to `ResponsiveService.OnBreakpointChanged` and trigger `StateHasChanged()`:
+
+```csharp
+protected override void OnInitialized()
+{
+    ResponsiveService.OnBreakpointChanged += HandleBreakpointChanged;
+}
+
+private void HandleBreakpointChanged()
+{
+    InvokeAsync(StateHasChanged);
+}
+```
+
+**Impact on Phase 1:** Add breakpoint change subscription to Home.razor initialization. Update test matrix to reflect that resize should trigger layout switch without page refresh.
+
+---
+
+### 10.13 Low: HandleFolderClick Signature Mismatch
+
+**Problem:** The plan says MobileRoadmapDrawer will call `HandleFolderClick(folderId)` with a string parameter. However, in Home.razor, `HandleFolderClick` takes an `int folderIndex`, not a string folderId.
+
+There IS a `HandleFolderSelect(string folderId)` that takes a string ID.
+
+**Solution:** The mobile drawer should use `HandleFolderSelect(string folderId)`, not `HandleFolderClick(int folderIndex)`. The index-based method is for the desktop folder icon bar; the ID-based method is more robust for mobile.
+
+**Impact on Phase 6:** Correct the handler name in the folder switching task.
+
+---
+
+### 10.14 Low: Missing `roadscript-interop.js` in Modified Files List
+
+**Problem:** The plan lists `roadscript-interop.js` under "Untouched Files" but Phase 1 requires gating `setupAllItemResize` and `setupKeyboardShortcuts`. If we gate these in Home.razor's C# code (the recommended approach), then `roadscript-interop.js` truly stays untouched. But if we add viewport checks in the JS itself, it would be modified.
+
+**Resolution:** The C# gating approach (see 10.2) is preferred, which means `roadscript-interop.js` stays untouched. The plan's file list is correct.
+
+**Impact:** None.
+
+---
+
+### 10.15 Low: Missing Confirmation Dialogs Use `window.confirm()`
+
+**Problem:** Home.razor uses `JSRuntime.InvokeAsync<bool>("confirm", message)` and `JSRuntime.InvokeAsync<string>("prompt", ...)` for delete confirmations and rename dialogs. These work on mobile but produce native browser dialogs that are ugly and inconsistent across devices.
+
+**Solution:** This is acceptable for MVP. Phase 7 polish could replace these with custom mobile-styled confirmation modals, but it's not blocking.
+
+**Impact:** Optional Phase 7 enhancement.
+
+---
+
+### 10.16 Correction: Modified Files Count
+
+**Problem:** The plan lists "Modified Files (10)" in the summary table but only enumerates 7. The missing 3 are:
+
+1. `Pages/Home.razor` - listed
+2. `Components/Mobile/MobilePropertySheet.razor` - listed
+3. `Components/Mobile/MobileFAB.razor` - listed
+4. `Components/Mobile/MobileBottomDrawer.razor` - listed
+5. `Components/Mobile/MobileSideDrawer.razor` - listed
+6. `wwwroot/css/mobile.css` - listed
+7. `wwwroot/js/touch-gestures.js` - listed
+8. ~~Missing~~ (table says 10 but only 7 shown)
+
+**Resolution:** The actual modified file count is 7, not 10. The "10" in the header is incorrect.
+
+---
+
+### 10.17 Correction: Existing `MOBILE_OPTIMIZATION_PLAN.md`
+
+**Problem:** There is an existing file `/home/user/RoadScript/MOBILE_OPTIMIZATION_PLAN.md` from a previous planning session. This could cause confusion with the new `docs/MOBILE_REDESIGN_PLAN.md`.
+
+**Solution:** The older plan should be reviewed and either deleted or marked as superseded. The new plan in `docs/` is the canonical reference.
+
+**Impact:** Housekeeping task before Phase 1 begins.
+
+---
+
+### Summary of Errata Severity
+
+| ID | Severity | Summary | Phase Impacted |
+|----|----------|---------|----------------|
+| 10.1 | CRITICAL | Reduce MobileShell from 60+ to ~15 parameters using callback record | Phase 1 |
+| 10.2 | CRITICAL | Gate `OnAfterRenderAsync` JS interop with `IsMobile()` | Phase 1 |
+| 10.3 | CRITICAL | Use explicit element IDs for GestureService, not default "app" | Phase 3 |
+| 10.4 | CRITICAL | Mobile uses Classic palette directly, no ThemeService lock needed | Phase 1 |
+| 10.5 | HIGH | Property editors valid for reuse; bypass PropertyPanel, use editors directly | Phase 4 |
+| 10.6 | HIGH | Fix z-index conflict: blazor-error-ui (1000) vs mobile-drawer (1000) | Phase 1 |
+| 10.7 | HIGH | Add CSS safety net to hide desktop elements on mobile during initial load | Phase 1 |
+| 10.8 | HIGH | Add `touch-action: manipulation` to eliminate 300ms tap delay | Phase 1 |
+| 10.9 | MEDIUM | EditorInterop.UpdateJsonValue() is safe for mobile - no issue | None |
+| 10.10 | MEDIUM | Clarify 500ms save debounce vs 250ms UI debounce | Phase 7 |
+| 10.11 | MEDIUM | Undo/redo should preserve selection on mobile | Phase 7 |
+| 10.12 | MEDIUM | Subscribe to OnBreakpointChanged for live layout switching | Phase 1 |
+| 10.13 | LOW | Use HandleFolderSelect(string), not HandleFolderClick(int) | Phase 6 |
+| 10.14 | LOW | roadscript-interop.js stays untouched (C# gating approach) | None |
+| 10.15 | LOW | Native confirm/prompt dialogs acceptable for MVP | Phase 7 |
+| 10.16 | LOW | Modified files count is 7, not 10 (header typo) | None |
+| 10.17 | LOW | Remove or supersede older MOBILE_OPTIMIZATION_PLAN.md | Pre-Phase 1 |
