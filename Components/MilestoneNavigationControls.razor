@@ -40,6 +40,28 @@
                 style="@ThemeService.StaticNavButtonStyle("jump")">
             <div style="font-size: 18px; font-weight: 800;">⏭</div>
         </button>
+
+        @* Lane movement buttons *@
+        <button type="button"
+                @onclick="@(async () => await MoveLaneUp.InvokeAsync(SelectedMilestoneIndex))"
+                title="Move to Lane Above"
+                disabled="@(SelectedMilestone.LaneIndex == null || SelectedMilestone.LaneIndex <= 0)"
+                style="@ThemeService.StaticNavButtonStyle("nudge")">
+            <div style="font-size: 14px;">▲</div>
+        </button>
+        <button type="button"
+                @onclick="@(async () => await MoveLaneDown.InvokeAsync(SelectedMilestoneIndex))"
+                title="Move to Lane Below"
+                disabled="@(SelectedMilestone.LaneIndex != null && SelectedMilestone.LaneIndex >= LaneCount - 1)"
+                style="@ThemeService.StaticNavButtonStyle("nudge")">
+            <div style="font-size: 14px;">▼</div>
+        </button>
+        <button type="button"
+                @onclick="@(async () => await DetachFromLane.InvokeAsync(SelectedMilestoneIndex))"
+                title="@(SelectedMilestone.LaneIndex == null ? "Assign to First Lane" : "Return to Header")"
+                style="@ThemeService.StaticNavButtonStyle("column")">
+            <div style="font-size: 14px;">@(SelectedMilestone.LaneIndex == null ? "⬇" : "⬆")</div>
+        </button>
     </div>
 }
 
@@ -87,4 +109,28 @@
     /// </summary>
     [Parameter]
     public bool IsPreviewMode { get; set; }
+
+    /// <summary>
+    /// Total number of lanes (for disabling Move Lane Down at last lane)
+    /// </summary>
+    [Parameter]
+    public int LaneCount { get; set; } = 0;
+
+    /// <summary>
+    /// Callback fired when user clicks Move to Lane Above button
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> MoveLaneUp { get; set; }
+
+    /// <summary>
+    /// Callback fired when user clicks Move to Lane Below button
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> MoveLaneDown { get; set; }
+
+    /// <summary>
+    /// Callback fired when user clicks the toggle header/lane button
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> DetachFromLane { get; set; }
 }

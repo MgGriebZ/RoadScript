@@ -280,7 +280,19 @@ public class TemplateService
                 Icon = null,
                 Color = null
             }).ToList(),
-            Milestones = new List<Milestone> { GetRandomMilestone(columnCount) },
+            Milestones = new List<Milestone>
+            {
+                GetRandomMilestone(columnCount),  // Global header milestone
+                new Milestone                      // In-lane milestone to showcase feature
+                {
+                    Start = Math.Round(100.0 * 6 / 12, 2),  // Mid-year (July)
+                    Title = "Launch",
+                    Icon = "rocket",
+                    Color = "#10b981",
+                    LaneIndex = 0,                 // Assigned to first lane (Tasks)
+                    VerticalPercent = 50           // Vertically centered
+                }
+            },
             Lanes = new List<Lane>
             {
                 new Lane

@@ -54,6 +54,12 @@ public class Milestone
 
     [JsonPropertyName("color")]
     public string Color { get; set; } = "#667eea";  // Optional color for the milestone icon
+
+    [JsonPropertyName("laneIndex")]
+    public int? LaneIndex { get; set; }  // null = global/header band, 0+ = specific lane index
+
+    [JsonPropertyName("verticalPercent")]
+    public double? VerticalPercent { get; set; }  // 0-100 Y position within lane (null = center = 50%)
 }
 
 public class Lane

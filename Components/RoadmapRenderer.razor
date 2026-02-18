@@ -23,13 +23,16 @@
                 var selectedMilestoneIndex = -1;
                 Milestone? selectedMilestone = null;
 
-                for (int mi = 0; mi < Data.Milestones.Count; mi++)
+                if (Data.Milestones != null)
                 {
-                    if (SelectionState.SelectedPath == $"milestones[{mi}]")
+                    for (int mi = 0; mi < Data.Milestones.Count; mi++)
                     {
-                        selectedMilestoneIndex = mi;
-                        selectedMilestone = Data.Milestones[mi];
-                        break;
+                        if (SelectionState.SelectedPath == $"milestones[{mi}]")
+                        {
+                            selectedMilestoneIndex = mi;
+                            selectedMilestone = Data.Milestones[mi];
+                            break;
+                        }
                     }
                 }
 
@@ -39,10 +42,14 @@
             <MilestoneNavigationControls SelectedMilestoneIndex="@selectedMilestoneIndex"
                                         SelectedMilestone="@selectedMilestone"
                                         IsPreviewMode="@IsPreviewMode"
+                                        LaneCount="@(Data.Lanes?.Count ?? 0)"
                                         JumpToStart="@OnMilestoneJumpToStart"
                                         JumpToEnd="@OnMilestoneJumpToEnd"
                                         AdjustPosition="@OnMilestoneAdjustPosition"
-                                        AdjustByColumn="@OnMilestoneAdjustByColumn" />
+                                        AdjustByColumn="@OnMilestoneAdjustByColumn"
+                                        MoveLaneUp="@OnMilestoneMoveLaneUp"
+                                        MoveLaneDown="@OnMilestoneMoveLaneDown"
+                                        DetachFromLane="@OnMilestoneDetachFromLane" />
 
             @* Main Content Area *@
             <div style="display: flex; height: 100%;">
@@ -135,6 +142,24 @@
     /// </summary>
     [Parameter]
     public EventCallback<(int MilestoneIndex, int Direction)> OnMilestoneAdjustByColumn { get; set; }
+
+    /// <summary>
+    /// Callback fired when milestone is moved to the lane above
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnMilestoneMoveLaneUp { get; set; }
+
+    /// <summary>
+    /// Callback fired when milestone is moved to the lane below
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnMilestoneMoveLaneDown { get; set; }
+
+    /// <summary>
+    /// Callback fired when milestone is toggled between header and first lane
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnMilestoneDetachFromLane { get; set; }
 
     /// <summary>
     /// Callback fired when a roadmap link icon is clicked

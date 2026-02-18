@@ -58,33 +58,38 @@
         }
     </div>
 
-    @* Milestone Scale *@
-    <div style="@ThemeService.MilestoneScaleContainerStyle()">
-        @for (int mi = 0; mi < Data.Milestones.Count; mi++)
-        {
-            var milestone = Data.Milestones[mi];
-            var msIndex = mi;
-            var isSelected = SelectionState.SelectedPath == $"milestones[{msIndex}]";
-            <div id="@($"milestone-{msIndex}")"
-                 @onclick="@(IsPreviewMode ? null : () => OnMilestoneClick.InvokeAsync(new MilestoneClickEventArgs { Index = msIndex, Milestone = milestone }))"
-                 @onclick:stopPropagation="@(!IsPreviewMode)"
-                 class="@GetElementClass($"milestones[{msIndex}]")"
-                 style="@ThemeService.MilestoneStyle(milestone.Start)">
-                <div style="@ThemeService.MilestoneContainerStyle()">
-                    <Icon IconType="@(milestone.Icon ?? "diamond")"
-                          Color="@milestone.Color"
-                          Size="24"
-                          DropShadow="true" />
-                    @if (!string.IsNullOrWhiteSpace(milestone.Title))
-                    {
-                        <span style="@ThemeService.MilestoneLabelStyle(milestone.Color)">
-                            @milestone.Title
-                        </span>
-                    }
+    @* Milestone Scale - conditionally rendered only when global milestones exist *@
+    @{
+        var globalMilestones = Data.Milestones?.Where(m => m.LaneIndex == null).ToList()
+                              ?? new List<Milestone>();
+    }
+    @if (globalMilestones.Count > 0)
+    {
+        <div style="@ThemeService.MilestoneScaleContainerStyle()">
+            @foreach (var milestone in globalMilestones)
+            {
+                var msIndex = Data.Milestones!.IndexOf(milestone);
+                <div id="@($"milestone-{msIndex}")"
+                     @onclick="@(IsPreviewMode ? null : () => OnMilestoneClick.InvokeAsync(new MilestoneClickEventArgs { Index = msIndex, Milestone = milestone }))"
+                     @onclick:stopPropagation="@(!IsPreviewMode)"
+                     class="@GetElementClass($"milestones[{msIndex}]")"
+                     style="@ThemeService.MilestoneStyle(milestone.Start)">
+                    <div style="@ThemeService.MilestoneContainerStyle()">
+                        <Icon IconType="@(milestone.Icon ?? "diamond")"
+                              Color="@milestone.Color"
+                              Size="24"
+                              DropShadow="true" />
+                        @if (!string.IsNullOrWhiteSpace(milestone.Title))
+                        {
+                            <span style="@ThemeService.MilestoneLabelStyle(milestone.Color)">
+                                @milestone.Title
+                            </span>
+                        }
+                    </div>
                 </div>
-            </div>
-        }
-    </div>
+            }
+        </div>
+    }
 
     @* Grid with lanes and items *@
     <div style="flex: 1; position: relative;">
@@ -99,7 +104,33 @@
         {
             var lane = Data.Lanes[li];
             var laneIdx = li;
-            <div style="@LaneRowStyle(li, lane)">
+            <div style="@LaneRowStyle(li, lane)" data-lane-index="@laneIdx">
+                @* In-lane milestones: rendered above items via z-index *@
+                @if (Data.Milestones != null)
+                {
+                    @foreach (var inLaneMilestone in Data.Milestones.Where(m => m.LaneIndex == laneIdx))
+                    {
+                        var ilMsIndex = Data.Milestones.IndexOf(inLaneMilestone);
+                        <div id="@($"milestone-{ilMsIndex}")"
+                             @onclick="@(IsPreviewMode ? null : () => OnMilestoneClick.InvokeAsync(new MilestoneClickEventArgs { Index = ilMsIndex, Milestone = inLaneMilestone }))"
+                             @onclick:stopPropagation="@(!IsPreviewMode)"
+                             class="@GetElementClass($"milestones[{ilMsIndex}]")"
+                             style="@ThemeService.InLaneMilestoneStyle(inLaneMilestone)">
+                            <div style="@ThemeService.MilestoneContainerStyle()">
+                                <Icon IconType="@(inLaneMilestone.Icon ?? "diamond")"
+                                      Color="@inLaneMilestone.Color"
+                                      Size="24"
+                                      DropShadow="true" />
+                                @if (!string.IsNullOrWhiteSpace(inLaneMilestone.Title))
+                                {
+                                    <span style="@ThemeService.MilestoneLabelStyle(inLaneMilestone.Color)">
+                                        @inLaneMilestone.Title
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
                 @for (int ii = 0; ii < lane.Items.Count; ii++)
                 {
                     var item = lane.Items[ii];

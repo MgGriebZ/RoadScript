@@ -77,7 +77,8 @@ else
                                     OnAdd="HandleAddElement"
                                     OnRemove="HandleRemoveElement"
                                     OnDuplicate="HandleDuplicateElement"
-                                    ColumnCount="@ColumnCount" />
+                                    ColumnCount="@ColumnCount"
+                                    Lanes="@Lanes" />
             }
             else if (SelectionState.ElementType == "title" && SelectionState.SelectedElement is RoadmapData roadmapData && SelectionState.SelectedPath != null)
             {
@@ -226,6 +227,9 @@ else
 
     [Parameter]
     public int MilestoneCount { get; set; } = 0;
+
+    [Parameter]
+    public List<Lane>? Lanes { get; set; }
 
     [Parameter]
     public EventCallback OnSelectTitle { get; set; }

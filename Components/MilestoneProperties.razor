@@ -161,6 +161,42 @@
         </div>
     </div>
 
+    <div class="form-group">
+        <label style="font-size: 11px; margin-bottom: 8px; color: #888;">Lane Assignment</label>
+        <select @onchange="HandleLaneIndexChange"
+                class="form-control"
+                style="background: #252538; border: 1px solid #3a3a4e; color: #e0e0e0; padding: 8px; border-radius: 4px; width: 100%;">
+            <option value="-1" selected="@(Milestone.LaneIndex == null)">Global (Header Band)</option>
+            @if (Lanes != null)
+            {
+                @for (int i = 0; i < Lanes.Count; i++)
+                {
+                    var laneI = i;
+                    <option value="@laneI" selected="@(Milestone.LaneIndex == laneI)">
+                        @(string.IsNullOrWhiteSpace(Lanes[laneI].Title) ? $"Lane {laneI + 1}" : Lanes[laneI].Title)
+                    </option>
+                }
+            }
+        </select>
+    </div>
+
+    @if (Milestone.LaneIndex != null)
+    {
+        <div class="form-group">
+            <label style="font-size: 11px; margin-bottom: 8px; color: #888;">
+                Vertical Position: @((Milestone.VerticalPercent ?? 50).ToString("F0"))%
+            </label>
+            <input type="range" min="5" max="95" step="5"
+                   value="@(Milestone.VerticalPercent ?? 50)"
+                   @onchange="@(e => OnChange.InvokeAsync(("verticalPercent", double.Parse(e.Value?.ToString() ?? "50"))))"
+                   style="width: 100%; accent-color: @Milestone.Color;" />
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-top: 4px;">
+                <span>Top</span>
+                <span>Bottom</span>
+            </div>
+        </div>
+    }
+
     <div style="margin-top: 16px; padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 6px; font-size: 12px; color: #9ca3af;">
         <strong>Tip:</strong> Position is a percentage across the entire timeline (0% = start, 100% = end).
     </div>
@@ -215,6 +251,9 @@
 
     [Parameter]
     public int ColumnCount { get; set; } = 4;
+
+    [Parameter]
+    public List<Lane>? Lanes { get; set; }
 
     private bool _milestoneIconPickerExpanded = false;
 
@@ -280,6 +319,13 @@
     private void RemoveMilestone()
     {
         OnRemove.InvokeAsync("milestone");
+    }
+
+    private async Task HandleLaneIndexChange(ChangeEventArgs e)
+    {
+        var raw = int.Parse(e.Value?.ToString() ?? "-1");
+        int? laneIndex = raw < 0 ? null : raw;
+        await OnChange.InvokeAsync(("laneIndex", (object)laneIndex!));
     }
 
     private void JumpToStart()
