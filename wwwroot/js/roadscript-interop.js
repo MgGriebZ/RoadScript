@@ -639,6 +639,76 @@ window.RoadScriptInterop = {
     },
 
     /**
+     * Sets up 2D drag interaction for all milestone elements (both header and in-lane)
+     * Supports horizontal movement and vertical lane detection via cached bounding rects
+     * @param {object} dotNetRef - .NET object reference for callbacks
+     */
+    setupAllMilestoneInteraction: function(dotNetRef) {
+        const milestones = document.querySelectorAll('[id^="milestone-"]');
+
+        milestones.forEach(element => {
+            // Clean up old listeners to avoid duplicates
+            if (element._milestoneMouseDown) {
+                element.removeEventListener('mousedown', element._milestoneMouseDown);
+            }
+
+            const handleMouseDown = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const msIndex = parseInt(element.id.replace('milestone-', ''));
+
+                // Capture container width at drag start for accurate percentage calculation
+                const container = element.closest('.roadmap-container') ||
+                                  document.querySelector('.roadmap-container');
+                const containerWidth = container ? container.clientWidth : 900;
+                const startX = e.clientX;
+
+                // Cache lane boundaries at drag start for efficient Y-coordinate detection
+                // Filter to only lane row divs (not item divs which also carry data-lane-index)
+                const allLaneIndexElements = document.querySelectorAll('[data-lane-index]');
+                const laneDivs = Array.from(allLaneIndexElements).filter(
+                    el => !el.classList.contains('roadmap-item-resizable')
+                );
+                const laneBounds = laneDivs.map(lane => ({
+                    index: parseInt(lane.getAttribute('data-lane-index')),
+                    rect: lane.getBoundingClientRect()
+                }));
+
+                dotNetRef.invokeMethodAsync('StartMoveMilestone', msIndex, e.clientY);
+
+                const handleGlobalMouseMove = (moveEvent) => {
+                    // Compute delta as percentage of container width (1 full drag = 100%)
+                    const deltaPercent = ((moveEvent.clientX - startX) / containerWidth) * 100;
+
+                    // Detect target lane from Y position; -1 means header/global band
+                    let targetLaneIndex = -1;
+                    for (const lb of laneBounds) {
+                        if (moveEvent.clientY >= lb.rect.top && moveEvent.clientY <= lb.rect.bottom) {
+                            targetLaneIndex = lb.index;
+                            break;
+                        }
+                    }
+
+                    dotNetRef.invokeMethodAsync('UpdateMoveMilestone', deltaPercent, targetLaneIndex);
+                };
+
+                const handleGlobalMouseUp = () => {
+                    dotNetRef.invokeMethodAsync('EndMoveMilestone');
+                    document.removeEventListener('mousemove', handleGlobalMouseMove);
+                    document.removeEventListener('mouseup', handleGlobalMouseUp);
+                };
+
+                document.addEventListener('mousemove', handleGlobalMouseMove);
+                document.addEventListener('mouseup', handleGlobalMouseUp);
+            };
+
+            element._milestoneMouseDown = handleMouseDown;
+            element.addEventListener('mousedown', handleMouseDown);
+        });
+    },
+
+    /**
      * Triggers a click on a file input element
      * @param {HTMLInputElement} inputElement - The file input element to click
      */

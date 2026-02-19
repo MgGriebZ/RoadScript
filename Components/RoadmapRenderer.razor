@@ -16,13 +16,12 @@
                      OnTitleClick="@OnTitleClick"
                      OnRoadmapLinkClick="@OnRoadmapLinkClick" />
 
-        <div class="roadmap roadmap-container" style="@ThemeService.RoadmapContainerStyle()">
+        @{
+            var selectedMilestoneIndex = -1;
+            Milestone? selectedMilestone = null;
 
-            @* Milestone Navigation Controls *@
-            @{
-                var selectedMilestoneIndex = -1;
-                Milestone? selectedMilestone = null;
-
+            if (Data.Milestones != null)
+            {
                 for (int mi = 0; mi < Data.Milestones.Count; mi++)
                 {
                     if (SelectionState.SelectedPath == $"milestones[{mi}]")
@@ -32,18 +31,10 @@
                         break;
                     }
                 }
-
-                var showMilestoneNav = selectedMilestoneIndex >= 0 && !IsPreviewMode;
             }
+        }
 
-            <MilestoneNavigationControls SelectedMilestoneIndex="@selectedMilestoneIndex"
-                                        SelectedMilestone="@selectedMilestone"
-                                        IsPreviewMode="@IsPreviewMode"
-                                        JumpToStart="@OnMilestoneJumpToStart"
-                                        JumpToEnd="@OnMilestoneJumpToEnd"
-                                        AdjustPosition="@OnMilestoneAdjustPosition"
-                                        AdjustByColumn="@OnMilestoneAdjustByColumn" />
-
+        <div class="roadmap roadmap-container" style="@ThemeService.RoadmapContainerStyle()">
             @* Main Content Area *@
             <div style="display: flex; height: 100%;">
                 @* Lane Labels *@
@@ -64,6 +55,19 @@
                                OnRoadmapLinkClick="@OnRoadmapLinkClick" />
             </div>
         </div>
+
+        @* Milestone controls — below the 16:9 roadmap box, in the unused space *@
+        <MilestoneNavigationControls SelectedMilestoneIndex="@selectedMilestoneIndex"
+                                    SelectedMilestone="@selectedMilestone"
+                                    IsPreviewMode="@IsPreviewMode"
+                                    LaneCount="@(Data.Lanes?.Count ?? 0)"
+                                    JumpToStart="@OnMilestoneJumpToStart"
+                                    JumpToEnd="@OnMilestoneJumpToEnd"
+                                    AdjustPosition="@OnMilestoneAdjustPosition"
+                                    AdjustByColumn="@OnMilestoneAdjustByColumn"
+                                    MoveLaneUp="@OnMilestoneMoveLaneUp"
+                                    MoveLaneDown="@OnMilestoneMoveLaneDown"
+                                    DetachFromLane="@OnMilestoneDetachFromLane" />
     </div>
 }
 
@@ -135,6 +139,24 @@
     /// </summary>
     [Parameter]
     public EventCallback<(int MilestoneIndex, int Direction)> OnMilestoneAdjustByColumn { get; set; }
+
+    /// <summary>
+    /// Callback fired when milestone is moved to the lane above
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnMilestoneMoveLaneUp { get; set; }
+
+    /// <summary>
+    /// Callback fired when milestone is moved to the lane below
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnMilestoneMoveLaneDown { get; set; }
+
+    /// <summary>
+    /// Callback fired when milestone is toggled between header and first lane
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnMilestoneDetachFromLane { get; set; }
 
     /// <summary>
     /// Callback fired when a roadmap link icon is clicked

@@ -120,8 +120,24 @@ public class ThemeService
     public string MilestoneStyle(double position) =>
         $"position: absolute; left: {position}%; transform: translateX(-50%); z-index: 10; padding: 8px; min-width: 40px; cursor: move;";
 
+    public string InLaneMilestoneStyle(Milestone milestone)
+    {
+        var verticalPos = milestone.VerticalPercent ?? 50.0; // Default: vertically centered
+        return $"position: absolute; left: {milestone.Start}%; top: {verticalPos}%; " +
+               $"transform: translate(-50%, -50%); z-index: 5; padding: 8px; " +
+               $"min-width: 40px; cursor: move; pointer-events: auto;";
+    }
+
+    public string InLaneMilestoneLineStyle(double startPercent) =>
+        $"position: absolute; left: {startPercent}%; top: 0; bottom: 0; " +
+        $"width: 1px; border-left: 2px dashed rgba(102, 126, 234, 0.3); " +
+        $"z-index: 1; pointer-events: none;";
+
     public string MilestoneContainerStyle() =>
         "display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none;";
+
+    public string InLaneMilestoneContainerStyle() =>
+        "display: flex; flex-direction: row; align-items: center; gap: 6px; pointer-events: none;";
 
     public string MilestoneLabelStyle(string color)
     {

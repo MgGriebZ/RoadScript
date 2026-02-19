@@ -48,6 +48,9 @@
                            OnMilestoneJumpToEnd="@JumpMilestoneToEnd"
                            OnMilestoneAdjustPosition="@((args) => AdjustMilestonePosition(args.MilestoneIndex, args.Delta))"
                            OnMilestoneAdjustByColumn="@((args) => AdjustMilestoneByColumn(args.MilestoneIndex, args.Direction))"
+                           OnMilestoneMoveLaneUp="@MoveMilestoneToLaneAbove"
+                           OnMilestoneMoveLaneDown="@MoveMilestoneToLaneBelow"
+                           OnMilestoneDetachFromLane="@DetachMilestoneFromLane"
                            OnRoadmapLinkClick="@HandleRoadmapLinkClick"
                            OnTitleClick="@HandleTitleClick" />
 
@@ -87,7 +90,8 @@
                       IsCollapsed="@(!StateManager.ShowProperties)"
                       ColumnCount="@(_data?.Columns.Count ?? 4)"
                       LaneCount="@(_data?.Lanes.Count ?? 1)"
-                      MilestoneCount="@(_data?.Milestones.Count ?? 0)"
+                      MilestoneCount="@(_data?.Milestones?.Count ?? 0)"
+                      Lanes="@(_data?.Lanes)"
                       ItemIndex="@GetSelectedItemIndex()"
                       ItemCount="@GetSelectedItemCount()"
                       LaneIndex="@GetSelectedLaneIndex()"
@@ -303,8 +307,8 @@
     // Milestone drag-to-move state
     private bool _isMovingMilestone = false;
     private int _movingMilestoneIndex = -1;
-    private double _milestoneMoveStartX = 0;
     private double _milestoneMoveOriginalStart = 0;
+    private int _milestoneMoveOriginalLaneIndex = -1;  // -1 = was in header, 0+ = was in a lane
 
     // Property to get all roadmaps across all folders, organized by folder
     private List<RoadmapReference> AllRoadmapsAcrossFolders
@@ -645,6 +649,16 @@
             catch (Exception ex)
             {
                 Console.WriteLine($"Error setting up item resize: {ex.Message}");
+            }
+
+            // Setup 2D milestone drag interaction (both header and in-lane milestones)
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupAllMilestoneInteraction", _dotNetRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error setting up milestone interaction: {ex.Message}");
             }
         }
     }
@@ -1043,7 +1057,7 @@
 
     // Milestone drag-to-move methods
     [JSInvokable]
-    public void StartMoveMilestone(int milestoneIndex, double clientX)
+    public void StartMoveMilestone(int milestoneIndex, double clientY)
     {
         if (_data == null || StateManager.IsPreviewMode) return;
 
@@ -1051,36 +1065,30 @@
 
         _isMovingMilestone = true;
         _movingMilestoneIndex = milestoneIndex;
-        _milestoneMoveStartX = clientX;
 
-        var milestone = _data.Milestones[milestoneIndex];
+        var milestone = _data.Milestones![milestoneIndex];
         _milestoneMoveOriginalStart = milestone.Start;
+        _milestoneMoveOriginalLaneIndex = milestone.LaneIndex ?? -1;
     }
 
     [JSInvokable]
-    public async Task UpdateMoveMilestone(double clientX)
+    public async Task UpdateMoveMilestone(double deltaPercent, int targetLaneIndex)
     {
         if (!_isMovingMilestone || _data == null) return;
 
         try
         {
-            var milestone = _data.Milestones[_movingMilestoneIndex];
-            var columnCount = _data.Columns.Count;
-            var deltaX = clientX - _milestoneMoveStartX;
+            var milestone = _data.Milestones![_movingMilestoneIndex];
 
-            // Convert pixel delta to column percentage
-            var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 3000.0) * percentPerColumn; // 3x slower for larger deliberate strokes
+            // deltaPercent is already in 0-100 timeline space (computed from container width in JS)
+            var newStart = Math.Max(0, Math.Min(100, _milestoneMoveOriginalStart + deltaPercent));
+            milestone.Start = RoundToQuarter(newStart);
 
-            // Move the milestone: adjust start position with boundary constraints
-            var newStart = Math.Max(0, _milestoneMoveOriginalStart + deltaPercent);
-            var snappedStart = RoundToQuarter(newStart);
-
-            // Ensure milestone doesn't exceed column boundaries
-            if (snappedStart <= columnCount)
-            {
-                milestone.Start = snappedStart;
-            }
+            // Update lane assignment based on vertical drag position
+            if (targetLaneIndex == -1)
+                milestone.LaneIndex = null;  // Move to header/global band
+            else if (targetLaneIndex >= 0 && targetLaneIndex < _data.Lanes.Count)
+                milestone.LaneIndex = targetLaneIndex;
 
             await InvokeAsync(StateHasChanged);
         }
@@ -1121,6 +1129,74 @@
                 _activeTab.LastModified = DateTime.UtcNow;
                 await DebouncedSave();
             }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // Milestone lane movement handlers (wired through RoadmapRenderer → MilestoneNavigationControls)
+
+    private async Task MoveMilestoneToLaneAbove(int milestoneIndex)
+    {
+        if (_data?.Milestones == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+        var milestone = _data.Milestones[milestoneIndex];
+        if (milestone.LaneIndex == null || milestone.LaneIndex <= 0) return;
+
+        SaveHistorySnapshot();
+        milestone.LaneIndex--;
+        await SyncMilestoneAndSave();
+    }
+
+    private async Task MoveMilestoneToLaneBelow(int milestoneIndex)
+    {
+        if (_data?.Milestones == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+        var milestone = _data.Milestones[milestoneIndex];
+
+        SaveHistorySnapshot();
+        if (milestone.LaneIndex == null)
+            milestone.LaneIndex = 0;  // Assign to first lane
+        else if (milestone.LaneIndex < _data.Lanes.Count - 1)
+            milestone.LaneIndex++;
+
+        await SyncMilestoneAndSave();
+    }
+
+    private async Task DetachMilestoneFromLane(int milestoneIndex)
+    {
+        if (_data?.Milestones == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+        var milestone = _data.Milestones[milestoneIndex];
+
+        SaveHistorySnapshot();
+        if (milestone.LaneIndex == null)
+            milestone.LaneIndex = 0;  // Assign to first lane
+        else
+            milestone.LaneIndex = null;  // Return to header
+
+        await SyncMilestoneAndSave();
+    }
+
+    private async Task SyncMilestoneAndSave()
+    {
+        if (_data == null) return;
+
+        var updatedJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        _currentJson = updatedJson;
+
+        if (_editor != null)
+        {
+            await _editor.SetValue(updatedJson);
+        }
+
+        if (_sessionManager != null && _activeTab != null && _folderManager != null)
+        {
+            _activeTab.Data = _data;
+            _activeTab.LastModified = DateTime.UtcNow;
+            await DebouncedSave();
         }
 
         await InvokeAsync(StateHasChanged);
@@ -2019,6 +2095,18 @@
                         _data.Lanes.Insert(moveUpIndex - 1, lane);
                         var newPath = $"lanes[{moveUpIndex - 1}]";
                         SelectionState.Select(newPath, "lane", lane);
+
+                        // Update milestone lane references for the swap
+                        if (_data.Milestones != null)
+                        {
+                            foreach (var ms in _data.Milestones)
+                            {
+                                if (ms.LaneIndex == moveUpIndex)
+                                    ms.LaneIndex = moveUpIndex - 1;
+                                else if (ms.LaneIndex == moveUpIndex - 1)
+                                    ms.LaneIndex = moveUpIndex;
+                            }
+                        }
                     }
                     break;
 
@@ -2031,6 +2119,18 @@
                         _data.Lanes.Insert(moveDownIndex + 1, lane);
                         var newPath = $"lanes[{moveDownIndex + 1}]";
                         SelectionState.Select(newPath, "lane", lane);
+
+                        // Update milestone lane references for the swap
+                        if (_data.Milestones != null)
+                        {
+                            foreach (var ms in _data.Milestones)
+                            {
+                                if (ms.LaneIndex == moveDownIndex)
+                                    ms.LaneIndex = moveDownIndex + 1;
+                                else if (ms.LaneIndex == moveDownIndex + 1)
+                                    ms.LaneIndex = moveDownIndex;
+                            }
+                        }
                     }
                     break;
             }
@@ -2100,6 +2200,17 @@
                     var laneIndex = ExtractIndexFromPath(jsonPath, "lanes");
                     if (_data.Lanes.Count > 1 && laneIndex < _data.Lanes.Count)
                     {
+                        // Cascade: reassign milestones from deleted lane to header, adjust indices
+                        if (_data.Milestones != null)
+                        {
+                            foreach (var ms in _data.Milestones)
+                            {
+                                if (ms.LaneIndex == laneIndex)
+                                    ms.LaneIndex = null;  // Return to header
+                                else if (ms.LaneIndex > laneIndex)
+                                    ms.LaneIndex--;  // Adjust for shifted indices
+                            }
+                        }
                         _data.Lanes.RemoveAt(laneIndex);
                     }
                     break;
@@ -2124,7 +2235,7 @@
 
                 case "milestone":
                     var milestoneIndex = ExtractIndexFromPath(jsonPath, "milestones");
-                    if (_data.Milestones.Count > 0 && milestoneIndex < _data.Milestones.Count)
+                    if (_data.Milestones != null && _data.Milestones.Count > 0 && milestoneIndex < _data.Milestones.Count)
                     {
                         _data.Milestones.RemoveAt(milestoneIndex);
                     }
@@ -2506,7 +2617,7 @@
 
     private async Task AdjustMilestonePosition(int milestoneIndex, double delta)
     {
-        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+        if (_data?.Milestones == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
 
         SaveHistorySnapshot();
 
@@ -2541,7 +2652,7 @@
 
     private async Task JumpMilestoneToStart(int milestoneIndex)
     {
-        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+        if (_data?.Milestones == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
 
         SaveHistorySnapshot();
 
@@ -2573,7 +2684,7 @@
 
     private async Task JumpMilestoneToEnd(int milestoneIndex)
     {
-        if (_data == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
+        if (_data?.Milestones == null || milestoneIndex < 0 || milestoneIndex >= _data.Milestones.Count) return;
 
         SaveHistorySnapshot();
 
