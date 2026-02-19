@@ -658,6 +658,12 @@ window.RoadScriptInterop = {
 
                 const msIndex = parseInt(element.id.replace('milestone-', ''));
 
+                // Capture container width at drag start for accurate percentage calculation
+                const container = element.closest('.roadmap-container') ||
+                                  document.querySelector('.roadmap-container');
+                const containerWidth = container ? container.clientWidth : 900;
+                const startX = e.clientX;
+
                 // Cache lane boundaries at drag start for efficient Y-coordinate detection
                 // Filter to only lane row divs (not item divs which also carry data-lane-index)
                 const allLaneIndexElements = document.querySelectorAll('[data-lane-index]');
@@ -669,9 +675,12 @@ window.RoadScriptInterop = {
                     rect: lane.getBoundingClientRect()
                 }));
 
-                dotNetRef.invokeMethodAsync('StartMoveMilestone', msIndex, e.clientX, e.clientY);
+                dotNetRef.invokeMethodAsync('StartMoveMilestone', msIndex, e.clientY);
 
                 const handleGlobalMouseMove = (moveEvent) => {
+                    // Compute delta as percentage of container width (1 full drag = 100%)
+                    const deltaPercent = ((moveEvent.clientX - startX) / containerWidth) * 100;
+
                     // Detect target lane from Y position; -1 means header/global band
                     let targetLaneIndex = -1;
                     for (const lb of laneBounds) {
@@ -681,7 +690,7 @@ window.RoadScriptInterop = {
                         }
                     }
 
-                    dotNetRef.invokeMethodAsync('UpdateMoveMilestone', moveEvent.clientX, targetLaneIndex);
+                    dotNetRef.invokeMethodAsync('UpdateMoveMilestone', deltaPercent, targetLaneIndex);
                 };
 
                 const handleGlobalMouseUp = () => {

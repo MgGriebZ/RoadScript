@@ -307,7 +307,6 @@
     // Milestone drag-to-move state
     private bool _isMovingMilestone = false;
     private int _movingMilestoneIndex = -1;
-    private double _milestoneMoveStartX = 0;
     private double _milestoneMoveOriginalStart = 0;
     private int _milestoneMoveOriginalLaneIndex = -1;  // -1 = was in header, 0+ = was in a lane
 
@@ -1058,7 +1057,7 @@
 
     // Milestone drag-to-move methods
     [JSInvokable]
-    public void StartMoveMilestone(int milestoneIndex, double clientX, double clientY)
+    public void StartMoveMilestone(int milestoneIndex, double clientY)
     {
         if (_data == null || StateManager.IsPreviewMode) return;
 
@@ -1066,7 +1065,6 @@
 
         _isMovingMilestone = true;
         _movingMilestoneIndex = milestoneIndex;
-        _milestoneMoveStartX = clientX;
 
         var milestone = _data.Milestones![milestoneIndex];
         _milestoneMoveOriginalStart = milestone.Start;
@@ -1074,29 +1072,17 @@
     }
 
     [JSInvokable]
-    public async Task UpdateMoveMilestone(double clientX, int targetLaneIndex)
+    public async Task UpdateMoveMilestone(double deltaPercent, int targetLaneIndex)
     {
         if (!_isMovingMilestone || _data == null) return;
 
         try
         {
             var milestone = _data.Milestones![_movingMilestoneIndex];
-            var columnCount = _data.Columns.Count;
-            var deltaX = clientX - _milestoneMoveStartX;
 
-            // Convert pixel delta to column percentage
-            var percentPerColumn = 100.0 / columnCount;
-            var deltaPercent = (deltaX / 3000.0) * percentPerColumn; // 3x slower for larger deliberate strokes
-
-            // Move the milestone: adjust start position with boundary constraints
-            var newStart = Math.Max(0, _milestoneMoveOriginalStart + deltaPercent);
-            var snappedStart = RoundToQuarter(newStart);
-
-            // Ensure milestone doesn't exceed column boundaries
-            if (snappedStart <= columnCount)
-            {
-                milestone.Start = snappedStart;
-            }
+            // deltaPercent is already in 0-100 timeline space (computed from container width in JS)
+            var newStart = Math.Max(0, Math.Min(100, _milestoneMoveOriginalStart + deltaPercent));
+            milestone.Start = RoundToQuarter(newStart);
 
             // Update lane assignment based on vertical drag position
             if (targetLaneIndex == -1)

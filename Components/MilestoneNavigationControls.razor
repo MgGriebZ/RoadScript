@@ -3,7 +3,7 @@
 
 @if (!IsPreviewMode && SelectedMilestoneIndex >= 0 && SelectedMilestone != null)
 {
-    <div style="position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 150; display: flex; align-items: center; gap: 6px;">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; flex-wrap: wrap;">
         <button type="button"
                 @onclick="@(async () => await JumpToStart.InvokeAsync(SelectedMilestoneIndex))"
                 title="Jump to Start (0%)"
