@@ -116,7 +116,7 @@
                              @onclick:stopPropagation="@(!IsPreviewMode)"
                              class="@GetElementClass($"milestones[{ilMsIndex}]")"
                              style="@ThemeService.InLaneMilestoneStyle(inLaneMilestone)">
-                            <div style="@ThemeService.MilestoneContainerStyle()">
+                            <div style="@ThemeService.InLaneMilestoneContainerStyle()">
                                 <Icon IconType="@(inLaneMilestone.Icon ?? "diamond")"
                                       Color="@inLaneMilestone.Color"
                                       Size="24"

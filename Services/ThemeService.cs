@@ -136,6 +136,9 @@ public class ThemeService
     public string MilestoneContainerStyle() =>
         "display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none;";
 
+    public string InLaneMilestoneContainerStyle() =>
+        "display: flex; flex-direction: row; align-items: center; gap: 6px; pointer-events: none;";
+
     public string MilestoneLabelStyle(string color)
     {
         return $"font-size: 15px; font-weight: 700; line-height: 1.3; color: #1f2937; white-space: nowrap; background: #ffffff; padding: 4px 10px; border-radius: 4px; border: 1px solid #d1d5db; border-left: 3px solid {color}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);";
