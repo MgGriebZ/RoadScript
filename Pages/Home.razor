@@ -444,15 +444,7 @@
           ""spanning"": false,
           ""statusIcon"": ""wrench"",
           ""statusColor"": ""#4A90D9"",
-          ""details"": [
-            {
-              ""text"": ""Saturday"",
-              ""subs"": [
-                ""3:00PM - 11:59PM est"",
-                ""4PM Release Deployment Process Begins""
-              ]
-            }
-          ]
+          ""description"": ""- Saturday\n  - 3:00PM - 11:59PM est\n  - 4PM Release Deployment Process Begins""
         }
       ]
     }
@@ -1695,11 +1687,32 @@
             };
             _data = JsonSerializer.Deserialize<RoadmapData>(json, options);
             _error = null;
+
+            // Migrate legacy details to markdown description
+            if (_data != null)
+            {
+                MigrateDetailsToDescription(_data);
+            }
         }
         catch (JsonException ex)
         {
             _data = null;
             _error = $"Line {ex.LineNumber}, Position {ex.BytePositionInLine}: {ex.Message}";
+        }
+    }
+
+    private void MigrateDetailsToDescription(RoadmapData data)
+    {
+        foreach (var lane in data.Lanes)
+        {
+            foreach (var item in lane.Items)
+            {
+                if (string.IsNullOrEmpty(item.Description) && item.Details != null && item.Details.Count > 0)
+                {
+                    item.Description = RoadScript.Services.MarkdownRenderer.MigrateDetailsToMarkdown(item.Details);
+                    item.Details = null; // Clear legacy data after migration
+                }
+            }
         }
     }
 
@@ -1992,7 +2005,7 @@
                                 Title = "New Item",
                                 Start = 0,
                                 Length = 1,
-                                Details = new List<Detail>()
+                                Description = null
                             }
                         }
                     };

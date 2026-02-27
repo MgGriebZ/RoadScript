@@ -146,8 +146,12 @@
                              data-lane-index="@laneIdx"
                              data-item-index="@itemIdx">
                         @{
-                            var hasDetails = item.Details != null && item.Details.Count > 0;
-                            var hasSubs = hasDetails && item.Details.Any(d => d.Subs != null && d.Subs.Count > 0);
+                            var hasDescription = RoadScript.Services.MarkdownRenderer.HasContent(item.Description);
+                            var hasSubContent = RoadScript.Services.MarkdownRenderer.HasSubContent(item.Description);
+                            // Backward compat: check legacy details if no description yet
+                            var hasLegacyDetails = !hasDescription && item.Details != null && item.Details.Count > 0;
+                            var hasDetails = hasDescription || hasLegacyDetails;
+                            var hasSubs = hasSubContent || (hasLegacyDetails && item.Details!.Any(d => d.Subs != null && d.Subs.Count > 0));
                             var hasTitle = !string.IsNullOrWhiteSpace(item.Title);
                         }
                         <div style="@ThemeService.ItemHeaderStyle(hasDetails, hasSubs, hasTitle, item.Length, item.Color ?? lane.Color)">
@@ -181,10 +185,17 @@
                                 <span style="margin-left: auto; font-size: 16px; opacity: 0.5;" title="Hidden in preview mode">👁</span>
                             }
                         </div>
-                        <ul style="margin: 0; padding: 0; list-style: none;">
-                            @if (item.Details != null)
-                            {
-                                @foreach (var detail in item.Details)
+                        @if (hasDescription)
+                        {
+                            <div style="margin: 0; padding: 0;">
+                                @((MarkupString)RoadScript.Services.MarkdownRenderer.RenderToHtml(item.Description, lane.Color))
+                            </div>
+                        }
+                        else if (hasLegacyDetails)
+                        {
+                            @* Backward compat: render legacy details until migrated *@
+                            <ul style="margin: 0; padding: 0; list-style: none;">
+                                @foreach (var detail in item.Details!)
                                 {
                                     <li style="@ThemeService.DetailItemStyle(detail)">
                                         <div style="@ThemeService.DetailTextStyle(lane.Color)">
@@ -205,8 +216,8 @@
                                         }
                                     </li>
                                 }
-                            }
-                        </ul>
+                            </ul>
+                        }
                     </div>
                     }
                 }
