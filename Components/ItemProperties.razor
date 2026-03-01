@@ -630,13 +630,6 @@
         OnChange.InvokeAsync(("length", newSpan));
     }
 
-    private string GetQuickButtonStyle()
-    {
-        return "width: 100%; min-height: 36px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; " +
-               "border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; " +
-               "justify-content: center; font-weight: 500; padding: 4px;";
-    }
-
     private async Task HandleFitToEndToggle(ChangeEventArgs e)
     {
         var isChecked = (bool)(e.Value ?? false);

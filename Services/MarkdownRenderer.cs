@@ -84,8 +84,8 @@ public static class MarkdownRenderer
                 if (spaces >= 4) level = 3;
                 else if (spaces >= 2) level = 2;
 
-                // Close deeper levels
-                while (bulletStack.Count > 0 && bulletStack[^1] >= level)
+                // Close deeper levels (strictly greater to keep same-level siblings in one list)
+                while (bulletStack.Count > 0 && bulletStack[^1] > level)
                 {
                     bulletStack.RemoveAt(bulletStack.Count - 1);
                     sb.Append("</ul>");
@@ -164,9 +164,18 @@ public static class MarkdownRenderer
         for (int i = 0; i < details.Count; i++)
         {
             var detail = details[i];
-            if (!string.IsNullOrWhiteSpace(detail.Text))
+            var hasText = !string.IsNullOrWhiteSpace(detail.Text);
+            var hasSubs = detail.Subs != null && detail.Subs.Any(s => !string.IsNullOrWhiteSpace(s));
+
+            if (hasText)
             {
                 sb.Append($"- {detail.Text}");
+                sb.Append('\n');
+            }
+            else if (hasSubs)
+            {
+                // Emit placeholder parent bullet so sub-bullets aren't orphaned
+                sb.Append("- ...");
                 sb.Append('\n');
             }
 
