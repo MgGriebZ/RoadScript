@@ -1269,3 +1269,12 @@ input[type="color"] {
 .landing-page-wrapper::-webkit-scrollbar-thumb:hover {
     background: #4a4a5e;
 }
+
+/* Layout chain — ensure full-height from root to content */
+.page {
+    display: contents;
+}
+
+main {
+    display: contents;
+}
