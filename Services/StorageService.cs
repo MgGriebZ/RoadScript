@@ -166,7 +166,7 @@ public class StorageService
 
         if (session.ActiveTabId == tabId)
         {
-            session.ActiveTabId = session.Tabs[0].Id;
+            session.ActiveTabId = session.Tabs.FirstOrDefault()?.Id ?? "";
         }
 
         return true;
@@ -461,7 +461,7 @@ public class StorageService
 
         if (folderManager.ActiveFolderId == folderId)
         {
-            folderManager.ActiveFolderId = folderManager.Folders[0].Id;
+            folderManager.ActiveFolderId = folderManager.Folders.FirstOrDefault()?.Id ?? "";
         }
 
         return true;
