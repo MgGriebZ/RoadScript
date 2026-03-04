@@ -142,8 +142,11 @@ public class Item
     [JsonPropertyName("linkedRoadmapId")]
     public string? LinkedRoadmapId { get; set; }  // Link to another roadmap (tab) in the same folder
 
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }  // Markdown-formatted description text
+
     [JsonPropertyName("details")]
-    public List<Detail>? Details { get; set; }  // Nullable - items can have no details
+    public List<Detail>? Details { get; set; }  // Legacy - migrated to description on load
 }
 
 public class Detail

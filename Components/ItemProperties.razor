@@ -290,85 +290,84 @@
     </div>
 
     <div class="form-group">
-        <label style="margin-bottom: 12px; font-weight: 600; color: #e0e7ff;">Details</label>
+        <label style="margin-bottom: 8px; font-weight: 600; color: #e0e7ff;">Description</label>
+        <div style="font-size: 10px; color: #666; margin-bottom: 8px;">
+            Markdown: **bold** · *italic* · ~~strike~~ · `code` · - bullets · (indent 2 spaces for sub-bullets)
+        </div>
 
-        @if (Item.Details != null && Item.Details.Count > 0)
+        @* Formatting Toolbar *@
+        <div style="display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap;">
+            <button type="button" @onclick="@(() => InsertFormatting("**", "**"))"
+                    title="Bold (**text**)"
+                    style="@_toolbarBtnStyle">
+                <strong>B</strong>
+            </button>
+            <button type="button" @onclick="@(() => InsertFormatting("*", "*"))"
+                    title="Italic (*text*)"
+                    style="@_toolbarBtnStyle">
+                <em>I</em>
+            </button>
+            <button type="button" @onclick="@(() => InsertFormatting("~~", "~~"))"
+                    title="Strikethrough (~~text~~)"
+                    style="@_toolbarBtnStyle">
+                <s>S</s>
+            </button>
+            <button type="button" @onclick="@(() => InsertFormatting("`", "`"))"
+                    title="Inline code (`text`)"
+                    style="@_toolbarBtnStyle">
+                <span style="font-family: monospace; font-size: 12px;">&lt;/&gt;</span>
+            </button>
+            <button type="button" @onclick="@(() => InsertLinePrefix("- "))"
+                    title="Bullet point"
+                    style="@_toolbarBtnStyle">
+                •
+            </button>
+            <button type="button" @onclick="@(() => InsertLinePrefix("  - "))"
+                    title="Sub-bullet (indented)"
+                    style="@_toolbarBtnStyle">
+                <span style="font-size: 10px; padding-left: 4px;">–</span>
+            </button>
+        </div>
+
+        @* Markdown Textarea *@
+        <textarea value="@(Item.Description ?? "")"
+                  @onchange="@(e => OnChange.InvokeAsync(("description", e.Value?.ToString() ?? "")))"
+                  @oninput="@(e => { _descriptionPreview = e.Value?.ToString() ?? ""; })"
+                  @ref="_descriptionTextarea"
+                  class="form-control"
+                  placeholder="Use markdown for formatting:&#10;- Bullet point&#10;  - Sub-bullet&#10;**Bold text**&#10;*Italic text*&#10;~~Strikethrough~~"
+                  rows="8"
+                  style="font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 12px; line-height: 1.6; background: #1a1a2e; color: #e0e7ff; border: 1px solid #3a3a4e; border-radius: 6px; padding: 10px; resize: vertical; min-height: 120px; width: 100%; box-sizing: border-box;"
+                  spellcheck="true"></textarea>
+
+        @* Live Preview Toggle *@
+        <div style="margin-top: 8px;">
+            <button type="button"
+                    @onclick="@(() => _showPreview = !_showPreview)"
+                    style="background: none; border: 1px solid #3a3a4e; color: #888; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: all 0.2s;">
+                @(_showPreview ? "▼ Hide Preview" : "▶ Show Preview")
+            </button>
+        </div>
+
+        @if (_showPreview)
         {
-            @for (int i = 0; i < Item.Details.Count; i++)
-            {
-                var index = i;
-                var detail = Item.Details[i];
-                <div style="background: #252538; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #3a3a4e;">
-                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
-                        <input type="text"
-                               value="@detail.Text"
-                               @onchange="@(e => UpdateDetailText(index, e.Value?.ToString() ?? ""))"
-                               class="form-control"
-                               placeholder="Detail text"
-                               style="flex: 1;" />
-                        <button @onclick="() => RemoveDetail(index)"
-                                type="button"
-                                title="Remove detail"
-                                style="width: 36px; height: 36px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444; border: 2px solid #ef4444; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
-                            🗑️
-                        </button>
+            <div style="margin-top: 8px; padding: 12px; background: #ffffff; border-radius: 6px; border: 1px solid #d1d5db; max-height: 200px; overflow-y: auto;">
+                @{
+                    var previewText = !string.IsNullOrEmpty(_descriptionPreview) ? _descriptionPreview : (Item.Description ?? "");
+                    var previewHtml = RoadScript.Services.MarkdownRenderer.RenderToHtml(previewText);
+                }
+                @if (!string.IsNullOrEmpty(previewHtml))
+                {
+                    <div style="font-size: 14px;">
+                        @((MarkupString)previewHtml)
                     </div>
-
-                    @* Sub-bullets section *@
-                    <div style="margin-top: 10px; padding-left: 8px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-size: 11px; color: #888; font-weight: 600;">Sub-items</span>
-                            <button @onclick="() => AddSubBullet(index)"
-                                    type="button"
-                                    title="Add sub-item"
-                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);">
-                                + Sub
-                            </button>
-                        </div>
-
-                        @if (detail.Subs != null && detail.Subs.Count > 0)
-                        {
-                            @for (int j = 0; j < detail.Subs.Count; j++)
-                            {
-                                var subIndex = j;
-                                var sub = detail.Subs[j];
-                                <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 6px;">
-                                    <span style="color: #666; font-size: 12px;">–</span>
-                                    <input type="text"
-                                           value="@sub"
-                                           @onchange="@(e => UpdateSubBullet(index, subIndex, e.Value?.ToString() ?? ""))"
-                                           class="form-control"
-                                           placeholder="Sub-item text"
-                                           style="font-size: 12px; padding: 6px 10px; flex: 1;" />
-                                    <button @onclick="() => RemoveSubBullet(index, subIndex)"
-                                            type="button"
-                                            title="Remove sub-item"
-                                            style="width: 28px; height: 28px; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; font-weight: 700;">
-                                        ×
-                                    </button>
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            <div style="color: #555; font-size: 11px; font-style: italic; padding-left: 8px;">No sub-items</div>
-                        }
-                    </div>
-                </div>
-            }
+                }
+                else
+                {
+                    <div style="color: #999; font-style: italic; font-size: 12px;">No content to preview</div>
+                }
+            </div>
         }
-        else
-        {
-            <div style="color: #666; font-size: 12px; font-style: italic; padding: 12px; text-align: center; background: #1a1a2e; border-radius: 6px; border: 1px solid #3a3a4e;">No details added yet</div>
-        }
-
-        @* Large Add Detail Button *@
-        <button @onclick="AddDetail"
-                type="button"
-                title="Add new detail to this item"
-                style="width: 100%; height: 48px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.1) 100%); color: #a5b4fc; border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2); margin-top: 12px;">
-            <span style="font-size: 20px;">+</span> Add Detail
-        </button>
     </div>
 
     @* Item Management Section *@
@@ -488,6 +487,31 @@
     public List<RoadmapReference>? AvailableRoadmaps { get; set; }
 
     private bool _statusIconPickerExpanded = false;
+    private bool _showPreview = false;
+    private string _descriptionPreview = "";
+    private ElementReference _descriptionTextarea;
+
+    private const string _toolbarBtnStyle = "width: 32px; height: 28px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s;";
+
+    private void InsertFormatting(string prefix, string suffix)
+    {
+        // Append formatting template to the end of the current description
+        var current = Item.Description ?? "";
+        if (!string.IsNullOrEmpty(current) && !current.EndsWith("\n"))
+            current += "\n";
+        current += $"{prefix}text{suffix}";
+        OnChange.InvokeAsync(("description", current));
+    }
+
+    private void InsertLinePrefix(string prefix)
+    {
+        // Append a new line with the prefix
+        var current = Item.Description ?? "";
+        if (!string.IsNullOrEmpty(current) && !current.EndsWith("\n"))
+            current += "\n";
+        current += prefix;
+        OnChange.InvokeAsync(("description", current));
+    }
 
     private void ToggleStatusIconPicker()
     {
@@ -606,13 +630,6 @@
         OnChange.InvokeAsync(("length", newSpan));
     }
 
-    private string GetQuickButtonStyle()
-    {
-        return "width: 100%; min-height: 36px; background: #252538; color: #ccc; border: 1px solid #3a3a4e; " +
-               "border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; " +
-               "justify-content: center; font-weight: 500; padding: 4px;";
-    }
-
     private async Task HandleFitToEndToggle(ChangeEventArgs e)
     {
         var isChecked = (bool)(e.Value ?? false);
@@ -623,61 +640,6 @@
             await OnChange.InvokeAsync(("length", maxSpan));
         }
         // If unchecked, do nothing - user can manually adjust
-    }
-
-    private void AddDetail()
-    {
-        Item.Details ??= new List<Detail>();
-        Item.Details.Add(new Detail { Text = "New detail", Subs = new List<string>() });
-        OnChange.InvokeAsync(("details", Item.Details));
-    }
-
-    private void RemoveDetail(int index)
-    {
-        if (Item.Details != null && index < Item.Details.Count)
-        {
-            Item.Details.RemoveAt(index);
-            OnChange.InvokeAsync(("details", Item.Details));
-        }
-    }
-
-    private void UpdateDetailText(int index, string text)
-    {
-        if (Item.Details != null && index < Item.Details.Count)
-        {
-            Item.Details[index].Text = text;
-            OnChange.InvokeAsync(("details", Item.Details));
-        }
-    }
-
-    private void AddSubBullet(int detailIndex)
-    {
-        if (Item.Details != null && detailIndex < Item.Details.Count)
-        {
-            Item.Details[detailIndex].Subs ??= new List<string>();
-            Item.Details[detailIndex].Subs.Add("New sub-item");
-            OnChange.InvokeAsync(("details", Item.Details));
-        }
-    }
-
-    private void RemoveSubBullet(int detailIndex, int subIndex)
-    {
-        if (Item.Details != null && detailIndex < Item.Details.Count &&
-            Item.Details[detailIndex].Subs != null && subIndex < Item.Details[detailIndex].Subs.Count)
-        {
-            Item.Details[detailIndex].Subs.RemoveAt(subIndex);
-            OnChange.InvokeAsync(("details", Item.Details));
-        }
-    }
-
-    private void UpdateSubBullet(int detailIndex, int subIndex, string text)
-    {
-        if (Item.Details != null && detailIndex < Item.Details.Count &&
-            Item.Details[detailIndex].Subs != null && subIndex < Item.Details[detailIndex].Subs.Count)
-        {
-            Item.Details[detailIndex].Subs[subIndex] = text;
-            OnChange.InvokeAsync(("details", Item.Details));
-        }
     }
 
     private void AddItem()

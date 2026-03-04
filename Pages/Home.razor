@@ -444,15 +444,7 @@
           ""spanning"": false,
           ""statusIcon"": ""wrench"",
           ""statusColor"": ""#4A90D9"",
-          ""details"": [
-            {
-              ""text"": ""Saturday"",
-              ""subs"": [
-                ""3:00PM - 11:59PM est"",
-                ""4PM Release Deployment Process Begins""
-              ]
-            }
-          ]
+          ""description"": ""- Saturday\n  - 3:00PM - 11:59PM est\n  - 4PM Release Deployment Process Begins""
         }
       ]
     }
@@ -561,7 +553,7 @@
                     {
                         folder.SessionManager.ActiveTabId = tabId;
                         _activeTab = tab;
-                        _data = tab.Data;
+                        SetData(tab.Data);
                         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
                         await DebouncedSave();
                     }
@@ -625,7 +617,7 @@
             _activeTab = StorageService.GetActiveTab(_sessionManager);
             if (_activeTab != null)
             {
-                _data = _activeTab.Data;
+                SetData(_activeTab.Data);
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
             }
         }
@@ -1493,7 +1485,7 @@
 
             if (_activeTab != null)
             {
-                _data = _activeTab.Data;
+                SetData(_activeTab.Data);
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
             }
 
@@ -1627,7 +1619,7 @@
 
             if (_activeTab != null)
             {
-                _data = _activeTab.Data;
+                SetData(_activeTab.Data);
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
             }
 
@@ -1695,11 +1687,45 @@
             };
             _data = JsonSerializer.Deserialize<RoadmapData>(json, options);
             _error = null;
+
+            // Migrate legacy details to markdown description
+            if (_data != null)
+            {
+                MigrateDetailsToDescription(_data);
+            }
         }
         catch (JsonException ex)
         {
             _data = null;
             _error = $"Line {ex.LineNumber}, Position {ex.BytePositionInLine}: {ex.Message}";
+        }
+    }
+
+    private void MigrateDetailsToDescription(RoadmapData data)
+    {
+        foreach (var lane in data.Lanes)
+        {
+            foreach (var item in lane.Items)
+            {
+                if (string.IsNullOrEmpty(item.Description) && item.Details != null && item.Details.Count > 0)
+                {
+                    item.Description = RoadScript.Services.MarkdownRenderer.MigrateDetailsToMarkdown(item.Details);
+                    item.Details = null; // Clear legacy data after migration
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Centralized setter for _data that always runs legacy detail migration.
+    /// Use this instead of direct _data = assignment.
+    /// </summary>
+    private void SetData(RoadmapData? data)
+    {
+        _data = data;
+        if (_data != null)
+        {
+            MigrateDetailsToDescription(_data);
         }
     }
 
@@ -1992,7 +2018,7 @@
                                 Title = "New Item",
                                 Start = 0,
                                 Length = 1,
-                                Details = new List<Detail>()
+                                Description = null
                             }
                         }
                     };
@@ -2030,7 +2056,7 @@
                         Title = "New Item",
                         Start = 0,
                         Length = 1,
-                        Details = new List<Detail>()
+                        Description = null
                     };
 
                     if (itemIndex >= 0)
@@ -2742,7 +2768,7 @@
 
         if (_activeTab != null)
         {
-            _data = _activeTab.Data;
+            SetData(_activeTab.Data);
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
             if (_activeFolder != null)
@@ -2797,7 +2823,7 @@
 
             if (_activeTab != null)
             {
-                _data = _activeTab.Data;
+                SetData(_activeTab.Data);
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
                 if (_editor != null && _editorReady)
@@ -2828,7 +2854,7 @@
             var newTab = StorageService.AddTab(_sessionManager, templateData.Title, templateData);
             _sessionManager.ActiveTabId = newTab.Id;
             _activeTab = newTab;
-            _data = newTab.Data;
+            SetData(newTab.Data);
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
             if (_editor != null && _editorReady)
@@ -2868,7 +2894,7 @@
         {
             _sessionManager.ActiveTabId = _sessionManager.Tabs[0].Id;
             _activeTab = _sessionManager.Tabs[0];
-            _data = _activeTab.Data;
+            SetData(_activeTab.Data);
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
             if (_editor != null && _editorReady)
@@ -2934,7 +2960,7 @@
 
                     if (_activeTab != null)
                     {
-                        _data = _activeTab.Data;
+                        SetData(_activeTab.Data);
                         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
                         if (_editor != null && _editorReady)
@@ -3029,7 +3055,7 @@
                 {
                     firstFolder.SessionManager.ActiveTabId = firstTab.Id;
                     _activeTab = firstTab;
-                    _data = firstTab.Data;
+                    SetData(firstTab.Data);
                     _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
                 }
             }
@@ -3078,7 +3104,7 @@
         {
             folder.SessionManager.ActiveTabId = args.TabId;
             _activeTab = tab;
-            _data = tab.Data;
+            SetData(tab.Data);
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
             // Update URL
@@ -3258,7 +3284,7 @@
         _activeFolder = folder;
         _sessionManager = folder.SessionManager;
         _activeTab = newTab;
-        _data = newTab.Data;
+        SetData(newTab.Data);
         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
         // Update URL and clear hash (remove share code from URL)
@@ -3342,7 +3368,7 @@
                     if (_activeFolder?.Id == folder.Id)
                     {
                         _activeTab = folder.SessionManager.Tabs[0];
-                        _data = _activeTab.Data;
+                        SetData(_activeTab.Data);
                         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
                     }
                 }
@@ -3496,7 +3522,7 @@
             targetFolder.SessionManager.ActiveTabId = sourceTab.Id;
             _sessionManager = targetFolder.SessionManager;
             _activeTab = sourceTab;
-            _data = sourceTab.Data;
+            SetData(sourceTab.Data);
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
             // Update URL
@@ -3727,7 +3753,7 @@
 
             if (_activeTab != null)
             {
-                _data = _activeTab.Data;
+                SetData(_activeTab.Data);
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
                 // Update URL for browser history
@@ -3804,7 +3830,7 @@
 
             if (_activeTab != null)
             {
-                _data = _activeTab.Data;
+                SetData(_activeTab.Data);
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
             }
         }

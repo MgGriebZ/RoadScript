@@ -626,18 +626,6 @@ input[type="color"] {
     background: #dc2626;
 }
 
-/* Detail Item */
-.detail-item {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.detail-item .form-control {
-    flex: 1;
-}
-
 /* Responsive - Property Panel */
 @media (max-width: 767px) {
     /* Mobile: Hide property panel completely (use MobilePropertySheet instead) */
