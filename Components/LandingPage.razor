@@ -1,0 +1,258 @@
+@using RoadScript.Models
+@using RoadScript.Services
+@inject ThemeService ThemeService
+@inject SelectionState SelectionState
+@inject Microsoft.JSInterop.IJSRuntime JSRuntime
+@implements IDisposable
+
+<div class="landing-page-wrapper">
+    @* ══════════ SECTION 1: HERO ══════════ *@
+    <section class="landing-hero">
+        <div class="landing-hero-content">
+            <div class="landing-logo">
+                <Icon IconType="diamond" Size="48" Color="#667eea" />
+                <h1 class="landing-title">RoadScript</h1>
+            </div>
+            <p class="landing-subtitle">
+                Roadmaps that live in your browser.<br />
+                No accounts. No servers. Just clarity.
+            </p>
+
+            @* Live mini roadmap — uses real RoadmapRenderer in preview mode *@
+            <div class="landing-hero-preview" style="@ThemeService.PreviewPaneStyle()">
+                <RoadmapRenderer Data="@_heroRoadmap"
+                                 IsPreviewMode="true"
+                                 ActiveTab="@_demoTab"
+                                 SessionManager="@_demoSession"
+                                 AvailableRoadmaps="@(new List<RoadmapReference>())" />
+            </div>
+
+            <button class="landing-cta-primary" @onclick="ScrollToTemplates">
+                Create Your First Roadmap
+            </button>
+
+            <div class="landing-scroll-hint">
+                <span class="landing-scroll-arrow">
+                    <Icon IconType="arrow-right" Size="16" Color="#9ca3af" />
+                </span>
+                <span>Scroll to explore</span>
+            </div>
+        </div>
+    </section>
+
+    @* ══════════ SECTION 2: FEATURE SHOWCASE ══════════ *@
+    <section class="landing-features">
+        @for (int i = 0; i < _features.Count; i++)
+        {
+            var feature = _features[i];
+            var isReversed = i % 2 == 1;
+            <div class="landing-feature-card @(isReversed ? "landing-feature-reversed" : "")">
+                <div class="landing-feature-text">
+                    <div class="landing-feature-icon" style="background: @($"rgba({HexToRgb(feature.Color)}, 0.12)");">
+                        <Icon IconType="@feature.Icon" Size="32" Color="@feature.Color" />
+                    </div>
+                    <h2>@feature.Title</h2>
+                    <p>@feature.Description</p>
+                </div>
+                <div class="landing-feature-preview" style="@ThemeService.PreviewPaneStyle()">
+                    <RoadmapRenderer Data="@feature.DemoData"
+                                     IsPreviewMode="true"
+                                     ActiveTab="@_demoTab"
+                                     SessionManager="@_demoSession"
+                                     AvailableRoadmaps="@(new List<RoadmapReference>())" />
+                </div>
+            </div>
+        }
+    </section>
+
+    @* ══════════ SECTION 3: CAPABILITY RIBBON ══════════ *@
+    <section class="landing-capabilities">
+        <h2 class="landing-section-title">Everything You Need</h2>
+        <div class="landing-capability-grid">
+            @foreach (var cap in _capabilities)
+            {
+                <div class="landing-capability-badge">
+                    <div class="landing-capability-icon-wrap" style="background: @($"rgba({HexToRgb(cap.Color)}, 0.12)");">
+                        <Icon IconType="@cap.Icon" Size="28" Color="@cap.Color" />
+                    </div>
+                    <span class="landing-capability-label">@cap.Label</span>
+                </div>
+            }
+        </div>
+    </section>
+
+    @* ══════════ SECTION 4: TEMPLATE PICKER & CTA ══════════ *@
+    <section class="landing-templates" id="template-section">
+        <h2 class="landing-section-title">Pick a Starting Template</h2>
+        <p class="landing-section-desc">
+            Or start from scratch — you can always change everything later.
+        </p>
+
+        <div class="landing-template-list">
+            @foreach (var template in _templateOptions)
+            {
+                <button class="landing-template-card" @onclick="@(() => CreateFromTemplate(template.Type))">
+                    <div class="landing-template-icon" style="background: @template.GradientBg;">
+                        <Icon IconType="@template.Icon" Size="36" Color="@template.Color" />
+                    </div>
+                    <div class="landing-template-info">
+                        <h3>@template.Name</h3>
+                        <p>@template.Description</p>
+                    </div>
+                    <div class="landing-template-arrow">
+                        <Icon IconType="arrow-right" Size="20" Color="#667eea" />
+                    </div>
+                </button>
+            }
+        </div>
+
+        <div class="landing-divider">
+            <span>or</span>
+        </div>
+
+        <button class="landing-cta-secondary" @onclick="CreateEmptyRoadmap">
+            Start with Empty Canvas
+        </button>
+
+        @* Import section *@
+        <div class="landing-import-section">
+            <div class="landing-import-header">
+                <Icon IconType="globe" Size="20" Color="#87CEEB" />
+                <span>Have a share link?</span>
+            </div>
+            <div class="landing-import-row">
+                <input type="text"
+                       class="landing-import-input"
+                       placeholder="Paste a RoadScript URL..."
+                       @bind="_importUrl"
+                       @bind:event="oninput" />
+                <button class="landing-import-btn"
+                        disabled="@(string.IsNullOrWhiteSpace(_importUrl))"
+                        @onclick="HandleImportFromUrl">
+                    Import
+                </button>
+            </div>
+        </div>
+
+        <div class="landing-footer-tagline">
+            <Icon IconType="diamond" Size="14" Color="#667eea" />
+            <span>Built 100% browser-local. Your data never leaves your device.</span>
+        </div>
+    </section>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<TemplateService.TemplateType?> OnCreateRoadmap { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnImportFromUrl { get; set; }
+
+    private RoadmapData _heroRoadmap = LandingPageDemoData.GetHeroRoadmap();
+    private TabSession _demoTab = new() { Id = "demo", Name = "Demo" };
+    private SessionManager _demoSession = new() { ActiveTabId = "demo", Tabs = new() };
+    private string _importUrl = "";
+    private Timer? _themeCycleTimer;
+
+    private readonly List<FeatureShowcase> _features = new()
+    {
+        new("Organize Your Work",
+            "Swim lanes, columns, icons, and colors — all editable with a click. Resize lanes, reorder items, and build the layout that matches your workflow.",
+            "lightbulb", "#667eea", LandingPageDemoData.GetOrganizeDemo()),
+        new("Track Milestones",
+            "Drop milestones anywhere on the timeline. Pin them to the header band or anchor them inside a specific lane for precision tracking.",
+            "flag", "#45B69C", LandingPageDemoData.GetMilestoneDemo()),
+        new("Share Instantly",
+            "No server needed. Generate a shareable link and anyone can import your roadmap in one click. Everything travels in the URL.",
+            "globe", "#87CEEB", LandingPageDemoData.GetShareDemo())
+    };
+
+    private readonly List<CapabilityBadge> _capabilities = new()
+    {
+        new("folder", "3 Project Folders", "#667eea"),
+        new("star", "8 Themes", "#E6B800"),
+        new("flag", "Milestones", "#45B69C"),
+        new("globe", "Shareable Links", "#87CEEB"),
+        new("clock", "Undo / Redo", "#9999ff"),
+        new("code", "JSON Editor", "#F88379"),
+        new("target", "Drag & Resize", "#EC4899"),
+        new("rocket", "Mobile Ready", "#10b981")
+    };
+
+    private readonly List<TemplateOption> _templateOptions = new()
+    {
+        new(TemplateService.TemplateType.ScrumSprintCycle, "Daily Planning",
+            "Weekly columns for Monday through Friday plus weekend.",
+            "calendar", "#9999ff",
+            "linear-gradient(135deg, rgba(153,153,255,0.15), rgba(153,153,255,0.05))"),
+        new(TemplateService.TemplateType.ProjectTimelines, "Projects",
+            "Multi-year tracking with quarterly breakdown.",
+            "rocket", "#87CEEB",
+            "linear-gradient(135deg, rgba(135,206,235,0.15), rgba(135,206,235,0.05))"),
+        new(TemplateService.TemplateType.AnnualRoadmap, "Milestones",
+            "Annual milestone tracking with monthly columns.",
+            "flag", "#45B69C",
+            "linear-gradient(135deg, rgba(69,182,156,0.15), rgba(69,182,156,0.05))"),
+        new(TemplateService.TemplateType.Retrospective, "Retro",
+            "Retrospective feedback with Went Well, Needs Work, and Kudos.",
+            "pause", "#E6B800",
+            "linear-gradient(135deg, rgba(230,184,0,0.15), rgba(230,184,0,0.05))"),
+        new(TemplateService.TemplateType.ScrumBoard, "Flows",
+            "Hourly flow tracking from morning through evening.",
+            "target", "#F88379",
+            "linear-gradient(135deg, rgba(248,131,121,0.15), rgba(248,131,121,0.05))")
+    };
+
+    protected override void OnInitialized()
+    {
+        _themeCycleTimer = new Timer(_ =>
+        {
+            ThemeService.CycleSeasonalTheme();
+            InvokeAsync(StateHasChanged);
+        }, null, 4000, 4000);
+    }
+
+    public void Dispose()
+    {
+        _themeCycleTimer?.Dispose();
+    }
+
+    private async Task CreateFromTemplate(TemplateService.TemplateType type)
+    {
+        await OnCreateRoadmap.InvokeAsync(type);
+    }
+
+    private async Task CreateEmptyRoadmap()
+    {
+        await OnCreateRoadmap.InvokeAsync(null);
+    }
+
+    private async Task HandleImportFromUrl()
+    {
+        if (!string.IsNullOrWhiteSpace(_importUrl))
+        {
+            await OnImportFromUrl.InvokeAsync(_importUrl.Trim());
+        }
+    }
+
+    private async Task ScrollToTemplates()
+    {
+        await JSRuntime.InvokeVoidAsync("eval",
+            "document.getElementById('template-section')?.scrollIntoView({ behavior: 'smooth' })");
+    }
+
+    private static string HexToRgb(string hex)
+    {
+        hex = hex.TrimStart('#');
+        if (hex.Length != 6) return "102, 126, 234";
+        var r = Convert.ToInt32(hex.Substring(0, 2), 16);
+        var g = Convert.ToInt32(hex.Substring(2, 2), 16);
+        var b = Convert.ToInt32(hex.Substring(4, 2), 16);
+        return $"{r}, {g}, {b}";
+    }
+
+    private record FeatureShowcase(string Title, string Description, string Icon, string Color, RoadmapData DemoData);
+    private record CapabilityBadge(string Icon, string Label, string Color);
+    private record TemplateOption(TemplateService.TemplateType Type, string Name, string Description,
+        string Icon, string Color, string GradientBg);
+}
