@@ -40,8 +40,7 @@
             </button>
             <button @onclick="HandleDelete"
                     class="roadmap-action-btn roadmap-action-delete"
-                    title="Delete"
-                    disabled="@IsOnlyRoadmap">
+                    title="Delete">
                 🗑️
             </button>
         </div>
@@ -118,10 +117,7 @@
 
     private async Task HandleDelete()
     {
-        if (!IsOnlyRoadmap)
-        {
-            await OnDelete.InvokeAsync();
-        }
+        await OnDelete.InvokeAsync();
     }
 
     private async Task HandleMoveUp()

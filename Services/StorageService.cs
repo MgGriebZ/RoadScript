@@ -157,16 +157,16 @@ public class StorageService
     public bool RemoveTab(SessionManager session, string tabId)
     {
         var tab = session.Tabs.FirstOrDefault(t => t.Id == tabId);
-        if (tab == null || session.Tabs.Count <= 1)
+        if (tab == null)
         {
-            return false; // Can't remove last tab
+            return false;
         }
 
         session.Tabs.Remove(tab);
 
         if (session.ActiveTabId == tabId)
         {
-            session.ActiveTabId = session.Tabs[0].Id;
+            session.ActiveTabId = session.Tabs.FirstOrDefault()?.Id ?? "";
         }
 
         return true;
@@ -452,16 +452,16 @@ public class StorageService
     public bool RemoveFolder(FolderManager folderManager, string folderId)
     {
         var folder = folderManager.Folders.FirstOrDefault(f => f.Id == folderId);
-        if (folder == null || folderManager.Folders.Count <= 1)
+        if (folder == null)
         {
-            return false; // Can't remove last folder
+            return false;
         }
 
         folderManager.Folders.Remove(folder);
 
         if (folderManager.ActiveFolderId == folderId)
         {
-            folderManager.ActiveFolderId = folderManager.Folders[0].Id;
+            folderManager.ActiveFolderId = folderManager.Folders.FirstOrDefault()?.Id ?? "";
         }
 
         return true;

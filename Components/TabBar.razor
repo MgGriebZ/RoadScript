@@ -48,15 +48,12 @@
                 }
             </div>
 
-            @if (Tabs.Count > 1)
-            {
-                <button type="button"
-                        @onclick="HandleDeleteTab"
-                        style="@DeleteTabButtonStyle()"
-                        title="Delete this tab">
-                    ×
-                </button>
-            }
+            <button type="button"
+                    @onclick="HandleDeleteTab"
+                    style="@DeleteTabButtonStyle()"
+                    title="Delete this tab">
+                ×
+            </button>
         </div>
 
         <div style="font-size: 10px; color: #666; margin-bottom: 8px;">
