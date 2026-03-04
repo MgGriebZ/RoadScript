@@ -1,0 +1,104 @@
+@inject SelectionState SelectionState
+
+<div class="mobile-roadmap-list">
+    @* Roadmap header *@
+    @if (Data != null)
+    {
+        <div class="mobile-roadmap-header">
+            <h1 class="mobile-roadmap-title">@Data.Title</h1>
+            @if (!string.IsNullOrEmpty(Data.Subtitle))
+            {
+                <p class="mobile-roadmap-subtitle">@Data.Subtitle</p>
+            }
+        </div>
+
+        @* Column pills *@
+        @if (Data.Columns?.Count > 0)
+        {
+            <div class="mobile-column-pills">
+                @for (int i = 0; i < Data.Columns.Count; i++)
+                {
+                    var col = Data.Columns[i];
+                    var colIndex = i;
+                    <div class="mobile-column-pill @(SelectedColumnIndex == colIndex ? "active" : "")"
+                         @onclick="@(() => SelectColumn(colIndex))">
+                        @col.Label
+                        @if (!string.IsNullOrEmpty(col.Sub))
+                        {
+                            <span style="opacity: 0.7; margin-left: 3px;">@col.Sub</span>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        @* Milestone chips *@
+        @if (Data.Milestones?.Count > 0)
+        {
+            <div class="mobile-milestones-row">
+                @foreach (var milestone in Data.Milestones)
+                {
+                    <div class="mobile-milestone-chip">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="@milestone.Color" stroke="none">
+                            <polygon points="12,2 22,12 12,22 2,12"></polygon>
+                        </svg>
+                        <span style="color: @milestone.Color;">@milestone.Title</span>
+                    </div>
+                }
+            </div>
+        }
+
+        @* Lane sections *@
+        @if (Data.Lanes?.Count > 0)
+        {
+            @for (int laneIdx = 0; laneIdx < Data.Lanes.Count; laneIdx++)
+            {
+                var lane = Data.Lanes[laneIdx];
+                var li = laneIdx;
+                <MobileLaneSection Lane="@lane"
+                                   LaneIndex="@li"
+                                   Columns="@Data.Columns"
+                                   IsPreviewMode="@IsPreviewMode"
+                                   OnItemSelected="HandleItemSelected" />
+            }
+        }
+        else
+        {
+            <div style="padding: 40px 16px; text-align: center; color: #9ca3af;">
+                <p>No lanes to display</p>
+            </div>
+        }
+    }
+    else
+    {
+        <div style="padding: 40px 16px; text-align: center; color: #9ca3af;">
+            <p>Loading roadmap...</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public RoadmapData? Data { get; set; }
+
+    [Parameter]
+    public bool IsPreviewMode { get; set; }
+
+    [Parameter]
+    public string? SelectedPath { get; set; }
+
+    [Parameter]
+    public EventCallback<(string Path, string Type, object Element)> OnItemSelected { get; set; }
+
+    private int SelectedColumnIndex { get; set; } = -1;
+
+    private void SelectColumn(int index)
+    {
+        SelectedColumnIndex = SelectedColumnIndex == index ? -1 : index;
+    }
+
+    private async Task HandleItemSelected((string Path, string Type, object Element) args)
+    {
+        await OnItemSelected.InvokeAsync(args);
+    }
+}

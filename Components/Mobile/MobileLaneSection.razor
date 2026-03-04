@@ -1,0 +1,78 @@
+@inject SelectionState SelectionState
+
+<div class="mobile-lane-section">
+    <div class="mobile-lane-header" @onclick="ToggleCollapsed">
+        <div class="mobile-lane-color-bar" style="background: @(Lane?.Color ?? "#667eea");"></div>
+
+        @if (!string.IsNullOrEmpty(Lane?.Icon))
+        {
+            <Icon IconType="@Lane.Icon" Size="18" Color="@(Lane?.Color ?? "#667eea")" />
+        }
+
+        <span class="mobile-lane-title">@(Lane?.Title ?? "Lane")</span>
+        <span style="font-size: 12px; color: #9ca3af; margin-right: 4px;">@GetItemCountText()</span>
+
+        <svg class="mobile-lane-chevron @(IsCollapsed ? "collapsed" : "")"
+             width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+    </div>
+
+    @if (!IsCollapsed)
+    {
+        <div class="mobile-lane-items">
+            @if (Lane?.Items != null && Lane.Items.Count > 0)
+            {
+                @for (int i = 0; i < Lane.Items.Count; i++)
+                {
+                    var item = Lane.Items[i];
+                    var itemIndex = i;
+                    @if (!item.Hidden || !IsPreviewMode)
+                    {
+                        <MobileItemCard Item="@item"
+                                        LaneIndex="@LaneIndex"
+                                        ItemIndex="@itemIndex"
+                                        Columns="@Columns"
+                                        LaneColor="@(Lane?.Color)"
+                                        IsPreviewMode="@IsPreviewMode"
+                                        OnSelected="OnItemSelected" />
+                    }
+                }
+            }
+            else
+            {
+                <div class="mobile-lane-empty">No items in this lane</div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Lane? Lane { get; set; }
+
+    [Parameter]
+    public int LaneIndex { get; set; }
+
+    [Parameter]
+    public List<Column>? Columns { get; set; }
+
+    [Parameter]
+    public bool IsPreviewMode { get; set; }
+
+    [Parameter]
+    public EventCallback<(string Path, string Type, object Element)> OnItemSelected { get; set; }
+
+    private bool IsCollapsed { get; set; } = false;
+
+    private void ToggleCollapsed()
+    {
+        IsCollapsed = !IsCollapsed;
+    }
+
+    private string GetItemCountText()
+    {
+        var count = Lane?.Items?.Count(i => !i.Hidden || !IsPreviewMode) ?? 0;
+        return count == 1 ? "1 item" : $"{count} items";
+    }
+}

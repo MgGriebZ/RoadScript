@@ -16,15 +16,145 @@
 @inject ThemeService ThemeService
 @inject RoadmapStateManager StateManager
 @implements IDisposable
+@inject ResponsiveService ResponsiveService
 
-<div class="container-fluid vh-100 d-flex p-0">
 @if (_showLandingPage)
 {
-    <LandingPage OnCreateRoadmap="HandleLandingPageCreate"
-                 OnImportFromUrl="HandleLandingPageImport" />
+    <div class="container-fluid vh-100 d-flex p-0">
+        <LandingPage OnCreateRoadmap="HandleLandingPageCreate"
+                     OnImportFromUrl="HandleLandingPageImport" />
+    </div>
+}
+else if (_isMobileLayout)
+{
+    @* ===== MOBILE LAYOUT ===== *@
+    <div class="mobile-app-shell">
+        <MobileAppBar Title="@(_data?.Title ?? "RoadScript")"
+                      IsPreviewMode="@StateManager.IsPreviewMode"
+                      OnMenuClick="@(() => { _mobileSideDrawerOpen = true; StateHasChanged(); })"
+                      OnToggleView="@(async () => await ToggleViewMode(null))" />
+
+        <div class="mobile-content">
+            @if (_data != null)
+            {
+                <MobileRoadmapListView Data="@_data"
+                                       IsPreviewMode="@StateManager.IsPreviewMode"
+                                       SelectedPath="@SelectionState.SelectedPath"
+                                       OnItemSelected="HandleMobileItemSelected" />
+            }
+            else if (_error != null)
+            {
+                <div style="padding: 20px; color: #ef4444; font-size: 14px;">@_error</div>
+            }
+        </div>
+
+        <MobileBottomNav IsPreviewMode="@StateManager.IsPreviewMode"
+                         OnViewToggle="@(async () => await ToggleViewMode(null))"
+                         OnAddItem="HandleMobileAddItem"
+                         OnHome="HandleMobileHome"
+                         OnTheme="CycleSeasonalTheme"
+                         OnMenuOpen="@(() => { _mobileSideDrawerOpen = true; StateHasChanged(); })" />
+
+        <MobileSideDrawer IsOpen="@_mobileSideDrawerOpen"
+                          IsOpenChanged="HandleMobileSideDrawerToggle"
+                          Title="RoadScript"
+                          FolderManager="@_folderManager"
+                          SessionManager="@_sessionManager"
+                          OnFolderClick="HandleFolderClick"
+                          OnTabSwitch="HandleTabSwitch"
+                          OnTabAdd="HandleTabAdd"
+                          OnToggleFolderSelector="ToggleFolderSelector"
+                          OnShareClick="HandleQuickShare"
+                          OnTemplatesClick="HandleMobileTemplatesClick" />
+
+        <MobilePropertySheet IsPropertySheetOpen="@_mobilePropertySheetOpen"
+                             IsPropertySheetOpenChanged="HandleMobilePropertySheetToggle"
+                             Data="@_data"
+                             OnDuplicateElement="HandleMobileDuplicate"
+                             OnDeleteElement="HandleMobileDelete"
+                             OnPropertyChange="HandlePropertyChange"
+                             OnAddElement="HandleAddElement"
+                             OnRemoveElement="HandleRemoveElement"
+                             OnMoveItem="HandleMoveItem"
+                             OnMoveLane="HandleMoveLane"
+                             AvailableRoadmaps="@AllRoadmapsAcrossFolders"
+                             ColumnCount="@(_data?.Columns.Count ?? 4)"
+                             LaneCount="@(_data?.Lanes.Count ?? 1)"
+                             ItemIndex="@GetSelectedItemIndex()"
+                             ItemCount="@GetSelectedItemCount()"
+                             LaneIndex="@GetSelectedLaneIndex()" />
+
+        <InputFile @ref="_folderImportInput" OnChange="HandleFolderImport" accept=".json" style="display: none;" />
+        <InputFile @ref="_allDataImportInput" OnChange="HandleAllDataImport" accept=".json" style="display: none;" />
+
+        @if (_folderManager != null)
+        {
+            <RoadmapManager IsVisible="@StateManager.ShowRoadmapManager"
+                           Folders="@_folderManager.Folders"
+                           ActiveFolderId="@_folderManager.ActiveFolderId"
+                           MaxFolders="@_folderManager.MaxFolders"
+                           OnClose="CloseRoadmapManager"
+                           OnFolderRename="HandleFolderRenameFromManager"
+                           OnDeleteFolder="HandleDeleteFolderFromManager"
+                           OnColorChange="HandleColorChangeFromManager"
+                           OnIconChange="HandleIconChangeFromManager"
+                           OnAddFolder="HandleAddFolder"
+                           OnAddRoadmap="HandleAddRoadmapToFolder"
+                           OnRoadmapClick="HandleRoadmapClickFromManager"
+                           OnRoadmapOpen="HandleRoadmapOpenFromManager"
+                           OnRoadmapRename="HandleRoadmapRenameFromManager"
+                           OnRoadmapDuplicate="HandleRoadmapDuplicateFromManager"
+                           OnRoadmapDelete="HandleRoadmapDeleteFromManager"
+                           OnRoadmapMoveUp="HandleRoadmapMoveUpFromManager"
+                           OnRoadmapMoveDown="HandleRoadmapMoveDownFromManager"
+                           OnRoadmapMove="HandleRoadmapMoveFromManager" />
+
+            <DependencyConfirmationModal IsVisible="@_showDependencyModal"
+                                        RoadmapName="@_movingRoadmapName"
+                                        SourceFolderName="@_moveSourceFolderName"
+                                        TargetFolderName="@_moveTargetFolderName"
+                                        AnalysisResult="@_dependencyAnalysisResult"
+                                        OnConfirm="ConfirmRoadmapMove"
+                                        OnCancel="CancelRoadmapMove" />
+
+            <FolderSelector IsVisible="@StateManager.ShowFolderSettings"
+                           Folders="@_folderManager.Folders"
+                           ActiveFolderId="@_folderManager.ActiveFolderId"
+                           MaxFolders="@_folderManager.MaxFolders"
+                           OnClose="CloseFolderSettings"
+                           OnFolderSelect="HandleFolderSelect"
+                           OnAddFolder="HandleAddFolder"
+                           OnRemoveFolder="HandleRemoveFolder"
+                           OnRenameFolder="HandleRenameFolder"
+                           OnMoveFolderLeft="HandleMoveFolderLeft"
+                           OnMoveFolderRight="HandleMoveFolderRight"
+                           OnColorChange="HandleFolderColorChange"
+                           OnIconChange="HandleFolderIconChange" />
+        }
+
+        <ShareModal IsVisible="@StateManager.ShowShareModal"
+                   ShareUrl="@StateManager.ShareUrl"
+                   ErrorMessage="@StateManager.ShareError"
+                   RoadmapStats="@GetRoadmapStats()"
+                   SessionStats="@GetSessionStats()"
+                   OnClose="CloseShareModal"
+                   OnExportSession="HandleExportSessionFromShareModal" />
+
+        <ImportModal IsVisible="@StateManager.ShowImportModal"
+                    RoadmapData="@StateManager.ImportRoadmapData"
+                    AvailableFolders="@(_folderManager?.Folders ?? new())"
+                    OnClose="CloseImportModal"
+                    OnImport="HandleImportSharedRoadmap" />
+
+        <TemplateSelector IsVisible="@StateManager.ShowTemplateSelector"
+                         OnClose="CloseTemplateSelector"
+                         OnTemplateSelect="HandleTemplateSelect" />
+    </div>
 }
 else
 {
+    @* ===== DESKTOP / TABLET-LANDSCAPE LAYOUT ===== *@
+    <div class="container-fluid vh-100 d-flex p-0">
     @* Collapsed Command Center - Always visible (60px) *@
     <CommandCenter FolderManager="_folderManager"
                    SessionManager="_sessionManager"
@@ -254,8 +384,8 @@ else
     <TemplateSelector IsVisible="@StateManager.ShowTemplateSelector"
                      OnClose="CloseTemplateSelector"
                      OnTemplateSelect="HandleTemplateSelect" />
+    </div>
 }
-</div>
 
 @code {
     private StandaloneCodeEditor? _editor;
@@ -282,6 +412,11 @@ else
     private readonly SemaphoreSlim _saveLock = new(1, 1);
     private bool _hasUnsavedJsonChanges = false;
     private DateTime _lastSaveTime = DateTime.MinValue;
+
+    // Mobile layout state
+    private bool _mobileSideDrawerOpen = false;
+    private bool _mobilePropertySheetOpen = false;
+    private bool _isMobileLayout => ResponsiveService.IsMobile() || (ResponsiveService.IsTablet() && ResponsiveService.IsPortraitMode());
 
     private bool _showFolderSelector = false; // Legacy - keeping for backward compatibility
     private bool _isCreatingNewFolder = false;
@@ -508,6 +643,10 @@ else
     {
         await InitializeFolderManagerAsync();
 
+        // Initialize responsive service for mobile layout detection
+        await ResponsiveService.InitializeAsync();
+        ResponsiveService.OnBreakpointChanged += HandleBreakpointChanged;
+
         // Subscribe to service state changes
         StateManager.OnStateChanged += HandleStateChanged;
         ThemeService.OnThemeChanged += HandleThemeChanged;
@@ -530,6 +669,88 @@ else
     private void HandleThemeChanged()
     {
         InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleBreakpointChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    // ===== MOBILE HANDLERS =====
+
+    private async Task HandleMobileItemSelected((string Path, string Type, object Element) args)
+    {
+        SelectionState.Select(args.Path, args.Type, args.Element);
+        _mobilePropertySheetOpen = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleMobileSideDrawerToggle(bool isOpen)
+    {
+        _mobileSideDrawerOpen = isOpen;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleMobilePropertySheetToggle(bool isOpen)
+    {
+        _mobilePropertySheetOpen = isOpen;
+        if (!isOpen) SelectionState.Clear();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleMobileDuplicate()
+    {
+        if (SelectionState.IsSelected && SelectionState.ElementType != null && SelectionState.SelectedPath != null)
+        {
+            SaveHistorySnapshot();
+            await HandleDuplicateElement((SelectionState.ElementType, SelectionState.SelectedPath));
+        }
+    }
+
+    private async Task HandleMobileDelete()
+    {
+        if (SelectionState.IsSelected && SelectionState.ElementType != null && SelectionState.SelectedPath != null)
+        {
+            SaveHistorySnapshot();
+            await HandleRemoveElement((SelectionState.ElementType, SelectionState.SelectedPath));
+            _mobilePropertySheetOpen = false;
+            SelectionState.Clear();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task HandleMobileAddItem()
+    {
+        if (_data == null) return;
+        SaveHistorySnapshot();
+        if (_data.Lanes.Count == 0)
+        {
+            await HandleAddElement(("lane", "lanes"));
+        }
+        else
+        {
+            var laneIndex = 0;
+            if (SelectionState.SelectedPath?.StartsWith("lanes[") == true)
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(SelectionState.SelectedPath, @"lanes\[(\d+)\]");
+                if (match.Success) int.TryParse(match.Groups[1].Value, out laneIndex);
+            }
+            await HandleAddElement(("item", $"lanes[{laneIndex}]"));
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleMobileHome()
+    {
+        SelectionState.Clear();
+        _mobilePropertySheetOpen = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleMobileTemplatesClick()
+    {
+        StateManager.ShowTemplateSelectorDialog();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleUrlNavigation()
@@ -1370,6 +1591,7 @@ else
         // Unsubscribe from service events
         StateManager.OnStateChanged -= HandleStateChanged;
         ThemeService.OnThemeChanged -= HandleThemeChanged;
+        ResponsiveService.OnBreakpointChanged -= HandleBreakpointChanged;
 
         _dotNetRef?.Dispose();
         _saveCancellation?.Cancel();
