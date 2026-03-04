@@ -2980,11 +2980,53 @@ else
 
     private async Task HandleTabDelete(string tabId)
     {
-        if (_sessionManager == null || _sessionManager.Tabs.Count <= 1 || _folderManager == null) return;
+        if (_sessionManager == null || _folderManager == null) return;
+
+        bool isLastTab = _sessionManager.Tabs.Count == 1;
 
         StorageService.RemoveTab(_sessionManager, tabId);
 
-        if (_sessionManager.Tabs.Count > 0)
+        if (isLastTab && _activeFolder != null)
+        {
+            // Last tab in folder — remove the folder entirely
+            var folderId = _activeFolder.Id;
+            _folderManager.Folders.Remove(_activeFolder);
+
+            if (_folderManager.Folders.Count == 0)
+            {
+                // No folders left — show landing page
+                _activeFolder = null;
+                _sessionManager = null;
+                _activeTab = null;
+                _data = null;
+                _currentJson = null;
+                StateManager.ShowTemplateSelectorDialog();
+                _isCreatingNewFolder = true;
+                _pendingFolderName = "Folder 1";
+            }
+            else
+            {
+                // Switch to another folder
+                _activeFolder = StorageService.GetActiveFolder(_folderManager);
+                if (_activeFolder != null)
+                {
+                    _sessionManager = _activeFolder.SessionManager;
+                    _activeTab = StorageService.GetActiveTab(_sessionManager);
+
+                    if (_activeTab != null)
+                    {
+                        SetData(_activeTab.Data);
+                        _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+
+                        if (_editor != null && _editorReady)
+                        {
+                            await _editor.SetValue(_currentJson);
+                        }
+                    }
+                }
+            }
+        }
+        else if (_sessionManager.Tabs.Count > 0)
         {
             _sessionManager.ActiveTabId = _sessionManager.Tabs[0].Id;
             _activeTab = _sessionManager.Tabs[0];
@@ -3006,11 +3048,8 @@ else
         SelectionState.Clear();
         StateHasChanged();
 
-        if (_folderManager != null)
-        {
-            // Use immediate save for tab deletion (critical operation)
-            await SaveState();
-        }
+        // Use immediate save for tab deletion (critical operation)
+        await SaveState();
 
         // Final state refresh to ensure sidebar updates properly
         await InvokeAsync(StateHasChanged);
@@ -3134,7 +3173,7 @@ else
         // Remove the folder
         _folderManager.Folders.Remove(folder);
 
-        // If this was the active folder, switch to first available folder
+        // If this was the active folder, switch to first available or show landing page
         if (_folderManager.ActiveFolderId == folderId)
         {
             var firstFolder = _folderManager.Folders.FirstOrDefault();
@@ -3152,6 +3191,18 @@ else
                     SetData(firstTab.Data);
                     _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
                 }
+            }
+            else
+            {
+                // No folders left — show landing page
+                _activeFolder = null;
+                _sessionManager = null;
+                _activeTab = null;
+                _data = null;
+                _currentJson = null;
+                StateManager.ShowTemplateSelectorDialog();
+                _isCreatingNewFolder = true;
+                _pendingFolderName = "Folder 1";
             }
         }
 
@@ -3442,35 +3493,79 @@ else
         if (_folderManager == null) return;
 
         var folder = _folderManager.Folders.FirstOrDefault(f => f.Id == args.FolderId);
-        if (folder == null || folder.SessionManager.Tabs.Count <= 1) return;
+        if (folder == null) return;
 
         var tab = folder.SessionManager.Tabs.FirstOrDefault(t => t.Id == args.TabId);
-        if (tab != null)
+        if (tab == null) return;
+
+        bool isLastTab = folder.SessionManager.Tabs.Count == 1;
+        string confirmMessage = isLastTab
+            ? $"Delete roadmap '{tab.Name}'? This will also remove the folder '{folder.Name}' since it's the last roadmap."
+            : $"Delete roadmap '{tab.Name}'?";
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", confirmMessage);
+        if (!confirmed) return;
+
+        if (isLastTab)
         {
-            var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Delete roadmap '{tab.Name}'?");
-            if (confirmed)
+            // Last roadmap in folder — remove the entire folder
+            bool isActiveFolder = _activeFolder?.Id == folder.Id;
+            _folderManager.Folders.Remove(folder);
+
+            if (isActiveFolder)
             {
-                StorageService.RemoveTab(folder.SessionManager, tab.Id);
-                folder.LastModified = DateTime.UtcNow;
-
-                // If we deleted the active tab, switch to the first tab
-                if (folder.SessionManager.ActiveTabId == tab.Id && folder.SessionManager.Tabs.Count > 0)
+                if (_folderManager.Folders.Count == 0)
                 {
-                    folder.SessionManager.ActiveTabId = folder.SessionManager.Tabs[0].Id;
-
-                    // Update the active data if this is the active folder
-                    if (_activeFolder?.Id == folder.Id)
+                    // No folders left — show landing page
+                    _activeFolder = null;
+                    _sessionManager = null;
+                    _activeTab = null;
+                    _data = null;
+                    _currentJson = null;
+                    StateManager.ShowTemplateSelectorDialog();
+                    _isCreatingNewFolder = true;
+                    _pendingFolderName = "Folder 1";
+                }
+                else
+                {
+                    // Switch to another folder
+                    _activeFolder = StorageService.GetActiveFolder(_folderManager);
+                    if (_activeFolder != null)
                     {
-                        _activeTab = folder.SessionManager.Tabs[0];
-                        SetData(_activeTab.Data);
-                        _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+                        _sessionManager = _activeFolder.SessionManager;
+                        _activeTab = StorageService.GetActiveTab(_sessionManager);
+
+                        if (_activeTab != null)
+                        {
+                            SetData(_activeTab.Data);
+                            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+                        }
                     }
                 }
-
-                await DebouncedSave();
-                await InvokeAsync(StateHasChanged);
             }
         }
+        else
+        {
+            StorageService.RemoveTab(folder.SessionManager, tab.Id);
+            folder.LastModified = DateTime.UtcNow;
+
+            // If we deleted the active tab, switch to the first tab
+            if (folder.SessionManager.ActiveTabId == tab.Id && folder.SessionManager.Tabs.Count > 0)
+            {
+                folder.SessionManager.ActiveTabId = folder.SessionManager.Tabs[0].Id;
+
+                // Update the active data if this is the active folder
+                if (_activeFolder?.Id == folder.Id)
+                {
+                    _activeTab = folder.SessionManager.Tabs[0];
+                    SetData(_activeTab.Data);
+                    _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+                }
+            }
+        }
+
+        await DebouncedSave();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleRoadmapMoveUpFromManager((string FolderId, string TabId) args)

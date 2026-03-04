@@ -51,8 +51,7 @@
                             <button @onclick="() => HandleDeleteFolder(folder.Id)"
                                     @onclick:stopPropagation="true"
                                     class="folder-action-btn folder-action-delete"
-                                    title="Delete folder and all roadmaps"
-                                    disabled="@(Folders.Count <= 1)">
+                                    title="Delete folder and all roadmaps">
                                 🗑️
                             </button>
                         </div>
