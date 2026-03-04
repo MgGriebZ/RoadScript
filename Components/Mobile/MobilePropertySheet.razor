@@ -44,31 +44,31 @@
                                LaneIndex="@LaneIndex"
                                LaneCount="@LaneCount"
                                AvailableRoadmaps="@AvailableRoadmaps"
-                               OnChange="@((e) => OnPropertyChange.InvokeAsync(e))"
-                               OnAdd="@((e) => OnAddElement.InvokeAsync(e))"
-                               OnRemove="@((e) => OnRemoveElement.InvokeAsync(e))"
-                               OnDuplicate="@(() => DuplicateElement())"
-                               OnMoveItem="@((e) => OnMoveItem.InvokeAsync(e))"
-                               OnMoveLane="@((e) => OnMoveLane.InvokeAsync(e))" />
+                               OnChange="HandlePropertyChange"
+                               OnAdd="HandleAddElement"
+                               OnRemove="HandleRemoveElement"
+                               OnDuplicate="HandleDuplicateElement"
+                               OnMoveItem="HandleMoveItem"
+                               OnMoveLane="HandleMoveLane" />
             }
             else if (SelectionState.SelectedElement is Lane lane && SelectionState.SelectedPath != null)
             {
                 <LaneProperties Lane="@lane"
                                JsonPath="@SelectionState.SelectedPath"
                                AvailableRoadmaps="@AvailableRoadmaps"
-                               OnChange="@((e) => OnPropertyChange.InvokeAsync(e))"
-                               OnAdd="@((e) => OnAddElement.InvokeAsync(e))"
-                               OnRemove="@((e) => OnRemoveElement.InvokeAsync(e))"
-                               OnDuplicate="@(() => DuplicateElement())" />
+                               OnChange="HandlePropertyChange"
+                               OnAdd="HandleAddElement"
+                               OnRemove="HandleRemoveElement"
+                               OnDuplicate="HandleDuplicateElement" />
             }
             else if (SelectionState.SelectedElement is Column column && SelectionState.SelectedPath != null)
             {
                 <ColumnProperties Column="@column"
                                  JsonPath="@SelectionState.SelectedPath"
-                                 OnChange="@((e) => OnPropertyChange.InvokeAsync(e))"
-                                 OnAdd="@((e) => OnAddElement.InvokeAsync(e))"
-                                 OnRemove="@((e) => OnRemoveElement.InvokeAsync(e))"
-                                 OnDuplicate="@(() => DuplicateElement())" />
+                                 OnChange="HandlePropertyChange"
+                                 OnAdd="HandleAddElement"
+                                 OnRemove="HandleRemoveElement"
+                                 OnDuplicate="HandleDuplicateElement" />
             }
         </div>
     }
@@ -189,6 +189,43 @@
             Column column => $"Edit: {column.Label ?? "Column"}",
             _ => "Properties"
         };
+    }
+
+    // Adapter methods — bridge from component-level types to parent callback types
+
+    private async Task HandlePropertyChange((string PropertyName, object Value) change)
+    {
+        if (OnPropertyChange.HasDelegate && SelectionState.SelectedPath != null)
+            await OnPropertyChange.InvokeAsync((SelectionState.SelectedPath, change.PropertyName, change.Value));
+    }
+
+    private async Task HandleAddElement(string elementType)
+    {
+        if (OnAddElement.HasDelegate && SelectionState.SelectedPath != null)
+            await OnAddElement.InvokeAsync((elementType, SelectionState.SelectedPath));
+    }
+
+    private async Task HandleRemoveElement(string elementType)
+    {
+        if (OnRemoveElement.HasDelegate && SelectionState.SelectedPath != null)
+            await OnRemoveElement.InvokeAsync((elementType, SelectionState.SelectedPath));
+    }
+
+    private async Task HandleDuplicateElement(string elementType)
+    {
+        await DuplicateElement();
+    }
+
+    private async Task HandleMoveItem((string Direction, string JsonPath) args)
+    {
+        if (OnMoveItem.HasDelegate)
+            await OnMoveItem.InvokeAsync(args);
+    }
+
+    private async Task HandleMoveLane((string Direction, string JsonPath) args)
+    {
+        if (OnMoveLane.HasDelegate)
+            await OnMoveLane.InvokeAsync(args);
     }
 
     private async Task DuplicateElement()
