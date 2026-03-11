@@ -18,12 +18,28 @@
 @implements IDisposable
 @inject ResponsiveService ResponsiveService
 
-@if (_showLandingPage)
+@if (!_responsiveInitialized)
 {
-    <div class="container-fluid vh-100 d-flex p-0">
-        <LandingPage OnCreateRoadmap="HandleLandingPageCreate"
-                     OnImportFromUrl="HandleLandingPageImport" />
-    </div>
+    @* Hold render until the viewport size is known — avoids flashing the wrong layout *@
+    <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;background:#1e1e2f;"></div>
+}
+else if (_showLandingPage)
+{
+    @if (_isMobileLayout)
+    {
+        @* Landing page in mobile shell — scrollable, no fixed bars *@
+        <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;background:#1e1e2f;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+            <LandingPage OnCreateRoadmap="HandleLandingPageCreate"
+                         OnImportFromUrl="HandleLandingPageImport" />
+        </div>
+    }
+    else
+    {
+        <div class="container-fluid vh-100 d-flex p-0">
+            <LandingPage OnCreateRoadmap="HandleLandingPageCreate"
+                         OnImportFromUrl="HandleLandingPageImport" />
+        </div>
+    }
 }
 else if (_isMobileLayout)
 {
@@ -409,6 +425,8 @@ else
     private ElementReference _jsonTextArea;
 
     private bool _showLandingPage = false;
+    // Gates rendering until viewport size is known — prevents flash of wrong layout
+    private bool _responsiveInitialized = false;
 
     private FolderManager? _folderManager;
     private Folder? _activeFolder;
@@ -832,13 +850,23 @@ else
         if (firstRender)
         {
             _dotNetRef = DotNetObjectReference.Create(this);
-            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupKeyboardShortcuts", _dotNetRef);
 
-            // Initialize responsive service here — JS interop is guaranteed available after first render
+            // Keyboard shortcuts must not block viewport detection even if it throws
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("RoadScriptInterop.setupKeyboardShortcuts", _dotNetRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RoadScript] Keyboard shortcut setup failed: {ex.Message}");
+            }
+
+            // Initialize responsive service — JS interop is guaranteed available after first render
             await ResponsiveService.InitializeAsync();
-            // If the breakpoint changed from the default, re-render to switch layouts
-            if (_isMobileLayout)
-                await InvokeAsync(StateHasChanged);
+
+            // Now that we know the real viewport size, allow the correct layout to render
+            _responsiveInitialized = true;
+            await InvokeAsync(StateHasChanged);
         }
 
         // Setup resize/move handlers for all items (runs on every render to handle new items)
