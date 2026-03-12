@@ -1,6 +1,6 @@
 @inject ResponsiveService ResponsiveService
 
-@if (ResponsiveService.IsMobile() && IsOpen)
+@if ((ResponsiveService.IsMobile() || ResponsiveService.IsTablet()) && IsOpen)
 {
     <!-- Backdrop -->
     <div class="mobile-drawer-backdrop @(IsOpen ? "visible" : "")" @onclick="Close"></div>

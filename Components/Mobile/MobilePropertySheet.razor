@@ -1,6 +1,6 @@
 @inject ResponsiveService ResponsiveService
 @inject SelectionState SelectionState
-@using RoadScript.Models
+@implements IDisposable
 
 <MobileBottomDrawer IsOpen="@IsPropertySheetOpen"
                     IsOpenChanged="@HandlePropertySheetOpenChanged"
@@ -37,37 +37,37 @@
             {
                 <ItemProperties Item="@item"
                                JsonPath="@SelectionState.SelectedPath"
-                               ColumnCount="@(Data?.Columns?.Count ?? 0)"
-                               ItemIndex="0"
-                               ItemCount="1"
-                               LaneIndex="0"
-                               LaneCount="@(Data?.Lanes?.Count ?? 0)"
-                               AvailableRoadmaps="@(new List<RoadmapReference>())"
-                               OnChange="@((e) => Task.CompletedTask)"
-                               OnAdd="@((e) => Task.CompletedTask)"
-                               OnRemove="@((e) => Task.CompletedTask)"
-                               OnDuplicate="@(() => DuplicateElement())"
-                               OnMoveItem="@((e) => Task.CompletedTask)"
-                               OnMoveLane="@((e) => Task.CompletedTask)" />
+                               ColumnCount="@ColumnCount"
+                               ItemIndex="@ItemIndex"
+                               ItemCount="@ItemCount"
+                               LaneIndex="@LaneIndex"
+                               LaneCount="@LaneCount"
+                               AvailableRoadmaps="@AvailableRoadmaps"
+                               OnChange="HandlePropertyChange"
+                               OnAdd="HandleAddElement"
+                               OnRemove="HandleRemoveElement"
+                               OnDuplicate="HandleDuplicateElement"
+                               OnMoveItem="HandleMoveItem"
+                               OnMoveLane="HandleMoveLane" />
             }
             else if (SelectionState.SelectedElement is Lane lane && SelectionState.SelectedPath != null)
             {
                 <LaneProperties Lane="@lane"
                                JsonPath="@SelectionState.SelectedPath"
-                               AvailableRoadmaps="@(new List<RoadmapReference>())"
-                               OnChange="@((e) => Task.CompletedTask)"
-                               OnAdd="@((e) => Task.CompletedTask)"
-                               OnRemove="@((e) => Task.CompletedTask)"
-                               OnDuplicate="@(() => DuplicateElement())" />
+                               AvailableRoadmaps="@AvailableRoadmaps"
+                               OnChange="HandlePropertyChange"
+                               OnAdd="HandleAddElement"
+                               OnRemove="HandleRemoveElement"
+                               OnDuplicate="HandleDuplicateElement" />
             }
             else if (SelectionState.SelectedElement is Column column && SelectionState.SelectedPath != null)
             {
                 <ColumnProperties Column="@column"
                                  JsonPath="@SelectionState.SelectedPath"
-                                 OnChange="@((e) => Task.CompletedTask)"
-                                 OnAdd="@((e) => Task.CompletedTask)"
-                                 OnRemove="@((e) => Task.CompletedTask)"
-                                 OnDuplicate="@(() => DuplicateElement())" />
+                                 OnChange="HandlePropertyChange"
+                                 OnAdd="HandleAddElement"
+                                 OnRemove="HandleRemoveElement"
+                                 OnDuplicate="HandleDuplicateElement" />
             }
         </div>
     }
@@ -114,6 +114,39 @@
     [Parameter]
     public EventCallback OnDeleteElement { get; set; }
 
+    [Parameter]
+    public EventCallback<(string JsonPath, string PropertyName, object Value)> OnPropertyChange { get; set; }
+
+    [Parameter]
+    public EventCallback<(string ElementType, string JsonPath)> OnAddElement { get; set; }
+
+    [Parameter]
+    public EventCallback<(string ElementType, string JsonPath)> OnRemoveElement { get; set; }
+
+    [Parameter]
+    public EventCallback<(string Direction, string JsonPath)> OnMoveItem { get; set; }
+
+    [Parameter]
+    public EventCallback<(string Direction, string JsonPath)> OnMoveLane { get; set; }
+
+    [Parameter]
+    public List<RoadmapReference> AvailableRoadmaps { get; set; } = new();
+
+    [Parameter]
+    public int ColumnCount { get; set; } = 4;
+
+    [Parameter]
+    public int LaneCount { get; set; } = 1;
+
+    [Parameter]
+    public int ItemIndex { get; set; }
+
+    [Parameter]
+    public int ItemCount { get; set; } = 1;
+
+    [Parameter]
+    public int LaneIndex { get; set; }
+
     protected override void OnInitialized()
     {
         // Subscribe to selection changes to auto-open property sheet on mobile
@@ -122,7 +155,7 @@
 
     private void HandleSelectionChanged()
     {
-        if (ResponsiveService.IsMobile() && SelectionState.SelectedElement != null)
+        if (ResponsiveService.IsMobileOrTablet() && SelectionState.SelectedElement != null)
         {
             // Auto-open property sheet when element is selected on mobile
             IsPropertySheetOpen = true;
@@ -155,6 +188,43 @@
             Column column => $"Edit: {column.Label ?? "Column"}",
             _ => "Properties"
         };
+    }
+
+    // Adapter methods — bridge from component-level types to parent callback types
+
+    private async Task HandlePropertyChange((string PropertyName, object Value) change)
+    {
+        if (OnPropertyChange.HasDelegate && SelectionState.SelectedPath != null)
+            await OnPropertyChange.InvokeAsync((SelectionState.SelectedPath, change.PropertyName, change.Value));
+    }
+
+    private async Task HandleAddElement(string elementType)
+    {
+        if (OnAddElement.HasDelegate && SelectionState.SelectedPath != null)
+            await OnAddElement.InvokeAsync((elementType, SelectionState.SelectedPath));
+    }
+
+    private async Task HandleRemoveElement(string elementType)
+    {
+        if (OnRemoveElement.HasDelegate && SelectionState.SelectedPath != null)
+            await OnRemoveElement.InvokeAsync((elementType, SelectionState.SelectedPath));
+    }
+
+    private async Task HandleDuplicateElement(string elementType)
+    {
+        await DuplicateElement();
+    }
+
+    private async Task HandleMoveItem((string Direction, string JsonPath) args)
+    {
+        if (OnMoveItem.HasDelegate)
+            await OnMoveItem.InvokeAsync(args);
+    }
+
+    private async Task HandleMoveLane((string Direction, string JsonPath) args)
+    {
+        if (OnMoveLane.HasDelegate)
+            await OnMoveLane.InvokeAsync(args);
     }
 
     private async Task DuplicateElement()

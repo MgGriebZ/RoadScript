@@ -1,6 +1,6 @@
 @inject ResponsiveService ResponsiveService
 
-@if (ResponsiveService.IsMobile() && IsOpen)
+@if ((ResponsiveService.IsMobile() || ResponsiveService.IsTablet()) && IsOpen)
 {
     <!-- Backdrop -->
     <div class="mobile-drawer-backdrop @(IsOpen ? "visible" : "")" @onclick="Close"></div>
@@ -17,7 +17,105 @@
 
         <!-- Content -->
         <div class="mobile-drawer-content">
-            @ChildContent
+            @if (ChildContent != null)
+            {
+                @ChildContent
+            }
+            else if (FolderManager != null)
+            {
+                @* Folder navigation *@
+                <div style="padding: 0;">
+                    @* Folders section *@
+                    <div style="padding: 12px 16px; font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #3a3a4e;">
+                        Projects
+                    </div>
+                    @foreach (var folder in FolderManager.Folders)
+                    {
+                        var fIndex = FolderManager.Folders.IndexOf(folder);
+                        var isActiveFolder = folder.Id == FolderManager.ActiveFolderId;
+                        <div style="padding: 0;">
+                            <button @onclick="@(() => { OnFolderClick.InvokeAsync(fIndex); if (!isActiveFolder) Close(); })"
+                                    style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: @(isActiveFolder ? "rgba(102, 126, 234, 0.15)" : "transparent"); border: none; border-left: 3px solid @(isActiveFolder ? folder.Color : "transparent"); color: #e0e7ff; font-size: 14px; font-weight: @(isActiveFolder ? "600" : "400"); cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent; border-bottom: 1px solid #2a2a3e;">
+                                <div style="width: 32px; height: 32px; border-radius: 8px; background: @folder.Color; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <Icon IconType="@(folder.Icon ?? "folder")" Size="18" Color="#ffffff" />
+                                </div>
+                                <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@folder.Name</span>
+                                @if (isActiveFolder)
+                                {
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                }
+                            </button>
+
+                            @* Tabs for active folder *@
+                            @if (isActiveFolder && SessionManager != null)
+                            {
+                                <div style="background: #252538; padding: 8px 16px; border-bottom: 1px solid #2a2a3e;">
+                                    @foreach (var tab in SessionManager.Tabs)
+                                    {
+                                        var isActiveTab = tab.Id == SessionManager.ActiveTabId;
+                                        <button @onclick="@(() => { OnTabSwitch.InvokeAsync(tab.Id); Close(); })"
+                                                style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; margin: 2px 0; background: @(isActiveTab ? "rgba(102, 126, 234, 0.2)" : "transparent"); border: none; border-radius: 6px; color: @(isActiveTab ? "#667eea" : "#9ca3af"); font-size: 13px; cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent;">
+                                            <div style="width: 6px; height: 6px; border-radius: 50%; background: @(isActiveTab ? "#667eea" : "#4a5568"); flex-shrink: 0;"></div>
+                                            <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@tab.Name</span>
+                                        </button>
+                                    }
+
+                                    @if (SessionManager.Tabs.Count < SessionManager.MaxTabs)
+                                    {
+                                        <button @onclick="@(() => { OnTabAdd.InvokeAsync(); Close(); })"
+                                                style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; margin: 2px 0; background: transparent; border: none; border-radius: 6px; color: #667eea; font-size: 13px; cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                            </svg>
+                                            <span>Add roadmap</span>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @* Actions section *@
+                    <div style="padding: 12px 16px; font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #3a3a4e; border-bottom: 1px solid #3a3a4e; margin-top: 8px;">
+                        Actions
+                    </div>
+
+                    <button @onclick="@(() => { OnToggleFolderSelector.InvokeAsync(); Close(); })"
+                            style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: transparent; border: none; color: #e0e7ff; font-size: 14px; cursor: pointer; text-align: left; border-bottom: 1px solid #2a2a3e; -webkit-tap-highlight-color: transparent;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        Manage Folders
+                    </button>
+
+                    <button @onclick="@(() => { OnTemplatesClick.InvokeAsync(); Close(); })"
+                            style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: transparent; border: none; color: #e0e7ff; font-size: 14px; cursor: pointer; text-align: left; border-bottom: 1px solid #2a2a3e; -webkit-tap-highlight-color: transparent;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        Apply Template
+                    </button>
+
+                    <button @onclick="@(() => { OnShareClick.InvokeAsync(); Close(); })"
+                            style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: transparent; border: none; color: #e0e7ff; font-size: 14px; cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        Share Roadmap
+                    </button>
+                </div>
+            }
         </div>
     </div>
 }
@@ -52,6 +150,15 @@
     /// </summary>
     [Parameter]
     public EventCallback OnClose { get; set; }
+
+    [Parameter] public FolderManager? FolderManager { get; set; }
+    [Parameter] public SessionManager? SessionManager { get; set; }
+    [Parameter] public EventCallback<int> OnFolderClick { get; set; }
+    [Parameter] public EventCallback<string> OnTabSwitch { get; set; }
+    [Parameter] public EventCallback OnTabAdd { get; set; }
+    [Parameter] public EventCallback OnToggleFolderSelector { get; set; }
+    [Parameter] public EventCallback OnShareClick { get; set; }
+    [Parameter] public EventCallback OnTemplatesClick { get; set; }
 
     private async Task Close()
     {

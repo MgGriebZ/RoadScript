@@ -1,0 +1,101 @@
+@inject SelectionState SelectionState
+
+<div class="mobile-item-card @GetCardClasses()"
+     style="border-left-color: @GetItemColor();"
+     @onclick="HandleTap">
+
+    <div class="mobile-item-card-header">
+        @if (!string.IsNullOrEmpty(Item?.Icon))
+        {
+            <Icon IconType="@Item.Icon" Size="16" Color="@GetItemColor()" />
+        }
+        <span class="mobile-item-card-title">@(Item?.Title ?? "Untitled")</span>
+    </div>
+
+    <div class="mobile-item-card-meta">
+        @GetColumnRangeText()
+        @if (Item?.Spanning == true) { <span style="margin-left: 4px; color: #667eea;">· ongoing</span> }
+        @if (Item?.Greyed == true) { <span style="margin-left: 4px; color: #9ca3af;">· greyed</span> }
+    </div>
+
+    @if (!string.IsNullOrEmpty(Item?.Description))
+    {
+        <div class="mobile-item-card-description">@GetDescriptionPreview()</div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Item? Item { get; set; }
+
+    [Parameter]
+    public int LaneIndex { get; set; }
+
+    [Parameter]
+    public int ItemIndex { get; set; }
+
+    [Parameter]
+    public List<Column>? Columns { get; set; }
+
+    [Parameter]
+    public string? LaneColor { get; set; }
+
+    [Parameter]
+    public bool IsPreviewMode { get; set; }
+
+    [Parameter]
+    public EventCallback<(string Path, string Type, object Element)> OnSelected { get; set; }
+
+    private string GetItemColor()
+    {
+        if (!string.IsNullOrEmpty(Item?.Color)) return Item.Color;
+        if (!string.IsNullOrEmpty(LaneColor)) return LaneColor;
+        return "#667eea";
+    }
+
+    private string GetCardClasses()
+    {
+        var classes = new List<string>();
+        var path = $"lanes[{LaneIndex}].items[{ItemIndex}]";
+        if (SelectionState.SelectedPath == path) classes.Add("selected");
+        if (Item?.Greyed == true) classes.Add("greyed");
+        if (Item?.Spanning == true) classes.Add("spanning");
+        return string.Join(" ", classes);
+    }
+
+    private string GetColumnRangeText()
+    {
+        if (Item == null || Columns == null || Columns.Count == 0) return "";
+
+        var startCol = (int)Math.Floor(Item.Start);
+        var endCol = (int)Math.Floor(Item.Start + Item.Length) - 1;
+        startCol = Math.Max(0, Math.Min(startCol, Columns.Count - 1));
+        endCol = Math.Max(0, Math.Min(endCol, Columns.Count - 1));
+
+        var startLabel = Columns[startCol].Label ?? $"Col {startCol + 1}";
+        var span = (int)Math.Ceiling(Item.Length);
+
+        if (span <= 1 || startCol == endCol)
+            return startLabel;
+
+        var endLabel = Columns[endCol].Label ?? $"Col {endCol + 1}";
+        return $"{startLabel} → {endLabel} ({span})";
+    }
+
+    private string GetDescriptionPreview()
+    {
+        var desc = Item?.Description ?? "";
+        // Strip markdown characters for preview
+        desc = desc.Replace("**", "").Replace("*", "").Replace("#", "").Replace("`", "").Replace("- ", "• ");
+        if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
+        return desc;
+    }
+
+    private async Task HandleTap()
+    {
+        if (Item == null) return;
+        var path = $"lanes[{LaneIndex}].items[{ItemIndex}]";
+        SelectionState.Select(path, "item", Item);
+        await OnSelected.InvokeAsync((path, "item", Item));
+    }
+}
