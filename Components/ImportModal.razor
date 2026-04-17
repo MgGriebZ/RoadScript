@@ -1,42 +1,43 @@
 @using RoadScript.Models
+@using RoadScript.Services
 @inject IJSRuntime JSRuntime
 
 <div class="import-modal-overlay @(IsVisible ? "visible" : "")" @onclick="Close">
     <div class="import-modal-content" @onclick:stopPropagation="true">
         <div class="import-modal-header">
-            <h3>📥 Import Shared Roadmap</h3>
+            <h3>Import Roadmap</h3>
             <button class="close-button" @onclick="Close">×</button>
         </div>
 
         <div class="import-modal-body">
-            @if (RoadmapData != null)
+            @if (ActiveData != null)
             {
                 <div class="import-preview">
                     <div class="import-preview-header">
-                        <h4>@RoadmapData.Title</h4>
-                        @if (!string.IsNullOrEmpty(RoadmapData.Subtitle))
+                        <h4>@ActiveData.Title</h4>
+                        @if (!string.IsNullOrEmpty(ActiveData.Subtitle))
                         {
-                            <p>@RoadmapData.Subtitle</p>
+                            <p>@ActiveData.Subtitle</p>
                         }
                     </div>
 
                     <div class="import-stats">
                         <div class="import-stat">
-                            <div class="import-stat-value">@RoadmapData.Columns.Count</div>
+                            <div class="import-stat-value">@ActiveData.Columns.Count</div>
                             <div class="import-stat-label">Columns</div>
                         </div>
                         <div class="import-stat">
-                            <div class="import-stat-value">@RoadmapData.Lanes.Count</div>
+                            <div class="import-stat-value">@ActiveData.Lanes.Count</div>
                             <div class="import-stat-label">Lanes</div>
                         </div>
                         <div class="import-stat">
                             <div class="import-stat-value">@GetTotalItems()</div>
                             <div class="import-stat-label">Items</div>
                         </div>
-                        @if (RoadmapData.Milestones?.Count > 0)
+                        @if (ActiveData.Milestones?.Count > 0)
                         {
                             <div class="import-stat">
-                                <div class="import-stat-value">@RoadmapData.Milestones.Count</div>
+                                <div class="import-stat-value">@ActiveData.Milestones.Count</div>
                                 <div class="import-stat-label">Milestones</div>
                             </div>
                         }
@@ -56,8 +57,8 @@
                     </select>
                     @if (IsSelectedFolderFull())
                     {
-                        <div style="margin-top: 8px; padding: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 4px;">
-                            <span style="color: #fca5a5; font-size: 12px;">⚠️ This folder is full. Please select a different folder.</span>
+                        <div class="import-folder-full-warning">
+                            <span>⚠️ This folder is full. Please select a different folder.</span>
                         </div>
                     }
                 </div>
@@ -73,7 +74,7 @@
                 <div class="import-actions">
                     <button @onclick="ImportRoadmap"
                             class="btn-import-primary"
-                            disabled="@(_isImporting || IsSelectedFolderFull())">
+                            disabled="@(_isImporting || IsSelectedFolderFull() || string.IsNullOrWhiteSpace(RoadmapName))">
                         @if (_isImporting)
                         {
                             <span>⏳ Importing...</span>
@@ -90,18 +91,46 @@
             }
             else
             {
-                <div class="import-error">
-                    <div class="import-error-icon">⚠️</div>
-                    <div>
-                        <div class="import-error-title">Invalid Share Link</div>
-                        <div class="import-error-message">
-                            This link appears to be corrupted or invalid. Please check the URL and try again.
-                        </div>
+                <div class="import-url-section">
+                    <label class="import-url-label">Paste a share link:</label>
+                    <div class="import-url-row">
+                        <input type="text"
+                               class="import-url-input @(!string.IsNullOrEmpty(_urlParseError) ? "import-url-input-error" : "")"
+                               placeholder="https://…#share/…"
+                               @bind="_urlInput"
+                               @bind:event="oninput"
+                               @onkeydown="HandleUrlKeyDown"
+                               disabled="@_isParsing" />
+                        <button class="btn-parse-url"
+                                @onclick="ParseUrl"
+                                disabled="@(string.IsNullOrWhiteSpace(_urlInput) || _isParsing)">
+                            @if (_isParsing)
+                            {
+                                <span class="import-parse-spinner"></span>
+                            }
+                            else
+                            {
+                                <span>Load</span>
+                            }
+                        </button>
                     </div>
+                    @if (!string.IsNullOrEmpty(_urlParseError))
+                    {
+                        <div class="import-url-error">@_urlParseError</div>
+                    }
                 </div>
-                <div class="import-actions">
+
+                <div class="import-divider-or">
+                    <span>or</span>
+                </div>
+
+                <button class="btn-import-file" @onclick="TriggerFileImport">
+                    Import from JSON File
+                </button>
+
+                <div class="import-actions" style="margin-top: 16px;">
                     <button @onclick="Close" class="btn-import-secondary" style="width: 100%;">
-                        Close
+                        Cancel
                     </button>
                 </div>
             }
@@ -115,36 +144,42 @@
     [Parameter] public List<Folder> AvailableFolders { get; set; } = new();
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<(string FolderId, string RoadmapName, RoadmapData Data)> OnImport { get; set; }
+    [Parameter] public EventCallback OnImportFromFile { get; set; }
 
     private string SelectedFolderId { get; set; } = "";
     private string RoadmapName { get; set; } = "";
     private bool _isImporting = false;
+    private bool _isParsing = false;
+    private string _urlInput = "";
+    private string _urlParseError = "";
+    private RoadmapData? _locallyParsedData;
+    private bool _wasVisible = false;
+
+    private RoadmapData? ActiveData => RoadmapData ?? _locallyParsedData;
 
     protected override void OnParametersSet()
     {
-        if (RoadmapData != null && IsVisible)
+        if (IsVisible && !_wasVisible)
         {
-            // Reset importing state when modal opens
             _isImporting = false;
+            _isParsing = false;
+            _urlInput = "";
+            _urlParseError = "";
+            _locallyParsedData = null;
+            RoadmapName = RoadmapData?.Title ?? "";
 
-            // Default to the first non-full folder if available
-            if (AvailableFolders.Count > 0 && string.IsNullOrEmpty(SelectedFolderId))
+            if (AvailableFolders.Count > 0)
             {
-                var availableFolder = AvailableFolders.FirstOrDefault(f => f.SessionManager.Tabs.Count < f.SessionManager.MaxTabs);
-                SelectedFolderId = availableFolder?.Id ?? AvailableFolders[0].Id;
-            }
-
-            // Default name from roadmap title
-            if (string.IsNullOrEmpty(RoadmapName) && !string.IsNullOrEmpty(RoadmapData.Title))
-            {
-                RoadmapName = RoadmapData.Title;
+                var available = AvailableFolders.FirstOrDefault(f => f.SessionManager.Tabs.Count < f.SessionManager.MaxTabs);
+                SelectedFolderId = available?.Id ?? AvailableFolders[0].Id;
             }
         }
+        _wasVisible = IsVisible;
     }
 
     private int GetTotalItems()
     {
-        return RoadmapData?.Lanes.Sum(l => l.Items?.Count ?? 0) ?? 0;
+        return ActiveData?.Lanes.Sum(l => l.Items?.Count ?? 0) ?? 0;
     }
 
     private bool IsSelectedFolderFull()
@@ -153,10 +188,7 @@
         return folder != null && folder.SessionManager.Tabs.Count >= folder.SessionManager.MaxTabs;
     }
 
-    private void OnFolderChanged()
-    {
-        StateHasChanged();
-    }
+    private void OnFolderChanged() => StateHasChanged();
 
     private async Task Close()
     {
@@ -170,23 +202,20 @@
 
     private async Task ImportRoadmap()
     {
-        if (_isImporting || RoadmapData == null || string.IsNullOrWhiteSpace(RoadmapName) || string.IsNullOrWhiteSpace(SelectedFolderId))
-        {
+        var data = ActiveData;
+        if (_isImporting || data == null || string.IsNullOrWhiteSpace(RoadmapName) || string.IsNullOrWhiteSpace(SelectedFolderId))
             return;
-        }
 
-        if (IsSelectedFolderFull())
-        {
-            return;
-        }
+        if (IsSelectedFolderFull()) return;
 
         _isImporting = true;
         StateHasChanged();
 
         try
         {
-            await OnImport.InvokeAsync((SelectedFolderId, RoadmapName.Trim(), RoadmapData));
+            await OnImport.InvokeAsync((SelectedFolderId, RoadmapName.Trim(), data));
             RoadmapName = "";
+            _locallyParsedData = null;
             _isImporting = false;
         }
         catch
@@ -194,6 +223,59 @@
             _isImporting = false;
             throw;
         }
+    }
+
+    private async Task ParseUrl()
+    {
+        if (string.IsNullOrWhiteSpace(_urlInput)) return;
+
+        _isParsing = true;
+        _urlParseError = "";
+        StateHasChanged();
+        await Task.Yield();
+
+        var shareCode = ExtractShareCode(_urlInput.Trim());
+        var parsed = ShareService.ParseShareUrl(shareCode);
+
+        _isParsing = false;
+
+        if (parsed != null)
+        {
+            _locallyParsedData = parsed;
+            RoadmapName = parsed.Title ?? "Imported Roadmap";
+            if (AvailableFolders.Count > 0 && string.IsNullOrEmpty(SelectedFolderId))
+            {
+                var available = AvailableFolders.FirstOrDefault(f => f.SessionManager.Tabs.Count < f.SessionManager.MaxTabs);
+                SelectedFolderId = available?.Id ?? AvailableFolders[0].Id;
+            }
+        }
+        else
+        {
+            _urlParseError = "Could not read that link — please check the URL and try again.";
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task HandleUrlKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await ParseUrl();
+    }
+
+    private async Task TriggerFileImport()
+    {
+        await OnImportFromFile.InvokeAsync();
+    }
+
+    private static string ExtractShareCode(string input)
+    {
+        if (input.Contains("#share/"))
+            return input[(input.IndexOf("#share/") + 7)..];
+        if (input.Contains("#share="))
+            return input[(input.IndexOf("#share=") + 7)..];
+        if (input.Contains("share="))
+            return input[(input.IndexOf("share=") + 6)..];
+        return input;
     }
 }
 
@@ -342,32 +424,17 @@
         border-color: #667eea;
     }
 
-    .import-error {
-        display: flex;
-        gap: 12px;
-        padding: 16px;
+    .import-folder-full-warning {
+        margin-top: 8px;
+        padding: 8px;
         background: rgba(239, 68, 68, 0.1);
         border: 1px solid rgba(239, 68, 68, 0.3);
-        border-radius: 8px;
-        margin-bottom: 20px;
+        border-radius: 4px;
     }
 
-    .import-error-icon {
-        font-size: 24px;
-        flex-shrink: 0;
-    }
-
-    .import-error-title {
+    .import-folder-full-warning span {
         color: #fca5a5;
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 4px;
-    }
-
-    .import-error-message {
-        color: #fca5a5;
-        font-size: 13px;
-        opacity: 0.9;
+        font-size: 12px;
     }
 
     .import-actions {
@@ -389,19 +456,18 @@
         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
 
-    .btn-import-primary:hover {
+    .btn-import-primary:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
     }
 
-    .btn-import-primary:active {
+    .btn-import-primary:active:not(:disabled) {
         transform: translateY(0);
     }
 
     .btn-import-primary:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-        transform: none;
     }
 
     .btn-import-secondary {
@@ -420,5 +486,140 @@
     .btn-import-secondary:hover {
         background: #333;
         border-color: #667eea;
+    }
+
+    /* URL input mode */
+    .import-url-section {
+        margin-bottom: 4px;
+    }
+
+    .import-url-label {
+        display: block;
+        font-size: 12px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .import-url-row {
+        display: flex;
+        gap: 8px;
+    }
+
+    .import-url-input {
+        flex: 1;
+        padding: 12px 14px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 6px;
+        color: #ffffff;
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s;
+        min-width: 0;
+    }
+
+    .import-url-input:focus {
+        border-color: #667eea;
+    }
+
+    .import-url-input.import-url-input-error {
+        border-color: rgba(239, 68, 68, 0.6);
+    }
+
+    .import-url-input::placeholder {
+        color: #555;
+    }
+
+    .btn-parse-url {
+        padding: 12px 18px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 64px;
+        justify-content: center;
+    }
+
+    .btn-parse-url:hover:not(:disabled) {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .btn-parse-url:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .import-parse-spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: import-spin 0.7s linear infinite;
+        display: inline-block;
+    }
+
+    .import-url-error {
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 6px;
+        color: #fca5a5;
+        font-size: 13px;
+    }
+
+    .import-divider-or {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 20px 0;
+        color: #555;
+        font-size: 13px;
+    }
+
+    .import-divider-or::before,
+    .import-divider-or::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #333;
+    }
+
+    .btn-import-file {
+        width: 100%;
+        padding: 12px;
+        background: #252525;
+        border: 1px dashed #444;
+        border-radius: 8px;
+        color: #aaa;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .btn-import-file:hover {
+        background: #2a2a2a;
+        border-color: #667eea;
+        color: #c4b5fd;
+    }
+
+    @keyframes import-spin {
+        to { transform: rotate(360deg); }
     }
 </style>

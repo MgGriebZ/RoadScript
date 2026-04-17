@@ -122,16 +122,33 @@
             </div>
             <div class="landing-import-row">
                 <input type="text"
-                       class="landing-import-input"
+                       class="landing-import-input @(!string.IsNullOrEmpty(ImportError) ? "landing-import-input-error" : "")"
                        placeholder="Paste a RoadScript URL..."
                        @bind="_importUrl"
-                       @bind:event="oninput" />
+                       @bind:event="oninput"
+                       @onkeydown="HandleImportKeyDown"
+                       disabled="@_isImporting" />
                 <button class="landing-import-btn"
-                        disabled="@(string.IsNullOrWhiteSpace(_importUrl))"
+                        disabled="@(string.IsNullOrWhiteSpace(_importUrl) || _isImporting)"
                         @onclick="HandleImportFromUrl">
-                    Import
+                    @if (_isImporting)
+                    {
+                        <span class="landing-import-spinner"></span>
+                        <span>Loading...</span>
+                    }
+                    else
+                    {
+                        <span>Import</span>
+                    }
                 </button>
             </div>
+            @if (!string.IsNullOrEmpty(ImportError))
+            {
+                <div class="landing-import-error">
+                    <Icon IconType="triangle" Size="14" Color="#f87171" />
+                    <span>@ImportError</span>
+                </div>
+            }
         </div>
 
         <div class="landing-footer-tagline">
@@ -148,10 +165,14 @@
     [Parameter]
     public EventCallback<string> OnImportFromUrl { get; set; }
 
+    [Parameter]
+    public string? ImportError { get; set; }
+
     private RoadmapData _heroRoadmap = LandingPageDemoData.GetHeroRoadmap();
     private TabSession _demoTab = new() { Id = "demo", Name = "Demo" };
     private SessionManager _demoSession = new() { ActiveTabId = "demo", Tabs = new() };
     private string _importUrl = "";
+    private bool _isImporting = false;
     private Timer? _themeCycleTimer;
 
     private readonly List<FeatureShowcase> _features = new()
@@ -229,10 +250,20 @@
 
     private async Task HandleImportFromUrl()
     {
-        if (!string.IsNullOrWhiteSpace(_importUrl))
-        {
-            await OnImportFromUrl.InvokeAsync(_importUrl.Trim());
-        }
+        if (string.IsNullOrWhiteSpace(_importUrl) || _isImporting) return;
+
+        _isImporting = true;
+        StateHasChanged();
+
+        await OnImportFromUrl.InvokeAsync(_importUrl.Trim());
+
+        _isImporting = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleImportKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await HandleImportFromUrl();
     }
 
     private async Task ScrollToTemplates()
