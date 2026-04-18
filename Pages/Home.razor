@@ -30,14 +30,16 @@ else if (_showLandingPage)
         @* Landing page in mobile shell — scrollable, no fixed bars *@
         <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;background:#1e1e2f;overflow-y:auto;-webkit-overflow-scrolling:touch;">
             <LandingPage OnCreateRoadmap="HandleLandingPageCreate"
-                         OnImportFromUrl="HandleLandingPageImport" />
+                         OnImportFromUrl="HandleLandingPageImport"
+                         ImportError="@_landingPageImportError" />
         </div>
     }
     else
     {
         <div class="container-fluid vh-100 d-flex p-0">
             <LandingPage OnCreateRoadmap="HandleLandingPageCreate"
-                         OnImportFromUrl="HandleLandingPageImport" />
+                         OnImportFromUrl="HandleLandingPageImport"
+                         ImportError="@_landingPageImportError" />
         </div>
     }
 }
@@ -110,6 +112,7 @@ else if (_isMobileLayout)
 
         <InputFile @ref="_folderImportInput" OnChange="HandleFolderImport" accept=".json" style="display: none;" />
         <InputFile @ref="_allDataImportInput" OnChange="HandleAllDataImport" accept=".json" style="display: none;" />
+        <InputFile @ref="_roadmapJsonImportInput" OnChange="HandleRoadmapJsonImport" accept=".json" style="display: none;" />
 
         @if (_folderManager != null)
         {
@@ -168,7 +171,8 @@ else if (_isMobileLayout)
                     RoadmapData="@StateManager.ImportRoadmapData"
                     AvailableFolders="@(_folderManager?.Folders ?? new())"
                     OnClose="CloseImportModal"
-                    OnImport="HandleImportSharedRoadmap" />
+                    OnImport="HandleImportSharedRoadmap"
+                    OnImportFromFile="HandleImportFromFileViaModal" />
 
         <TemplateSelector IsVisible="@StateManager.ShowTemplateSelector"
                          OnClose="CloseTemplateSelector"
@@ -229,11 +233,9 @@ else
         }
     </div>
 
-    @* Hidden file input for folder import *@
     <InputFile @ref="_folderImportInput" OnChange="HandleFolderImport" accept=".json" style="display: none;" />
-
-    @* Hidden file input for all data import *@
     <InputFile @ref="_allDataImportInput" OnChange="HandleAllDataImport" accept=".json" style="display: none;" />
+    <InputFile @ref="_roadmapJsonImportInput" OnChange="HandleRoadmapJsonImport" accept=".json" style="display: none;" />
 
     @* Right Sidebar: Properties Panel OR JSON Editor *@
     @if (!StateManager.IsJsonEditorMode)
@@ -403,7 +405,8 @@ else
                 RoadmapData="@StateManager.ImportRoadmapData"
                 AvailableFolders="@(_folderManager?.Folders ?? new())"
                 OnClose="CloseImportModal"
-                OnImport="HandleImportSharedRoadmap" />
+                OnImport="HandleImportSharedRoadmap"
+                OnImportFromFile="HandleImportFromFileViaModal" />
 
     <TemplateSelector IsVisible="@StateManager.ShowTemplateSelector"
                      OnClose="CloseTemplateSelector"
@@ -422,7 +425,9 @@ else
     private DotNetObjectReference<Home>? _dotNetRef;
     private InputFile? _folderImportInput;
     private InputFile? _allDataImportInput;
+    private InputFile? _roadmapJsonImportInput;
     private ElementReference _jsonTextArea;
+    private string? _landingPageImportError;
 
     private bool _showLandingPage = false;
     // Gates rendering until viewport size is known — prevents flash of wrong layout
@@ -786,11 +791,25 @@ else
 
             if (!string.IsNullOrEmpty(shareCode))
             {
-                // Handle share URL - show import modal
                 var sharedData = ShareService.ParseShareUrl(shareCode);
                 if (sharedData != null)
                 {
-                    StateManager.ShowImportDialog(sharedData);
+                    if (_showLandingPage)
+                    {
+                        // No existing data — import directly into the new workspace
+                        await HandleLandingPageCreate(null);
+                        _activeTab!.Data = sharedData;
+                        _activeTab.Name = sharedData.Title ?? "Imported Roadmap";
+                        SetData(sharedData);
+                        _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+                        await DebouncedSave();
+                        await UrlNavigation.UpdateUrl(_activeFolder!.Id, _activeTab.Id);
+                        StateHasChanged();
+                    }
+                    else
+                    {
+                        StateManager.ShowImportDialog(sharedData);
+                    }
                 }
             }
             else if (!string.IsNullOrEmpty(folderId) && !string.IsNullOrEmpty(tabId) && _folderManager != null)
@@ -1587,24 +1606,12 @@ else
 
     private async Task HandleLandingPageImport(string url)
     {
+        _landingPageImportError = null;
+        StateHasChanged();
+
         try
         {
-            // Extract share code from URL (look for #share= pattern)
-            var shareCode = "";
-            if (url.Contains("#share="))
-            {
-                shareCode = url.Substring(url.IndexOf("#share=") + 7);
-            }
-            else if (url.Contains("share="))
-            {
-                shareCode = url.Substring(url.IndexOf("share=") + 6);
-            }
-            else
-            {
-                // Treat the entire input as a share code
-                shareCode = url.Trim();
-            }
-
+            var shareCode = ExtractShareCode(url);
             if (!string.IsNullOrEmpty(shareCode))
             {
                 var sharedData = ShareService.ParseShareUrl(shareCode);
@@ -1616,14 +1623,32 @@ else
                     SetData(sharedData);
                     _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
                     await DebouncedSave();
+                    await UrlNavigation.UpdateUrl(_activeFolder!.Id, _activeTab.Id);
                     StateHasChanged();
+                    return;
                 }
             }
+
+            _landingPageImportError = "Could not read that link — please check the URL and try again.";
+            StateHasChanged();
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"Error importing from URL: {ex.Message}");
+            _landingPageImportError = "Could not read that link — please check the URL and try again.";
+            StateHasChanged();
         }
+    }
+
+    private static string ExtractShareCode(string input)
+    {
+        var trimmed = input.Trim();
+        if (trimmed.Contains("#share/"))
+            return trimmed[(trimmed.IndexOf("#share/") + 7)..];
+        if (trimmed.Contains("#share="))
+            return trimmed[(trimmed.IndexOf("#share=") + 7)..];
+        if (trimmed.Contains("share="))
+            return trimmed[(trimmed.IndexOf("share=") + 6)..];
+        return trimmed;
     }
 
     public void Dispose()
@@ -3654,10 +3679,33 @@ else
         // Don't close the modal - let the user see both options
     }
 
-    private async Task HandleFooterImportClick()
+    private void HandleFooterImportClick()
     {
-        // Trigger the import session data file picker
-        await ImportAllData();
+        StateManager.ShowImportDialog(null);
+    }
+
+    private async Task HandleImportFromFileViaModal()
+    {
+        StateManager.CloseImportDialog();
+        if (_roadmapJsonImportInput?.Element != null)
+            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.triggerFileInput", _roadmapJsonImportInput.Element);
+    }
+
+    private async Task HandleRoadmapJsonImport(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            using var reader = new StreamReader(file.OpenReadStream(5 * 1024 * 1024));
+            var json = await reader.ReadToEndAsync();
+            var data = JsonSerializer.Deserialize<RoadmapData>(json);
+            if (data != null)
+                StateManager.ShowImportDialog(data);
+        }
+        catch
+        {
+            // silently ignore malformed files
+        }
     }
 
     private void CloseImportModal()

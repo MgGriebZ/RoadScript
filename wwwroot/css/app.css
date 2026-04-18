@@ -1175,6 +1175,43 @@ input[type="color"] {
     cursor: not-allowed;
 }
 
+.landing-import-btn:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.landing-import-input.landing-import-input-error {
+    border-color: rgba(239, 68, 68, 0.6);
+}
+
+.landing-import-error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    color: #f87171;
+    font-size: 13px;
+}
+
+.landing-import-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: landing-spin 0.7s linear infinite;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+@keyframes landing-spin {
+    to { transform: rotate(360deg); }
+}
+
 /* Footer tagline */
 .landing-footer-tagline {
     display: flex;
