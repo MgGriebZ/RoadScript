@@ -94,29 +94,19 @@ public class ThemeService
     public string HistoryEmptyStyle(double pct) =>
         $"width: {pct:F2}%; background: repeating-linear-gradient(90deg, #f9fafb, #f9fafb 4px, #e5e7eb 4px, #e5e7eb 8px);";
 
-    public string ColumnHeaderStyle(int index, bool canExpand = false)
+    public string ColumnHeaderStyle(int index, bool isNull = false)
     {
+        if (isNull)
+        {
+            // Null columns keep their flex:1 space (so item positioning is undisturbed)
+            // but are completely invisible — no background, no border.
+            return "flex: 1; background: transparent;";
+        }
         var bg = index % 2 == 0
             ? "background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);"
             : "background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);";
         var border = index > 0 ? "border-left: 1px solid #d1d5db;" : "";
-        var expandStyle = canExpand ? "position: relative; overflow: visible; z-index: 2;" : "";
-        return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} {bg} {expandStyle}";
-    }
-
-    // Absolutely-positioned wrapper spanning into both null neighbours.
-    // Only rendered when prevEmpty && nextEmpty, so left/right are always −100%.
-    public string ColumnExpandedTextStyle(bool prevEmpty, bool nextEmpty)
-    {
-        return "position: absolute; top: 0; bottom: 0; left: -100%; right: -100%; " +
-               "display: flex; flex-direction: column; align-items: center; justify-content: center; " +
-               "z-index: 2; padding: 0 12px;";
-    }
-
-    // Larger label rendered when a column is flanked by null columns on both sides
-    public string ColumnLabelExpandedStyle(bool prevEmpty, bool nextEmpty)
-    {
-        return "font-size: 26px; font-weight: 700; line-height: 1.3; color: #1f2937;";
+        return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} {bg}";
     }
 
     public string MilestoneScaleContainerStyle() =>
@@ -166,8 +156,14 @@ public class ThemeService
     public string MilestoneButtonStyle() =>
         "width: 24px; height: 24px; background: #f9fafb; color: #6366f1; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;";
 
-    public string GridColumnStyle(int index, int columnCount)
+    public string GridColumnStyle(int index, int columnCount, bool isNull = false)
     {
+        if (isNull)
+        {
+            // Keep flex:1 so items positioned across this column still land correctly,
+            // but strip all background and border so the column is visually absent.
+            return "flex: 1; background: transparent;";
+        }
         var (even, odd) = GetSeasonalColumnColors();
         var bg = index % 2 == 0 ? even : odd;
         var bgStyle = $"background: {bg};";
