@@ -70,8 +70,8 @@ else
                                  OnAdd="HandleAddElement"
                                  OnRemove="HandleRemoveElement"
                                  OnDuplicate="HandleDuplicateElement"
-                                 OnInsertColumnAt="HandleInsertColumnAt"
-                                 OnRemoveColumnAt="HandleRemoveColumnAt" />
+                                 OnNavigateTo="HandleNavigateToColumn"
+                                 OnInsertColumnAt="HandleInsertColumnAt" />
             }
             else if (SelectionState.ElementType == "milestone" && SelectionState.SelectedElement is Milestone milestone && SelectionState.SelectedPath != null)
             {
@@ -347,16 +347,17 @@ else
         return m.Success ? int.Parse(m.Groups[1].Value) : 0;
     }
 
+    private void HandleNavigateToColumn(int index)
+    {
+        if (Columns != null && index >= 0 && index < Columns.Count)
+            SelectionState.Select($"columns[{index}]", "column", Columns[index]);
+    }
+
     private async Task HandleInsertColumnAt(int afterIndex)
     {
         // afterIndex == -1 means "before the very first column"
         var path = afterIndex >= 0 ? $"columns[{afterIndex}]" : "columns[-1]";
         await OnAddElement.InvokeAsync(("column", path));
-    }
-
-    private async Task HandleRemoveColumnAt(int index)
-    {
-        await OnRemoveElement.InvokeAsync(("column", $"columns[{index}]"));
     }
 
     private async Task HandleExpandPanel()

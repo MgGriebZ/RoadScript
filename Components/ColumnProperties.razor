@@ -365,17 +365,10 @@
     <div class="form-group" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a4e;">
         <label style="margin-bottom: 8px; font-weight: 600; color: #e0e7ff;">Column Management</label>
 
-        @* Inline column strip — shows all columns with insert and remove controls *@
+        @* Column selector — click any chip to jump to that column (including invisible null ones) *@
         @if (AllColumns != null && AllColumns.Count > 0)
         {
-            <div style="display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 6px 0 8px; scrollbar-width: thin; scrollbar-color: #3a3a4e transparent; margin-bottom: 8px;">
-
-                @* Insert-before-first button *@
-                <button type="button"
-                        @onclick="@(() => OnInsertColumnAt.InvokeAsync(-1))"
-                        title="Insert column at the start"
-                        style="@InsertBtnStyle()">+</button>
-
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; padding: 2px 0 10px;">
                 @for (int ci = 0; ci < AllColumns.Count; ci++)
                 {
                     var chipIndex = ci;
@@ -384,49 +377,49 @@
                                     string.IsNullOrWhiteSpace(chipCol.Sub) &&
                                     string.IsNullOrEmpty(chipCol.Icon);
                     var isCurrent = chipIndex == ColumnIndex;
-                    var chipLabel = chipIsNull ? "—" :
-                        (chipCol.Label?.Length > 4 ? chipCol.Label.Substring(0, 4) + "…" : (chipCol.Label ?? chipCol.Sub ?? "?"));
+                    var chipLabel = chipIsNull ? "Empty"
+                        : (chipCol.Label?.Length > 5 ? chipCol.Label.Substring(0, 5) + "…"
+                           : (chipCol.Label ?? chipCol.Sub ?? "?"));
 
-                    @* Column chip *@
-                    <div style="@ChipStyle(isCurrent, chipIsNull)" title="@(chipIsNull ? $"Empty column {chipIndex + 1}" : chipCol.Label)">
-                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 36px; font-size: 9px;">@chipLabel</span>
-                        <button type="button"
-                                @onclick="@(() => OnRemoveColumnAt.InvokeAsync(chipIndex))"
-                                @onclick:stopPropagation="true"
-                                title="Remove column @(chipIndex + 1)"
-                                style="width: 13px; height: 13px; background: none; border: none; color: @(isCurrent ? "#ef4444" : "#666"); cursor: pointer; padding: 0; font-size: 10px; line-height: 1; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">×</button>
+                    <div @onclick="@(() => OnNavigateTo.InvokeAsync(chipIndex))"
+                         style="@ChipStyle(isCurrent, chipIsNull)"
+                         title="@(chipIsNull ? $"Column {chipIndex + 1} — empty (click to select)" : $"Column {chipIndex + 1}: {chipCol.Label}")">
+                        <span style="font-size: 8px; color: @(isCurrent ? "#a5b4fc" : (chipIsNull ? "#444" : "#555")); font-weight: 700; flex-shrink: 0; line-height: 1;">@(chipIndex + 1)</span>
+                        <span style="font-size: 10px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">@chipLabel</span>
                     </div>
-
-                    @* Insert-after button *@
-                    <button type="button"
-                            @onclick="@(() => OnInsertColumnAt.InvokeAsync(chipIndex))"
-                            title="Insert column after column @(chipIndex + 1)"
-                            style="@InsertBtnStyle()">+</button>
                 }
             </div>
         }
 
-        @* Action buttons row *@
-        <div style="display: flex; gap: 6px;">
+        @* Insert Before / After *@
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
+            <button @onclick="InsertBefore"
+                    type="button"
+                    title="Insert empty column before this one"
+                    style="height: 36px; background: #1e2a3e; color: #93c5fd; border: 1px solid #2a3f5f; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 600; transition: all 0.2s;">
+                ← Before
+            </button>
             <button @onclick="AddColumn"
                     type="button"
-                    title="Add new column after this one"
-                    style="flex: 1; height: 36px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);">
-                <span>+</span> Add After
+                    title="Insert empty column after this one"
+                    style="height: 36px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); transition: all 0.2s;">
+                After →
             </button>
+        </div>
 
+        @* Duplicate / Remove *@
+        <div style="display: flex; gap: 6px;">
             <button @onclick="DuplicateColumn"
                     type="button"
                     title="Duplicate this column"
-                    style="width: 36px; height: 36px; background: #667eea; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);">
-                ♻
+                    style="flex: 1; height: 36px; background: #667eea; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);">
+                ♻ Duplicate
             </button>
-
             <button @onclick="RemoveColumn"
                     type="button"
                     title="Remove this column"
-                    style="width: 36px; height: 36px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444; border: 2px solid #ef4444; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;">
-                ✕
+                    style="flex: 1; height: 36px; background: linear-gradient(135deg, rgba(239,68,68,0.2) 0%, rgba(220,38,38,0.1) 100%); color: #ef4444; border: 2px solid #ef4444; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; font-weight: 600;">
+                ✕ Remove
             </button>
         </div>
     </div>
@@ -451,11 +444,11 @@
     [Parameter]
     public EventCallback<string> OnDuplicate { get; set; }
 
-    // Strip-level parameters
+    // Column selector strip parameters
     [Parameter] public List<Column>? AllColumns { get; set; }
     [Parameter] public int ColumnIndex { get; set; }
+    [Parameter] public EventCallback<int> OnNavigateTo { get; set; }
     [Parameter] public EventCallback<int> OnInsertColumnAt { get; set; }
-    [Parameter] public EventCallback<int> OnRemoveColumnAt { get; set; }
 
     private bool _subPresetsExpanded = false;
     private bool _columnIconPickerExpanded = false;
@@ -611,17 +604,20 @@
     {
         var bg = isCurrent ? "background: #252550;" : "background: #1a1a2e;";
         var border = isCurrent
-            ? "border: 1px solid #667eea;"
+            ? "border: 1.5px solid #667eea;"
             : (isNull ? "border: 1px dashed #3a3a4e;" : "border: 1px solid #3a3a4e;");
-        var color = isNull ? "color: #444;" : (isCurrent ? "color: #e0e7ff;" : "color: #aaa;");
-        return $"display: flex; align-items: center; gap: 2px; padding: 3px 5px; {bg} {border} {color} " +
-               "border-radius: 4px; font-size: 9px; font-weight: 600; flex-shrink: 0; min-width: 28px; max-width: 58px;";
+        var color = isNull ? "color: #555;" : (isCurrent ? "color: #e0e7ff;" : "color: #9ca3af;");
+        return $"display: flex; align-items: center; gap: 4px; padding: 4px 8px; height: 32px; " +
+               $"{bg} {border} {color} border-radius: 5px; cursor: pointer; transition: all 0.15s; " +
+               "min-width: 44px; max-width: 78px; flex-shrink: 0;";
     }
 
-    private static string InsertBtnStyle() =>
-        "width: 14px; height: 14px; background: rgba(102, 126, 234, 0.15); border: 1px solid rgba(102, 126, 234, 0.25); " +
-        "border-radius: 50%; color: #667eea; cursor: pointer; font-size: 11px; line-height: 1; " +
-        "display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin: 0 2px; padding: 0;";
+    private void InsertBefore()
+    {
+        // ColumnIndex - 1 == "after the column before current" == before current.
+        // When ColumnIndex is 0, fires -1 which triggers insert-at-start in Home.razor.
+        OnInsertColumnAt.InvokeAsync(ColumnIndex - 1);
+    }
 
     private string GetQuickButtonStyle(string value, string? currentValue, int height)
     {
