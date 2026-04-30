@@ -94,7 +94,7 @@ public class ThemeService
     public string HistoryEmptyStyle(double pct) =>
         $"width: {pct:F2}%; background: repeating-linear-gradient(90deg, #f9fafb, #f9fafb 4px, #e5e7eb 4px, #e5e7eb 8px);";
 
-    public string ColumnHeaderStyle(int index, bool isNull = false)
+    public string ColumnHeaderStyle(int index, bool isNull = false, bool prevIsNull = false)
     {
         if (isNull)
         {
@@ -105,7 +105,7 @@ public class ThemeService
         var bg = index % 2 == 0
             ? "background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);"
             : "background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);";
-        var border = index > 0 ? "border-left: 1px solid #d1d5db;" : "";
+        var border = (index > 0 && !prevIsNull) ? "border-left: 1px solid #d1d5db;" : "";
         return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} {bg}";
     }
 
@@ -156,7 +156,7 @@ public class ThemeService
     public string MilestoneButtonStyle() =>
         "width: 24px; height: 24px; background: #f9fafb; color: #6366f1; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;";
 
-    public string GridColumnStyle(int index, int columnCount, bool isNull = false)
+    public string GridColumnStyle(int index, int columnCount, bool isNull = false, bool prevIsNull = false)
     {
         if (isNull)
         {
@@ -167,7 +167,7 @@ public class ThemeService
         var (even, odd) = GetSeasonalColumnColors();
         var bg = index % 2 == 0 ? even : odd;
         var bgStyle = $"background: {bg};";
-        var border = index > 0 ? "border-left: 1px solid #e5e7eb;" : "";
+        var border = (index > 0 && !prevIsNull) ? "border-left: 1px solid #e5e7eb;" : "";
         return $"flex: 1; {border} {bgStyle}";
     }
 

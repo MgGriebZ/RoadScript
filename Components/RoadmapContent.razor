@@ -11,12 +11,13 @@
             var col = Data.Columns[i];
             var colIndex = i;
             var colIsNull = IsColumnEmpty(i);
+            var prevColIsNull = IsColumnEmpty(i - 1);
             var hasTitle = !string.IsNullOrWhiteSpace(col.Label);
             var hasSub = !string.IsNullOrWhiteSpace(col.Sub);
             var hasIcon = !string.IsNullOrEmpty(col.Icon);
             <div @onclick="@(IsPreviewMode || colIsNull ? null : () => OnColumnClick.InvokeAsync(new ColumnClickEventArgs { Index = colIndex, Column = col }))"
                  class="@(colIsNull ? "" : GetElementClass($"columns[{colIndex}]"))"
-                 style="@ThemeService.ColumnHeaderStyle(i, colIsNull)">
+                 style="@ThemeService.ColumnHeaderStyle(i, colIsNull, prevColIsNull)">
                 @if (!colIsNull)
                 {
                     @if (hasIcon && hasTitle)
@@ -97,7 +98,7 @@
         <div style="position: absolute; inset: 0; display: flex; pointer-events: none;">
             @for (int i = 0; i < Data.Columns.Count; i++)
             {
-                <div style="@GridColumnStyle(i, IsColumnEmpty(i))"></div>
+                <div style="@GridColumnStyle(i, IsColumnEmpty(i), IsColumnEmpty(i - 1))"></div>
             }
         </div>
 
@@ -260,9 +261,9 @@
         return baseClass;
     }
 
-    private string GridColumnStyle(int index, bool isNull = false)
+    private string GridColumnStyle(int index, bool isNull = false, bool prevIsNull = false)
     {
-        return ThemeService.GridColumnStyle(index, Data.Columns.Count, isNull);
+        return ThemeService.GridColumnStyle(index, Data.Columns.Count, isNull, prevIsNull);
     }
 
     private string LaneRowStyle(int index, Lane lane)
