@@ -65,7 +65,7 @@ public class ThemeService
         return $"{widthStyle} {maxWidthStyle} {minWidthStyle} aspect-ratio: 16/9; " +
               $"background: {GetSeasonalContainer()}; " +
               "font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; " +
-              "padding: 22px 30px 0 30px; border: 2px solid #d1d5db; position: relative; " +
+              "padding: 10px 30px 0 30px; border: 2px solid #d1d5db; position: relative; " +
               "box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);";
     }
 
@@ -94,13 +94,31 @@ public class ThemeService
     public string HistoryEmptyStyle(double pct) =>
         $"width: {pct:F2}%; background: repeating-linear-gradient(90deg, #f9fafb, #f9fafb 4px, #e5e7eb 4px, #e5e7eb 8px);";
 
-    public string ColumnHeaderStyle(int index)
+    public string ColumnHeaderStyle(int index, bool canExpand = false)
     {
         var bg = index % 2 == 0
             ? "background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);"
             : "background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);";
         var border = index > 0 ? "border-left: 1px solid #d1d5db;" : "";
-        return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} {bg}";
+        var expandStyle = canExpand ? "position: relative; overflow: visible; z-index: 2;" : "";
+        return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} {bg} {expandStyle}";
+    }
+
+    // Absolutely-positioned wrapper that bleeds text into adjacent null columns
+    public string ColumnExpandedTextStyle(bool prevEmpty, bool nextEmpty)
+    {
+        var left = prevEmpty ? "-100%" : "0";
+        var right = nextEmpty ? "-100%" : "0";
+        return $"position: absolute; top: 0; bottom: 0; left: {left}; right: {right}; " +
+               "display: flex; flex-direction: column; align-items: center; justify-content: center; " +
+               "z-index: 2; padding: 0 8px;";
+    }
+
+    // Larger label used when a column expands into neighbouring null columns
+    public string ColumnLabelExpandedStyle(bool prevEmpty, bool nextEmpty)
+    {
+        var fontSize = (prevEmpty && nextEmpty) ? "26px" : "22px";
+        return $"font-size: {fontSize}; font-weight: 700; line-height: 1.3; color: #1f2937;";
     }
 
     public string MilestoneScaleContainerStyle() =>

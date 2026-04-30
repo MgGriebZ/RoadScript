@@ -497,16 +497,14 @@ window.RoadScriptInterop = {
                 const isRightEdge = x >= rect.width - resizeHandleWidth;
 
                 if (isLeftEdge) {
-                    element.style.cursor = 'col-resize'; // Column resize for left edge (adjusts start position)
-                    // Use box-shadow overlay on left to avoid overriding border
-                    element.style.boxShadow = 'inset 3px 0 0 0 rgba(102, 126, 234, 0.8)';
+                    element.style.cursor = 'col-resize';
+                    element.style.boxShadow = 'inset 2px 0 0 0 rgba(102, 126, 234, 0.35)';
                 } else if (isRightEdge) {
-                    element.style.cursor = 'col-resize'; // Column resize for right edge (adjusts length)
-                    // Use box-shadow overlay on right to avoid overriding border
-                    element.style.boxShadow = 'inset -3px 0 0 0 rgba(102, 126, 234, 0.8)';
+                    element.style.cursor = 'col-resize';
+                    element.style.boxShadow = 'inset -2px 0 0 0 rgba(102, 126, 234, 0.35)';
                 } else {
-                    element.style.cursor = 'move'; // Move cursor for middle area (slides entire item)
-                    element.style.boxShadow = ''; // Clear box-shadow, restoring original
+                    element.style.cursor = 'move';
+                    element.style.boxShadow = '';
                 }
             };
 

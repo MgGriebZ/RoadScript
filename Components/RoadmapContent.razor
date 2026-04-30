@@ -10,16 +10,32 @@
         {
             var col = Data.Columns[i];
             var colIndex = i;
+            var hasTitle = !string.IsNullOrWhiteSpace(col.Label);
+            var hasSub = !string.IsNullOrWhiteSpace(col.Sub);
+            var hasIcon = !string.IsNullOrEmpty(col.Icon);
+            // Expand text into adjacent null columns when there is no icon
+            var prevEmpty = IsColumnEmpty(i - 1);
+            var nextEmpty = IsColumnEmpty(i + 1);
+            var canExpand = (hasTitle || hasSub) && !hasIcon && (prevEmpty || nextEmpty);
             <div @onclick="@(IsPreviewMode ? null : () => OnColumnClick.InvokeAsync(new ColumnClickEventArgs { Index = colIndex, Column = col }))"
                  class="@GetElementClass($"columns[{colIndex}]")"
-                 style="@ThemeService.ColumnHeaderStyle(i)">
-                @{
-                    var hasTitle = !string.IsNullOrWhiteSpace(col.Label);
-                    var hasSub = !string.IsNullOrWhiteSpace(col.Sub);
-                    var hasIcon = !string.IsNullOrEmpty(col.Icon);
-                }
+                 style="@ThemeService.ColumnHeaderStyle(i, canExpand)">
 
-                @if (hasIcon && hasTitle)
+                @if (canExpand)
+                {
+                    @* Expanded text: bleeds into adjacent null columns *@
+                    <div style="@ThemeService.ColumnExpandedTextStyle(prevEmpty, nextEmpty)">
+                        @if (hasTitle)
+                        {
+                            <span style="@ThemeService.ColumnLabelExpandedStyle(prevEmpty, nextEmpty)">@col.Label</span>
+                        }
+                        @if (hasSub)
+                        {
+                            <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
+                        }
+                    </div>
+                }
+                else if (hasIcon && hasTitle)
                 {
                     @* Icon inline with title *@
                     <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
@@ -236,6 +252,17 @@
     [Parameter] public EventCallback<MilestoneClickEventArgs> OnMilestoneClick { get; set; }
     [Parameter] public EventCallback<ItemClickEventArgs> OnItemClick { get; set; }
     [Parameter] public EventCallback<string> OnRoadmapLinkClick { get; set; }
+
+    // Returns true when a column has no text or icon — used for adjacent-null expansion.
+    // Edge indices (< 0 or >= count) return false so text never bleeds outside the roadmap.
+    private bool IsColumnEmpty(int index)
+    {
+        if (index < 0 || index >= Data.Columns.Count) return false;
+        var col = Data.Columns[index];
+        return string.IsNullOrWhiteSpace(col.Label) &&
+               string.IsNullOrWhiteSpace(col.Sub) &&
+               string.IsNullOrEmpty(col.Icon);
+    }
 
     private string GetElementClass(string jsonPath)
     {

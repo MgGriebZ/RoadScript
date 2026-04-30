@@ -439,16 +439,30 @@ button:disabled {
 
 /* ========== INTERACTIVE EDITING FEATURES ========== */
 
+/* Slow, faint pulse that marks the currently-selected roadmap element */
+@keyframes rs-selected-pulse {
+    0%, 100% {
+        box-shadow:
+            0 0 0 1px rgba(102, 126, 234, 0.10),
+            inset 2px 0 0 0 rgba(102, 126, 234, 0.20);
+    }
+    50% {
+        box-shadow:
+            0 0 0 2px rgba(102, 126, 234, 0.18),
+            inset 2px 0 0 0 rgba(102, 126, 234, 0.38);
+    }
+}
+
 /* Clickable roadmap elements - cursor changes are primary hover indicator */
 .clickable-element {
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: filter 0.2s ease, transform 0.2s ease;
 }
 
-/* General hover for non-item elements (columns, milestones) */
+/* General hover for non-item elements (columns, milestones) - kept very subtle */
 .clickable-element:hover:not(.roadmap-item-resizable) {
-    filter: brightness(1.1);
-    transform: scale(1.01);
+    filter: brightness(1.04);
+    transform: scale(1.005);
 }
 
 /* Roadmap items - no visual hover effect, cursor changes indicate interactivity */
@@ -460,9 +474,9 @@ button:disabled {
     /* No visual changes - cursor (pointer/move/col-resize) indicates interactivity */
 }
 
-/* Selection highlight - subtle left accent bar */
+/* Selection: slow, barely-there pulse rather than a solid colour bar */
 .selected-element {
-    box-shadow: inset 4px 0 0 0 #667eea !important;
+    animation: rs-selected-pulse 3.5s ease-in-out infinite;
     z-index: 100 !important;
 }
 
