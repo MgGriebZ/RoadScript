@@ -13,10 +13,11 @@
             var hasTitle = !string.IsNullOrWhiteSpace(col.Label);
             var hasSub = !string.IsNullOrWhiteSpace(col.Sub);
             var hasIcon = !string.IsNullOrEmpty(col.Icon);
-            // Expand text into adjacent null columns when there is no icon
+            // Expand text symmetrically only when BOTH neighbours are null — keeps the
+            // text centred in its own column while letting it grow wider into the empty space.
             var prevEmpty = IsColumnEmpty(i - 1);
             var nextEmpty = IsColumnEmpty(i + 1);
-            var canExpand = (hasTitle || hasSub) && !hasIcon && (prevEmpty || nextEmpty);
+            var canExpand = (hasTitle || hasSub) && !hasIcon && prevEmpty && nextEmpty;
             <div @onclick="@(IsPreviewMode ? null : () => OnColumnClick.InvokeAsync(new ColumnClickEventArgs { Index = colIndex, Column = col }))"
                  class="@GetElementClass($"columns[{colIndex}]")"
                  style="@ThemeService.ColumnHeaderStyle(i, canExpand)">

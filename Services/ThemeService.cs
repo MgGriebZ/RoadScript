@@ -104,21 +104,19 @@ public class ThemeService
         return $"flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; {border} {bg} {expandStyle}";
     }
 
-    // Absolutely-positioned wrapper that bleeds text into adjacent null columns
+    // Absolutely-positioned wrapper spanning into both null neighbours.
+    // Only rendered when prevEmpty && nextEmpty, so left/right are always −100%.
     public string ColumnExpandedTextStyle(bool prevEmpty, bool nextEmpty)
     {
-        var left = prevEmpty ? "-100%" : "0";
-        var right = nextEmpty ? "-100%" : "0";
-        return $"position: absolute; top: 0; bottom: 0; left: {left}; right: {right}; " +
+        return "position: absolute; top: 0; bottom: 0; left: -100%; right: -100%; " +
                "display: flex; flex-direction: column; align-items: center; justify-content: center; " +
-               "z-index: 2; padding: 0 8px;";
+               "z-index: 2; padding: 0 12px;";
     }
 
-    // Larger label used when a column expands into neighbouring null columns
+    // Larger label rendered when a column is flanked by null columns on both sides
     public string ColumnLabelExpandedStyle(bool prevEmpty, bool nextEmpty)
     {
-        var fontSize = (prevEmpty && nextEmpty) ? "26px" : "22px";
-        return $"font-size: {fontSize}; font-weight: 700; line-height: 1.3; color: #1f2937;";
+        return "font-size: 26px; font-weight: 700; line-height: 1.3; color: #1f2937;";
     }
 
     public string MilestoneScaleContainerStyle() =>
