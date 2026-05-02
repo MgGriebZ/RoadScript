@@ -94,14 +94,21 @@ public class ThemeService
     public string HistoryEmptyStyle(double pct) =>
         $"width: {pct:F2}%; background: repeating-linear-gradient(90deg, #f9fafb, #f9fafb 4px, #e5e7eb 4px, #e5e7eb 8px);";
 
-    public string ColumnHeaderStyle(int index, int colorIndex, bool isNull = false, bool prevIsNull = false)
+    public string ColumnHeaderStyle(int index, int colorIndex, bool isNull = false)
     {
         var bg = colorIndex % 2 == 0
             ? "background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);"
             : "background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);";
-        var border = (index > 0 && !isNull && !prevIsNull) ? "border-left: 1px solid #d1d5db;" : "";
-        var content = isNull ? "" : "display: flex; flex-direction: column; align-items: center; justify-content: center; ";
-        return $"flex: 1; {content}{border} {bg}";
+        var border = (index > 0 && !isNull) ? "border-left: 1px solid #d1d5db;" : "";
+        return $"flex: 1; position: relative; overflow: visible; {border} {bg}";
+    }
+
+    public string ColumnHeaderContentStyle(int rightNullCount)
+    {
+        var width = (1 + rightNullCount) * 100;
+        var extra = rightNullCount > 0 ? "pointer-events: none;" : "";
+        return $"position: absolute; left: 0; top: 0; bottom: 0; width: {width}%; " +
+               $"display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; {extra}";
     }
 
     public string MilestoneScaleContainerStyle() =>
@@ -151,12 +158,12 @@ public class ThemeService
     public string MilestoneButtonStyle() =>
         "width: 24px; height: 24px; background: #f9fafb; color: #6366f1; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;";
 
-    public string GridColumnStyle(int index, int columnCount, int colorIndex, bool isNull = false, bool prevIsNull = false)
+    public string GridColumnStyle(int index, int columnCount, int colorIndex, bool isNull = false)
     {
         var (even, odd) = GetSeasonalColumnColors();
         var bg = colorIndex % 2 == 0 ? even : odd;
         var bgStyle = $"background: {bg};";
-        var border = (index > 0 && !isNull && !prevIsNull) ? "border-left: 1px solid #e5e7eb;" : "";
+        var border = (index > 0 && !isNull) ? "border-left: 1px solid #e5e7eb;" : "";
         return $"flex: 1; {border} {bgStyle}";
     }
 
