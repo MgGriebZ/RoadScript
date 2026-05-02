@@ -94,12 +94,11 @@ public class ThemeService
     public string HistoryEmptyStyle(double pct) =>
         $"width: {pct:F2}%; background: repeating-linear-gradient(90deg, #f9fafb, #f9fafb 4px, #e5e7eb 4px, #e5e7eb 8px);";
 
-    public string ColumnHeaderStyle(int index, bool isNull = false, bool prevIsNull = false)
+    public string ColumnHeaderStyle(int index, int colorIndex, bool isNull = false, bool prevIsNull = false)
     {
-        var bg = index % 2 == 0
+        var bg = colorIndex % 2 == 0
             ? "background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);"
             : "background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);";
-        // Suppress border-left when: first column, OR either this/prev column is null
         var border = (index > 0 && !isNull && !prevIsNull) ? "border-left: 1px solid #d1d5db;" : "";
         var content = isNull ? "" : "display: flex; flex-direction: column; align-items: center; justify-content: center; ";
         return $"flex: 1; {content}{border} {bg}";
@@ -152,12 +151,11 @@ public class ThemeService
     public string MilestoneButtonStyle() =>
         "width: 24px; height: 24px; background: #f9fafb; color: #6366f1; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0;";
 
-    public string GridColumnStyle(int index, int columnCount, bool isNull = false, bool prevIsNull = false)
+    public string GridColumnStyle(int index, int columnCount, int colorIndex, bool isNull = false, bool prevIsNull = false)
     {
         var (even, odd) = GetSeasonalColumnColors();
-        var bg = index % 2 == 0 ? even : odd;
+        var bg = colorIndex % 2 == 0 ? even : odd;
         var bgStyle = $"background: {bg};";
-        // Suppress border-left when: first column, OR either this/prev column is null
         var border = (index > 0 && !isNull && !prevIsNull) ? "border-left: 1px solid #e5e7eb;" : "";
         return $"flex: 1; {border} {bgStyle}";
     }

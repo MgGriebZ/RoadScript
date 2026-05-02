@@ -4,6 +4,16 @@
 @inject SelectionState SelectionState
 
 <div style="flex: 1; display: flex; flex-direction: column;">
+    @* Pre-compute color indices: null columns inherit the preceding non-null column's even/odd color *@
+    @{
+        var _colorIndices = new int[Data.Columns.Count];
+        int _lastNonNull = 0;
+        for (int ci = 0; ci < Data.Columns.Count; ci++)
+        {
+            _colorIndices[ci] = IsColumnEmpty(ci) ? _lastNonNull : ci;
+            if (!IsColumnEmpty(ci)) _lastNonNull = ci;
+        }
+    }
     @* Column Headers *@
     <div style="@ThemeService.ColumnHeaderContainerStyle()">
         @for (int i = 0; i < Data.Columns.Count; i++)
@@ -15,9 +25,9 @@
             var hasTitle = !string.IsNullOrWhiteSpace(col.Label);
             var hasSub = !string.IsNullOrWhiteSpace(col.Sub);
             var hasIcon = !string.IsNullOrEmpty(col.Icon);
-            <div @onclick="@(IsPreviewMode || colIsNull ? null : () => OnColumnClick.InvokeAsync(new ColumnClickEventArgs { Index = colIndex, Column = col }))"
-                 class="@(colIsNull ? "" : GetElementClass($"columns[{colIndex}]"))"
-                 style="@ThemeService.ColumnHeaderStyle(i, colIsNull, prevColIsNull)">
+            <div @onclick="@(IsPreviewMode ? null : () => OnColumnClick.InvokeAsync(new ColumnClickEventArgs { Index = colIndex, Column = col }))"
+                 class="@GetElementClass($"columns[{colIndex}]")"
+                 style="@ThemeService.ColumnHeaderStyle(i, _colorIndices[i], colIsNull, prevColIsNull)">
                 @if (!colIsNull)
                 {
                     @if (hasIcon && hasTitle)
@@ -98,7 +108,7 @@
         <div style="position: absolute; inset: 0; display: flex; pointer-events: none;">
             @for (int i = 0; i < Data.Columns.Count; i++)
             {
-                <div style="@GridColumnStyle(i, IsColumnEmpty(i), IsColumnEmpty(i - 1))"></div>
+                <div style="@GridColumnStyle(i, _colorIndices[i], IsColumnEmpty(i), IsColumnEmpty(i - 1))"></div>
             }
         </div>
 
@@ -261,9 +271,9 @@
         return baseClass;
     }
 
-    private string GridColumnStyle(int index, bool isNull = false, bool prevIsNull = false)
+    private string GridColumnStyle(int index, int colorIndex, bool isNull = false, bool prevIsNull = false)
     {
-        return ThemeService.GridColumnStyle(index, Data.Columns.Count, isNull, prevIsNull);
+        return ThemeService.GridColumnStyle(index, Data.Columns.Count, colorIndex, isNull, prevIsNull);
     }
 
     private string LaneRowStyle(int index, Lane lane)
