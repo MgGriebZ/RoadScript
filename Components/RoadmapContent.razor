@@ -4,55 +4,86 @@
 @inject SelectionState SelectionState
 
 <div style="flex: 1; display: flex; flex-direction: column;">
+    @* Pre-compute per-column values used in both header and grid loops *@
+    @{
+        var _colorIndices = new int[Data.Columns.Count];
+        var _rightNullCounts = new int[Data.Columns.Count];
+        int _visualCount = 0;
+        int _lastVisual = 0;
+        for (int ci = 0; ci < Data.Columns.Count; ci++)
+        {
+            if (IsColumnEmpty(ci))
+            {
+                _colorIndices[ci] = _lastVisual; // inherit predecessor's visual parity
+            }
+            else
+            {
+                _colorIndices[ci] = _visualCount;
+                _lastVisual = _visualCount;
+                _visualCount++;
+            }
+        }
+        for (int ci = 0; ci < Data.Columns.Count; ci++)
+        {
+            if (!IsColumnEmpty(ci))
+            {
+                int r = 0;
+                for (int cj = ci + 1; cj < Data.Columns.Count && IsColumnEmpty(cj); cj++) r++;
+                _rightNullCounts[ci] = r;
+            }
+        }
+    }
     @* Column Headers *@
     <div style="@ThemeService.ColumnHeaderContainerStyle()">
         @for (int i = 0; i < Data.Columns.Count; i++)
         {
             var col = Data.Columns[i];
             var colIndex = i;
+            var colIsNull = IsColumnEmpty(i);
+            var hasTitle = !string.IsNullOrWhiteSpace(col.Label);
+            var hasSub = !string.IsNullOrWhiteSpace(col.Sub);
+            var hasIcon = !string.IsNullOrEmpty(col.Icon);
             <div @onclick="@(IsPreviewMode ? null : () => OnColumnClick.InvokeAsync(new ColumnClickEventArgs { Index = colIndex, Column = col }))"
                  class="@GetElementClass($"columns[{colIndex}]")"
-                 style="@ThemeService.ColumnHeaderStyle(i)">
-                @{
-                    var hasTitle = !string.IsNullOrWhiteSpace(col.Label);
-                    var hasSub = !string.IsNullOrWhiteSpace(col.Sub);
-                    var hasIcon = !string.IsNullOrEmpty(col.Icon);
-                }
-
-                @if (hasIcon && hasTitle)
+                 style="@ThemeService.ColumnHeaderStyle(i, _colorIndices[i], colIsNull)">
+                @if (!colIsNull)
                 {
-                    @* Icon inline with title *@
-                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-                        <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="14" DropShadow="true" />
-                        <span style="@ThemeService.ColumnLabelStyle()">@col.Label</span>
-                    </div>
-                    @if (hasSub)
-                    {
-                        <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
-                    }
-                }
-                else if (hasIcon && !hasTitle)
-                {
-                    @* Large centered icon (no title) *@
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 100%;">
-                        <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="@(hasSub ? 24 : 28)" DropShadow="true" />
-                        @if (hasSub)
+                    @* Inner div centers content across the column + any following null columns *@
+                    <div style="@ThemeService.ColumnHeaderContentStyle(_rightNullCounts[i])">
+                        @if (hasIcon && hasTitle)
                         {
-                            <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
+                            @* Icon inline with title *@
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="14" DropShadow="true" />
+                                <span style="@ThemeService.ColumnLabelStyle()">@col.Label</span>
+                            </div>
+                            @if (hasSub)
+                            {
+                                <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
+                            }
+                        }
+                        else if (hasIcon && !hasTitle)
+                        {
+                            @* Large centered icon (no title) *@
+                            <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="@(hasSub ? 24 : 28)" DropShadow="true" />
+                            @if (hasSub)
+                            {
+                                <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
+                            }
+                        }
+                        else
+                        {
+                            @* Text only *@
+                            @if (hasTitle)
+                            {
+                                <span style="@ThemeService.ColumnLabelStyle()">@col.Label</span>
+                            }
+                            @if (hasSub)
+                            {
+                                <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
+                            }
                         }
                     </div>
-                }
-                else
-                {
-                    @* No icon - standard text layout *@
-                    @if (hasTitle)
-                    {
-                        <span style="@ThemeService.ColumnLabelStyle()">@col.Label</span>
-                    }
-                    @if (hasSub)
-                    {
-                        <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
-                    }
                 }
             </div>
         }
@@ -96,7 +127,7 @@
         <div style="position: absolute; inset: 0; display: flex; pointer-events: none;">
             @for (int i = 0; i < Data.Columns.Count; i++)
             {
-                <div style="@GridColumnStyle(i)"></div>
+                <div style="@GridColumnStyle(i, _colorIndices[i], IsColumnEmpty(i))"></div>
             }
         </div>
 
@@ -237,6 +268,16 @@
     [Parameter] public EventCallback<ItemClickEventArgs> OnItemClick { get; set; }
     [Parameter] public EventCallback<string> OnRoadmapLinkClick { get; set; }
 
+    // Returns true when a column has no visible content — used to suppress its rendering.
+    private bool IsColumnEmpty(int index)
+    {
+        if (index < 0 || index >= Data.Columns.Count) return false;
+        var col = Data.Columns[index];
+        return string.IsNullOrWhiteSpace(col.Label) &&
+               string.IsNullOrWhiteSpace(col.Sub) &&
+               string.IsNullOrEmpty(col.Icon);
+    }
+
     private string GetElementClass(string jsonPath)
     {
         if (IsPreviewMode) return "";
@@ -249,9 +290,9 @@
         return baseClass;
     }
 
-    private string GridColumnStyle(int index)
+    private string GridColumnStyle(int index, int colorIndex, bool isNull = false)
     {
-        return ThemeService.GridColumnStyle(index, Data.Columns.Count);
+        return ThemeService.GridColumnStyle(index, Data.Columns.Count, colorIndex, isNull);
     }
 
     private string LaneRowStyle(int index, Lane lane)

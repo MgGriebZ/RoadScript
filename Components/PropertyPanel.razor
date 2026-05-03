@@ -64,10 +64,14 @@ else
             {
                 <ColumnProperties Column="@column"
                                  JsonPath="@SelectionState.SelectedPath"
+                                 AllColumns="@Columns"
+                                 ColumnIndex="@GetColumnIndex()"
                                  OnChange="HandlePropertyChange"
                                  OnAdd="HandleAddElement"
                                  OnRemove="HandleRemoveElement"
-                                 OnDuplicate="HandleDuplicateElement" />
+                                 OnDuplicate="HandleDuplicateElement"
+                                 OnNavigateTo="HandleNavigateToColumn"
+                                 OnInsertColumnAt="HandleInsertColumnAt" />
             }
             else if (SelectionState.ElementType == "milestone" && SelectionState.SelectedElement is Milestone milestone && SelectionState.SelectedPath != null)
             {
@@ -223,6 +227,9 @@ else
     public int ColumnCount { get; set; } = 4;
 
     [Parameter]
+    public List<Column>? Columns { get; set; }
+
+    [Parameter]
     public int LaneCount { get; set; } = 1;
 
     [Parameter]
@@ -331,6 +338,27 @@ else
     private int GetItemIndex() => ItemIndex;
     private int GetItemCount() => ItemCount;
     private int GetLaneIndex() => LaneIndex;
+
+    private int GetColumnIndex()
+    {
+        var path = SelectionState.SelectedPath;
+        if (path == null) return 0;
+        var m = System.Text.RegularExpressions.Regex.Match(path, @"columns\[(\d+)\]");
+        return m.Success ? int.Parse(m.Groups[1].Value) : 0;
+    }
+
+    private void HandleNavigateToColumn(int index)
+    {
+        if (Columns != null && index >= 0 && index < Columns.Count)
+            SelectionState.Select($"columns[{index}]", "column", Columns[index]);
+    }
+
+    private async Task HandleInsertColumnAt(int afterIndex)
+    {
+        // afterIndex == -1 means "before the very first column"
+        var path = afterIndex >= 0 ? $"columns[{afterIndex}]" : "columns[-1]";
+        await OnAddElement.InvokeAsync(("column", path));
+    }
 
     private async Task HandleExpandPanel()
     {

@@ -252,6 +252,7 @@ else
                       OnSelectTitle="HandleSelectTitle"
                       IsCollapsed="@(!StateManager.ShowProperties)"
                       ColumnCount="@(_data?.Columns.Count ?? 4)"
+                      Columns="@(_data?.Columns)"
                       LaneCount="@(_data?.Lanes.Count ?? 1)"
                       MilestoneCount="@(_data?.Milestones?.Count ?? 0)"
                       Lanes="@(_data?.Lanes)"
@@ -2451,17 +2452,18 @@ else
                     break;
 
                 case "column":
+                    // Strip inserts empty columns; direct "Add" inserts a labelled one
+                    var isStripInsert = jsonPath.StartsWith("columns[") && jsonPath != "columns";
                     var newColumn = new Column
                     {
-                        Label = "New Column",
-                        Sub = ""
+                        Label = isStripInsert ? "" : "New Column",
+                        Sub = isStripInsert ? null : ""
                     };
 
-                    // If jsonPath is just "columns", add at the end; otherwise insert after the specified index
                     if (jsonPath == "columns")
-                    {
                         _data.Columns.Add(newColumn);
-                    }
+                    else if (jsonPath == "columns[-1]")
+                        _data.Columns.Insert(0, newColumn);
                     else
                     {
                         var columnIndex = ExtractIndexFromPath(jsonPath, "columns");
