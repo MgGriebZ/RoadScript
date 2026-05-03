@@ -8,11 +8,20 @@
     @{
         var _colorIndices = new int[Data.Columns.Count];
         var _rightNullCounts = new int[Data.Columns.Count];
-        int _lastNonNull = 0;
+        int _visualCount = 0;
+        int _lastVisual = 0;
         for (int ci = 0; ci < Data.Columns.Count; ci++)
         {
-            _colorIndices[ci] = IsColumnEmpty(ci) ? _lastNonNull : ci;
-            if (!IsColumnEmpty(ci)) _lastNonNull = ci;
+            if (IsColumnEmpty(ci))
+            {
+                _colorIndices[ci] = _lastVisual; // inherit predecessor's visual parity
+            }
+            else
+            {
+                _colorIndices[ci] = _visualCount;
+                _lastVisual = _visualCount;
+                _visualCount++;
+            }
         }
         for (int ci = 0; ci < Data.Columns.Count; ci++)
         {
