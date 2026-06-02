@@ -164,8 +164,19 @@ else if (_isMobileLayout)
                    ErrorMessage="@StateManager.ShareError"
                    RoadmapStats="@GetRoadmapStats()"
                    SessionStats="@GetSessionStats()"
+                   CurrentRoadmap="@_data"
                    OnClose="CloseShareModal"
                    OnExportSession="HandleExportSessionFromShareModal" />
+
+        <ShareTargetModal IsVisible="@_showShareTargetModal"
+                          SharedTitle="@_shareTargetTitle"
+                          SharedText="@_shareTargetText"
+                          SharedUrl="@_shareTargetUrl"
+                          Folders="@(_folderManager?.Folders ?? new())"
+                          DefaultFolderId="@_folderManager?.ActiveFolderId"
+                          DefaultTabId="@_activeTab?.Id"
+                          OnCancel="HandleShareTargetCancel"
+                          OnConfirm="HandleShareTargetConfirm" />
 
         <ImportModal IsVisible="@StateManager.ShowImportModal"
                     RoadmapData="@StateManager.ImportRoadmapData"
@@ -399,8 +410,19 @@ else
                ErrorMessage="@StateManager.ShareError"
                RoadmapStats="@GetRoadmapStats()"
                SessionStats="@GetSessionStats()"
+               CurrentRoadmap="@_data"
                OnClose="CloseShareModal"
                OnExportSession="HandleExportSessionFromShareModal" />
+
+    <ShareTargetModal IsVisible="@_showShareTargetModal"
+                      SharedTitle="@_shareTargetTitle"
+                      SharedText="@_shareTargetText"
+                      SharedUrl="@_shareTargetUrl"
+                      Folders="@(_folderManager?.Folders ?? new())"
+                      DefaultFolderId="@_folderManager?.ActiveFolderId"
+                      DefaultTabId="@_activeTab?.Id"
+                      OnCancel="HandleShareTargetCancel"
+                      OnConfirm="HandleShareTargetConfirm" />
 
     <ImportModal IsVisible="@StateManager.ShowImportModal"
                 RoadmapData="@StateManager.ImportRoadmapData"
@@ -456,6 +478,12 @@ else
     private string? _pendingFolderName = null;
     private string? _pendingAddToFolderId = null;
     private string? _pendingRoadmapName = null;
+
+    // Share-target intake state
+    private bool _showShareTargetModal = false;
+    private string? _shareTargetTitle;
+    private string? _shareTargetText;
+    private string? _shareTargetUrl;
 
     // Roadmap move/drag-and-drop state with dependency tracking
     private bool _showDependencyModal = false;
@@ -887,6 +915,18 @@ else
             // Now that we know the real viewport size, allow the correct layout to render
             _responsiveInitialized = true;
             await InvokeAsync(StateHasChanged);
+
+            // Check for Web Share Target params (?share_title=&share_text=&share_url=)
+            var (stTitle, stText, stUrl) = await UrlNavigation.ParseShareTargetParams();
+            if (stTitle != null || stText != null || stUrl != null)
+            {
+                _shareTargetTitle = stTitle;
+                _shareTargetText  = stText;
+                _shareTargetUrl   = stUrl;
+                _showShareTargetModal = true;
+                await UrlNavigation.ClearShareTargetParams();
+                await InvokeAsync(StateHasChanged);
+            }
         }
 
         // Setup resize/move handlers for all items (runs on every render to handle new items)
@@ -3679,6 +3719,42 @@ else
         // Call the existing export method
         await ExportAllData();
         // Don't close the modal - let the user see both options
+    }
+
+    private void HandleShareTargetCancel()
+    {
+        _showShareTargetModal = false;
+    }
+
+    private async Task HandleShareTargetConfirm(ShareTargetModal.ShareTargetResult result)
+    {
+        _showShareTargetModal = false;
+
+        var folder = _folderManager?.Folders.FirstOrDefault(f => f.Id == result.FolderId);
+        if (folder == null) return;
+
+        var tab = folder.SessionManager.Tabs.FirstOrDefault(t => t.Id == result.TabId);
+        if (tab == null) return;
+
+        var lanes = tab.Data.Lanes;
+        if (result.LaneIndex < 0 || result.LaneIndex >= lanes.Count) return;
+
+        var lane = lanes[result.LaneIndex];
+        var newItem = new Item
+        {
+            Id          = Guid.NewGuid().ToString(),
+            Title       = result.ItemTitle,
+            Description = result.ItemDescription,
+            Start       = Math.Max(0, (tab.Data.Columns?.Count ?? 1) - 1),
+            Length      = 1,
+        };
+        lane.Items.Add(newItem);
+
+        tab.LastModified = DateTime.UtcNow;
+        folder.LastModified = DateTime.UtcNow;
+
+        await DebouncedSave();
+        StateHasChanged();
     }
 
     private void HandleFooterImportClick()
