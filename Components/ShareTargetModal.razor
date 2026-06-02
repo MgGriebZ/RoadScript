@@ -1,0 +1,234 @@
+<div class="st-overlay @(IsVisible ? "visible" : "")" @onclick="Cancel">
+    <div class="st-modal" @onclick:stopPropagation="true">
+        <div class="st-header">
+            <h3>📥 Add Shared Content</h3>
+            <button class="st-close" @onclick="Cancel">×</button>
+        </div>
+
+        <div class="st-body">
+            <p class="st-hint">Content shared from another app — choose where to add it:</p>
+
+            <label class="st-field-label">Title</label>
+            <input class="st-input" @bind="_itemTitle" placeholder="Item title" />
+
+            <label class="st-field-label" style="margin-top:12px;">Description</label>
+            <textarea class="st-textarea" @bind="_itemDescription" rows="3" placeholder="Description (optional)"></textarea>
+
+            @if (Folders?.Count > 0)
+            {
+                <label class="st-field-label" style="margin-top:12px;">Folder</label>
+                <select class="st-select" @bind="_selectedFolderId" @bind:after="OnFolderChanged">
+                    @foreach (var folder in Folders)
+                    {
+                        <option value="@folder.Id">@folder.Name</option>
+                    }
+                </select>
+
+                @if (_selectedFolder?.SessionManager.Tabs.Count > 0)
+                {
+                    <label class="st-field-label" style="margin-top:12px;">Roadmap</label>
+                    <select class="st-select" @bind="_selectedTabId" @bind:after="OnTabChanged">
+                        @foreach (var tab in _selectedFolder.SessionManager.Tabs)
+                        {
+                            <option value="@tab.Id">@tab.Name</option>
+                        }
+                    </select>
+                }
+
+                @if (_selectedTab?.Data?.Lanes?.Count > 0)
+                {
+                    <label class="st-field-label" style="margin-top:12px;">Lane</label>
+                    <select class="st-select" @bind="_selectedLaneIndex">
+                        @for (int i = 0; i < _selectedTab.Data.Lanes.Count; i++)
+                        {
+                            var idx = i;
+                            <option value="@idx">@_selectedTab.Data.Lanes[idx].Title</option>
+                        }
+                    </select>
+                }
+            }
+        </div>
+
+        <div class="st-footer">
+            <button class="st-btn-cancel" @onclick="Cancel">Cancel</button>
+            <button class="st-btn-confirm" @onclick="Confirm">📌 Add to Roadmap</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string? SharedTitle { get; set; }
+    [Parameter] public string? SharedText { get; set; }
+    [Parameter] public string? SharedUrl { get; set; }
+    [Parameter] public List<Folder>? Folders { get; set; }
+    [Parameter] public string? DefaultFolderId { get; set; }
+    [Parameter] public string? DefaultTabId { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback<ShareTargetResult> OnConfirm { get; set; }
+
+    private string _itemTitle = "";
+    private string _itemDescription = "";
+    private string _selectedFolderId = "";
+    private string _selectedTabId = "";
+    private int _selectedLaneIndex = 0;
+
+    private Folder? _selectedFolder => Folders?.FirstOrDefault(f => f.Id == _selectedFolderId);
+    private TabSession? _selectedTab => _selectedFolder?.SessionManager.Tabs.FirstOrDefault(t => t.Id == _selectedTabId);
+
+    protected override void OnParametersSet()
+    {
+        if (!IsVisible) return;
+
+        _itemTitle = SharedTitle ?? (SharedText?.Split('\n').FirstOrDefault() ?? "");
+        var descParts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(SharedText))  descParts.Add(SharedText);
+        if (!string.IsNullOrWhiteSpace(SharedUrl))   descParts.Add(SharedUrl);
+        _itemDescription = string.Join("\n", descParts);
+
+        if (Folders?.Count > 0)
+        {
+            _selectedFolderId = DefaultFolderId ?? Folders[0].Id;
+            var folder = _selectedFolder;
+            _selectedTabId = DefaultTabId ?? folder?.SessionManager.Tabs.FirstOrDefault()?.Id ?? "";
+        }
+        _selectedLaneIndex = 0;
+    }
+
+    private void OnFolderChanged()
+    {
+        var folder = _selectedFolder;
+        _selectedTabId = folder?.SessionManager.Tabs.FirstOrDefault()?.Id ?? "";
+        _selectedLaneIndex = 0;
+    }
+
+    private void OnTabChanged()
+    {
+        _selectedLaneIndex = 0;
+    }
+
+    private async Task Cancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+
+    private async Task Confirm()
+    {
+        await OnConfirm.InvokeAsync(new ShareTargetResult
+        {
+            FolderId    = _selectedFolderId,
+            TabId       = _selectedTabId,
+            LaneIndex   = _selectedLaneIndex,
+            ItemTitle   = _itemTitle,
+            ItemDescription = _itemDescription,
+        });
+    }
+
+    public class ShareTargetResult
+    {
+        public string FolderId { get; set; } = "";
+        public string TabId { get; set; } = "";
+        public int LaneIndex { get; set; }
+        public string ItemTitle { get; set; } = "";
+        public string ItemDescription { get; set; } = "";
+    }
+}
+
+<style>
+    .st-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+    }
+    .st-overlay.visible { display: flex; }
+
+    .st-modal {
+        background: #1e1e1e;
+        border: 1px solid #444;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 480px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .st-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 20px;
+        border-bottom: 1px solid #333;
+    }
+    .st-header h3 { margin: 0; color: #fff; font-size: 18px; font-weight: 600; }
+
+    .st-close {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 28px;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+    }
+    .st-close:hover { color: #fff; }
+
+    .st-body { padding: 20px; }
+
+    .st-hint { color: #888; font-size: 13px; margin: 0 0 16px; }
+
+    .st-field-label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    .st-input, .st-select, .st-textarea {
+        width: 100%;
+        box-sizing: border-box;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 6px;
+        color: #e5e7eb;
+        font-size: 14px;
+        padding: 10px 12px;
+        font-family: inherit;
+    }
+    .st-input:focus, .st-select:focus, .st-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    .st-textarea { resize: vertical; min-height: 64px; }
+    .st-select { cursor: pointer; }
+
+    .st-footer {
+        display: flex;
+        gap: 10px;
+        padding: 16px 20px;
+        border-top: 1px solid #333;
+    }
+
+    .st-btn-cancel {
+        flex: 1;
+        padding: 10px;
+        background: #2a2a2a;
+        color: #ccc;
+        border: 1px solid #444;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .st-btn-cancel:hover { background: #333; }
+
+    .st-btn-confirm {
+        flex: 2;
+        padding: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .st-btn-confirm:hover { opacity: 0.9; }
+</style>

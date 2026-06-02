@@ -96,4 +96,39 @@ public class UrlNavigationService
     {
         return await _jsRuntime.InvokeAsync<string>("eval", "window.location.origin + window.location.pathname");
     }
+
+    /// <summary>
+    /// Read share-target query params set by the Web Share Target API.
+    /// Returns (title, text, url) from ?share_title=&share_text=&share_url= query params.
+    /// </summary>
+    public async Task<(string? Title, string? Text, string? Url)> ParseShareTargetParams()
+    {
+        var search = await _jsRuntime.InvokeAsync<string>("eval", "window.location.search");
+        if (string.IsNullOrWhiteSpace(search) || search == "?")
+            return (null, null, null);
+
+        var pairs = search.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries);
+        var queryDict = pairs
+            .Select(p => p.Split('=', 2))
+            .Where(kv => kv.Length == 2)
+            .ToDictionary(kv => Uri.UnescapeDataString(kv[0]), kv => Uri.UnescapeDataString(kv[1]));
+
+        queryDict.TryGetValue("share_title", out var title);
+        queryDict.TryGetValue("share_text", out var text);
+        queryDict.TryGetValue("share_url", out var url);
+
+        if (string.IsNullOrEmpty(title) && string.IsNullOrEmpty(text) && string.IsNullOrEmpty(url))
+            return (null, null, null);
+
+        return (title, text, url);
+    }
+
+    /// <summary>
+    /// Remove share-target query params from the browser URL without a page reload.
+    /// </summary>
+    public async Task ClearShareTargetParams()
+    {
+        await _jsRuntime.InvokeVoidAsync("eval",
+            "history.replaceState(null, '', window.location.pathname + window.location.hash)");
+    }
 }
