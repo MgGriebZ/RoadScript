@@ -19,6 +19,9 @@
     <title>RoadScript</title>
     <base href="/" />
 
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.webmanifest" />
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="css/mobile.css" />
@@ -55,6 +58,13 @@
 
     <!-- Blazor framework -->
     <script src="_framework/blazor.webassembly.js"></script>
+
+    <!-- PWA service worker (skip on localhost to avoid interfering with hot-reload) -->
+    <script>
+        if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
+            navigator.serviceWorker.register('/service-worker.js');
+        }
+    </script>
 </body>
 
 </html>
