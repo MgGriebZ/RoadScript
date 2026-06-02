@@ -62,21 +62,30 @@ public static class MarkdownExportService
         }
 
         // Lanes
-        foreach (var lane in data.Lanes)
+        for (int laneIdx = 0; laneIdx < data.Lanes.Count; laneIdx++)
         {
+            var lane = data.Lanes[laneIdx];
+
             sb.AppendLine($"## {lane.Title}");
             sb.AppendLine();
 
             if (lane.History != null)
             {
-                sb.AppendLine($"_progress: {lane.History.Percent}% ({lane.History.Start} – {lane.History.End})_");
+                var h = lane.History;
+                var range = (h.Start, h.End) switch
+                {
+                    ({ } s, { } e) => $" ({s} – {e})",
+                    ({ } s, null) => $" (from {s})",
+                    (null, { } e) => $" (to {e})",
+                    _             => ""
+                };
+                sb.AppendLine($"_progress: {h.Percent}%{range}_");
                 sb.AppendLine();
             }
 
             // In-lane milestones
-            var laneIndex = data.Lanes.IndexOf(lane);
             var laneMilestones = data.Milestones?
-                .Where(m => m.LaneIndex == laneIndex)
+                .Where(m => m.LaneIndex == laneIdx)
                 .ToList();
             if (laneMilestones?.Count > 0)
             {
