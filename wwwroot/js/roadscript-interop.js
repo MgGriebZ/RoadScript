@@ -429,6 +429,43 @@ window.RoadScriptInterop = {
     },
 
     /**
+     * Copy text to clipboard. Returns true on success.
+     * @param {string} text
+     * @returns {Promise<boolean>}
+     */
+    copyToClipboard: async function(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (e) {
+            console.error('Clipboard write failed:', e);
+            return false;
+        }
+    },
+
+    /**
+     * Download arbitrary text content as a file.
+     * @param {string} filename
+     * @param {string} content
+     * @param {string} mimeType - e.g. 'text/markdown', 'image/svg+xml'
+     */
+    downloadTextFile: function(filename, content, mimeType) {
+        try {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+            return true;
+        } catch (e) {
+            console.error('Error downloading file:', e);
+            return false;
+        }
+    },
+
+    /**
      * Downloads JSON content as a file
      * @param {string} jsonContent - The JSON content to download
      * @param {string} filename - Name of the file to download
