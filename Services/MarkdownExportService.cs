@@ -65,6 +65,7 @@ public static class MarkdownExportService
         foreach (var lane in data.Lanes)
         {
             sb.AppendLine($"## {lane.Title}");
+            sb.AppendLine();
 
             if (lane.History != null)
             {
@@ -92,11 +93,12 @@ public static class MarkdownExportService
                 if (item.Hidden) continue;
 
                 var title = item.Greyed ? $"~~**{item.Title}**~~" : $"**{item.Title}**";
-                var annotation = new List<string> { $"col {item.Start:0.#}, {item.Length:0.#} wide" };
+                var startStr  = item.Start  == Math.Floor(item.Start)  ? ((int)item.Start).ToString()  : item.Start.ToString("0.#");
+                var lengthStr = item.Length == Math.Floor(item.Length) ? ((int)item.Length).ToString() : item.Length.ToString("0.#");
+                var annotation = new List<string> { $"col {startStr}, {lengthStr} wide" };
                 if (item.Greyed)   annotation.Add("blocked");
                 if (item.Spanning) annotation.Add("ongoing");
-                sb.Append($"- {title} _({string.Join(", ", annotation)})_");
-                sb.AppendLine();
+                sb.AppendLine($"- {title} _({string.Join(", ", annotation)})_");
 
                 if (!string.IsNullOrWhiteSpace(item.Description))
                 {
