@@ -1,0 +1,195 @@
+{
+  "title": "Matt Griebel: products and projects",
+  "subtitle": "Rockets mark public launches. Dashed borders are in progress. Grey items are retired or paused.",
+  "columns": [
+    {
+      "label": "2024",
+      "sub": "Jun to Dec"
+    },
+    {
+      "label": "Q1 2025",
+      "sub": "Jan to Mar"
+    },
+    {
+      "label": "Q2 2025",
+      "sub": "Apr to Jun"
+    },
+    {
+      "label": "Q3 2025",
+      "sub": "Jul to Sep"
+    },
+    {
+      "label": "Q4 2025",
+      "sub": "Oct to Dec"
+    },
+    {
+      "label": "Q1 2026",
+      "sub": "Jan to Mar"
+    },
+    {
+      "label": "Q2 2026",
+      "sub": "Apr to Jun"
+    },
+    {
+      "label": "Q3 2026",
+      "sub": "Jul to Sep"
+    }
+  ],
+  "milestones": [
+    {
+      "start": 11.6,
+      "title": "Action-Tarot.com",
+      "icon": "rocket",
+      "color": "#45B69C"
+    },
+    {
+      "start": 36.0,
+      "title": "MgGriebZ.com",
+      "icon": "rocket",
+      "color": "#D4652F"
+    },
+    {
+      "start": 57.5,
+      "title": "RoadScript.NET",
+      "icon": "rocket",
+      "color": "#1E3A8A"
+    },
+    {
+      "start": 87.8,
+      "title": "shaco.MgGriebZ.com",
+      "icon": "rocket",
+      "color": "#EF4444"
+    }
+  ],
+  "lanes": [
+    {
+      "title": "Products",
+      "color": "#1E3A8A",
+      "height": 1.6,
+      "items": [
+        {
+          "title": "MgGriebZ.com",
+          "start": 2.85,
+          "length": 5.15,
+          "spanning": true,
+          "icon": "bookmark",
+          "color": "#D4652F",
+          "description": "- Personal platform: calendar, events, food and game logs, with shareable pages\n- Live data from the GitHub, Riot Games and TMDB APIs\n- React and .NET 8 on Azure (Cosmos DB, Blob Storage); also the API behind Mg Glass and shaco\n- 1,500+ commits and 435 merged pull requests since June 2025"
+        },
+        {
+          "title": "RoadScript",
+          "start": 4.6,
+          "length": 2.1,
+          "icon": "code",
+          "color": "#1E3A8A",
+          "description": "- Started when a Fortune 500 bank client asked for clearer roadmap transparency\n- Visual editor for stakeholders, JSON editor for technical users\n- Blazor WebAssembly on Azure Static Web Apps; no backend, data stays in the browser\n- Deployed on day one, then 330+ commits and 81 merged pull requests of refinement"
+        }
+      ]
+    },
+    {
+      "title": "Games",
+      "color": "#7C4A1E",
+      "height": 0.75,
+      "items": [
+        {
+          "title": "shaco",
+          "start": 7.02,
+          "length": 0.98,
+          "icon": "square",
+          "color": "#EF4444",
+          "description": "- First-person field guide to AP Shaco support in League of Legends\n- Pairs gameplay clips with the tricks they demonstrate\n- Astro static site: the repo is the CMS, stats computed at build time from MgGriebZ.com game logs\n- Written PRD and decision log; 150+ commits in its first four weeks"
+        },
+        {
+          "title": "Core Clock",
+          "start": 7.23,
+          "length": 0.77,
+          "spanning": true,
+          "icon": "clock",
+          "color": "#7C4A1E",
+          "description": "- Third-person arena game: 12 players in 4 teams race pucks into Core sockets\n- Godot and GDScript, with KayKit and Kenney assets\n- Built pass by pass from a PRD and execution plans\n- 690+ commits since July 2026"
+        }
+      ]
+    },
+    {
+      "title": "Other projects",
+      "color": "#9CA3AF",
+      "height": 0.8,
+      "items": [
+        {
+          "title": "Action Tarot",
+          "start": 0.05,
+          "length": 2.25,
+          "greyed": true,
+          "icon": "calendar",
+          "color": "#45B69C",
+          "description": "- Gen-AI tarot journaling app, launched in 2024\n- .NET 6 MVC with GPT and DALL-E, then rebuilt in Blazor WebAssembly with Azure AD B2C and Cosmos DB\n- Rebuilt as a tarot auto-battler in July 2026, now paused"
+        },
+        {
+          "title": "Custom sites",
+          "start": 2.65,
+          "length": 1.0,
+          "icon": "wrench",
+          "color": "#9999ff",
+          "description": "- Ashme Glass, Captain Hook Glass Art and Sassy Cakes\n- React and Vite on Azure Static Web Apps with a .NET API\n- Generalized into a public full-stack Azure site template"
+        },
+        {
+          "title": "Late 2025 experiments",
+          "start": 3.95,
+          "length": 1.2,
+          "greyed": true,
+          "icon": "lightbulb",
+          "color": "#B7C4B7",
+          "description": "- FlowForge: conversation puzzle game, .NET API on Azure App Service\n- SalvScriptZ: RuneLite plugin that tracks OSRS salvaging sessions\n- CosmoScope: .NET MAUI telescope companion"
+        },
+        {
+          "title": "2026 experiments",
+          "start": 5.95,
+          "length": 1.36,
+          "icon": "lightbulb",
+          "color": "#6366F1",
+          "description": "- CosmoScope: lunar logbook and outdoor activity PWA\n- Rehoboam: trading dashboard with a Claude news classifier\n- Sacred Sigils: Flutter rune-tracing app, first built in 2025\n- Pocket Playroom: touch-first playroom for young kids"
+        },
+        {
+          "title": "HPP Glass",
+          "start": 6.32,
+          "length": 0.69,
+          "icon": "star",
+          "color": "#F88379",
+          "description": "- Showcase and admin site for two glass artists: gallery, inquiry wizard, editable taxonomy\n- React 19 on Azure Static Web Apps; Functions backend keeps Cosmos DB and Blob credentials server-side\n- Generalized into Mg Glass, a lampworking studio planner on the MgGriebZ.com API"
+        }
+      ]
+    },
+    {
+      "title": "How I build",
+      "color": "#0F766E",
+      "height": 0.45,
+      "items": [
+        {
+          "title": "AI chat",
+          "start": 0.05,
+          "length": 4.33,
+          "icon": "code",
+          "color": "#94A3B8",
+          "description": "- Code drafted in AI chat, pasted in and committed by hand\n- First Codex pull request tried in June 2025"
+        },
+        {
+          "title": "Claude Code on the web",
+          "start": 4.38,
+          "length": 2.78,
+          "icon": "atom",
+          "color": "#D97706",
+          "description": "- From November 2025: agents work from a written plan and open pull requests; I review and merge\n- 90%+ of commits in this period are authored by Claude"
+        },
+        {
+          "title": "Local agents",
+          "start": 7.16,
+          "length": 0.84,
+          "spanning": true,
+          "icon": "gear",
+          "color": "#0F766E",
+          "description": "- Codex from July 2026, local Claude Code from August 2026\n- Agents run against PRDs and execution plans; commits land under my name"
+        }
+      ]
+    }
+  ]
+}

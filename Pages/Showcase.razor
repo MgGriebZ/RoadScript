@@ -1,0 +1,114 @@
+@page "/showcase/{Slug}"
+@using System.Text.Json
+@using System.Text.RegularExpressions
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<PageTitle>@(_data?.Title ?? "Example roadmap") · RoadScript</PageTitle>
+
+@* Read-only view of a bundled example roadmap. It never reads or writes the visitor's saved roadmaps. *@
+<div class="showcase-page">
+    <header class="showcase-bar">
+        <nav class="showcase-crumbs" aria-label="Breadcrumb">
+            <a class="showcase-brand" href="/">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 10-10 10L2 12z" fill="#7b83ff"></path></svg>
+                <span>RoadScript</span>
+            </a>
+            <span class="showcase-crumb-sep" aria-hidden="true">/</span>
+            <span class="showcase-crumb">Examples</span>
+        </nav>
+        <span class="showcase-readonly">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+            Read-only<span class="showcase-readonly-long">&nbsp;example</span>
+        </span>
+    </header>
+
+    @if (_data != null)
+    {
+        <main class="showcase-main">
+            <div class="showcase-scroller" tabindex="0" role="region" aria-label="@($"{_data.Title} roadmap. Scrolls sideways.")">
+                <div class="showcase-canvas">
+                    <RoadmapRenderer Data="@_data"
+                                     IsPreviewMode="true"
+                                     ActiveTab="@_tab"
+                                     SessionManager="@_session"
+                                     AvailableRoadmaps="@_noLinks" />
+                </div>
+            </div>
+            <p class="showcase-scroll-hint">The timeline scrolls sideways inside this box.</p>
+        </main>
+    }
+    else if (_notFound)
+    {
+        <main class="showcase-message">
+            <h1>That example roadmap doesn't exist</h1>
+            <p>It may have been renamed. The examples are listed on the RoadScript home page.</p>
+            <a class="showcase-link" href="/">Go to RoadScript</a>
+        </main>
+    }
+    else
+    {
+        <div class="rs-boot" role="status" aria-live="polite">
+            <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 10-10 10L2 12z" fill="#7b83ff"></path></svg>
+            <div class="rs-boot-name">RoadScript</div>
+            <div class="rs-boot-msg">Opening the example roadmap</div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+
+    private static readonly Regex SlugPattern = new("^[a-z0-9-]{1,60}$", RegexOptions.Compiled);
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        AllowTrailingCommas = true,
+        ReadCommentHandling = JsonCommentHandling.Skip
+    };
+
+    private RoadmapData? _data;
+    private bool _notFound;
+    private readonly TabSession _tab = new() { Id = "showcase", Name = "Showcase" };
+    private readonly SessionManager _session = new() { ActiveTabId = "showcase", Tabs = new() };
+    private readonly List<RoadmapReference> _noLinks = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _data = null;
+        _notFound = false;
+
+        if (!SlugPattern.IsMatch(Slug))
+        {
+            _notFound = true;
+            return;
+        }
+
+        try
+        {
+            var json = await Http.GetStringAsync($"showcase/{Slug}.json");
+            _data = JsonSerializer.Deserialize<RoadmapData>(json, JsonOptions);
+            _notFound = _data == null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Could not load showcase '{Slug}': {ex.Message}");
+            _notFound = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            // Hide the static landing page if the visitor came from it
+            await JSRuntime.InvokeVoidAsync("RoadScriptBoot.setView", "app");
+        }
+        catch (JSException)
+        {
+            // Boot script missing (for example in an isolated test page); nothing to hide
+        }
+    }
+}

@@ -117,8 +117,10 @@
         height: 100dvh; /* Dynamic viewport height for mobile browsers */
     }
 
+    /* Roadmap grid rules are scoped to the editor preview. Below 1200px the editor shows the
+       card list instead, and the read-only showcase keeps its full-size timeline in a sideways scroller. */
     /* Roadmap container - remove min-width constraint on mobile */
-    .roadmap-container {
+    .preview-pane .roadmap-container {
         min-width: 100% !important;
         max-width: 100vw !important;
         padding: 12px !important;
@@ -129,7 +131,7 @@
     }
 
     /* Roadmap wrapper - full width mobile */
-    .roadmap {
+    .preview-pane .roadmap {
         width: 100% !important;
         min-width: 100% !important;
     }
@@ -144,7 +146,7 @@
     }
 
     /* Title container - minimal padding on mobile */
-    .roadmap-title-container {
+    .preview-pane .roadmap-title-container {
         padding: 8px 12px !important;
     }
 
@@ -158,83 +160,83 @@
     }
 
     /* Title - smaller on mobile */
-    .roadmap h1 {
+    .preview-pane .roadmap h1 {
         font-size: 24px !important;
         line-height: 1.2 !important;
         letter-spacing: -0.3px !important;
     }
 
     /* Subtitle - smaller on mobile */
-    .roadmap-title-container p {
+    .preview-pane .roadmap-title-container p {
         font-size: 13px !important;
         line-height: 1.4 !important;
     }
 
     /* Column labels - smaller on mobile */
-    .roadmap > div > div:last-child > div:first-child > div span:first-child {
+    .preview-pane .roadmap > div > div:last-child > div:first-child > div span:first-child {
         font-size: 14px !important;
         line-height: 1.3 !important;
     }
 
     /* Column subs - smaller on mobile */
-    .roadmap > div > div:last-child > div:first-child > div span:last-child {
+    .preview-pane .roadmap > div > div:last-child > div:first-child > div span:last-child {
         font-size: 10px !important;
         line-height: 1.3 !important;
     }
 
     /* Lane titles - smaller on mobile */
-    .roadmap > div > div:first-child span {
+    .preview-pane .roadmap > div > div:first-child span {
         font-size: 12px !important;
         line-height: 1.2 !important;
     }
 
     /* Item titles - smaller on mobile */
-    .roadmap h4 {
+    .preview-pane .roadmap h4 {
         font-size: 16px !important;
         margin-bottom: 6px !important;
         line-height: 1.3 !important;
     }
 
     /* Item detail text - smaller on mobile */
-    .roadmap ul li > div {
+    .preview-pane .roadmap ul li > div {
         font-size: 14px !important;
         line-height: 1.4 !important;
         padding-left: 12px !important;
     }
 
     /* Sub-bullets - smaller on mobile */
-    .roadmap ul li ul li {
+    .preview-pane .roadmap ul li ul li {
         font-size: 12px !important;
         line-height: 1.4 !important;
         padding-left: 16px !important;
     }
 
     /* Milestone labels - smaller on mobile */
-    .roadmap > div > div:last-child > div:nth-child(2) span {
+    .preview-pane .roadmap > div > div:last-child > div:nth-child(2) span {
         font-size: 11px !important;
         line-height: 1.2 !important;
         padding: 2px 6px !important;
     }
 
     /* Lane label area - narrower on mobile */
-    .roadmap > div > div:first-child {
+    .preview-pane .roadmap > div > div:first-child {
         width: 80px !important;
         padding-right: 8px !important;
         padding-top: 36px !important;
     }
 
     /* Column header height - smaller on mobile */
-    .roadmap > div > div:last-child > div:first-child {
+    .preview-pane .roadmap > div > div:last-child > div:first-child {
         height: 36px !important;
     }
 
     /* Milestone row height - smaller on mobile */
-    .roadmap > div > div:last-child > div:nth-child(2) {
+    .preview-pane .roadmap > div > div:last-child > div:nth-child(2) {
         height: 30px !important;
     }
 
     /* Item card padding - tighter on mobile */
-    .roadmap > div > div:last-child > div:last-child > div > div {
+    .preview-pane .roadmap > div > div:last-child > div:last-child > div > div {
         padding: 8px 12px !important;
     }
 
@@ -671,7 +673,7 @@
 
 /* ========== MOBILE LANDSCAPE ORIENTATION ========== */
 @media (max-width: 767px) and (orientation: landscape) {
-    .roadmap h1 {
+    .preview-pane .roadmap h1 {
         font-size: 20px !important;
     }
 
@@ -692,7 +694,7 @@
 
 /* ========== PREVENT TEXT SELECTION ON MOBILE ========== */
 @media (max-width: 767px) {
-    .roadmap * {
+    .preview-pane .roadmap * {
         -webkit-user-select: none;
         user-select: none;
     }
