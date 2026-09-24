@@ -1,6 +1,6 @@
 /**
  * RoadScript Interactive Editing - JavaScript Interop
- * Handles Monaco editor navigation, JSON parsing, and element selection
+ * Handles JSON parsing, keyboard shortcuts, and element selection
  */
 
 window.RoadScriptInterop = {
@@ -207,68 +207,6 @@ window.RoadScriptInterop = {
     },
 
     /**
-     * Navigates Monaco editor to a specific position
-     */
-    navigateToPosition: function(editorId, line, column, highlight = true) {
-        // Find the Monaco editor instance
-        const editors = monaco.editor.getEditors();
-        const editor = editors.find(e => {
-            const domNode = e.getDomNode();
-            return domNode && (domNode.id === editorId || domNode.closest(`#${editorId}`));
-        });
-
-        if (!editor) {
-            console.error('Editor not found:', editorId);
-            return;
-        }
-
-        // Set cursor position
-        editor.setPosition({ lineNumber: line, column: column });
-
-        // Reveal the position in center of view
-        editor.revealPositionInCenter({ lineNumber: line, column: column });
-
-        // Optionally highlight the range
-        if (highlight) {
-            const model = editor.getModel();
-            if (model) {
-                const wordAtPosition = model.getWordAtPosition({ lineNumber: line, column: column });
-
-                if (wordAtPosition) {
-                    const range = {
-                        startLineNumber: line,
-                        startColumn: wordAtPosition.startColumn,
-                        endLineNumber: line,
-                        endColumn: wordAtPosition.endColumn
-                    };
-
-                    editor.setSelection(range);
-
-                    // Add temporary decoration
-                    const decorations = editor.deltaDecorations([], [
-                        {
-                            range: range,
-                            options: {
-                                className: 'roadscript-highlight-line',
-                                isWholeLine: false,
-                                inlineClassName: 'roadscript-highlight-inline'
-                            }
-                        }
-                    ]);
-
-                    // Remove decoration after 2 seconds
-                    setTimeout(() => {
-                        editor.deltaDecorations(decorations, []);
-                    }, 2000);
-                }
-            }
-        }
-
-        // Focus the editor
-        editor.focus();
-    },
-
-    /**
      * Updates JSON value at a specific path
      */
     updateJsonValue: function(jsonText, jsonPath, newValue) {
@@ -336,10 +274,9 @@ window.RoadScriptInterop = {
 
         // Create new handler
         window.roadscriptKeyboardHandler = function(e) {
-            // Check if user is typing in an input/textarea (but not Monaco editor)
+            // Check if user is typing in an input/textarea
             const target = e.target;
             const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
-            const isMonacoEditor = target.closest('.monaco-editor') !== null;
 
             // Ctrl/Cmd + P - Toggle Preview/Edit mode
             if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
@@ -355,15 +292,15 @@ window.RoadScriptInterop = {
                 return;
             }
 
-            // Ctrl/Cmd + Z - Undo (skip in Monaco editor)
-            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !isMonacoEditor) {
+            // Ctrl/Cmd + Z - Undo
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
                 e.preventDefault();
                 dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Undo');
                 return;
             }
 
-            // Ctrl/Cmd + Y - Redo (skip in Monaco editor)
-            if ((e.ctrlKey || e.metaKey) && e.key === 'y' && !isMonacoEditor) {
+            // Ctrl/Cmd + Y - Redo
+            if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
                 e.preventDefault();
                 dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Redo');
                 return;

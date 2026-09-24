@@ -22,7 +22,7 @@ RoadScript is a lightweight, browser-based roadmap visualization tool built with
 
 ### 📝 **Dual-Mode Editing**
 - **Properties Panel** - Click any element for intuitive visual editing
-- **JSON Editor** - Monaco-powered editor for power users and bulk updates
+- **JSON Editor** - Plain JSON view for power users and bulk updates
 - **Quick Actions Dashboard** - One-click access to add lanes, columns, and milestones
 - **Live sync** - Changes reflect instantly in both modes
 
@@ -96,7 +96,7 @@ FolderManager (root)
 
 **Editing System**
 - Properties panel provides form-based editing
-- Monaco JSON editor offers raw data access
+- JSON editor offers raw data access
 - Changes sync across both modes automatically
 - Quick Actions dashboard for rapid element creation
 
@@ -115,7 +115,6 @@ FolderManager (root)
 ### Technology Stack
 
 - **Framework:** Blazor WebAssembly (.NET 9)
-- **Editor:** BlazorMonaco v3.4.0 with Monaco Editor v0.52.0
 - **Storage:** Browser LocalStorage API
 - **Styling:** Custom CSS with gradient effects
 
@@ -283,6 +282,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-- Monaco Editor by Microsoft
-- BlazorMonaco by Serdar Ciplak
 - Inspired by [Mermaid.live](https://mermaid.live)

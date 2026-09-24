@@ -1,6 +1,4 @@
 ﻿@page "/"
-@using BlazorMonaco
-@using BlazorMonaco.Editor
 @using System.Text.Json
 @using System.Text.Json.Serialization
 @using Microsoft.JSInterop
@@ -438,13 +436,11 @@ else
 }
 
 @code {
-    private StandaloneCodeEditor? _editor;
     private RoadmapData? _data;
     private string? _error;
     private bool _isUpdating = false;
     private bool _lastUpdateSuccess = false;
     private string _currentJson = "";
-    private bool _editorReady = false;
     private DotNetObjectReference<Home>? _dotNetRef;
     private InputFile? _folderImportInput;
     private InputFile? _allDataImportInput;
@@ -550,154 +546,6 @@ else
                 .ThenBy(r => r.TabName)
                 .ToList();
         }
-    }
-
-    private const string DefaultJson = @"{
-  ""title"": ""Bi-Weekly Sprint Roadmap"",
-  ""subtitle"": ""2-week sprint cycle with ceremonies"",
-  ""columns"": [
-    { ""label"": ""Thursday"", ""sub"": """" },
-    { ""label"": ""Friday"", ""sub"": """" },
-    { ""label"": ""Weekend"", ""sub"": ""Sat/Sun"" },
-    { ""label"": ""Monday"", ""sub"": """" },
-    { ""label"": ""Tuesday"", ""sub"": """" },
-    { ""label"": ""Wednesday"", ""sub"": ""3:00PM est"" }
-  ],
-  ""milestones"": [
-    { ""position"": 91, ""label"": ""Deployment Cutoff Time"", ""icon"": ""triangle"", ""color"": ""#EF4444"" },
-    { ""position"": 38, ""label"": ""Release Deployments"", ""icon"": ""rocket"", ""color"": ""#025f40"" }
-  ],
-  ""lanes"": [
-    {
-      ""title"": ""Week 1"",
-      ""color"": ""#45B69C"",
-      ""height"": 1,
-      ""items"": [
-        {
-          ""title"": ""Stakeholder Prioritization"",
-          ""start"": 3,
-          ""span"": 1,
-          ""spanning"": true,
-          ""statusIcon"": ""star"",
-          ""statusColor"": ""#D4A520""
-        },
-        {
-          ""title"": ""Refinement"",
-          ""start"": 5,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""search"",
-          ""statusColor"": ""#9B7ED9""
-        },
-        {
-          ""title"": ""Sprint Planning"",
-          ""start"": 0,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""calendar"",
-          ""statusColor"": ""#667eea""
-        },
-        {
-          ""title"": ""Sprint Review"",
-          ""start"": 1,
-          ""span"": 1,
-          ""spanning"": true,
-          ""statusIcon"": ""flag"",
-          ""statusColor"": ""#45B69C""
-        }
-      ]
-    },
-    {
-      ""title"": ""Week 2"",
-      ""color"": ""#D4A520"",
-      ""height"": 1,
-      ""items"": [
-        {
-          ""title"": ""Refinement"",
-          ""start"": 4,
-          ""span"": 2,
-          ""spanning"": false,
-          ""statusIcon"": ""search"",
-          ""statusColor"": ""#9B7ED9""
-        },
-        {
-          ""title"": ""Retro"",
-          ""start"": 1,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""target"",
-          ""statusColor"": ""#D4A520""
-        }
-      ]
-    },
-    {
-      ""title"": ""IT Development"",
-      ""color"": ""#4A90D9"",
-      ""height"": 0.8,
-      ""items"": [
-        {
-          ""title"": ""Sprint Execution"",
-          ""start"": 0,
-          ""span"": 6,
-          ""spanning"": true,
-          ""statusIcon"": ""code"",
-          ""statusColor"": ""#4A90D9""
-        },
-        {
-          ""title"": ""Maintenance Window"",
-          ""start"": 2,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""wrench"",
-          ""statusColor"": ""#4A90D9"",
-          ""description"": ""- Saturday\n  - 3:00PM - 11:59PM est\n  - 4PM Release Deployment Process Begins""
-        }
-      ]
-    }
-  ]
-}";
-
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            Language = "json",
-            Value = DefaultJson,
-            Theme = "vs-dark",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            AutomaticLayout = true,
-            FontSize = 13,
-            LineNumbers = "on",
-            ScrollBeyondLastLine = false,
-            WordWrap = "on",
-            TabSize = 2,
-            FormatOnPaste = true,
-            FormatOnType = true
-        };
-    }
-
-    private async Task EditorOnDidInit()
-    {
-        _editorReady = true;
-
-        if (_sessionManager == null || _activeTab == null)
-        {
-            await InitializeFolderManagerAsync();
-        }
-
-        if (_editor != null && _activeTab != null)
-        {
-            _currentJson = JsonSerializer.Serialize(_activeTab.Data, new JsonSerializerOptions { WriteIndented = true });
-            await _editor.SetValue(_currentJson);
-        }
-
-        if (_data == null && !string.IsNullOrEmpty(_currentJson))
-        {
-            ParseJson(_currentJson);
-        }
-
-        _lastUpdateSuccess = _error == null;
-        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnInitializedAsync()
@@ -994,16 +842,20 @@ else
         }
     }
 
+    // Undo and redo have been inactive since December 2025, when the unused Monaco editor
+    // was dropped from the page: both were gated on an editor instance that is never created.
+    // They stay off until the snapshot history in SelectionState is reworked.
+    private static readonly bool UndoRedoEnabled = false;
+
     private async Task HandleUndo()
     {
         try
         {
             var previousJson = SelectionState.Undo();
-            if (previousJson != null && _editor != null)
+            if (UndoRedoEnabled && previousJson != null)
             {
                 _currentJson = previousJson;
                 ParseJson(previousJson);
-                await _editor.SetValue(previousJson);
 
                 if (_error == null && _sessionManager != null && _activeTab != null)
                 {
@@ -1031,11 +883,10 @@ else
         try
         {
             var nextJson = SelectionState.Redo();
-            if (nextJson != null && _editor != null)
+            if (UndoRedoEnabled && nextJson != null)
             {
                 _currentJson = nextJson;
                 ParseJson(nextJson);
-                await _editor.SetValue(nextJson);
 
                 if (_error == null && _sessionManager != null && _activeTab != null)
                 {
@@ -1243,10 +1094,6 @@ else
             _currentJson = updatedJson;
 
             // Sync to editor if it's open
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             // Always save to storage regardless of editor state
             if (_sessionManager != null && _activeTab != null && _folderManager != null)
@@ -1328,10 +1175,6 @@ else
             _currentJson = updatedJson;
 
             // Sync to editor if it's open
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             // Always save to storage regardless of editor state
             if (_sessionManager != null && _activeTab != null && _folderManager != null)
@@ -1407,10 +1250,6 @@ else
             _currentJson = updatedJson;
 
             // Sync to editor if it's open
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             // Always save to storage regardless of editor state
             if (_sessionManager != null && _activeTab != null && _folderManager != null)
@@ -1477,10 +1316,6 @@ else
 
         _currentJson = updatedJson;
 
-        if (_editor != null)
-        {
-            await _editor.SetValue(updatedJson);
-        }
 
         if (_sessionManager != null && _activeTab != null && _folderManager != null)
         {
@@ -1490,22 +1325,6 @@ else
         }
 
         await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task DownloadJson()
-    {
-        try
-        {
-            if (_editor == null || !_editorReady) return;
-
-            var jsonContent = await _editor.GetValue();
-            var filename = $"roadmap-{DateTime.Now:yyyy-MM-dd}.json";
-            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.downloadJson", jsonContent, filename);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error downloading JSON: {ex.Message}");
-        }
     }
 
     private async Task UpdateFromJson()
@@ -1787,43 +1606,6 @@ else
     private void MarkJsonDirty()
     {
         _hasUnsavedJsonChanges = true;
-    }
-
-    private async Task UpdatePreview()
-    {
-        if (_editor == null || !_editorReady) return;
-
-        _isUpdating = true;
-        StateHasChanged();
-
-        try
-        {
-            await Task.Delay(50); // Brief delay for visual feedback
-            var value = await _editor.GetValue();
-            _currentJson = value;
-            ParseJson(value);
-            _lastUpdateSuccess = _error == null;
-
-            if (_error == null && _sessionManager != null && _activeTab != null)
-            {
-                _activeTab.Data = _data!;
-                _activeTab.LastModified = DateTime.UtcNow;
-                if (_folderManager != null)
-                {
-                    await DebouncedSave();
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _error = $"Failed to read editor: {ex.Message}";
-            _lastUpdateSuccess = false;
-        }
-        finally
-        {
-            _isUpdating = false;
-            StateHasChanged();
-        }
     }
 
     private async Task DownloadFolder()
@@ -2391,10 +2173,6 @@ else
                     }
                 }
 
-                if (_editor != null)
-                {
-                    await _editor.SetValue(updatedJson);
-                }
 
                 if (_error == null && _sessionManager != null && _activeTab != null)
                 {
@@ -2589,10 +2367,6 @@ else
             _currentJson = updatedJson;
             ParseJson(updatedJson);
 
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
@@ -2698,10 +2472,6 @@ else
 
             SelectionState.Clear();
 
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
@@ -2828,10 +2598,6 @@ else
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
 
-            if (_editor != null)
-            {
-                await _editor.SetValue(_currentJson);
-            }
 
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
@@ -2900,10 +2666,6 @@ else
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
 
-            if (_editor != null)
-            {
-                await _editor.SetValue(_currentJson);
-            }
 
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
@@ -3036,10 +2798,6 @@ else
             _currentJson = updatedJson;
             ParseJson(updatedJson);
 
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
@@ -3084,10 +2842,6 @@ else
 
         _currentJson = updatedJson;
 
-        if (_editor != null)
-        {
-            await _editor.SetValue(updatedJson);
-        }
 
         if (_sessionManager != null && _activeTab != null && _folderManager != null)
         {
@@ -3116,10 +2870,6 @@ else
 
         _currentJson = updatedJson;
 
-        if (_editor != null)
-        {
-            await _editor.SetValue(updatedJson);
-        }
 
         if (_sessionManager != null && _activeTab != null && _folderManager != null)
         {
@@ -3148,10 +2898,6 @@ else
 
         _currentJson = updatedJson;
 
-        if (_editor != null)
-        {
-            await _editor.SetValue(updatedJson);
-        }
 
         if (_sessionManager != null && _activeTab != null && _folderManager != null)
         {
@@ -3249,10 +2995,6 @@ else
                 SetData(_activeTab.Data);
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-                if (_editor != null && _editorReady)
-                {
-                    await _editor.SetValue(_currentJson);
-                }
             }
 
             _isCreatingNewFolder = false;
@@ -3280,10 +3022,6 @@ else
             SetData(newTab.Data);
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-            if (_editor != null && _editorReady)
-            {
-                await _editor.SetValue(_currentJson);
-            }
 
             if (_activeFolder != null)
             {
@@ -3345,10 +3083,6 @@ else
                         SetData(_activeTab.Data);
                         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-                        if (_editor != null && _editorReady)
-                        {
-                            await _editor.SetValue(_currentJson);
-                        }
                     }
                 }
             }
@@ -3360,10 +3094,6 @@ else
             SetData(_activeTab.Data);
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-            if (_editor != null && _editorReady)
-            {
-                await _editor.SetValue(_currentJson);
-            }
         }
 
         if (_activeFolder != null)
@@ -3421,10 +3151,6 @@ else
                         SetData(_activeTab.Data);
                         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-                        if (_editor != null && _editorReady)
-                        {
-                            await _editor.SetValue(_currentJson);
-                        }
                     }
                 }
             }
@@ -4572,10 +4298,6 @@ else
 
         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-        if (_editor != null && _editorReady)
-        {
-            await _editor.SetValue(_currentJson);
-        }
 
         if (_activeFolder != null)
         {
