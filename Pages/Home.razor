@@ -15,31 +15,21 @@
 @inject RoadmapStateManager StateManager
 @implements IDisposable
 @inject ResponsiveService ResponsiveService
+@inject NavigationManager Navigation
 
 @if (!_responsiveInitialized)
 {
-    @* Hold render until the viewport size is known — avoids flashing the wrong layout *@
-    <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;background:#1e1e2f;"></div>
+    @* Hold render until the viewport size is known — avoids flashing the wrong layout. Same markup as the loader in index.html. *@
+    <div class="rs-boot" role="status" aria-live="polite">
+        <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 10-10 10L2 12z" fill="#7b83ff"></path></svg>
+        <div class="rs-boot-name">RoadScript</div>
+        <div class="rs-boot-msg">Opening your roadmaps</div>
+        <div class="rs-boot-bar" aria-hidden="true"><span style="width: 100%;"></span></div>
+    </div>
 }
 else if (_showLandingPage)
 {
-    @if (_isMobileLayout)
-    {
-        @* Landing page in mobile shell — scrollable, no fixed bars *@
-        <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;background:#1e1e2f;overflow-y:auto;-webkit-overflow-scrolling:touch;">
-            <LandingPage OnCreateRoadmap="HandleLandingPageCreate"
-                         OnImportFromUrl="HandleLandingPageImport"
-                         ImportError="@_landingPageImportError" />
-        </div>
-    }
-    else
-    {
-        <div class="container-fluid vh-100 d-flex p-0">
-            <LandingPage OnCreateRoadmap="HandleLandingPageCreate"
-                         OnImportFromUrl="HandleLandingPageImport"
-                         ImportError="@_landingPageImportError" />
-        </div>
-    }
+    @* No saved roadmaps: the static landing page in index.html is showing (see SyncBootViewAsync) *@
 }
 else if (_isMobileLayout)
 {
@@ -446,11 +436,17 @@ else
     private InputFile? _allDataImportInput;
     private InputFile? _roadmapJsonImportInput;
     private ElementReference _jsonTextArea;
-    private string? _landingPageImportError;
-
     private bool _showLandingPage = false;
     // Gates rendering until viewport size is known — prevents flash of wrong layout
     private bool _responsiveInitialized = false;
+
+    // Hand-off with the static landing page in index.html (window.RoadScriptBoot)
+    private bool _initialized = false;          // saved data loaded; safe to act on landing page requests
+    private bool _bootRegistered = false;
+    private bool _welcomeRequested = false;     // /?welcome keeps the landing page open for returning visitors
+    private string? _syncedView;
+
+    public record BootRequest(string Type, string? Value);
 
     private FolderManager? _folderManager;
     private Folder? _activeFolder;
@@ -555,6 +551,8 @@ else
         ThemeService.OnThemeChanged += HandleThemeChanged;
         ResponsiveService.OnBreakpointChanged += HandleBreakpointChanged;
 
+        _welcomeRequested = System.Text.RegularExpressions.Regex.IsMatch(new Uri(Navigation.Uri).Query.TrimStart('?'), @"(^|&)welcome(=|&|$)");
+
         await InitializeFolderManagerAsync();
 
         // Handle URL-based navigation and sharing
@@ -565,6 +563,8 @@ else
             ParseJson(_currentJson);
             await InvokeAsync(StateHasChanged);
         }
+
+        _initialized = true;
     }
 
     private void HandleStateChanged()
@@ -775,6 +775,32 @@ else
                 await UrlNavigation.ClearShareTargetParams();
                 await InvokeAsync(StateHasChanged);
             }
+        }
+
+        // Hand-off with the static landing page, only once saved data has loaded
+        if (_initialized && _dotNetRef != null)
+        {
+            if (!_bootRegistered)
+            {
+                _bootRegistered = true;
+                BootRequest? pending = null;
+                try
+                {
+                    // Returns anything the visitor clicked on the landing page before Blazor started
+                    pending = await JSRuntime.InvokeAsync<BootRequest?>("RoadScriptBoot.registerApp", _dotNetRef);
+                }
+                catch (JSException ex)
+                {
+                    Console.WriteLine($"[RoadScript] Landing page hand-off unavailable: {ex.Message}");
+                }
+
+                if (pending != null)
+                {
+                    await HandleBootRequest(pending.Type, pending.Value);
+                }
+            }
+
+            await SyncBootViewAsync();
         }
 
         // Setup resize/move handlers for all items (runs on every render to handle new items)
@@ -1464,39 +1490,91 @@ else
         StateHasChanged();
     }
 
-    private async Task HandleLandingPageImport(string url)
+    /// <summary>
+    /// Actions from the static landing page in index.html: "blank", "open" or "share" (value is the pasted link).
+    /// Saved roadmaps are never replaced: a blank workspace is only created when there are none.
+    /// </summary>
+    [JSInvokable]
+    public async Task HandleBootRequest(string type, string? value)
     {
-        _landingPageImportError = null;
-        StateHasChanged();
+        if (!_initialized) return;
+
+        var hasRoadmaps = _folderManager != null && _folderManager.Folders.Count > 0;
+        switch (type)
+        {
+            case "blank" when !hasRoadmaps:
+                await HandleLandingPageCreate(null);
+                break;
+            case "share":
+                if (!await OpenShareLinkAsync(value ?? ""))
+                {
+                    return; // The error is shown on the landing page, which stays open
+                }
+                break;
+        }
+
+        if (_welcomeRequested)
+        {
+            _welcomeRequested = false;
+            await JSRuntime.InvokeVoidAsync("history.replaceState", null, "", "/");
+        }
+
+        await SyncBootViewAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Show the static landing page when there is nothing to open (or at /?welcome), otherwise the app.
+    /// </summary>
+    private async Task SyncBootViewAsync()
+    {
+        if (!_initialized) return;
+
+        var view = _showLandingPage || _welcomeRequested ? "landing" : "app";
+        if (view == _syncedView) return;
+        _syncedView = view;
 
         try
         {
-            var shareCode = ExtractShareCode(url);
-            if (!string.IsNullOrEmpty(shareCode))
-            {
-                var sharedData = ShareService.ParseShareUrl(shareCode);
-                if (sharedData != null)
-                {
-                    await HandleLandingPageCreate(null);
-                    _activeTab!.Data = sharedData;
-                    _activeTab.Name = sharedData.Title ?? "Imported Roadmap";
-                    SetData(sharedData);
-                    _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
-                    await DebouncedSave();
-                    await UrlNavigation.UpdateUrl(_activeFolder!.Id, _activeTab.Id);
-                    StateHasChanged();
-                    return;
-                }
-            }
-
-            _landingPageImportError = "Could not read that link — please check the URL and try again.";
-            StateHasChanged();
+            await JSRuntime.InvokeVoidAsync("RoadScriptBoot.setView", view);
         }
-        catch
+        catch (JSException ex)
         {
-            _landingPageImportError = "Could not read that link — please check the URL and try again.";
-            StateHasChanged();
+            Console.WriteLine($"[RoadScript] Could not switch view: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Open a pasted share link. With no saved roadmaps it starts a workspace holding the shared roadmap;
+    /// otherwise the import dialog lets the visitor choose a folder, so nothing existing is replaced.
+    /// </summary>
+    private async Task<bool> OpenShareLinkAsync(string url)
+    {
+        var shareCode = ExtractShareCode(url);
+        var sharedData = string.IsNullOrEmpty(shareCode) ? null : ShareService.ParseShareUrl(shareCode);
+        if (sharedData == null)
+        {
+            await JSRuntime.InvokeVoidAsync("RoadScriptBoot.showShareError",
+                "That link could not be read. Check that it is a complete RoadScript share link.");
+            return false;
+        }
+
+        if (_folderManager == null || _folderManager.Folders.Count == 0)
+        {
+            await HandleLandingPageCreate(null);
+            _activeTab!.Data = sharedData;
+            _activeTab.Name = sharedData.Title ?? "Imported Roadmap";
+            SetData(sharedData);
+            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+            await DebouncedSave();
+            await UrlNavigation.UpdateUrl(_activeFolder!.Id, _activeTab.Id);
+        }
+        else
+        {
+            StateManager.ShowImportDialog(sharedData);
+        }
+
+        return true;
     }
 
     private static string ExtractShareCode(string input)
@@ -1523,6 +1601,7 @@ else
         _saveCancellation?.Dispose();
         _saveLock?.Dispose();
         JSRuntime.InvokeVoidAsync("RoadScriptInterop.removeKeyboardShortcuts");
+        JSRuntime.InvokeVoidAsync("RoadScriptBoot.unregisterApp");
     }
 
     /// <summary>
