@@ -331,6 +331,8 @@
     <link rel="stylesheet" href="css/app.css" media="print" onload="this.media='all'" />
     <link rel="stylesheet" href="css/mobile.css" media="print" onload="this.media='all'" />
     <noscript>
+        <!-- Without JavaScript the app cannot start; show the landing page only -->
+        <style>#app { display: none; }</style>
         <link rel="stylesheet" href="css/app.css" />
         <link rel="stylesheet" href="css/mobile.css" />
     </noscript>

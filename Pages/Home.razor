@@ -17,6 +17,8 @@
 @inject ResponsiveService ResponsiveService
 @inject NavigationManager Navigation
 
+<PageTitle>@(!_initialized || _showLandingPage || _welcomeRequested ? LandingPageTitle : "RoadScript")</PageTitle>
+
 @if (!_responsiveInitialized)
 {
     @* Hold render until the viewport size is known — avoids flashing the wrong layout. Same markup as the loader in index.html. *@
@@ -447,6 +449,7 @@ else
     private string? _syncedView;
 
     public record BootRequest(string Type, string? Value);
+    private const string LandingPageTitle = "RoadScript: product roadmaps you can edit visually or as JSON";
 
     private FolderManager? _folderManager;
     private Folder? _activeFolder;
