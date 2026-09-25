@@ -1,6 +1,4 @@
 ﻿@page "/"
-@using BlazorMonaco
-@using BlazorMonaco.Editor
 @using System.Text.Json
 @using System.Text.Json.Serialization
 @using Microsoft.JSInterop
@@ -17,31 +15,25 @@
 @inject RoadmapStateManager StateManager
 @implements IDisposable
 @inject ResponsiveService ResponsiveService
+@inject NavigationManager Navigation
+@inject PreferencesService Preferences
+@inject EditHistory History
+
+<PageTitle>@(!_initialized || _showLandingPage || _welcomeRequested ? LandingPageTitle : "RoadScript")</PageTitle>
 
 @if (!_responsiveInitialized)
 {
-    @* Hold render until the viewport size is known — avoids flashing the wrong layout *@
-    <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;background:#1e1e2f;"></div>
+    @* Hold render until the viewport size is known — avoids flashing the wrong layout. Same markup as the loader in index.html. *@
+    <div class="rs-boot" role="status" aria-live="polite">
+        <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 10-10 10L2 12z" fill="#7b83ff"></path></svg>
+        <div class="rs-boot-name">RoadScript</div>
+        <div class="rs-boot-msg">Opening your roadmaps</div>
+        <div class="rs-boot-bar" aria-hidden="true"><span style="width: 100%;"></span></div>
+    </div>
 }
 else if (_showLandingPage)
 {
-    @if (_isMobileLayout)
-    {
-        @* Landing page in mobile shell — scrollable, no fixed bars *@
-        <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;background:#1e1e2f;overflow-y:auto;-webkit-overflow-scrolling:touch;">
-            <LandingPage OnCreateRoadmap="HandleLandingPageCreate"
-                         OnImportFromUrl="HandleLandingPageImport"
-                         ImportError="@_landingPageImportError" />
-        </div>
-    }
-    else
-    {
-        <div class="container-fluid vh-100 d-flex p-0">
-            <LandingPage OnCreateRoadmap="HandleLandingPageCreate"
-                         OnImportFromUrl="HandleLandingPageImport"
-                         ImportError="@_landingPageImportError" />
-        </div>
-    }
+    @* No saved roadmaps: the static landing page in index.html is showing (see SyncBootViewAsync) *@
 }
 else if (_isMobileLayout)
 {
@@ -52,7 +44,7 @@ else if (_isMobileLayout)
                       OnMenuClick="@(() => { _mobileSideDrawerOpen = true; StateHasChanged(); })"
                       OnToggleView="@(async () => await ToggleViewMode(null))" />
 
-        <div class="mobile-content">
+        <div class="mobile-content" tabindex="0" role="region" aria-label="Roadmap">
             @if (_data != null)
             {
                 <MobileRoadmapListView Data="@_data"
@@ -230,6 +222,20 @@ else
                            OnRoadmapLinkClick="@HandleRoadmapLinkClick"
                            OnTitleClick="@HandleTitleClick" />
 
+            @if (IsRoadmapEmpty && !StateManager.IsPreviewMode)
+            {
+                <section class="rs-empty-invite" aria-labelledby="rs-empty-invite-title">
+                    <h2 id="rs-empty-invite-title">Your roadmap is empty</h2>
+                    <p>Add a first item, start from a template, or look at a finished example.</p>
+                    <div class="rs-empty-actions">
+                        <button type="button" class="rs-empty-primary" @onclick="AddFirstItem">Add an item</button>
+                        <button type="button" @onclick="OpenTemplatesFromInvite">Use a template</button>
+                        <a href="showcase/portfolio">See an example</a>
+                    </div>
+                    <button type="button" class="rs-empty-link" @onclick="OpenJsonEditorFromInvite">Rather type it? Open the JSON editor</button>
+                </section>
+            }
+
             <RoadmapFooter ActiveTab="@_activeTab"
                           Data="@_data"
                           IsPreviewMode="@StateManager.IsPreviewMode"
@@ -270,7 +276,11 @@ else
                       ItemIndex="@GetSelectedItemIndex()"
                       ItemCount="@GetSelectedItemCount()"
                       LaneIndex="@GetSelectedLaneIndex()"
-                      AvailableRoadmaps="@AllRoadmapsAcrossFolders" />
+                      AvailableRoadmaps="@AllRoadmapsAcrossFolders"
+                      ShowJsonTip="@Preferences.IsTipVisible(PreferencesService.TipJsonEditor)"
+                      ShowEditTip="@(HasAnyItems && !Preferences.IsTipVisible(PreferencesService.TipJsonEditor) && Preferences.IsTipVisible(PreferencesService.TipEditOnRoadmap))"
+                      OnDismissTip="HandleDismissTip"
+                      OnTurnOffTips="HandleTurnOffTips" />
     }
     else
     {
@@ -344,7 +354,7 @@ else
                             📥 Import Session Data
                         </button>
                     </div>
-                    <div style="font-size: 10px; color: #6b7280; line-height: 1.3; margin-top: 2px;">
+                    <div style="font-size: 10px; color: #9ca3af; line-height: 1.3; margin-top: 2px;">
                         Export/import all folders and roadmaps
                     </div>
                 </div>
@@ -438,23 +448,28 @@ else
 }
 
 @code {
-    private StandaloneCodeEditor? _editor;
     private RoadmapData? _data;
     private string? _error;
     private bool _isUpdating = false;
     private bool _lastUpdateSuccess = false;
     private string _currentJson = "";
-    private bool _editorReady = false;
     private DotNetObjectReference<Home>? _dotNetRef;
     private InputFile? _folderImportInput;
     private InputFile? _allDataImportInput;
     private InputFile? _roadmapJsonImportInput;
     private ElementReference _jsonTextArea;
-    private string? _landingPageImportError;
-
     private bool _showLandingPage = false;
     // Gates rendering until viewport size is known — prevents flash of wrong layout
     private bool _responsiveInitialized = false;
+
+    // Hand-off with the static landing page in index.html (window.RoadScriptBoot)
+    private bool _initialized = false;          // saved data loaded; safe to act on landing page requests
+    private bool _bootRegistered = false;
+    private bool _welcomeRequested = false;     // /?welcome keeps the landing page open for returning visitors
+    private string? _syncedView;
+
+    public record BootRequest(string Type, string? Value);
+    private const string LandingPageTitle = "RoadScript: product roadmaps you can edit visually or as JSON";
 
     private FolderManager? _folderManager;
     private Folder? _activeFolder;
@@ -552,154 +567,6 @@ else
         }
     }
 
-    private const string DefaultJson = @"{
-  ""title"": ""Bi-Weekly Sprint Roadmap"",
-  ""subtitle"": ""2-week sprint cycle with ceremonies"",
-  ""columns"": [
-    { ""label"": ""Thursday"", ""sub"": """" },
-    { ""label"": ""Friday"", ""sub"": """" },
-    { ""label"": ""Weekend"", ""sub"": ""Sat/Sun"" },
-    { ""label"": ""Monday"", ""sub"": """" },
-    { ""label"": ""Tuesday"", ""sub"": """" },
-    { ""label"": ""Wednesday"", ""sub"": ""3:00PM est"" }
-  ],
-  ""milestones"": [
-    { ""position"": 91, ""label"": ""Deployment Cutoff Time"", ""icon"": ""triangle"", ""color"": ""#EF4444"" },
-    { ""position"": 38, ""label"": ""Release Deployments"", ""icon"": ""rocket"", ""color"": ""#025f40"" }
-  ],
-  ""lanes"": [
-    {
-      ""title"": ""Week 1"",
-      ""color"": ""#45B69C"",
-      ""height"": 1,
-      ""items"": [
-        {
-          ""title"": ""Stakeholder Prioritization"",
-          ""start"": 3,
-          ""span"": 1,
-          ""spanning"": true,
-          ""statusIcon"": ""star"",
-          ""statusColor"": ""#D4A520""
-        },
-        {
-          ""title"": ""Refinement"",
-          ""start"": 5,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""search"",
-          ""statusColor"": ""#9B7ED9""
-        },
-        {
-          ""title"": ""Sprint Planning"",
-          ""start"": 0,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""calendar"",
-          ""statusColor"": ""#667eea""
-        },
-        {
-          ""title"": ""Sprint Review"",
-          ""start"": 1,
-          ""span"": 1,
-          ""spanning"": true,
-          ""statusIcon"": ""flag"",
-          ""statusColor"": ""#45B69C""
-        }
-      ]
-    },
-    {
-      ""title"": ""Week 2"",
-      ""color"": ""#D4A520"",
-      ""height"": 1,
-      ""items"": [
-        {
-          ""title"": ""Refinement"",
-          ""start"": 4,
-          ""span"": 2,
-          ""spanning"": false,
-          ""statusIcon"": ""search"",
-          ""statusColor"": ""#9B7ED9""
-        },
-        {
-          ""title"": ""Retro"",
-          ""start"": 1,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""target"",
-          ""statusColor"": ""#D4A520""
-        }
-      ]
-    },
-    {
-      ""title"": ""IT Development"",
-      ""color"": ""#4A90D9"",
-      ""height"": 0.8,
-      ""items"": [
-        {
-          ""title"": ""Sprint Execution"",
-          ""start"": 0,
-          ""span"": 6,
-          ""spanning"": true,
-          ""statusIcon"": ""code"",
-          ""statusColor"": ""#4A90D9""
-        },
-        {
-          ""title"": ""Maintenance Window"",
-          ""start"": 2,
-          ""span"": 1,
-          ""spanning"": false,
-          ""statusIcon"": ""wrench"",
-          ""statusColor"": ""#4A90D9"",
-          ""description"": ""- Saturday\n  - 3:00PM - 11:59PM est\n  - 4PM Release Deployment Process Begins""
-        }
-      ]
-    }
-  ]
-}";
-
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            Language = "json",
-            Value = DefaultJson,
-            Theme = "vs-dark",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            AutomaticLayout = true,
-            FontSize = 13,
-            LineNumbers = "on",
-            ScrollBeyondLastLine = false,
-            WordWrap = "on",
-            TabSize = 2,
-            FormatOnPaste = true,
-            FormatOnType = true
-        };
-    }
-
-    private async Task EditorOnDidInit()
-    {
-        _editorReady = true;
-
-        if (_sessionManager == null || _activeTab == null)
-        {
-            await InitializeFolderManagerAsync();
-        }
-
-        if (_editor != null && _activeTab != null)
-        {
-            _currentJson = JsonSerializer.Serialize(_activeTab.Data, new JsonSerializerOptions { WriteIndented = true });
-            await _editor.SetValue(_currentJson);
-        }
-
-        if (_data == null && !string.IsNullOrEmpty(_currentJson))
-        {
-            ParseJson(_currentJson);
-        }
-
-        _lastUpdateSuccess = _error == null;
-        await InvokeAsync(StateHasChanged);
-    }
-
     protected override async Task OnInitializedAsync()
     {
         // Subscribe to service state changes first
@@ -707,6 +574,9 @@ else
         ThemeService.OnThemeChanged += HandleThemeChanged;
         ResponsiveService.OnBreakpointChanged += HandleBreakpointChanged;
 
+        _welcomeRequested = System.Text.RegularExpressions.Regex.IsMatch(new Uri(Navigation.Uri).Query.TrimStart('?'), @"(^|&)welcome(=|&|$)");
+
+        await Preferences.LoadAsync();
         await InitializeFolderManagerAsync();
 
         // Handle URL-based navigation and sharing
@@ -717,6 +587,8 @@ else
             ParseJson(_currentJson);
             await InvokeAsync(StateHasChanged);
         }
+
+        _initialized = true;
     }
 
     private void HandleStateChanged()
@@ -929,6 +801,32 @@ else
             }
         }
 
+        // Hand-off with the static landing page, only once saved data has loaded
+        if (_initialized && _dotNetRef != null)
+        {
+            if (!_bootRegistered)
+            {
+                _bootRegistered = true;
+                BootRequest? pending = null;
+                try
+                {
+                    // Returns anything the visitor clicked on the landing page before Blazor started
+                    pending = await JSRuntime.InvokeAsync<BootRequest?>("RoadScriptBoot.registerApp", _dotNetRef);
+                }
+                catch (JSException ex)
+                {
+                    Console.WriteLine($"[RoadScript] Landing page hand-off unavailable: {ex.Message}");
+                }
+
+                if (pending != null)
+                {
+                    await HandleBootRequest(pending.Type, pending.Value);
+                }
+            }
+
+            await SyncBootViewAsync();
+        }
+
         // Setup resize/move handlers for all items (runs on every render to handle new items)
         if (!StateManager.IsPreviewMode && _dotNetRef != null && _data != null)
         {
@@ -986,75 +884,96 @@ else
         }
     }
 
+    // Undo history. Before an edit, the roadmap's current state is kept as a pending snapshot.
+    // The next save commits it to the history, but only if the roadmap actually changed, so
+    // clicks that start no edit (like pressing on an item without dragging it) don't clear redo.
+    private string? _pendingSnapshot;
+    private string? _pendingSnapshotKey;
+
+    private string? CurrentHistoryKey => _activeTab == null ? null : EditHistory.KeyFor(_activeFolder?.Id, _activeTab.Id);
+
+    private string? SnapshotOfCurrent() => _data == null ? null : JsonSerializer.Serialize(_data);
+
     private void SaveHistorySnapshot()
     {
-        if (!string.IsNullOrEmpty(_currentJson))
+        var key = CurrentHistoryKey;
+        var snapshot = SnapshotOfCurrent();
+        if (key == null || snapshot == null) return;
+
+        // Keep the earliest state if edits happen before the next save
+        if (_pendingSnapshot != null && _pendingSnapshotKey == key) return;
+
+        _pendingSnapshot = snapshot;
+        _pendingSnapshotKey = key;
+    }
+
+    private void CommitPendingSnapshot()
+    {
+        if (_pendingSnapshot == null) return;
+
+        var key = _pendingSnapshotKey;
+        var before = _pendingSnapshot;
+        _pendingSnapshot = null;
+        _pendingSnapshotKey = null;
+
+        // A different roadmap is open now; this snapshot can't be compared, so drop it
+        if (key == null || key != CurrentHistoryKey) return;
+
+        var now = SnapshotOfCurrent();
+        if (now != null && now != before)
         {
-            SelectionState.PushHistory(_currentJson);
+            History.Record(key, before);
         }
     }
 
-    private async Task HandleUndo()
+    private void ClearEditHistory()
     {
-        try
-        {
-            var previousJson = SelectionState.Undo();
-            if (previousJson != null && _editor != null)
-            {
-                _currentJson = previousJson;
-                ParseJson(previousJson);
-                await _editor.SetValue(previousJson);
-
-                if (_error == null && _sessionManager != null && _activeTab != null)
-                {
-                    _activeTab.Data = _data!;
-                    _activeTab.LastModified = DateTime.UtcNow;
-                    if (_folderManager != null)
-                    {
-                        // Use immediate save for undo (critical state change)
-                        await SaveState();
-                    }
-                }
-
-                SelectionState.Clear();
-                await InvokeAsync(StateHasChanged);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error during undo: {ex.Message}");
-        }
+        History.Clear();
+        _pendingSnapshot = null;
+        _pendingSnapshotKey = null;
     }
 
-    private async Task HandleRedo()
+    private Task HandleUndo() => StepHistory(undo: true);
+
+    private Task HandleRedo() => StepHistory(undo: false);
+
+    private async Task StepHistory(bool undo)
     {
         try
         {
-            var nextJson = SelectionState.Redo();
-            if (nextJson != null && _editor != null)
+            CommitPendingSnapshot();
+
+            var key = CurrentHistoryKey;
+            var current = SnapshotOfCurrent();
+            if (key == null || current == null || _activeTab == null) return;
+
+            var snapshot = undo ? History.Undo(key, current) : History.Redo(key, current);
+            if (snapshot == null) return;
+
+            ParseJson(snapshot);
+            if (_data == null)
             {
-                _currentJson = nextJson;
-                ParseJson(nextJson);
-                await _editor.SetValue(nextJson);
-
-                if (_error == null && _sessionManager != null && _activeTab != null)
-                {
-                    _activeTab.Data = _data!;
-                    _activeTab.LastModified = DateTime.UtcNow;
-                    if (_folderManager != null)
-                    {
-                        // Use immediate save for redo (critical state change)
-                        await SaveState();
-                    }
-                }
-
-                SelectionState.Clear();
-                await InvokeAsync(StateHasChanged);
+                // Should not happen: snapshots are serialized from valid roadmaps. Keep what was there.
+                ParseJson(current);
+                return;
             }
+
+            _activeTab.Data = _data;
+            _activeTab.LastModified = DateTime.UtcNow;
+            if (_activeFolder != null)
+            {
+                _activeFolder.LastModified = DateTime.UtcNow;
+            }
+            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+            _hasUnsavedJsonChanges = false;
+
+            SelectionState.Clear();
+            await SaveState();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error during redo: {ex.Message}");
+            Console.WriteLine($"Error during {(undo ? "undo" : "redo")}: {ex.Message}");
         }
     }
 
@@ -1243,10 +1162,6 @@ else
             _currentJson = updatedJson;
 
             // Sync to editor if it's open
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             // Always save to storage regardless of editor state
             if (_sessionManager != null && _activeTab != null && _folderManager != null)
@@ -1328,10 +1243,6 @@ else
             _currentJson = updatedJson;
 
             // Sync to editor if it's open
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             // Always save to storage regardless of editor state
             if (_sessionManager != null && _activeTab != null && _folderManager != null)
@@ -1407,10 +1318,6 @@ else
             _currentJson = updatedJson;
 
             // Sync to editor if it's open
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             // Always save to storage regardless of editor state
             if (_sessionManager != null && _activeTab != null && _folderManager != null)
@@ -1477,10 +1384,6 @@ else
 
         _currentJson = updatedJson;
 
-        if (_editor != null)
-        {
-            await _editor.SetValue(updatedJson);
-        }
 
         if (_sessionManager != null && _activeTab != null && _folderManager != null)
         {
@@ -1492,22 +1395,6 @@ else
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task DownloadJson()
-    {
-        try
-        {
-            if (_editor == null || !_editorReady) return;
-
-            var jsonContent = await _editor.GetValue();
-            var filename = $"roadmap-{DateTime.Now:yyyy-MM-dd}.json";
-            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.downloadJson", jsonContent, filename);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error downloading JSON: {ex.Message}");
-        }
-    }
-
     private async Task UpdateFromJson()
     {
         _isUpdating = true;
@@ -1516,6 +1403,7 @@ else
 
         try
         {
+            SaveHistorySnapshot();
             ParseJson(_currentJson);
 
             if (_data != null && _activeTab != null && _folderManager != null)
@@ -1601,6 +1489,7 @@ else
             tabName = "Untitled Roadmap";
         }
 
+        ClearEditHistory();
         _folderManager = new FolderManager
         {
             ActiveFolderId = "folder-1",
@@ -1642,42 +1531,95 @@ else
 
         _showLandingPage = false;
         await DebouncedSave();
+        await Preferences.StartTipsAsync();
         StateHasChanged();
     }
 
-    private async Task HandleLandingPageImport(string url)
+    /// <summary>
+    /// Actions from the static landing page in index.html: "blank", "open" or "share" (value is the pasted link).
+    /// Saved roadmaps are never replaced: a blank workspace is only created when there are none.
+    /// </summary>
+    [JSInvokable]
+    public async Task HandleBootRequest(string type, string? value)
     {
-        _landingPageImportError = null;
-        StateHasChanged();
+        if (!_initialized) return;
+
+        var hasRoadmaps = _folderManager != null && _folderManager.Folders.Count > 0;
+        switch (type)
+        {
+            case "blank" when !hasRoadmaps:
+                await HandleLandingPageCreate(null);
+                break;
+            case "share":
+                if (!await OpenShareLinkAsync(value ?? ""))
+                {
+                    return; // The error is shown on the landing page, which stays open
+                }
+                break;
+        }
+
+        if (_welcomeRequested)
+        {
+            _welcomeRequested = false;
+            await JSRuntime.InvokeVoidAsync("history.replaceState", null, "", "/");
+        }
+
+        await SyncBootViewAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Show the static landing page when there is nothing to open (or at /?welcome), otherwise the app.
+    /// </summary>
+    private async Task SyncBootViewAsync()
+    {
+        if (!_initialized) return;
+
+        var view = _showLandingPage || _welcomeRequested ? "landing" : "app";
+        if (view == _syncedView) return;
+        _syncedView = view;
 
         try
         {
-            var shareCode = ExtractShareCode(url);
-            if (!string.IsNullOrEmpty(shareCode))
-            {
-                var sharedData = ShareService.ParseShareUrl(shareCode);
-                if (sharedData != null)
-                {
-                    await HandleLandingPageCreate(null);
-                    _activeTab!.Data = sharedData;
-                    _activeTab.Name = sharedData.Title ?? "Imported Roadmap";
-                    SetData(sharedData);
-                    _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
-                    await DebouncedSave();
-                    await UrlNavigation.UpdateUrl(_activeFolder!.Id, _activeTab.Id);
-                    StateHasChanged();
-                    return;
-                }
-            }
-
-            _landingPageImportError = "Could not read that link — please check the URL and try again.";
-            StateHasChanged();
+            await JSRuntime.InvokeVoidAsync("RoadScriptBoot.setView", view);
         }
-        catch
+        catch (JSException ex)
         {
-            _landingPageImportError = "Could not read that link — please check the URL and try again.";
-            StateHasChanged();
+            Console.WriteLine($"[RoadScript] Could not switch view: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Open a pasted share link. With no saved roadmaps it starts a workspace holding the shared roadmap;
+    /// otherwise the import dialog lets the visitor choose a folder, so nothing existing is replaced.
+    /// </summary>
+    private async Task<bool> OpenShareLinkAsync(string url)
+    {
+        var shareCode = ExtractShareCode(url);
+        var sharedData = string.IsNullOrEmpty(shareCode) ? null : ShareService.ParseShareUrl(shareCode);
+        if (sharedData == null)
+        {
+            await JSRuntime.InvokeVoidAsync("RoadScriptBoot.showShareError",
+                "That link could not be read. Check that it is a complete RoadScript share link.");
+            return false;
+        }
+
+        if (_folderManager == null || _folderManager.Folders.Count == 0)
+        {
+            await HandleLandingPageCreate(null);
+            _activeTab!.Data = sharedData;
+            _activeTab.Name = sharedData.Title ?? "Imported Roadmap";
+            SetData(sharedData);
+            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+            await DebouncedSave();
+            await UrlNavigation.UpdateUrl(_activeFolder!.Id, _activeTab.Id);
+        }
+        else
+        {
+            StateManager.ShowImportDialog(sharedData);
+        }
+
+        return true;
     }
 
     private static string ExtractShareCode(string input)
@@ -1704,6 +1646,7 @@ else
         _saveCancellation?.Dispose();
         _saveLock?.Dispose();
         JSRuntime.InvokeVoidAsync("RoadScriptInterop.removeKeyboardShortcuts");
+        JSRuntime.InvokeVoidAsync("RoadScriptBoot.unregisterApp");
     }
 
     /// <summary>
@@ -1711,6 +1654,8 @@ else
     /// </summary>
     private async Task DebouncedSave()
     {
+        CommitPendingSnapshot();
+
         // Cancel any pending save
         _saveCancellation?.Cancel();
         _saveCancellation = new CancellationTokenSource();
@@ -1751,6 +1696,7 @@ else
     /// </summary>
     private async Task SaveState()
     {
+        CommitPendingSnapshot();
         await _saveLock.WaitAsync();
         try
         {
@@ -1787,43 +1733,6 @@ else
     private void MarkJsonDirty()
     {
         _hasUnsavedJsonChanges = true;
-    }
-
-    private async Task UpdatePreview()
-    {
-        if (_editor == null || !_editorReady) return;
-
-        _isUpdating = true;
-        StateHasChanged();
-
-        try
-        {
-            await Task.Delay(50); // Brief delay for visual feedback
-            var value = await _editor.GetValue();
-            _currentJson = value;
-            ParseJson(value);
-            _lastUpdateSuccess = _error == null;
-
-            if (_error == null && _sessionManager != null && _activeTab != null)
-            {
-                _activeTab.Data = _data!;
-                _activeTab.LastModified = DateTime.UtcNow;
-                if (_folderManager != null)
-                {
-                    await DebouncedSave();
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _error = $"Failed to read editor: {ex.Message}";
-            _lastUpdateSuccess = false;
-        }
-        finally
-        {
-            _isUpdating = false;
-            StateHasChanged();
-        }
     }
 
     private async Task DownloadFolder()
@@ -2034,6 +1943,7 @@ else
             }
 
             // Replace the entire folder manager
+            ClearEditHistory();
             _folderManager = importedFolderManager;
             _activeFolder = _folderManager.Folders.FirstOrDefault();
             _sessionManager = _activeFolder?.SessionManager;
@@ -2391,10 +2301,6 @@ else
                     }
                 }
 
-                if (_editor != null)
-                {
-                    await _editor.SetValue(updatedJson);
-                }
 
                 if (_error == null && _sessionManager != null && _activeTab != null)
                 {
@@ -2589,10 +2495,6 @@ else
             _currentJson = updatedJson;
             ParseJson(updatedJson);
 
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
@@ -2698,10 +2600,6 @@ else
 
             SelectionState.Clear();
 
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
@@ -2828,10 +2726,6 @@ else
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
 
-            if (_editor != null)
-            {
-                await _editor.SetValue(_currentJson);
-            }
 
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
@@ -2900,10 +2794,6 @@ else
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
 
-            if (_editor != null)
-            {
-                await _editor.SetValue(_currentJson);
-            }
 
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
@@ -3036,10 +2926,6 @@ else
             _currentJson = updatedJson;
             ParseJson(updatedJson);
 
-            if (_editor != null)
-            {
-                await _editor.SetValue(updatedJson);
-            }
 
             if (_error == null && _sessionManager != null && _activeTab != null)
             {
@@ -3084,10 +2970,6 @@ else
 
         _currentJson = updatedJson;
 
-        if (_editor != null)
-        {
-            await _editor.SetValue(updatedJson);
-        }
 
         if (_sessionManager != null && _activeTab != null && _folderManager != null)
         {
@@ -3116,10 +2998,6 @@ else
 
         _currentJson = updatedJson;
 
-        if (_editor != null)
-        {
-            await _editor.SetValue(updatedJson);
-        }
 
         if (_sessionManager != null && _activeTab != null && _folderManager != null)
         {
@@ -3148,10 +3026,6 @@ else
 
         _currentJson = updatedJson;
 
-        if (_editor != null)
-        {
-            await _editor.SetValue(updatedJson);
-        }
 
         if (_sessionManager != null && _activeTab != null && _folderManager != null)
         {
@@ -3249,10 +3123,6 @@ else
                 SetData(_activeTab.Data);
                 _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-                if (_editor != null && _editorReady)
-                {
-                    await _editor.SetValue(_currentJson);
-                }
             }
 
             _isCreatingNewFolder = false;
@@ -3280,10 +3150,6 @@ else
             SetData(newTab.Data);
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-            if (_editor != null && _editorReady)
-            {
-                await _editor.SetValue(_currentJson);
-            }
 
             if (_activeFolder != null)
             {
@@ -3313,6 +3179,7 @@ else
 
         bool isLastTab = _sessionManager.Tabs.Count == 1;
 
+        History.Forget(EditHistory.KeyFor(_activeFolder?.Id, tabId));
         StorageService.RemoveTab(_sessionManager, tabId);
 
         if (isLastTab && _activeFolder != null)
@@ -3345,10 +3212,6 @@ else
                         SetData(_activeTab.Data);
                         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-                        if (_editor != null && _editorReady)
-                        {
-                            await _editor.SetValue(_currentJson);
-                        }
                     }
                 }
             }
@@ -3360,10 +3223,6 @@ else
             SetData(_activeTab.Data);
             _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-            if (_editor != null && _editorReady)
-            {
-                await _editor.SetValue(_currentJson);
-            }
         }
 
         if (_activeFolder != null)
@@ -3397,6 +3256,7 @@ else
 
         if (isLastTab)
         {
+            History.Forget(_activeFolder.Id + "/");
             StorageService.RemoveFolder(_folderManager, _activeFolder.Id);
 
             if (_folderManager.Folders.Count == 0)
@@ -3421,10 +3281,6 @@ else
                         SetData(_activeTab.Data);
                         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-                        if (_editor != null && _editorReady)
-                        {
-                            await _editor.SetValue(_currentJson);
-                        }
                     }
                 }
             }
@@ -3926,6 +3782,7 @@ else
         }
         else
         {
+            History.Forget(EditHistory.KeyFor(folder.Id, tab.Id));
             StorageService.RemoveTab(folder.SessionManager, tab.Id);
             folder.LastModified = DateTime.UtcNow;
 
@@ -4133,6 +3990,11 @@ else
 
     private void ToggleJsonEditorMode()
     {
+        if (!StateManager.IsJsonEditorMode && Preferences.IsTipVisible(PreferencesService.TipJsonEditor))
+        {
+            _ = Preferences.DismissTipAsync(PreferencesService.TipJsonEditor);
+        }
+
         if (!StateManager.IsJsonEditorMode && _data != null)
         {
             // When entering JSON Editor Mode, sync current data to JSON and ensure sidebar is visible
@@ -4144,6 +4006,48 @@ else
             StateManager.ShowProperties = true; // Ensure sidebar is visible
         }
         StateManager.ToggleJsonEditorMode();
+    }
+
+    private bool HasAnyItems => _data?.Lanes.Any(l => l.Items.Count > 0) == true;
+
+    private bool IsRoadmapEmpty => _data != null && !HasAnyItems && (_data.Milestones?.Count ?? 0) == 0;
+
+    private async Task HandleDismissTip(string tipId)
+    {
+        await Preferences.DismissTipAsync(tipId);
+        StateHasChanged();
+    }
+
+    private async Task HandleTurnOffTips()
+    {
+        await Preferences.TurnOffTipsAsync();
+        StateHasChanged();
+    }
+
+    private async Task AddFirstItem()
+    {
+        if (_data == null) return;
+        if (_data.Lanes.Count == 0)
+        {
+            // Adding a lane also adds its first item
+            await HandleAddElement(("lane", "lanes"));
+            return;
+        }
+        await HandleAddElement(("item", "lanes[0].items"));
+    }
+
+    private void OpenTemplatesFromInvite()
+    {
+        // Templates are added as a new roadmap; this one is left as it is
+        StateManager.ShowTemplateSelectorDialog();
+    }
+
+    private void OpenJsonEditorFromInvite()
+    {
+        if (!StateManager.IsJsonEditorMode)
+        {
+            ToggleJsonEditorMode();
+        }
     }
 
     private void HandleJsonModalKeyDown(KeyboardEventArgs e)
@@ -4389,6 +4293,7 @@ else
             return;
         }
 
+        History.Forget(_activeFolder.Id + "/");
         StorageService.RemoveFolder(_folderManager, _activeFolder.Id);
         _activeFolder = StorageService.GetActiveFolder(_folderManager);
 
@@ -4572,10 +4477,6 @@ else
 
         _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
 
-        if (_editor != null && _editorReady)
-        {
-            await _editor.SetValue(_currentJson);
-        }
 
         if (_activeFolder != null)
         {

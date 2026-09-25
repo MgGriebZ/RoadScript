@@ -52,6 +52,8 @@
                                OnColumnClick="@HandleColumnClick"
                                OnMilestoneClick="@HandleMilestoneClick"
                                OnItemClick="@HandleItemClick"
+                               OnItemInspect="@OnItemInspect"
+                               InspectedItemKey="@InspectedItemKey"
                                OnRoadmapLinkClick="@OnRoadmapLinkClick" />
             </div>
         </div>
@@ -169,6 +171,18 @@
     /// </summary>
     [Parameter]
     public EventCallback OnTitleClick { get; set; }
+
+    /// <summary>
+    /// Optional. In preview mode, fired when an item is clicked or activated with the keyboard
+    /// </summary>
+    [Parameter]
+    public EventCallback<ItemClickEventArgs> OnItemInspect { get; set; }
+
+    /// <summary>
+    /// Optional "laneIndex-itemIndex" key of the item to highlight in preview mode
+    /// </summary>
+    [Parameter]
+    public string? InspectedItemKey { get; set; }
 
     // Event handlers that translate from sub-component events to parent callbacks
 

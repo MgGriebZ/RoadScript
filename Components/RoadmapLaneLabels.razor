@@ -2,10 +2,10 @@
 @inject ThemeService ThemeService
 @inject SelectionState SelectionState
 
-<div style="width: 175px; flex-shrink: 0; padding-right: 14px; display: flex; flex-direction: column;">
+<div class="roadmap-lane-labels" style="width: 175px; flex-shrink: 0; padding-right: 14px; display: flex; flex-direction: column;">
     @* Spacer matches column headers (48px) + milestone scale row (40px) when present *@
     @{ var _hasGlobalMs = Data.Milestones?.Any(m => m.LaneIndex == null) == true; }
-    <div style="height: @(_hasGlobalMs ? "88" : "48")px;"></div>
+    <div class="roadmap-lane-labels-spacer" style="height: @(_hasGlobalMs ? "88" : "48")px;"></div>
 
     @* Lane titles *@
     @for (int li = 0; li < Data.Lanes.Count; li++)

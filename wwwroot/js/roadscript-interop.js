@@ -1,6 +1,6 @@
 /**
  * RoadScript Interactive Editing - JavaScript Interop
- * Handles Monaco editor navigation, JSON parsing, and element selection
+ * Handles JSON parsing, keyboard shortcuts, and element selection
  */
 
 window.RoadScriptInterop = {
@@ -207,68 +207,6 @@ window.RoadScriptInterop = {
     },
 
     /**
-     * Navigates Monaco editor to a specific position
-     */
-    navigateToPosition: function(editorId, line, column, highlight = true) {
-        // Find the Monaco editor instance
-        const editors = monaco.editor.getEditors();
-        const editor = editors.find(e => {
-            const domNode = e.getDomNode();
-            return domNode && (domNode.id === editorId || domNode.closest(`#${editorId}`));
-        });
-
-        if (!editor) {
-            console.error('Editor not found:', editorId);
-            return;
-        }
-
-        // Set cursor position
-        editor.setPosition({ lineNumber: line, column: column });
-
-        // Reveal the position in center of view
-        editor.revealPositionInCenter({ lineNumber: line, column: column });
-
-        // Optionally highlight the range
-        if (highlight) {
-            const model = editor.getModel();
-            if (model) {
-                const wordAtPosition = model.getWordAtPosition({ lineNumber: line, column: column });
-
-                if (wordAtPosition) {
-                    const range = {
-                        startLineNumber: line,
-                        startColumn: wordAtPosition.startColumn,
-                        endLineNumber: line,
-                        endColumn: wordAtPosition.endColumn
-                    };
-
-                    editor.setSelection(range);
-
-                    // Add temporary decoration
-                    const decorations = editor.deltaDecorations([], [
-                        {
-                            range: range,
-                            options: {
-                                className: 'roadscript-highlight-line',
-                                isWholeLine: false,
-                                inlineClassName: 'roadscript-highlight-inline'
-                            }
-                        }
-                    ]);
-
-                    // Remove decoration after 2 seconds
-                    setTimeout(() => {
-                        editor.deltaDecorations(decorations, []);
-                    }, 2000);
-                }
-            }
-        }
-
-        // Focus the editor
-        editor.focus();
-    },
-
-    /**
      * Updates JSON value at a specific path
      */
     updateJsonValue: function(jsonText, jsonPath, newValue) {
@@ -336,10 +274,12 @@ window.RoadScriptInterop = {
 
         // Create new handler
         window.roadscriptKeyboardHandler = function(e) {
-            // Check if user is typing in an input/textarea (but not Monaco editor)
+            // The static landing page is showing: leave keys (arrows, Ctrl+P) to the browser
+            if (document.documentElement.getAttribute('data-view') === 'landing') return;
+
+            // Check if user is typing in an input/textarea
             const target = e.target;
             const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
-            const isMonacoEditor = target.closest('.monaco-editor') !== null;
 
             // Ctrl/Cmd + P - Toggle Preview/Edit mode
             if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
@@ -355,17 +295,24 @@ window.RoadScriptInterop = {
                 return;
             }
 
-            // Ctrl/Cmd + Z - Undo (skip in Monaco editor)
-            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !isMonacoEditor) {
+            // Undo and redo for the roadmap. Inside a text field, leave the keys to the browser
+            // so typing can be undone the usual way.
+            const key = (e.key || '').toLowerCase();
+            const isTextEditing = isInputField || target.isContentEditable || target.tagName === 'SELECT';
+
+            // Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y - Redo
+            if ((e.ctrlKey || e.metaKey) && !e.altKey && ((key === 'z' && e.shiftKey) || key === 'y')) {
+                if (isTextEditing) return;
                 e.preventDefault();
-                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Undo');
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Redo');
                 return;
             }
 
-            // Ctrl/Cmd + Y - Redo (skip in Monaco editor)
-            if ((e.ctrlKey || e.metaKey) && e.key === 'y' && !isMonacoEditor) {
+            // Ctrl/Cmd + Z - Undo
+            if ((e.ctrlKey || e.metaKey) && !e.altKey && key === 'z') {
+                if (isTextEditing) return;
                 e.preventDefault();
-                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Redo');
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Undo');
                 return;
             }
 
@@ -769,3 +716,35 @@ if (document.readyState === 'loading') {
 } else {
     window.RoadScriptInterop.addEditorStyles();
 }
+
+// Items that open details in the read-only showcase are focusable divs with role="button".
+// Give them the keyboard behavior of a real button: Enter and Space activate them.
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const el = e.target;
+    if (!(el instanceof Element) || !el.hasAttribute('data-rs-inspect')) return;
+    e.preventDefault();
+    el.click();
+});
+
+/**
+ * Moves keyboard focus to an element by id without scrolling the page. Returns true when found.
+ * @param {string} id
+ */
+window.RoadScriptInterop.focusById = function (id) {
+    const el = document.getElementById(id);
+    if (!el) return false;
+    el.focus({ preventScroll: true });
+    return true;
+};
+
+/**
+ * Scrolls an element into view by the smallest amount, horizontally and vertically.
+ * @param {string} id
+ */
+window.RoadScriptInterop.scrollIntoViewById = function (id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+};

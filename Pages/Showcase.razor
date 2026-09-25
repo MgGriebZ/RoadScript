@@ -1,0 +1,384 @@
+@page "/showcase/{Slug}"
+@implements IDisposable
+@using System.Text.Json
+@using System.Text.RegularExpressions
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>@(_data?.Title ?? "Example roadmap") · RoadScript</PageTitle>
+
+@* Read-only view of a bundled example roadmap. It never reads or writes the visitor's saved roadmaps;
+   "Make an editable copy" hands a copy to the normal share-link import, which only adds a new roadmap. *@
+<div class="showcase-page @(_inspected != null ? "has-details" : "")" @onkeydown="HandlePageKeyDown">
+    <header class="showcase-bar">
+        <nav class="showcase-crumbs" aria-label="Breadcrumb">
+            <a class="showcase-brand" href="/">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 10-10 10L2 12z" fill="#7b83ff"></path></svg>
+                <span>RoadScript</span>
+            </a>
+            <span class="showcase-crumb-sep" aria-hidden="true">/</span>
+            <span class="showcase-crumb">Examples</span>
+        </nav>
+        <div class="showcase-bar-actions">
+            <span class="showcase-readonly">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+                Read-only<span class="showcase-readonly-long">&nbsp;example</span>
+            </span>
+            @if (_data != null)
+            {
+                <button type="button" class="showcase-button showcase-bar-copy" @onclick="MakeEditableCopy">Make an editable copy</button>
+            }
+        </div>
+    </header>
+
+    <nav class="showcase-tabs" aria-label="Examples">
+        @foreach (var entry in ShowcaseService.All)
+        {
+            var isCurrent = entry.Slug == Slug;
+            <a href="@($"showcase/{entry.Slug}")" aria-current="@(isCurrent ? "page" : null)">@entry.Name</a>
+        }
+    </nav>
+
+    <div class="showcase-body">
+        @if (_data != null)
+        {
+            <main class="showcase-main">
+                <div class="showcase-heading">
+                    <h1>@_data.Title</h1>
+                    @if (!string.IsNullOrWhiteSpace(_data.Subtitle))
+                    {
+                        <p>@_data.Subtitle</p>
+                    }
+                </div>
+                <div class="showcase-toolbar">
+                    <div class="showcase-views" role="group" aria-label="View">
+                        @foreach (var view in Views)
+                        {
+                            var isActive = view == _view;
+                            <button type="button" aria-pressed="@(isActive ? "true" : "false")" @onclick="() => SetView(view)">@view</button>
+                        }
+                    </div>
+                    <p class="showcase-toolbar-note">
+                        @switch (_view)
+                        {
+                            case TimelineView:
+                                <span class="showcase-note-wide">Select any item to read its details.</span>
+                                <span class="showcase-note-narrow">Swipe sideways for more. Tap an item for details.</span>
+                                <span class="showcase-legend" aria-hidden="true">
+                                    <span class="showcase-legend-key is-dashed"></span>In progress
+                                    <span class="showcase-legend-key is-grey"></span>Paused or retired
+                                </span>
+                                break;
+                            case ListView:
+                                <span>Every item, lane by lane, in timeline order.</span>
+                                break;
+                            default:
+                                <span>The same roadmap as JSON. In RoadScript you can edit either one.</span>
+                                break;
+                        }
+                    </p>
+                </div>
+
+                @if (_view == TimelineView)
+                {
+                    <div class="showcase-scroller" tabindex="0" role="region" aria-label="@($"{_data.Title} timeline. Scrolls sideways.")">
+                        <div class="showcase-canvas">
+                            <RoadmapRenderer Data="@_data"
+                                             IsPreviewMode="true"
+                                             ActiveTab="@_tab"
+                                             SessionManager="@_session"
+                                             AvailableRoadmaps="@_noLinks"
+                                             OnItemInspect="@InspectItem"
+                                             InspectedItemKey="@_inspectedKey"
+                                             OnRoadmapLinkClick="@OpenLinkedShowcase" />
+                        </div>
+                    </div>
+                }
+                else if (_view == ListView)
+                {
+                    <div class="showcase-list">
+                        @foreach (var lane in _data.Lanes)
+                        {
+                            <section class="showcase-list-lane" aria-label="@lane.Title">
+                                <h2><span class="showcase-swatch" style="background: @lane.Color"></span>@lane.Title</h2>
+                                @foreach (var (item, _) in ShowcaseService.VisibleItemsInOrder(lane))
+                                {
+                                    var status = ShowcaseService.DescribeStatus(_data, item);
+                                    var linked = ShowcaseService.FindLinked(item.LinkedRoadmapId);
+                                    <article class="showcase-card @(item.Greyed ? "is-greyed" : "")" style="--lane-color: @(item.Color ?? lane.Color)">
+                                        <h3>@item.Title</h3>
+                                        <p class="showcase-meta">@ShowcaseService.DescribeDates(_data, item)@(status != null ? $" · {status}" : "")</p>
+                                        <div class="showcase-md">@((MarkupString)MarkdownRenderer.RenderToHtml(item.Description, item.Color ?? lane.Color))</div>
+                                        @if (linked != null)
+                                        {
+                                            <a class="showcase-linked" href="@($"showcase/{linked.Slug}")">@linked.Name @ArrowIcon</a>
+                                        }
+                                    </article>
+                                }
+                            </section>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="showcase-json">
+                        <div class="showcase-json-bar">
+                            <span class="showcase-json-name">@($"{Slug}.json")</span>
+                            <button type="button" class="showcase-button is-quiet" @onclick="CopyJson">@(_jsonCopied ? "Copied" : "Copy JSON")</button>
+                        </div>
+                        <pre tabindex="0" aria-label="Roadmap JSON"><code>@((MarkupString)_highlightedJson)</code></pre>
+                    </div>
+                }
+
+                <div class="showcase-copy-inline">
+                    <button type="button" class="showcase-button" @onclick="MakeEditableCopy">Make an editable copy</button>
+                    <p>Adds a copy to your roadmaps in this browser. Your existing roadmaps are not changed.</p>
+                </div>
+            </main>
+
+            @if (_inspected is { } inspected)
+            {
+                var lane = _data.Lanes[inspected.LaneIndex];
+                var item = lane.Items[inspected.ItemIndex];
+                var status = ShowcaseService.DescribeStatus(_data, item);
+                var linked = ShowcaseService.FindLinked(item.LinkedRoadmapId);
+                var color = item.Color ?? lane.Color;
+                <aside class="showcase-details" aria-labelledby="showcase-details-title">
+                    <div class="showcase-details-head">
+                        <span class="showcase-details-lane"><span class="showcase-swatch" style="background: @lane.Color"></span>@lane.Title@(status != null ? $" · {status}" : "")</span>
+                        <button type="button" class="showcase-icon-button" aria-label="Close details" @onclick="CloseDetails">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg>
+                        </button>
+                    </div>
+                    <h2 id="showcase-details-title" tabindex="-1" @ref="_detailsHeading">@item.Title</h2>
+                    <p class="showcase-meta">@ShowcaseService.DescribeDates(_data, item)</p>
+                    <div class="showcase-md">@((MarkupString)MarkdownRenderer.RenderToHtml(item.Description, color))</div>
+                    @if (linked != null)
+                    {
+                        <a class="showcase-linked" href="@($"showcase/{linked.Slug}")">@linked.Name @ArrowIcon</a>
+                    }
+                    <div class="showcase-details-nav">
+                        <button type="button" class="showcase-button is-quiet" @onclick="() => StepItem(-1)">Previous item</button>
+                        <button type="button" class="showcase-button is-quiet" @onclick="() => StepItem(1)">Next item</button>
+                    </div>
+                </aside>
+            }
+        }
+        else if (_notFound)
+        {
+            <main class="showcase-message">
+                <h1>That example roadmap doesn't exist</h1>
+                <p>It may have been renamed. Pick one of the examples above, or go to the home page.</p>
+                <a class="showcase-button" href="/">Go to RoadScript</a>
+            </main>
+        }
+        else
+        {
+            <div class="rs-boot" role="status" aria-live="polite">
+                <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 10-10 10L2 12z" fill="#7b83ff"></path></svg>
+                <div class="rs-boot-name">RoadScript</div>
+                <div class="rs-boot-msg">Opening the example roadmap</div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+
+    private const string TimelineView = "Timeline";
+    private const string ListView = "List";
+    private const string JsonView = "JSON";
+    private static readonly string[] Views = { TimelineView, ListView, JsonView };
+
+    private static readonly Regex SlugPattern = new("^[a-z0-9-]{1,60}$", RegexOptions.Compiled);
+
+    private static readonly MarkupString ArrowIcon = new(
+        "<svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"></path><path d=\"M13 6l6 6-6 6\"></path></svg>");
+
+    private RoadmapData? _data;
+    private string _rawJson = "";
+    private string _highlightedJson = "";
+    private string? _loadedSlug;
+    private bool _notFound;
+    private string _view = TimelineView;
+    private (int LaneIndex, int ItemIndex)? _inspected;
+    private string? _inspectedKey;
+    private bool _focusDetails;
+    private bool _jsonCopied;
+    private CancellationTokenSource? _copiedReset;
+    private ElementReference _detailsHeading;
+
+    private readonly TabSession _tab = new() { Id = "showcase", Name = "Showcase" };
+    private readonly List<RoadmapReference> _noLinks = new();
+
+    // Gives the timeline's link icons a readable tooltip ("Linked to: RoadScript build history")
+    private readonly SessionManager _session = new()
+    {
+        ActiveTabId = "showcase",
+        Tabs = ShowcaseService.All
+            .Select(e => new TabSession { Id = ShowcaseService.LinkPrefix + e.Slug, Name = e.Name })
+            .ToList()
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Slug == _loadedSlug) return;
+        _loadedSlug = Slug;
+
+        _data = null;
+        _notFound = false;
+        _inspected = null;
+        _inspectedKey = null;
+        _jsonCopied = false;
+
+        if (!SlugPattern.IsMatch(Slug))
+        {
+            _notFound = true;
+            return;
+        }
+
+        try
+        {
+            var json = await Http.GetStringAsync($"showcase/{Slug}.json");
+            var data = JsonSerializer.Deserialize<RoadmapData>(json, ShowcaseService.JsonOptions);
+            if (Slug != _loadedSlug) return; // a newer example was opened while this one loaded
+
+            _data = data;
+            _rawJson = json.Trim();
+            _highlightedJson = ShowcaseService.HighlightJson(_rawJson);
+            _notFound = _data == null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Could not load showcase '{Slug}': {ex.Message}");
+            _notFound = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                // Hide the static landing page if the visitor came from it
+                await JSRuntime.InvokeVoidAsync("RoadScriptBoot.setView", "app");
+            }
+            catch (JSException)
+            {
+                // Boot script missing (for example in an isolated test page); nothing to hide
+            }
+        }
+
+        if (_focusDetails && _inspected != null)
+        {
+            _focusDetails = false;
+            await _detailsHeading.FocusAsync(preventScroll: true);
+
+            // Opening the side panel narrows the timeline; keep the selected item on screen
+            await JSRuntime.InvokeVoidAsync("RoadScriptInterop.scrollIntoViewById", $"item-{_inspectedKey}");
+        }
+    }
+
+    private void SetView(string view)
+    {
+        _view = view;
+        if (view != TimelineView) CloseDetailsState();
+    }
+
+    private void InspectItem(ItemClickEventArgs args)
+    {
+        _inspected = (args.LaneIndex, args.ItemIndex);
+        _inspectedKey = $"{args.LaneIndex}-{args.ItemIndex}";
+        _focusDetails = true;
+    }
+
+    private void StepItem(int direction)
+    {
+        if (_data == null || _inspected == null) return;
+
+        // Walk items lane by lane, in timeline order, wrapping at either end
+        var order = _data.Lanes
+            .SelectMany((lane, laneIndex) => ShowcaseService.VisibleItemsInOrder(lane).Select(x => (laneIndex, x.Index)))
+            .ToList();
+        if (order.Count == 0) return;
+
+        var current = order.IndexOf(_inspected.Value);
+        var next = order[((current < 0 ? 0 : current + direction) % order.Count + order.Count) % order.Count];
+        InspectItem(new ItemClickEventArgs { LaneIndex = next.Item1, ItemIndex = next.Item2, Item = _data.Lanes[next.Item1].Items[next.Item2] });
+    }
+
+    private async Task CloseDetails()
+    {
+        var key = _inspectedKey;
+        CloseDetailsState();
+        StateHasChanged();
+        if (key != null)
+        {
+            // Return focus to the item that opened the details
+            await JSRuntime.InvokeAsync<bool>("RoadScriptInterop.focusById", $"item-{key}");
+        }
+    }
+
+    private void CloseDetailsState()
+    {
+        _inspected = null;
+        _inspectedKey = null;
+    }
+
+    private async Task HandlePageKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape" && _inspected != null)
+        {
+            await CloseDetails();
+        }
+    }
+
+    private void OpenLinkedShowcase(string linkedRoadmapId)
+    {
+        var linked = ShowcaseService.FindLinked(linkedRoadmapId);
+        if (linked != null)
+        {
+            Navigation.NavigateTo($"showcase/{linked.Slug}");
+        }
+    }
+
+    private async Task CopyJson()
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("RoadScriptInterop.copyToClipboard", _rawJson)) return;
+
+        _jsonCopied = true;
+        StateHasChanged();
+        _copiedReset?.Cancel();
+        _copiedReset = new CancellationTokenSource();
+        var token = _copiedReset.Token;
+        try
+        {
+            await Task.Delay(2000, token);
+            _jsonCopied = false;
+            StateHasChanged();
+        }
+        catch (TaskCanceledException)
+        {
+            // Copied again; the newer click resets the label
+        }
+    }
+
+    private void MakeEditableCopy()
+    {
+        if (_data == null) return;
+
+        // The share-link import adds the copy as a new roadmap (or starts a workspace for
+        // first-time visitors). It never replaces an existing roadmap.
+        var copy = ShowcaseService.CreateEditableCopy(_data);
+        Navigation.NavigateTo(ShareService.GenerateShareUrl(copy, Navigation.BaseUri));
+    }
+
+    public void Dispose()
+    {
+        _copiedReset?.Cancel();
+        _copiedReset?.Dispose();
+    }
+}

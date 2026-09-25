@@ -11,34 +11,507 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#1e1e2f" />
+    <meta name="theme-color" content="#13131c" />
 
     <!-- Touch Icons -->
     <meta name="apple-mobile-web-app-title" content="RoadScript" />
 
-    <title>RoadScript</title>
+    <title>RoadScript: product roadmaps you can edit visually or as JSON</title>
+    <meta name="description" content="RoadScript is a free roadmap tool for product owners and the stakeholders they keep informed. Build a roadmap by clicking, or write it as JSON. It runs in your browser with no account." />
+    <!-- Link previews (LinkedIn, Reddit, Slack, X). Every route serves this file, so no og:url or canonical is set. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RoadScript" />
+    <meta property="og:title" content="RoadScript: product roadmaps you can edit visually or as JSON" />
+    <meta property="og:description" content="A free roadmap tool for product owners and their stakeholders. Build a roadmap by clicking, or write it as JSON. Runs in your browser with no account." />
+    <meta property="og:image" content="https://roadscript.net/img/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="RoadScript: product roadmaps you can edit visually or as JSON, with an example roadmap timeline." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="RoadScript: product roadmaps you can edit visually or as JSON" />
+    <meta name="twitter:description" content="A free roadmap tool for product owners and their stakeholders. Build a roadmap by clicking, or write it as JSON." />
+    <meta name="twitter:image" content="https://roadscript.net/img/og-image.png" />
     <base href="/" />
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.webmanifest" />
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="css/app.css" />
-    <link rel="stylesheet" href="css/mobile.css" />
+    <!--
+        Boot: decide what to show before the first paint. First-time visitors get the static landing
+        page below, which needs nothing from Blazor. Returning visitors (saved roadmaps) and deep
+        links get the loader instead, and Blazor takes over when it starts. Home.razor and
+        Showcase.razor call setView/registerApp; the landing page's buttons call request().
+    -->
+    <script>
+        (function () {
+            var root = document.documentElement;
+            var started = false, app = null, pending = null;
 
-    <!-- BlazorMonaco bundled CSS -->
-    <link rel="stylesheet" data-name="vs/editor/editor.main"
-          href="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.css" />
+            function hasSavedRoadmaps() {
+                try {
+                    var folders = localStorage.getItem('roadscript_folder_data');
+                    if (folders && /"folders"\s*:\s*\[\s*\{/.test(folders)) return true;
+                    return !!(localStorage.getItem('roadscript_session_data') || localStorage.getItem('roadscript_roadmap_data'));
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            var saved = hasSavedRoadmaps();
+
+            function initialView() {
+                if (/(^|[?&])welcome(=|&|$)/.test(location.search.slice(1))) return 'landing';
+                var path = location.pathname;
+                if (path !== '/' && path !== '/index.html') return 'app';
+                if (/^#(share[\/=]|\/folder\/)/.test(location.hash)) return 'app';
+                return saved ? 'app' : 'landing';
+            }
+
+            function initialMessage() {
+                if (location.pathname.indexOf('/showcase/') === 0) return 'Opening the example roadmap';
+                if (/^#share[\/=]/.test(location.hash)) return 'Opening the shared roadmap';
+                return saved ? 'Opening your roadmaps' : 'Opening RoadScript';
+            }
+
+            var boot = window.RoadScriptBoot = {
+                hasSavedRoadmaps: saved,
+                message: initialMessage(),
+
+                setView: function (view) {
+                    root.setAttribute('data-view', view);
+                },
+
+                setMessage: function (text) {
+                    boot.message = text;
+                    var el = document.getElementById('rs-boot-msg');
+                    if (el) el.textContent = text;
+                },
+
+                markStarted: function () {
+                    started = true;
+                },
+
+                // Home.razor registers once its saved data is loaded, and picks up any request
+                // made on the landing page before Blazor was ready.
+                registerApp: function (dotNetRef) {
+                    app = dotNetRef;
+                    var request = pending;
+                    pending = null;
+                    return request;
+                },
+
+                unregisterApp: function () {
+                    app = null;
+                },
+
+                request: function (type, value) {
+                    boot.setMessage(type === 'blank' ? 'Creating your roadmap'
+                        : type === 'share' ? 'Opening the shared roadmap'
+                        : 'Opening your roadmaps');
+                    boot.setView('app');
+                    var request = { type: type, value: value || null };
+                    if (app) {
+                        app.invokeMethodAsync('HandleBootRequest', request.type, request.value);
+                    } else {
+                        pending = request;
+                    }
+                },
+
+                showShareError: function (message) {
+                    boot.setView('landing');
+                    var error = document.getElementById('rs-share-error');
+                    var input = document.getElementById('rs-share-input');
+                    if (error) {
+                        error.textContent = message;
+                        error.hidden = false;
+                    }
+                    if (input) input.focus();
+                }
+            };
+
+            root.setAttribute('data-view', initialView());
+
+            document.addEventListener('click', function (e) {
+                var target = e.target;
+                if (!target || !target.closest) return;
+
+                var requestButton = target.closest('[data-rs-request]');
+                if (requestButton) {
+                    e.preventDefault();
+                    boot.request(requestButton.getAttribute('data-rs-request'));
+                    return;
+                }
+
+                var link = target.closest('a[data-rs-app-link]');
+                if (!link || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                boot.setMessage(link.getAttribute('data-rs-message') || 'Opening RoadScript');
+                boot.setView('app');
+                if (!started) {
+                    // Blazor is still loading: switch the URL now and let its router pick it up on start
+                    e.preventDefault();
+                    history.pushState(null, '', link.getAttribute('href'));
+                }
+            }, true);
+
+            document.addEventListener('submit', function (e) {
+                if (!e.target || e.target.id !== 'rs-share-form') return;
+                e.preventDefault();
+                var input = document.getElementById('rs-share-input');
+                var error = document.getElementById('rs-share-error');
+                var value = (input.value || '').trim();
+                if (!value) {
+                    boot.showShareError('Paste a RoadScript share link first.');
+                    return;
+                }
+                error.hidden = true;
+                boot.request('share', value);
+            });
+
+            window.addEventListener('popstate', function () {
+                if (!started) root.setAttribute('data-view', initialView());
+            });
+        })();
+    </script>
+
+    <style>
+        html[data-view="landing"] #app { display: none; }
+        html[data-view="app"] #landing { display: none; }
+
+        /* ===== Loader: shown while Blazor starts for returning visitors and deep links ===== */
+        .rs-boot {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 0 32px;
+            background: #13131c;
+            color: #eceef8;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            text-align: center;
+        }
+        .rs-boot-name { font-size: 24px; font-weight: 750; letter-spacing: -0.01em; }
+        .rs-boot-msg { font-size: 15px; color: #b4b8cf; }
+        .rs-boot-bar { width: 200px; height: 4px; margin-top: 4px; border-radius: 2px; background: #2a2a3e; overflow: hidden; }
+        .rs-boot-bar span { display: block; height: 100%; width: var(--blazor-load-percentage, 6%); border-radius: 2px; background: #7b83ff; transition: width 0.2s ease; }
+
+        /* ===== Landing page ===== */
+        #landing {
+            position: fixed;
+            inset: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background: #13131c;
+            color: #eceef8;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            scroll-behavior: smooth;
+        }
+        #landing *, #landing *::before, #landing *::after { box-sizing: border-box; }
+        .rs-wrap { width: 100%; max-width: 1296px; margin: 0 auto; padding: 0 16px; }
+        .rs-header { border-bottom: 1px solid #24243a; }
+        .rs-header .rs-wrap { height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .rs-logo { display: flex; align-items: center; gap: 9px; min-height: 44px; color: #eceef8; text-decoration: none; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+        .rs-nav { display: flex; align-items: center; gap: 26px; font-size: 15px; }
+        .rs-nav a { padding: 12px 0; color: #b4b8cf; text-decoration: none; }
+        .rs-nav a:hover { color: #eceef8; }
+        .rs-nav .rs-nav-wide { display: none; }
+
+        .rs-hero { padding-top: 36px; display: flex; flex-direction: column; gap: 18px; }
+        .rs-pill { align-self: flex-start; display: flex; flex-wrap: wrap; gap: 8px; padding: 6px 12px; border: 1px solid #2f2f44; border-radius: 999px; background: #1a1a27; color: #b4b8cf; font-size: 12.5px; }
+        .rs-pill span[aria-hidden] { color: #4a4e68; }
+        .rs-h1 { margin: 0; max-width: 900px; font-size: clamp(34px, 5.4vw, 58px); line-height: 1.08; font-weight: 750; letter-spacing: -0.025em; }
+        .rs-lead { margin: 0; max-width: 720px; font-size: clamp(17px, 1.6vw, 20px); line-height: 1.55; color: #b4b8cf; }
+        .rs-ctas { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+        .rs-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; border-radius: 10px; font: inherit; font-size: 16px; font-weight: 600; text-decoration: none; cursor: pointer; }
+        .rs-btn-primary { border: none; background: #4f57d6; color: #ffffff; font-weight: 650; }
+        .rs-btn-primary:hover { background: #5d65e3; }
+        .rs-btn-secondary { border: 1px solid #3a3a55; background: transparent; color: #eceef8; }
+        .rs-btn-secondary:hover { border-color: #5a5a7a; background: #1c1c29; }
+        .rs-note { margin: 0; font-size: 14px; color: #8d92ad; }
+
+        .rs-shot-section { padding-top: 32px; }
+        .rs-shot { overflow-x: auto; overflow-y: hidden; border-radius: 12px; background: #0f0f17; box-shadow: 0 0 0 1px #2a2a3f; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+        .rs-shot img { display: block; width: 900px; max-width: none; height: auto; }
+        .rs-shot-hint { margin: 10px 0 0; font-size: 13px; color: #8d92ad; }
+        .rs-more { margin: 12px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 14px; color: #b4b8cf; }
+        .rs-more span { color: #4a4e68; }
+        .rs-more a, .rs-why-text a { color: #9aa1ff; }
+        .rs-more a:hover, .rs-why-text a:hover { color: #c3c7ff; }
+
+        .rs-section { padding-top: 56px; display: flex; flex-direction: column; gap: 20px; }
+        .rs-section-head { display: flex; flex-direction: column; gap: 8px; }
+        .rs-h2 { margin: 0; font-size: clamp(28px, 3vw, 36px); line-height: 1.15; font-weight: 720; letter-spacing: -0.02em; }
+        .rs-sub { margin: 0; font-size: 16px; line-height: 1.5; color: #b4b8cf; }
+        .rs-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+        .rs-card { display: flex; flex-direction: column; gap: 14px; padding: 22px; border: 1px solid #2f2f44; border-radius: 14px; background: #1c1c29; }
+        .rs-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .rs-card h3 { margin: 0; font-size: 20px; font-weight: 700; }
+        .rs-tag { padding: 4px 10px; border-radius: 999px; background: #2a2a3e; color: #c9ccdf; font-size: 12px; white-space: nowrap; }
+        .rs-card p { margin: 0; font-size: 15px; line-height: 1.6; color: #b4b8cf; }
+
+        .rs-demo { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 10px; background: #ffffff; color: #161827; }
+        .rs-demo-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); font-size: 11px; font-weight: 700; color: #5b6078; text-align: center; }
+        .rs-demo-item { display: flex; align-items: center; gap: 7px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 12.5px; font-weight: 700; }
+        .rs-demo-item i { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .rs-demo-selected { border: 1.5px solid #1E3A8A; background: #e8ecf6; box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px #4f57d6; }
+        .rs-demo-other { width: 62%; margin-left: 38%; border: 1.5px dashed #D4652F; background: #fbeee7; }
+        .rs-demo-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5b6078; }
+        .rs-demo-field span:last-child { display: flex; align-items: center; height: 34px; padding: 0 10px; border: 1px solid #cfd3df; border-radius: 7px; background: #f7f8fb; color: #161827; font-size: 14px; }
+
+        .rs-code { margin: 0; padding: 16px; overflow-x: auto; border: 1px solid #2a2a3e; border-radius: 10px; background: #0e0e15; color: #8d92ad; font-family: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; line-height: 1.65; }
+        .rs-code .k { color: #9aa1ff; }
+        .rs-code .s { color: #7fd4a7; }
+        .rs-code .n { color: #f0b46b; }
+
+        .rs-why { display: grid; gap: 24px; }
+        .rs-why-text { display: flex; flex-direction: column; gap: 16px; }
+        .rs-why-text p { margin: 0; font-size: 16px; line-height: 1.65; color: #c9ccdf; }
+        .rs-author { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+        .rs-author strong { font-size: 16px; }
+        .rs-links { display: flex; flex-wrap: wrap; column-gap: 22px; }
+        .rs-links a { padding: 10px 0; color: #9aa1ff; font-size: 15px; }
+        .rs-links a:hover { color: #c3c7ff; }
+        .rs-facts { margin: 0; padding: 4px 18px; border: 1px solid #2f2f44; border-radius: 14px; background: #1c1c29; }
+        .rs-facts div { display: flex; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid #2a2a3e; }
+        .rs-facts div:last-child { border-bottom: none; }
+        .rs-facts dt { font-size: 14px; color: #8d92ad; }
+        .rs-facts dd { margin: 0; font-size: 14px; font-weight: 650; text-align: right; }
+
+        .rs-share { margin-top: 48px; padding: 20px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #2f2f44; border-radius: 14px; }
+        .rs-share label { font-size: 16px; font-weight: 650; }
+        .rs-share-row { display: flex; flex-direction: column; gap: 12px; }
+        .rs-input { width: 100%; height: 48px; padding: 0 14px; border: 1px solid #3a3a55; border-radius: 10px; background: #13131c; color: #eceef8; font: inherit; font-size: 16px; }
+        .rs-input::placeholder { color: #8d92ad; }
+        .rs-share-error { margin: 0; font-size: 14px; color: #fca5a5; }
+
+        .rs-footer { margin-top: 48px; padding: 24px 0 40px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #24243a; font-size: 13.5px; line-height: 1.5; color: #8d92ad; }
+
+        #landing a:focus-visible,
+        #landing button:focus-visible,
+        #landing input:focus-visible,
+        .rs-shot:focus-visible,
+        .rs-code:focus-visible {
+            outline: 3px solid #9aa1ff;
+            outline-offset: 2px;
+        }
+
+        @media (min-width: 900px) {
+            .rs-wrap { padding: 0 48px; }
+            .rs-header .rs-wrap { height: 72px; }
+            .rs-logo { font-size: 18px; }
+            .rs-nav .rs-nav-wide { display: inline; }
+            .rs-hero { padding-top: 80px; align-items: center; gap: 22px; text-align: center; }
+            .rs-pill { align-self: center; font-size: 13px; padding: 7px 14px; }
+            .rs-ctas { flex-direction: row; justify-content: center; margin-top: 8px; }
+            .rs-shot-section { padding-top: 56px; }
+            .rs-shot { overflow: hidden; border-radius: 14px; box-shadow: 0 40px 90px rgba(0, 0, 0, 0.5), 0 0 0 1px #2a2a3f; }
+            .rs-shot img { width: 100%; }
+            .rs-shot-hint { display: none; }
+            .rs-section { padding-top: 120px; gap: 32px; }
+            .rs-sub { font-size: 18px; }
+            .rs-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+            .rs-card { padding: 32px; gap: 18px; }
+            .rs-card h3 { font-size: 22px; }
+            .rs-card p { font-size: 16px; }
+            .rs-demo { flex-direction: row; align-items: stretch; gap: 16px; background: #13131c; border: 1px solid #2a2a3e; padding: 20px; }
+            .rs-demo-roadmap { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 10px; background: #ffffff; }
+            .rs-demo-panel { width: 190px; display: flex; flex-direction: column; gap: 10px; }
+            .rs-demo-panel .rs-demo-field { color: #b4b8cf; }
+            .rs-demo-panel .rs-demo-field span:last-child { border-color: #3a3a55; background: #1c1c29; color: #eceef8; }
+            .rs-code { padding: 20px 22px; font-size: 14px; }
+            .rs-why { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px; align-items: start; }
+            .rs-why-text p { font-size: 18px; }
+            .rs-facts { padding: 8px 28px; }
+            .rs-facts div { padding: 18px 0; }
+            .rs-facts dt, .rs-facts dd { font-size: 15px; }
+            .rs-share { margin-top: 110px; padding: 28px 32px; }
+            .rs-share-row { flex-direction: row; }
+            .rs-share-row .rs-btn { flex-shrink: 0; }
+            .rs-footer { margin-top: 80px; flex-direction: row; justify-content: space-between; padding-bottom: 48px; font-size: 14px; }
+        }
+
+        @media (max-width: 899px) {
+            .rs-demo-roadmap { display: flex; flex-direction: column; gap: 10px; }
+            .rs-demo-panel .rs-demo-field:not(:first-child) { display: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #landing { scroll-behavior: auto; }
+            .rs-boot-bar span { transition: none; }
+        }
+    </style>
+
+    <!-- App stylesheets load without blocking the landing page's first paint -->
+    <link rel="stylesheet" href="css/app.css" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="css/mobile.css" media="print" onload="this.media='all'" />
+    <noscript>
+        <!-- Without JavaScript the app cannot start; show the landing page only -->
+        <style>#app { display: none; }</style>
+        <link rel="stylesheet" href="css/app.css" />
+        <link rel="stylesheet" href="css/mobile.css" />
+    </noscript>
 </head>
 
 <body>
-    <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+    <div id="landing">
+        <header class="rs-header">
+            <div class="rs-wrap">
+                <a class="rs-logo" href="/">
+                    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 10-10 10L2 12z" fill="#7b83ff"></path></svg>
+                    <span>RoadScript</span>
+                </a>
+                <nav class="rs-nav" aria-label="Main">
+                    <a class="rs-nav-wide" href="#example">Example</a>
+                    <a class="rs-nav-wide" href="#how">How it works</a>
+                    <a class="rs-nav-wide" href="#why">Why I built it</a>
+                    <a href="https://github.com/MgGriebZ/RoadScript">GitHub</a>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <section class="rs-wrap rs-hero">
+                <p class="rs-pill"><span>Free</span><span aria-hidden="true">·</span><span>Runs in your browser</span><span aria-hidden="true">·</span><span>No account</span></p>
+                <h1 class="rs-h1">Product roadmaps you can edit visually or as JSON</h1>
+                <p class="rs-lead">RoadScript is a roadmap tool for product owners and the stakeholders they keep informed. Build a roadmap by clicking, or write it as JSON. It saves to this browser, so there is no account and nothing to install.</p>
+                <div class="rs-ctas">
+                    <a class="rs-btn rs-btn-primary" href="/showcase/portfolio" data-rs-app-link data-rs-message="Opening the example roadmap">
+                        See an example roadmap
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>
+                    </a>
+                    <button type="button" class="rs-btn rs-btn-secondary" id="rs-start-button" data-rs-request="blank">Start a blank roadmap</button>
+                </div>
+                <p class="rs-note">The example is a real roadmap: my own project history, built in RoadScript.</p>
+            </section>
+
+            <section class="rs-wrap rs-shot-section" id="example" aria-label="Example roadmap">
+                <div class="rs-shot" tabindex="0" role="region" aria-label="Example roadmap image. Scrolls sideways on small screens.">
+                    <a href="/showcase/portfolio" data-rs-app-link data-rs-message="Opening the example roadmap">
+                        <img src="img/showcase-portfolio.webp"
+                             srcset="img/showcase-portfolio-800.webp 800w, img/showcase-portfolio.webp 1600w"
+                             sizes="(max-width: 899px) 900px, 1200px"
+                             width="1600" height="874"
+                             decoding="async"
+                             alt="The example roadmap: Matt Griebel's products and projects from 2024 to 2026, in swim lanes for products, websites, apps and games, and how I build, with launch milestones." />
+                    </a>
+                </div>
+                <p class="rs-shot-hint">Swipe sideways to see the whole timeline, or open it to read each item.</p>
+                <p class="rs-more">More examples:
+                    <a href="/showcase/roadscript" data-rs-app-link data-rs-message="Opening the example roadmap">RoadScript build history</a><span aria-hidden="true">·</span>
+                    <a href="/showcase/mggriebz" data-rs-app-link data-rs-message="Opening the example roadmap">MgGriebZ.com build history</a><span aria-hidden="true">·</span>
+                    <a href="/showcase/shaco" data-rs-app-link data-rs-message="Opening the example roadmap">shaco build history</a>
+                </p>
+            </section>
+
+            <section class="rs-wrap rs-section" id="how">
+                <div class="rs-section-head">
+                    <h2 class="rs-h2">Two ways to edit one roadmap</h2>
+                    <p class="rs-sub">Both views edit the same data, so a change in one shows up in the other.</p>
+                </div>
+                <div class="rs-cards">
+                    <article class="rs-card">
+                        <div class="rs-card-head">
+                            <h3>Visual editor</h3>
+                            <span class="rs-tag">For stakeholders</span>
+                        </div>
+                        <p>Click any lane, column, item or milestone to change it. Good for quick updates and for walking someone through the plan.</p>
+                        <div class="rs-demo" aria-hidden="true">
+                            <div class="rs-demo-roadmap">
+                                <div class="rs-demo-cols"><span>Q4 2025</span><span>Q1 2026</span><span>Q2 2026</span></div>
+                                <div class="rs-demo-item rs-demo-selected"><i style="background:#1E3A8A"></i>RoadScript</div>
+                                <div class="rs-demo-item rs-demo-other"><i style="background:#D4652F"></i>MgGriebZ.com</div>
+                            </div>
+                            <div class="rs-demo-panel">
+                                <div class="rs-demo-field"><span>Title</span><span>RoadScript</span></div>
+                                <div class="rs-demo-field"><span>Starts in</span><span>Q4 2025</span></div>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="rs-card">
+                        <div class="rs-card-head">
+                            <h3>JSON editor</h3>
+                            <span class="rs-tag">For technical users</span>
+                        </div>
+                        <p>Every roadmap is plain JSON. Paste one in, bulk-edit items, or keep it in version control next to your code.</p>
+<pre class="rs-code" tabindex="0" aria-label="Example roadmap item in JSON"><code>{
+  <span class="k">"title"</span>: <span class="s">"RoadScript"</span>,
+  <span class="k">"start"</span>: <span class="n">4.6</span>,
+  <span class="k">"length"</span>: <span class="n">2.1</span>,
+  <span class="k">"color"</span>: <span class="s">"#1E3A8A"</span>,
+  <span class="k">"description"</span>: <span class="s">"- Visual editor for stakeholders"</span>
+}</code></pre>
+                    </article>
+                </div>
+            </section>
+
+            <section class="rs-wrap rs-section" id="why">
+                <div class="rs-why">
+                    <div class="rs-why-text">
+                        <h2 class="rs-h2">Why I built this</h2>
+                        <p>A Fortune 500 bank client asked for roadmaps of our development work during an onsite visit. I had the first version of RoadScript live within a week, then kept refining it through daily use at work.</p>
+                        <p>The examples include RoadScript's own <a href="/showcase/roadscript" data-rs-app-link data-rs-message="Opening the example roadmap">build history</a>, taken from its git log.</p>
+                        <p>I build with AI coding agents. I write the plan, the agents implement it, and I review and merge every change.</p>
+                        <div class="rs-author">
+                            <strong>Matt Griebel</strong>
+                            <div class="rs-links">
+                                <a href="https://mggriebz.com">mggriebz.com</a>
+                                <a href="https://mggriebz.com/dev">Live commit history</a>
+                                <a href="https://github.com/MgGriebZ/RoadScript">Source on GitHub</a>
+                            </div>
+                        </div>
+                    </div>
+                    <dl class="rs-facts">
+                        <div><dt>First version</dt><dd>Live within a week</dd></div>
+                        <div><dt>Commits</dt><dd>330+ since November 2025</dd></div>
+                        <div><dt>Merged pull requests</dt><dd>81</dd></div>
+                        <div><dt>Stack</dt><dd>Blazor WebAssembly on Azure</dd></div>
+                        <div><dt>Your data</dt><dd>Stays in your browser</dd></div>
+                    </dl>
+                </div>
+            </section>
+
+            <div class="rs-wrap">
+                <form class="rs-share" id="rs-share-form" novalidate>
+                    <label for="rs-share-input">Have a RoadScript share link?</label>
+                    <div class="rs-share-row">
+                        <input class="rs-input" id="rs-share-input" type="url" inputmode="url" autocomplete="off" placeholder="Paste a link, for example roadscript.net/#share/…" aria-describedby="rs-share-error" />
+                        <button type="submit" class="rs-btn rs-btn-secondary">Open</button>
+                    </div>
+                    <p class="rs-share-error" id="rs-share-error" role="alert" hidden></p>
+                </form>
+            </div>
+        </main>
+
+        <footer class="rs-wrap">
+            <div class="rs-footer">
+                <span>Free and open source under the MIT license. Your roadmaps are saved in this browser only.</span>
+                <span>Made by Matt Griebel</span>
+            </div>
+        </footer>
     </div>
+
+    <div id="app">
+        <div class="rs-boot" role="status" aria-live="polite">
+            <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 10-10 10L2 12z" fill="#7b83ff"></path></svg>
+            <div class="rs-boot-name">RoadScript</div>
+            <div class="rs-boot-msg" id="rs-boot-msg">Opening RoadScript</div>
+            <div class="rs-boot-bar" aria-hidden="true"><span></span></div>
+        </div>
+    </div>
+
+    <script>
+        RoadScriptBoot.setMessage(RoadScriptBoot.message);
+        if (RoadScriptBoot.hasSavedRoadmaps) {
+            // Returning visitors only see the landing page at /?welcome; offer their roadmaps instead of a blank one
+            var startButton = document.getElementById('rs-start-button');
+            startButton.textContent = 'Open your roadmaps';
+            startButton.setAttribute('data-rs-request', 'open');
+        }
+    </script>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
@@ -46,18 +519,18 @@
         <span class="dismiss">🗙</span>
     </div>
 
-    <!-- BlazorMonaco bundled scripts (BEFORE Blazor framework) -->
-    <script src="_content/BlazorMonaco/jsInterop.js"></script>
-    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
-    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
-
     <!-- RoadScript custom interop -->
     <script src="js/roadscript-interop.js"></script>
     <script src="js/responsive-interop.js"></script>
     <script src="js/touch-gestures.js"></script>
 
-    <!-- Blazor framework -->
-    <script src="_framework/blazor.webassembly.js"></script>
+    <!-- Blazor framework: started manually so the landing page knows when its router is live -->
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script>
+        Blazor.start().then(function () {
+            RoadScriptBoot.markStarted();
+        });
+    </script>
 
     <!-- PWA service worker (skip on localhost to avoid interfering with hot-reload) -->
     <script>

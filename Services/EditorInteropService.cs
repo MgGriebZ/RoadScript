@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 namespace RoadScript.Services;
 
 /// <summary>
-/// Service for interacting with Monaco editor via JavaScript interop
+/// Service for JSON text helpers implemented in JavaScript interop
 /// </summary>
 public class EditorInteropService
 {
@@ -12,36 +12,6 @@ public class EditorInteropService
     public EditorInteropService(IJSRuntime jsRuntime)
     {
         _jsRuntime = jsRuntime;
-    }
-
-    /// <summary>
-    /// Navigates the Monaco editor to a specific JSON path
-    /// </summary>
-    public async Task NavigateToJsonPath(string editorId, string jsonText, string jsonPath, bool highlight = true)
-    {
-        try
-        {
-            var position = await _jsRuntime.InvokeAsync<JsonPosition?>(
-                "RoadScriptInterop.findJsonPosition",
-                jsonText,
-                jsonPath
-            );
-
-            if (position != null)
-            {
-                await _jsRuntime.InvokeVoidAsync(
-                    "RoadScriptInterop.navigateToPosition",
-                    editorId,
-                    position.Line,
-                    position.Column,
-                    highlight
-                );
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error navigating to JSON path: {ex.Message}");
-        }
     }
 
     /// <summary>

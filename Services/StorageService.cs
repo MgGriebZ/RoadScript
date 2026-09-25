@@ -13,10 +13,66 @@ public class StorageService
     private const string FolderStorageKey = "roadscript_folder_data";      // New: Folder-based storage
     private const string SessionStorageKey = "roadscript_session_data";    // Legacy: Multi-tab storage
     private const string LegacyStorageKey = "roadscript_roadmap_data";     // Legacy: Single roadmap storage
+    public const string UnreadableBackupKeyPrefix = "roadscript_folder_data_unreadable_";
 
     public StorageService(IJSRuntime jsRuntime)
     {
         _jsRuntime = jsRuntime;
+    }
+
+    /// <summary>
+    /// True when saved folder data exists but could not be read or backed up.
+    /// Saves are refused so the original value is never overwritten.
+    /// </summary>
+    public bool IsSaveBlocked { get; private set; }
+
+    /// <summary>
+    /// Copy unreadable folder data to its own key before anything can overwrite it.
+    /// The key includes a content hash, so repeated loads reuse one backup.
+    /// </summary>
+    private async Task BackUpUnreadableFolderDataAsync(string rawJson)
+    {
+        var backupKey = UnreadableBackupKeyPrefix + ContentHash(rawJson);
+        try
+        {
+            var existing = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", backupKey);
+            if (existing != rawJson)
+            {
+                await _jsRuntime.InvokeVoidAsync("localStorage.setItem", backupKey, rawJson);
+            }
+            Console.WriteLine($"Unreadable saved data was backed up to '{backupKey}'.");
+        }
+        catch (Exception ex)
+        {
+            IsSaveBlocked = true;
+            Console.WriteLine($"Could not back up unreadable saved data, saving is disabled: {ex.Message}");
+            try
+            {
+                await _jsRuntime.InvokeVoidAsync("alert",
+                    "RoadScript could not read your saved roadmaps and could not make a backup copy. " +
+                    "To protect them, changes in this session will not be saved.");
+            }
+            catch
+            {
+                // Alert is best effort only
+            }
+        }
+    }
+
+    /// <summary>
+    /// Stable FNV-1a hash, used to name backup keys by content
+    /// </summary>
+    private static string ContentHash(string text)
+    {
+        const ulong offsetBasis = 14695981039346656037;
+        const ulong prime = 1099511628211;
+        var hash = offsetBasis;
+        foreach (var c in text)
+        {
+            hash ^= c;
+            hash *= prime;
+        }
+        return hash.ToString("x16");
     }
 
     /// <summary>
@@ -275,7 +331,18 @@ public class StorageService
 
             if (!string.IsNullOrEmpty(folderJson))
             {
-                var folderManager = JsonSerializer.Deserialize<FolderManager>(folderJson, GetJsonOptions());
+                FolderManager? folderManager = null;
+                try
+                {
+                    folderManager = JsonSerializer.Deserialize<FolderManager>(folderJson, GetJsonOptions());
+                }
+                catch (Exception ex) when (ex is JsonException or NotSupportedException)
+                {
+                    // Never let unreadable data be overwritten by the next save: keep a copy first
+                    Console.WriteLine($"Saved folder data could not be read: {ex.Message}");
+                    await BackUpUnreadableFolderDataAsync(folderJson);
+                }
+
                 if (folderManager != null && folderManager.Folders.Count > 0)
                 {
                     return folderManager;
@@ -322,6 +389,12 @@ public class StorageService
     /// </summary>
     public async Task SaveFolderManagerAsync(FolderManager folderManager)
     {
+        if (IsSaveBlocked)
+        {
+            Console.WriteLine("Save skipped: unreadable saved data could not be backed up, so it is left untouched.");
+            return;
+        }
+
         try
         {
             var json = JsonSerializer.Serialize(folderManager, GetJsonOptions());

@@ -1,0 +1,171 @@
+{
+  "title": "RoadScript: how it was built",
+  "subtitle": "From the first commit on November 25, 2025. Column subtitles count commits. Dashed items are ongoing.",
+  "columns": [
+    {"label": "Nov 2025", "sub": "Launch week, 65 commits"},
+    {"label": "", "sub": ""},
+    {"label": "Dec 2025", "sub": "170 commits"},
+    {"label": "", "sub": ""},
+    {"label": "Q1 2026", "sub": "76 commits"},
+    {"label": "", "sub": ""},
+    {"label": "Q2 2026", "sub": "20 commits"},
+    {"label": "", "sub": ""},
+    {"label": "Q3 2026", "sub": "This release"},
+    {"label": "Next", "sub": "Planned"}
+  ],
+  "milestones": [
+    {"start": 1.0, "title": "First deploy", "icon": "rocket", "color": "#1E3A8A"},
+    {"start": 32.26, "title": "Share links", "icon": "flag", "color": "#F88379"},
+    {"start": 73.63, "title": "Installable app", "icon": "flag", "color": "#0F766E"}
+  ],
+  "lanes": [
+    {
+      "title": "Editing",
+      "color": "#1E3A8A",
+      "height": 1.0,
+      "items": [
+        {
+          "title": "First version",
+          "start": 0.0,
+          "length": 1.0,
+          "icon": "rocket",
+          "color": "#1E3A8A",
+          "description": "- Live on day one: the Azure Static Web Apps deploy was added the same day as the first commit\n- Visual preview next to a JSON editor, with clickable lanes, items and milestones\n- Milestones and keyboard shortcuts by day two"
+        },
+        {
+          "title": "Direct editing",
+          "start": 2.06,
+          "length": 1.1,
+          "icon": "wrench",
+          "color": "#1E3A8A",
+          "description": "- Drag items to move them and drag their edges to resize; drag milestones along the timeline\n- Click anything in the preview to jump to it in the JSON\n- Overlapping items stack into rows, Gantt style"
+        },
+        {
+          "title": "Richer items",
+          "start": 5.07,
+          "length": 0.88,
+          "icon": "star",
+          "color": "#1E3A8A",
+          "description": "- Milestones can sit inside a lane, not only in the header\n- Item details became free-form markdown in place of fixed bullet fields"
+        },
+        {
+          "title": "Wide columns",
+          "start": 6.64,
+          "length": 1.0,
+          "icon": "arrow-right",
+          "color": "#1E3A8A",
+          "description": "- A column with an empty label widens the column before it, for periods of different lengths like the ones on this roadmap"
+        }
+      ]
+    },
+    {
+      "title": "Organizing",
+      "color": "#0F766E",
+      "height": 0.9,
+      "items": [
+        {
+          "title": "Tabs and folders",
+          "start": 1.67,
+          "length": 1.0,
+          "icon": "folder",
+          "color": "#0F766E",
+          "description": "- Several roadmaps per folder, in tabs, saved in the browser\n- Folders with their own names, icons and colors"
+        },
+        {
+          "title": "Linked roadmaps",
+          "start": 4.29,
+          "length": 1.0,
+          "icon": "bookmark",
+          "color": "#0F766E",
+          "description": "- Link the title, a lane or an item to another roadmap, across folders\n- Drag roadmaps between folders, with a check for links a move would break"
+        }
+      ]
+    },
+    {
+      "title": "Sharing",
+      "color": "#F88379",
+      "height": 0.9,
+      "items": [
+        {
+          "title": "Share links",
+          "start": 3.23,
+          "length": 1.0,
+          "icon": "globe",
+          "color": "#F88379",
+          "description": "- The whole roadmap is compressed into the link itself, so sharing needs no server\n- Opening a link offers to import the roadmap into your own folders"
+        },
+        {
+          "title": "Export and install",
+          "start": 6.35,
+          "length": 1.3,
+          "icon": "plus",
+          "color": "#F88379",
+          "description": "- Paste a share link into the import dialog (April 2026)\n- Export as Markdown or SVG (June 2026)\n- Installs as an app; on phones, other apps can share a roadmap link to it"
+        },
+        {
+          "title": "Landing page",
+          "start": 8.0,
+          "length": 0.95,
+          "icon": "flag",
+          "color": "#F88379",
+          "description": "- A landing page that shows before the app loads\n- Read-only examples like this one, with an editable copy one click away\n- Backups of saved data the app can't read, so nothing is overwritten"
+        },
+        {
+          "title": "Public launch",
+          "start": 9.05,
+          "length": 0.9,
+          "icon": "rocket",
+          "color": "#F88379",
+          "description": "- Launch on LinkedIn and Reddit"
+        }
+      ]
+    },
+    {
+      "title": "Look and feel",
+      "color": "#7C3AED",
+      "height": 0.9,
+      "items": [
+        {
+          "title": "Templates",
+          "start": 0.33,
+          "length": 2.12,
+          "icon": "dice",
+          "color": "#7C3AED",
+          "description": "- Five starter templates: daily planning, projects, milestones, retro and flows\n- A dice button fills a template with random items to try things out"
+        },
+        {
+          "title": "Themes",
+          "start": 3.16,
+          "length": 0.77,
+          "icon": "star",
+          "color": "#7C3AED",
+          "description": "- Backgrounds that follow the season (December 2025)\n- Replaced the original vibe mode in January 2026"
+        },
+        {
+          "title": "Phone layouts",
+          "start": 3.94,
+          "length": 1.64,
+          "icon": "target",
+          "color": "#7C3AED",
+          "description": "- A first mobile layout in December 2025 and a full redesign in March 2026\n- Several rounds of fixes, including a blank screen below 1200px wide\n- Editing on a phone is still limited"
+        }
+      ]
+    },
+    {
+      "title": "In use",
+      "color": "#059669",
+      "height": 0.55,
+      "items": [
+        {
+          "title": "Daily use at work",
+          "start": 0.0,
+          "length": 10.0,
+          "spanning": true,
+          "icon": "calendar",
+          "color": "#059669",
+          "description": "- Developers as columns, lanes for committed and blocked work\n- Used in backlog refinement and sprint planning, and refined through that daily use"
+        }
+      ]
+    }
+  ]
+}

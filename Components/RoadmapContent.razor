@@ -34,7 +34,7 @@
         }
     }
     @* Column Headers *@
-    <div style="@ThemeService.ColumnHeaderContainerStyle()">
+    <div class="roadmap-column-headers" style="@ThemeService.ColumnHeaderContainerStyle()">
         @for (int i = 0; i < Data.Columns.Count; i++)
         {
             var col = Data.Columns[i];
@@ -55,11 +55,11 @@
                             @* Icon inline with title *@
                             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
                                 <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="14" DropShadow="true" />
-                                <span style="@ThemeService.ColumnLabelStyle()">@col.Label</span>
+                                <span class="roadmap-column-label" style="@ThemeService.ColumnLabelStyle()">@col.Label</span>
                             </div>
                             @if (hasSub)
                             {
-                                <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
+                                <span class="roadmap-column-sub" style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
                             }
                         }
                         else if (hasIcon && !hasTitle)
@@ -68,7 +68,7 @@
                             <Icon IconType="@col.Icon" Color="@(col.Color ?? "#667eea")" Size="@(hasSub ? 24 : 28)" DropShadow="true" />
                             @if (hasSub)
                             {
-                                <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
+                                <span class="roadmap-column-sub" style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
                             }
                         }
                         else
@@ -76,11 +76,11 @@
                             @* Text only *@
                             @if (hasTitle)
                             {
-                                <span style="@ThemeService.ColumnLabelStyle()">@col.Label</span>
+                                <span class="roadmap-column-label" style="@ThemeService.ColumnLabelStyle()">@col.Label</span>
                             }
                             @if (hasSub)
                             {
-                                <span style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
+                                <span class="roadmap-column-sub" style="@ThemeService.ColumnSubStyle()">@col.Sub</span>
                             }
                         }
                     </div>
@@ -103,7 +103,7 @@
                 <div id="@($"milestone-{msIndex}")"
                      @onclick="@(IsPreviewMode ? null : () => OnMilestoneClick.InvokeAsync(new MilestoneClickEventArgs { Index = msIndex, Milestone = milestone }))"
                      @onclick:stopPropagation="@(!IsPreviewMode)"
-                     class="@GetElementClass($"milestones[{msIndex}]")"
+                     class="@($"{GetElementClass($"milestones[{msIndex}]")} roadmap-milestone".Trim())"
                      style="@ThemeService.MilestoneStyle(milestone.Start)">
                     <div style="@ThemeService.MilestoneContainerStyle()">
                         <Icon IconType="@(milestone.Icon ?? "diamond")"
@@ -112,7 +112,7 @@
                               DropShadow="true" />
                         @if (!string.IsNullOrWhiteSpace(milestone.Title))
                         {
-                            <span style="@ThemeService.MilestoneLabelStyle(milestone.Color)">
+                            <span class="roadmap-milestone-label" style="@ThemeService.MilestoneLabelStyle(milestone.Color)">
                                 @milestone.Title
                             </span>
                         }
@@ -154,7 +154,7 @@
                                       DropShadow="true" />
                                 @if (!string.IsNullOrWhiteSpace(inLaneMilestone.Title))
                                 {
-                                    <span style="@ThemeService.MilestoneLabelStyle(inLaneMilestone.Color)">
+                                    <span class="roadmap-milestone-label" style="@ThemeService.MilestoneLabelStyle(inLaneMilestone.Color)">
                                         @inLaneMilestone.Title
                                     </span>
                                 }
@@ -169,11 +169,16 @@
 
                     @if (!(IsPreviewMode && item.Hidden))
                     {
+                        var inspectable = IsItemInspectable;
                         <div id="@($"item-{laneIdx}-{itemIdx}")"
-                             @onclick="@(IsPreviewMode ? null : () => OnItemClick.InvokeAsync(new ItemClickEventArgs { LaneIndex = laneIdx, ItemIndex = itemIdx, Item = item }))"
+                             @onclick="@ItemClickHandler(laneIdx, itemIdx, item)"
                              @onclick:stopPropagation="@(!IsPreviewMode)"
-                             class="@GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]") roadmap-item-resizable"
+                             class="@ItemClass(laneIdx, itemIdx)"
                              style="@ItemStyle(item, lane, itemIdx)"
+                             tabindex="@(inspectable ? "0" : null)"
+                             role="@(inspectable ? "button" : null)"
+                             aria-label="@(inspectable ? $"{item.Title}. Show details" : null)"
+                             data-rs-inspect="@(inspectable ? "" : null)"
                              data-lane-index="@laneIdx"
                              data-item-index="@itemIdx">
                         @{
@@ -185,7 +190,7 @@
                             var hasSubs = hasSubContent || (hasLegacyDetails && item.Details!.Any(d => d.Subs != null && d.Subs.Count > 0));
                             var hasTitle = !string.IsNullOrWhiteSpace(item.Title);
                         }
-                        <div style="@ThemeService.ItemHeaderStyle(hasDetails, hasSubs, hasTitle, item.Length, item.Color ?? lane.Color)">
+                        <div class="roadmap-item-header" style="@ThemeService.ItemHeaderStyle(hasDetails, hasSubs, hasTitle, item.Length, item.Color ?? lane.Color)">
                             @if (!string.IsNullOrEmpty(item.Icon))
                             {
                                 <Icon IconType="@item.Icon"
@@ -202,7 +207,8 @@
                             @if (!string.IsNullOrEmpty(item.LinkedRoadmapId))
                             {
                                 var linkedTab = SessionManager?.Tabs.FirstOrDefault(t => t.Id == item.LinkedRoadmapId);
-                                <span @onclick="@(() => OnRoadmapLinkClick.InvokeAsync(item.LinkedRoadmapId))"
+                                <span class="roadmap-item-link"
+                                      @onclick="@(() => OnRoadmapLinkClick.InvokeAsync(item.LinkedRoadmapId))"
                                       @onclick:stopPropagation="true"
                                       style="margin-left: auto; font-size: 14px; cursor: pointer; opacity: 0.9; transition: opacity 0.2s, transform 0.2s;"
                                       onmouseover="this.style.opacity='1'; this.style.transform='scale(1.15)';"
@@ -218,14 +224,14 @@
                         </div>
                         @if (hasDescription)
                         {
-                            <div style="margin: 0; padding: 0;">
+                            <div class="roadmap-item-description" style="margin: 0; padding: 0;">
                                 @((MarkupString)RoadScript.Services.MarkdownRenderer.RenderToHtml(item.Description, lane.Color))
                             </div>
                         }
                         else if (hasLegacyDetails)
                         {
                             @* Backward compat: render legacy details until migrated *@
-                            <ul style="margin: 0; padding: 0; list-style: none;">
+                            <ul class="roadmap-item-description" style="margin: 0; padding: 0; list-style: none;">
                                 @foreach (var detail in item.Details!)
                                 {
                                     <li style="@ThemeService.DetailItemStyle(detail)">
@@ -267,6 +273,38 @@
     [Parameter] public EventCallback<MilestoneClickEventArgs> OnMilestoneClick { get; set; }
     [Parameter] public EventCallback<ItemClickEventArgs> OnItemClick { get; set; }
     [Parameter] public EventCallback<string> OnRoadmapLinkClick { get; set; }
+
+    /// <summary>
+    /// Optional. In preview mode, makes items focusable buttons that report clicks here
+    /// (used by the read-only showcase to show item details). Editing ignores it.
+    /// </summary>
+    [Parameter] public EventCallback<ItemClickEventArgs> OnItemInspect { get; set; }
+
+    /// <summary>
+    /// Optional "laneIndex-itemIndex" key of the item whose details are open, for highlighting.
+    /// </summary>
+    [Parameter] public string? InspectedItemKey { get; set; }
+
+    private bool IsItemInspectable => IsPreviewMode && OnItemInspect.HasDelegate;
+
+    private Func<Task>? ItemClickHandler(int laneIdx, int itemIdx, Item item)
+    {
+        var args = new ItemClickEventArgs { LaneIndex = laneIdx, ItemIndex = itemIdx, Item = item };
+        if (!IsPreviewMode) return () => OnItemClick.InvokeAsync(args);
+        if (OnItemInspect.HasDelegate) return () => OnItemInspect.InvokeAsync(args);
+        return null;
+    }
+
+    private string ItemClass(int laneIdx, int itemIdx)
+    {
+        var cls = $"{GetElementClass($"lanes[{laneIdx}].items[{itemIdx}]")} roadmap-item-resizable";
+        if (IsItemInspectable)
+        {
+            cls += " roadmap-item-inspectable";
+            if (InspectedItemKey == $"{laneIdx}-{itemIdx}") cls += " is-inspected";
+        }
+        return cls.Trim();
+    }
 
     // Returns true when a column has no visible content — used to suppress its rendering.
     private bool IsColumnEmpty(int index)

@@ -14,7 +14,7 @@
 
     <div class="mobile-item-card-meta">
         @GetColumnRangeText()
-        @if (Item?.Spanning == true) { <span style="margin-left: 4px; color: #667eea;">· ongoing</span> }
+        @if (Item?.Spanning == true) { <span style="margin-left: 4px; color: #4f46e5;">· ongoing</span> }
         @if (Item?.Greyed == true) { <span style="margin-left: 4px; color: #9ca3af;">· greyed</span> }
     </div>
 
@@ -72,15 +72,37 @@
         startCol = Math.Max(0, Math.Min(startCol, Columns.Count - 1));
         endCol = Math.Max(0, Math.Min(endCol, Columns.Count - 1));
 
-        var startLabel = Columns[startCol].Label ?? $"Col {startCol + 1}";
+        // A column with no label, sub-label or icon widens the column before it,
+        // so describe positions by the nearest labeled column
+        var hasWideColumns = false;
+        for (var i = startCol; i <= endCol; i++)
+        {
+            if (IsNullColumn(Columns[i])) hasWideColumns = true;
+        }
+        startCol = LabeledColumnAt(startCol);
+        endCol = LabeledColumnAt(endCol);
+
+        var startLabel = ColumnName(startCol);
         var span = (int)Math.Ceiling(Item.Length);
 
         if (span <= 1 || startCol == endCol)
             return startLabel;
 
-        var endLabel = Columns[endCol].Label ?? $"Col {endCol + 1}";
-        return $"{startLabel} → {endLabel} ({span})";
+        var endLabel = ColumnName(endCol);
+        return hasWideColumns ? $"{startLabel} → {endLabel}" : $"{startLabel} → {endLabel} ({span})";
     }
+
+    private static bool IsNullColumn(Column col) =>
+        string.IsNullOrWhiteSpace(col.Label) && string.IsNullOrWhiteSpace(col.Sub) && string.IsNullOrEmpty(col.Icon);
+
+    private int LabeledColumnAt(int index)
+    {
+        while (index > 0 && IsNullColumn(Columns![index])) index--;
+        return index;
+    }
+
+    private string ColumnName(int index) =>
+        string.IsNullOrWhiteSpace(Columns![index].Label) ? $"Col {index + 1}" : Columns[index].Label;
 
     private string GetDescriptionPreview()
     {
