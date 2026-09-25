@@ -2,169 +2,91 @@
 
 ![Deployed](https://img.shields.io/badge/Status-Deployed-success) ![.NET](https://img.shields.io/badge/.NET-9.0-512BD4) ![License](https://img.shields.io/badge/License-MIT-blue)
 
-![RoadScript Overview](assets/header.png)
+![The portfolio example roadmap in RoadScript](wwwroot/img/showcase-portfolio.webp)
 
-## Overview
+RoadScript is a free roadmap tool for product owners and the stakeholders they keep informed. Build a roadmap by clicking, or write it as JSON. It runs in your browser with no account and no backend, and your roadmaps are saved in that browser.
 
-RoadScript is a lightweight, browser-based roadmap visualization tool built with Blazor WebAssembly. Create, organize, and export beautiful roadmaps entirely in your browser—no server required. Your data stays local with automatic persistence.
+**Live at [roadscript.net](https://roadscript.net)**
 
-**Live at:** [RoadScript.NET](https://roadscript.net)
+## Examples
 
----
+Read-only examples you can open, read item by item, or copy into your own roadmaps:
 
-## Key Features
+- [Portfolio overview](https://roadscript.net/showcase/portfolio): my products and projects from 2024 to 2026
+- [RoadScript build history](https://roadscript.net/showcase/roadscript): this repo's own history, from its git log
+- [MgGriebZ.com build history](https://roadscript.net/showcase/mggriebz)
+- [shaco build history](https://roadscript.net/showcase/shaco)
 
-### 🗂️ **Multi-Project Organization**
-- **3 project folders**, each with up to **5 roadmap tabs**
-- Custom names, icons, and colors for visual organization
-- Persistent local storage across browser sessions
-- Quick switching via collapsed sidebar
+Each example has a timeline, a list view for reading on a phone, and the JSON behind it.
 
-### 📝 **Dual-Mode Editing**
-- **Properties Panel** - Click any element for intuitive visual editing
-- **JSON Editor** - Plain JSON view for power users and bulk updates
-- **Quick Actions Dashboard** - One-click access to add lanes, columns, and milestones
-- **Live sync** - Changes reflect instantly in both modes
+## Why it exists
 
-### 🎯 **Production-Ready Templates**
-Get started quickly with 5 built-in templates:
-1. **Daily Planning** - 2-week sprint cycle with ceremony tracking
-2. **Project Timelines** - Multi-year portfolio with quarterly milestones
-3. **Milestone Map** - Hourly development tracking
-4. **Scrum Board** - Flow-state focused workflow visualization
-5. **Retrospective** - Sprint retrospective with team feedback columns
+A Fortune 500 bank client asked for roadmaps of our development work during an onsite visit. The first version of RoadScript was live within a week, and it has been refined through daily use at work since: developers as columns, lanes for committed and blocked work, and a board to talk through in refinement and sprint planning.
 
-### 📊 **Flexible Roadmap Elements**
+It is built with AI coding agents. I write the plan, the agents implement it in pull requests, and I review and merge every change.
 
-**Columns & Time Scales**
-- Configure any time period: years, quarters, months, sprints, days, or hours
-- Sub-labels for context (date ranges, time zones)
-- Fully customizable labels
+## Features
 
-**Swim Lanes**
-- Organize by team, project, priority, or custom grouping
-- Dynamic history bars showing project maturity
-- Three progress origins: left, center, or right
-- Adjustable heights (0.5x - 3.0x)
+**Two ways to edit one roadmap**
+- Visual editor: click any lane, column, item or milestone to edit it in the properties panel. Drag items to move them and drag their edges to resize them.
+- JSON editor: the same roadmap as plain JSON, for bulk edits or keeping a roadmap in version control. A change in one view shows up in the other.
 
-**Work Items**
-- Decimal-based positioning for granular placement
-- 40+ status icons with custom colors
-- Nested bullet points with sub-items
-- Visual states: spanning (ongoing), greyed (blocked), hidden
+**Roadmap building blocks**
+- Columns for any time scale: quarters, months, sprints, days or hours. Leave a column's label empty and the column before it widens to cover both, for periods of different lengths.
+- Swim lanes with adjustable heights and optional progress bars
+- Items with icons, colors, markdown descriptions, and states for ongoing (dashed), paused (grey) and hidden work. Overlapping items stack into rows.
+- Milestones in the header or inside a lane
+- Links from a title, lane or item to another roadmap
 
-**Milestones**
-- Pin key events at precise positions (0-100%)
-- Custom icons and colors
-- Navigation controls for selected milestones
+**Organizing and sharing**
+- Up to 3 folders with 5 roadmaps each
+- Share links that carry the whole roadmap in the URL, so sharing needs no server
+- Export as JSON, Markdown or SVG
+- Starter templates: daily planning, projects, milestones, retro and flows
+- Installable as an app
 
-### 🎨 **Visual Polish**
-- **Vibe Mode** - Dark theme with neon effects
-- **Lite Mode** - Light, professional theme
-- **Preview Mode** - Clean presentation view
-- **Automatic Row Splitting** - Items with same start position split into visual rows
+**Keyboard shortcuts in the editor**
+- `Esc` clears the selection
+- `Ctrl`/`Cmd` + `D` duplicates the selected element, `Delete` removes it
+- Arrow keys move between elements
+- `Ctrl`/`Cmd` + `P` toggles preview mode
 
----
+## Data and privacy
 
-## How It Works
+- Roadmaps are saved in your browser's localStorage. Nothing is sent to a server.
+- If saved data ever can't be read, RoadScript keeps a backup copy instead of overwriting it.
+- Export your roadmaps as JSON to back them up or move them to another browser.
 
-### Architecture Overview
-
-RoadScript uses a hierarchical JSON structure that's both human-readable and machine-editable:
-
-```
-FolderManager (root)
-  └─ Folders (max 3)
-      └─ SessionManager
-          └─ Tabs (max 5 per folder)
-              └─ RoadmapData
-                  ├─ Title & Subtitle
-                  ├─ Columns (time periods)
-                  ├─ Milestones (markers)
-                  └─ Lanes (swim lanes)
-                      └─ Items (work blocks)
-                          └─ Details (nested bullets)
-```
-
-### Core Components
-
-**State Management**
-- Singleton selection service tracks active element
-- Path-based access (`lanes[0].items[1]`)
-- Full JSON snapshots for undo/redo (50-snapshot history)
-- Debounced saves prevent excessive localStorage writes
-
-**Editing System**
-- Properties panel provides form-based editing
-- JSON editor offers raw data access
-- Changes sync across both modes automatically
-- Quick Actions dashboard for rapid element creation
-
-**Drag & Resize**
-- 15px edge detection zones for item resizing
-- Visual row splitting for overlapping work
-- Boundary constraints enforce column limits
-- Quarter-column precision (0.25 minimum)
-
-**Persistence**
-- LocalStorage API for browser-based storage
-- Automatic migration from legacy formats
-- No cloud sync - your data stays private
-- JSON export for backup and version control
-
-### Technology Stack
-
-- **Framework:** Blazor WebAssembly (.NET 9)
-- **Storage:** Browser LocalStorage API
-- **Styling:** Custom CSS with gradient effects
-
----
-
-## JSON Schema
+## JSON format
 
 <details>
-<summary><b>Click to expand Example Roadmap JSON</b></summary>
+<summary>Example roadmap</summary>
 
 ```json
 {
-  "title": "2026 Product Roadmap",
-  "subtitle": "Platform Modernization",
+  "title": "2026 product roadmap",
+  "subtitle": "Platform modernization",
   "columns": [
-    { "label": "Q1 2026", "sub": "Jan – Mar" },
-    { "label": "Q2 2026", "sub": "Apr – Jun" }
+    { "label": "Q1 2026", "sub": "Jan to Mar" },
+    { "label": "Q2 2026", "sub": "Apr to Jun" }
   ],
   "milestones": [
-    {
-      "start": 25,
-      "title": "Beta Launch",
-      "icon": "flag",
-      "color": "#45B69C"
-    }
+    { "start": 25, "title": "Beta launch", "icon": "flag", "color": "#45B69C" }
   ],
   "lanes": [
     {
       "title": "Team Alpha",
       "color": "#45B69C",
       "height": 1.0,
-      "history": {
-        "start": "2024",
-        "end": "2026",
-        "percent": 75,
-        "origin": "left"
-      },
       "items": [
         {
-          "title": "Core Platform Upgrade",
+          "title": "Core platform upgrade",
           "start": 0,
-          "length": 2,
+          "length": 1.5,
+          "spanning": true,
           "icon": "rocket",
           "color": "#667eea",
-          "details": [
-            {
-              "text": "Phase 1: Infrastructure",
-              "subs": ["Database migration", "API modernization"]
-            }
-          ]
+          "description": "- Database migration\n- API modernization"
         }
       ]
     }
@@ -174,112 +96,54 @@ FolderManager (root)
 
 </details>
 
-### Property Reference
-
 | Property | Type | Description |
 |----------|------|-------------|
-| **Root** | | |
-| `title` | string | Main roadmap title |
-| `subtitle` | string | Secondary description |
-| `lanes` | array | Swim lanes (horizontal rows) |
-| `columns` | array | Time period columns |
-| `milestones` | array | Vertical timeline markers |
-| **Lanes** | | |
-| `lanes[].title` | string | Lane name (use `&` for line breaks) |
-| `lanes[].color` | string | Hex color for lane accent |
-| `lanes[].height` | number | Relative height (0.5-3.0) |
-| `lanes[].history` | object | Optional timeline progress indicator |
-| `lanes[].items` | array | Work items within lane |
-| **History** | | |
-| `history.start` | string | Freeform start label (optional) |
-| `history.end` | string | Freeform end label (optional) |
-| `history.percent` | number | Progress percentage (0-100) |
-| `history.origin` | string | Bar origin: `left`, `middle`, or `right` |
-| **Items** | | |
-| `items[].title` | string | Item display name |
-| `items[].start` | number | Starting column position (supports decimals) |
-| `items[].length` | number | Width in columns (min 0.25) |
+| `title`, `subtitle` | string | Roadmap heading |
+| `linkedRoadmapId` | string | Optional link from the title to another roadmap |
+| `columns[].label`, `columns[].sub` | string | Column label and sub-label. A column with no label, sub-label or icon widens the column before it. |
+| `columns[].icon`, `columns[].color` | string | Optional column icon and color |
+| `milestones[].start` | number | Position across the timeline, 0 to 100 |
+| `milestones[].title`, `icon`, `color` | string | Milestone label and marker |
+| `milestones[].laneIndex` | number | Optional lane to place the milestone in; omit for the header |
+| `milestones[].verticalPercent` | number | Optional height within the lane, 0 to 100 |
+| `lanes[].title` | string | Lane name (`&` starts a new line) |
+| `lanes[].color`, `lanes[].icon` | string | Lane accent color and optional icon |
+| `lanes[].height` | number | Relative height, 1.0 by default |
+| `lanes[].history` | object | Optional progress bar: `start`, `end`, `percent` (0 to 100) and `origin` (`left`, `middle` or `right`) |
+| `lanes[].linkedRoadmapId` | string | Optional link to another roadmap |
+| `items[].title` | string | Item name |
+| `items[].start`, `items[].length` | number | Position and width in columns; decimals are allowed |
+| `items[].description` | string | Markdown: bullets, sub-bullets, bold, italic, code and links |
 | `items[].spanning` | boolean | Dashed border for ongoing work |
-| `items[].icon` | string | Status icon name |
-| `items[].color` | string | Hex color for status badge |
-| `items[].greyed` | boolean | Reduced opacity with grey filter |
-| `items[].hidden` | boolean | Hidden in preview/export mode |
-| `items[].details` | array | Nested bullet points |
-| **Columns** | | |
-| `columns[].label` | string | Main column label |
-| `columns[].sub` | string | Secondary label (optional) |
-| **Milestones** | | |
-| `milestones[].start` | number | Horizontal position (0-100%) |
-| `milestones[].title` | string | Milestone display name |
-| `milestones[].icon` | string | Icon name |
-| `milestones[].color` | string | Hex color |
+| `items[].greyed` | boolean | Grey for paused or retired work |
+| `items[].hidden` | boolean | Hidden in preview mode and exports |
+| `items[].icon`, `items[].color` | string | Status icon and color |
+| `items[].linkedRoadmapId` | string | Optional link to another roadmap |
 
----
+Older roadmaps that use `items[].details` (bullet objects) still load and are converted to `description`.
 
-## Suggested Color Palette
+## Building from source
 
-| Color | Hex | Use Case |
-|-------|-----|----------|
-| Teal | `#45B69C` | Stable/mature projects |
-| Coral | `#F88379` | Creative/user-facing work |
-| Lavender | `#9999ff` | Experimental initiatives |
-| Sky Blue | `#87CEEB` | Infrastructure/platform |
-| Mustard | `#E6B800` | High priority/urgent |
-| Indigo | `#667eea` | Technical/engineering |
-| Pink | `#EC4899` | Growth/user experience |
-| Red | `#EF4444` | At risk/blocked |
-
----
-
-## Getting Started
-
-1. **Visit** [RoadScript.NET](https://roadscript.net)
-2. **Choose a template** from the command center
-3. **Add elements** using the Quick Actions dashboard
-4. **Click elements** to edit via properties panel
-5. **Switch to JSON mode** for advanced editing
-6. **Export** as JSON when done
-
-### Tips
-
-- **Quick Add**: Use the dashboard when no element is selected
-- **Keyboard Shortcuts**: Esc (clear), Ctrl+Z (undo), Ctrl+D (duplicate)
-- **Auto-Save**: Changes persist automatically to browser storage
-- **Export Regularly**: Back up your work via JSON export
-- **Folder Organization**: Create up to 3 folders with 5 tabs each
-
----
-
-## Building from Source
-
-Prerequisites: [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+Prerequisites: the [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 
 ```bash
 git clone https://github.com/MgGriebZ/RoadScript.git
-cd RoadScript/RoadScript
+cd RoadScript
 dotnet watch run
 ```
 
-Open your browser to the indicated URL (typically `http://localhost:xxxx`).
+Run the tests:
 
----
+```bash
+dotnet test tests/RoadScript.Tests/RoadScript.Tests.csproj
+```
 
-## Data & Privacy
-
-- **Local Storage Only** - All data stays in your browser
-- **No Cloud Sync** - Your roadmaps remain private
-- **Automatic Persistence** - Changes save to localStorage
-- **Backward Compatible** - Automatic migration from older formats
-- **Export for Backup** - Download JSON to prevent data loss
-
----
+The example roadmaps live in `wwwroot/showcase/`. See [tools/showcase-data](tools/showcase-data/README.md) for how they are generated from dated facts.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
----
+MIT. See [LICENSE](LICENSE).
 
 ## Acknowledgments
 
-- Inspired by [Mermaid.live](https://mermaid.live)
+Inspired by [Mermaid.live](https://mermaid.live).
