@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RoadScript social preview</title>
+<style>
+    html, body { margin: 0; }
+    body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        position: relative;
+        background: radial-gradient(900px 420px at 85% -10%, #2a2d6b 0%, rgba(42, 45, 107, 0) 70%), #13131c;
+        color: #eceef8;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    .text { position: absolute; left: 64px; top: 52px; right: 64px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 700; }
+    h1 { margin: 22px 0 0; max-width: 980px; font-size: 52px; line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; }
+    .pill { display: inline-flex; gap: 12px; margin-top: 20px; padding: 8px 16px; border-radius: 999px; border: 1px solid #34345a; font-size: 19px; color: #c9ccdf; }
+    .pill span:nth-child(even) { color: #5d6190; }
+    .shot {
+        position: absolute; left: 64px; top: 330px; width: 1250px;
+        border-radius: 14px; overflow: hidden;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px #2a2a3f;
+    }
+    .shot img { display: block; width: 100%; }
+</style>
+</head>
+<body>
+    <div class="text">
+        <div class="brand">
+            <svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 10-10 10L2 12z" fill="#7b83ff"></path></svg>
+            RoadScript
+        </div>
+        <h1>Product roadmaps you can edit visually or as JSON</h1>
+        <div class="pill"><span>Free</span><span>·</span><span>Runs in your browser</span><span>·</span><span>No account</span></div>
+    </div>
+    <div class="shot"><img src="../../wwwroot/img/showcase-portfolio.webp" alt=""></div>
+</body>
+</html>
