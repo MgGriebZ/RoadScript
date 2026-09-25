@@ -112,10 +112,26 @@ public class ShowcaseDataTests
 
     [Theory]
     [MemberData(nameof(Slugs))]
+    public void Every_item_starts_with_a_short_summary_line(string slug)
+    {
+        // The timeline shows only this line; the details panel and the List view show the rest
+        foreach (var item in Load(slug).Lanes.SelectMany(l => l.Items))
+        {
+            var lead = item.Description!.Split('\n')[0].Trim();
+            Assert.False(string.IsNullOrEmpty(lead), $"{item.Title} has no summary line");
+            Assert.False(lead.StartsWith("- ") || lead.StartsWith("#"), $"{item.Title} starts with a bullet or heading");
+            Assert.True(lead.Length <= 50, $"{item.Title} summary is {lead.Length} characters: {lead}");
+            Assert.False(lead.EndsWith('.'), $"{item.Title} summary ends with a period");
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(Slugs))]
     public void Copy_follows_the_style_rules(string slug)
     {
         var banned = new[] { "leverage", "seamless", "robust", "cutting-edge", "elevate", "holistic", "streamline" };
-        var text = string.Join("\n", AllText(Load(slug)));
+        var entry = ShowcaseService.Find(slug)!;
+        var text = string.Join("\n", AllText(Load(slug)).Concat(new[] { entry.Name, entry.CardTitle, entry.CardMeta, entry.Lede }));
 
         Assert.DoesNotContain("—", text); // em dash
         Assert.DoesNotContain("TODO", text);

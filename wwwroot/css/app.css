@@ -865,40 +865,118 @@ main {
     background: #2b2b40;
 }
 
-.showcase-tabs {
+/* --- Header: centered title and lede, and a switcher between the examples --- */
+.showcase-hero {
     flex-shrink: 0;
+    box-sizing: border-box;
+    padding: 36px 16px 28px;
     display: flex;
-    gap: 24px;
-    padding: 0 16px;
-    border-bottom: 1px solid var(--sc-line-soft);
-    overflow-x: auto;
-    scrollbar-width: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
 }
 
-.showcase-tabs::-webkit-scrollbar {
-    display: none;
+.showcase-eyebrow {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sc-link);
 }
 
-.showcase-tabs a {
+/* The router focuses this heading after navigation for screen readers; no ring needed */
+.showcase-hero h1:focus {
+    outline: none;
+}
+
+.showcase-hero h1 {
+    margin: 0;
+    max-width: 1000px;
+    font-size: clamp(26px, 3vw, 40px);
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.showcase-lede {
+    margin: 0;
+    max-width: 760px;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--sc-muted);
+}
+
+.showcase-switcher {
+    margin-top: 18px;
+    width: 100%;
+    max-width: 1200px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.showcase-switch {
+    min-height: 72px;
+    box-sizing: border-box;
+    padding: 12px 16px;
     display: flex;
     align-items: center;
-    min-height: 48px;
-    box-sizing: border-box;
-    border-bottom: 2px solid transparent;
-    color: var(--sc-muted);
-    font-size: 14.5px;
-    font-weight: 600;
+    gap: 12px;
+    border-radius: 12px;
+    border: 1px solid #2a2a40;
+    background: #181824;
+    text-align: left;
     text-decoration: none;
-    white-space: nowrap;
+    transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.showcase-tabs a:hover {
+.showcase-switch:hover {
+    border-color: #3d4170;
+    background: #1c1c2c;
+}
+
+.showcase-switch[aria-current="page"] {
+    border-color: #7b83ff;
+    background: #1d1f3a;
+    box-shadow: inset 0 0 0 0.5px #7b83ff;
+}
+
+.showcase-switch-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #26263b;
+    color: #c9ccdf;
+}
+
+.showcase-switch[data-slug="portfolio"] .showcase-switch-icon { background: #2c3170; color: #c3c7ff; }
+.showcase-switch[data-slug="roadscript"] .showcase-switch-icon { background: #1e2a4d; color: #9fb4ff; }
+.showcase-switch[data-slug="mggriebz"] .showcase-switch-icon { background: #3a2418; color: #f2a57a; }
+.showcase-switch[data-slug="shaco"] .showcase-switch-icon { background: #3d1c22; color: #f59aa4; }
+
+.showcase-switch-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.showcase-switch-title {
+    font-size: 15px;
+    font-weight: 700;
     color: var(--sc-text);
 }
 
-.showcase-tabs a[aria-current="page"] {
-    color: var(--sc-text);
-    border-bottom-color: #7b83ff;
+.showcase-switch-meta {
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: #a5a9c4;
 }
 
 .showcase-body {
@@ -912,32 +990,50 @@ main {
     flex: 1;
     min-width: 0;
     box-sizing: border-box;
-    padding: 16px 16px 32px;
+    padding: 0 16px 32px;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
+/* --- The framed card that holds the view toolbar and the chosen view --- */
+.showcase-frame {
+    border-radius: 16px;
+    border: 1px solid #2a2a40;
+    background: #181824;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
 .showcase-toolbar {
+    min-height: 60px;
+    box-sizing: border-box;
+    padding: 10px 14px;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px 20px;
+    justify-content: space-between;
+    gap: 10px 18px;
+    border-bottom: 1px solid #26263b;
 }
 
 .showcase-views {
     display: inline-flex;
     padding: 3px;
     border-radius: 10px;
-    background: #1f1f2e;
-    border: 1px solid var(--sc-line);
+    background: #121220;
+    border: 1px solid #2a2a40;
 }
 
 .showcase-views button {
     min-height: 36px;
-    padding: 0 16px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     border: 0;
-    border-radius: 7px;
+    border-radius: 8px;
     background: transparent;
     color: var(--sc-muted);
     font: inherit;
@@ -955,25 +1051,31 @@ main {
     color: #ffffff;
 }
 
-.showcase-toolbar-note {
+.showcase-legend {
     margin: 0;
+    padding: 0;
+    list-style: none;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px 20px;
-    font-size: 13.5px;
+    gap: 8px 18px;
+    font-size: 13px;
     color: var(--sc-muted);
 }
 
-.showcase-legend {
+.showcase-legend li {
     display: inline-flex;
     align-items: center;
     gap: 7px;
 }
 
+.showcase-legend-rocket {
+    color: #f2a57a;
+}
+
 .showcase-legend-key {
-    width: 18px;
-    height: 12px;
+    width: 20px;
+    height: 13px;
     box-sizing: border-box;
     border-radius: 3px;
 }
@@ -983,44 +1085,51 @@ main {
 }
 
 .showcase-legend-key.is-grey {
-    margin-left: 10px;
     background: #5a5e75;
+}
+
+.showcase-legend-chip {
+    height: 20px;
+    padding: 0 7px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 5px;
+    background: #26263b;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #d6d8e6;
+}
+
+.showcase-toolbar-note {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: #8d92ad;
 }
 
 /* Only the roadmap scrolls sideways; the page itself never does */
 .showcase-scroller {
     overflow-x: auto;
     overflow-y: hidden;
-    border-radius: 12px;
     background: #0f0f17;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
 }
 
+.showcase-scroll-hint {
+    display: none;
+    margin: 0;
+    padding: 10px 14px 12px;
+    font-size: 13px;
+    color: #a5a9c4;
+}
+
 .showcase-canvas {
-    --showcase-roadmap-height: clamp(540px, calc(100dvh - 290px), 900px);
+    --showcase-roadmap-height: clamp(460px, calc(100dvh - 250px), 720px);
     width: max(100%, 1280px);
     display: flex;
-}
-
-.showcase-heading h1 {
-    margin: 0;
-    font-size: 24px;
-    line-height: 1.25;
-    font-weight: 750;
-    letter-spacing: -0.01em;
-}
-
-.showcase-heading p {
-    margin: 6px 0 0;
-    max-width: 860px;
-    font-size: 14.5px;
-    line-height: 1.5;
-    color: var(--sc-muted);
-}
-
-.showcase-note-narrow {
-    display: none;
 }
 
 /* --- Compact roadmap styling, scoped to the showcase ---
@@ -1098,15 +1207,18 @@ main {
 .showcase-canvas .roadmap-item-resizable {
     padding: 0 !important;
     display: flex;
-    flex-direction: column;
+    flex-flow: row wrap;
+    align-content: flex-start;
+    align-items: center;
     container: rs-item / size;
 }
 
 .showcase-canvas .roadmap-item-header {
-    flex-shrink: 0;
+    flex: 0 0 100%;
+    box-sizing: border-box;
     align-items: flex-start !important;
     margin: 0 !important;
-    padding: 7px 10px 5px !important;
+    padding: 8px 10px 5px !important;
     gap: 7px !important;
     height: auto !important;
     min-width: 0;
@@ -1144,13 +1256,21 @@ main {
     height: 15px !important;
 }
 
+/* The timeline shows one lead line per item. Everything else is in the details panel and
+   the List view, so nothing on the timeline is cut off: roadscript-interop.js hides the lead
+   line too when it doesn't fit whole. */
 .showcase-canvas .roadmap-item-description {
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
+    flex: 0 0 100%;
+    box-sizing: border-box;
     padding: 0 10px 0 12px !important;
-    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
+}
+
+.showcase-canvas .roadmap-item-description > :not(:first-child),
+.showcase-canvas .roadmap-item-description > ul:first-child > li:not(:first-child),
+.showcase-canvas .roadmap-item-description ul ul,
+.showcase-canvas .roadmap-item-description.rs-fit-none,
+.showcase-canvas .roadmap-item-more {
+    display: none !important;
 }
 
 .showcase-canvas .roadmap-item-description ul {
@@ -1159,16 +1279,46 @@ main {
 }
 
 .showcase-canvas .roadmap-item-description li,
+.showcase-canvas .roadmap-item-description li span,
 .showcase-canvas .roadmap-item-description p {
-    margin: 0 0 3px !important;
-    font-size: 12.5px !important;
+    margin: 0 !important;
+    font-size: 13px !important;
     line-height: 1.4 !important;
+    color: #4b5068 !important;
 }
 
-/* Too narrow or too short to read bullets: show the title only */
+/* Too narrow or too short for a lead line: the title alone */
 @container rs-item (max-width: 112px) {
     .showcase-canvas .roadmap-item-description {
         display: none;
+    }
+}
+
+@container rs-item (max-height: 56px) and (max-width: 299px) {
+    .showcase-canvas .roadmap-item-description {
+        display: none;
+    }
+}
+
+/* Short, wide items: title and lead line side by side */
+@container rs-item (max-height: 64px) and (min-width: 300px) {
+    .showcase-canvas .roadmap-item-header {
+        flex: 0 1 auto;
+        max-width: 60%;
+        padding-right: 4px !important;
+    }
+
+    .showcase-canvas .roadmap-item-header h4 {
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+    }
+
+    .showcase-canvas .roadmap-item-description {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 8px 10px 5px 6px !important;
+        white-space: nowrap;
+        overflow: hidden;
     }
 }
 
@@ -1190,12 +1340,6 @@ main {
 
     .showcase-canvas .roadmap-item-header h4 {
         font-size: 12.5px !important;
-    }
-}
-
-@container rs-item (max-height: 56px) {
-    .showcase-canvas .roadmap-item-description {
-        display: none;
     }
 }
 
@@ -1351,6 +1495,13 @@ main {
     margin-bottom: 8px !important;
 }
 
+.showcase-md > p:first-child {
+    margin: 0 0 10px !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    color: var(--sc-text) !important;
+}
+
 .showcase-md a {
     color: var(--sc-link) !important;
 }
@@ -1463,16 +1614,21 @@ main {
 .showcase-json .json-number { color: #f0b37e; }
 .showcase-json .json-literal { color: #e98fd0; }
 
-/* On phones the copy action moves from the header to below the roadmap */
+/* On phones the copy action moves from the header to a bar pinned to the bottom */
 .showcase-copy-inline {
     display: none;
 }
 
-.showcase-copy-inline p {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--sc-faint);
+/* List and JSON views sit inside the frame */
+.showcase-frame > .showcase-list {
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 24px 16px 28px;
+}
+
+.showcase-frame > .showcase-json {
+    border: none;
+    border-radius: 0;
 }
 
 .showcase-message {
@@ -1487,9 +1643,9 @@ main {
     gap: 14px;
 }
 
-.showcase-message h1 {
+.showcase-message h2 {
     margin: 0;
-    font-size: 26px;
+    font-size: 24px;
 }
 
 .showcase-message p {
@@ -1511,21 +1667,104 @@ main {
     outline-offset: 2px;
 }
 
+/* Below this width the example switcher becomes a row of chips */
+@media (max-width: 899px) {
+    .showcase-switcher {
+        margin-top: 14px;
+        display: flex;
+        justify-content: flex-start;
+        gap: 8px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding: 2px;
+    }
+
+    .showcase-switcher::-webkit-scrollbar {
+        display: none;
+    }
+
+    .showcase-switch {
+        flex-shrink: 0;
+        min-height: 44px;
+        padding: 0 14px 0 6px;
+        gap: 8px;
+        border-radius: 999px;
+    }
+
+    .showcase-switch-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+    }
+
+    .showcase-switch-icon svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .showcase-switch-meta {
+        display: none;
+    }
+
+    .showcase-switch-title {
+        font-size: 14px;
+        white-space: nowrap;
+    }
+}
+
 @media (max-width: 699px) {
     .showcase-bar-copy {
         display: none;
     }
 
     .showcase-copy-inline {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-top: 8px;
+        display: block;
+        position: sticky;
+        bottom: 0;
+        z-index: 25;
+        margin: 0 -12px -32px;
+        padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(19, 19, 28, 0), #13131c 35%);
     }
 
     .showcase-copy-inline .showcase-button {
-        min-height: 48px;
+        width: 100%;
+        min-height: 52px;
         font-size: 16px;
+        border-radius: 12px;
+    }
+
+    .showcase-hero {
+        padding: 22px 16px 18px;
+        gap: 8px;
+    }
+
+    .showcase-eyebrow {
+        font-size: 11px;
+    }
+
+    .showcase-hero h1 {
+        font-size: 24px;
+    }
+
+    .showcase-lede {
+        font-size: 14px;
+    }
+
+    .showcase-main {
+        padding: 0 12px 32px;
+    }
+
+    .showcase-toolbar {
+        padding: 8px;
+    }
+
+    .showcase-toolbar-note {
+        display: none;
+    }
+
+    .showcase-scroll-hint {
+        display: block;
     }
 
     .showcase-views {
@@ -1548,20 +1787,11 @@ main {
         padding-right: 6px !important;
     }
 
-    .showcase-note-wide {
-        display: none;
-    }
-
-    .showcase-note-narrow {
-        display: inline;
-    }
-
-    .showcase-heading h1 {
-        font-size: 21px;
-    }
-
-    .showcase-heading p {
-        font-size: 13.5px;
+    .showcase-legend {
+        width: 100%;
+        justify-content: center;
+        gap: 6px 14px;
+        font-size: 12.5px;
     }
 }
 
@@ -1572,17 +1802,20 @@ main {
         display: none;
     }
 
-    .showcase-legend {
+    .showcase-legend li:first-child {
         display: none;
     }
 }
 
 @media (min-width: 1100px) {
     .showcase-bar,
-    .showcase-tabs,
     .showcase-main {
         padding-left: 28px;
         padding-right: 28px;
+    }
+
+    .showcase-hero {
+        padding-top: 40px;
     }
 
     .showcase-details {
@@ -1593,7 +1826,7 @@ main {
         bottom: auto;
         width: 380px;
         flex-shrink: 0;
-        margin: 16px 28px 16px -12px;
+        margin: 0 28px 16px -12px;
         max-height: calc(100dvh - 32px);
         padding: 20px 24px 24px;
         border: 1px solid var(--sc-line);
