@@ -2074,3 +2074,170 @@ main {
         scroll-behavior: auto !important;
     }
 }
+
+/* ===== Roadmap items never show half-cut text =====
+   roadscript-interop.js hides bullets that don't fit whole and fills in the count. */
+.rs-fit-hidden {
+    display: none !important;
+}
+
+.roadmap-item-more {
+    display: none;
+}
+
+.roadmap-item-more[data-more] {
+    display: block;
+    position: absolute;
+    right: 8px;
+    bottom: 6px;
+    z-index: 1;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #eef0f6;
+    color: #3f4560;
+    font-size: 12.5px;
+    font-weight: 650;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.roadmap-item-more[data-more]::before {
+    content: "+" attr(data-more) " more";
+}
+
+/* In a short item the count sits in the title bar, so the summary line keeps its room */
+.roadmap-item-more.rs-more-top[data-more] {
+    top: 6px;
+    bottom: auto;
+}
+
+.roadmap-item-more.rs-more-compact[data-more] {
+    padding: 2px 7px;
+}
+
+.roadmap-item-more.rs-more-compact[data-more]::before {
+    content: "+" attr(data-more);
+}
+
+/* Editor items size their text to the item, so titles keep whole words and at least the
+   first bullet has room. Items have a fixed size, so size containment is safe. */
+.preview-pane .roadmap-item-resizable {
+    container-type: size;
+}
+
+.preview-pane .roadmap-item-resizable .roadmap-item-header h4 {
+    min-width: 0;
+    overflow-wrap: normal;
+}
+
+/* Set by roadscript-interop.js: a title word wider than the item steps the title down a size */
+.preview-pane .roadmap-item-resizable.rs-title-small .roadmap-item-header h4 {
+    font-size: 11.5px !important;
+}
+
+.preview-pane .roadmap-item-resizable.rs-title-smaller .roadmap-item-header h4 {
+    font-size: 10.5px !important;
+}
+
+.preview-pane .roadmap-item-resizable.rs-title-break .roadmap-item-header h4 {
+    overflow-wrap: anywhere;
+}
+
+/* Set by roadscript-interop.js on items under 80px tall, so a summary line fits under the title.
+   :not(#rs) only raises specificity above the mid-size item padding rule. */
+.preview-pane .roadmap-item-resizable.rs-short:not(#rs) {
+    padding-bottom: 4px !important;
+}
+
+/* Short items: a slimmer title bar */
+@container (max-height: 120px) {
+    .preview-pane .roadmap-item-resizable .roadmap-item-header {
+        padding-top: 5px !important;
+        padding-bottom: 5px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .preview-pane .roadmap-item-resizable .roadmap-item-header h4 {
+        margin: 0 !important;
+        font-size: 17px !important;
+    }
+
+    .preview-pane .roadmap-item-resizable .roadmap-item-description li,
+    .preview-pane .roadmap-item-resizable .roadmap-item-description p {
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+    }
+}
+
+@container (max-width: 200px) {
+    .preview-pane .roadmap-item-resizable .roadmap-item-header h4 {
+        font-size: 16px !important;
+    }
+
+    .preview-pane .roadmap-item-resizable .roadmap-item-description li,
+    .preview-pane .roadmap-item-resizable .roadmap-item-description p {
+        font-size: 13.5px !important;
+    }
+}
+
+/* Narrow items: no icon, tighter padding, smaller type */
+@container (max-width: 130px) {
+    .preview-pane .roadmap-item-resizable .roadmap-item-header {
+        padding-left: 8px !important;
+        padding-right: 6px !important;
+        gap: 4px !important;
+    }
+
+    .preview-pane .roadmap-item-resizable .roadmap-item-header > div:first-child {
+        display: none !important;
+    }
+
+    .preview-pane .roadmap-item-resizable .roadmap-item-header h4 {
+        font-size: 14px !important;
+        line-height: 1.2 !important;
+    }
+
+    .preview-pane .roadmap-item-resizable .roadmap-item-description li,
+    .preview-pane .roadmap-item-resizable .roadmap-item-description p {
+        font-size: 12.5px !important;
+    }
+
+    /* Use some of the item's side padding for text */
+    .preview-pane .roadmap-item-resizable .roadmap-item-description {
+        margin-left: -6px !important;
+        margin-right: -8px !important;
+    }
+
+    .roadmap-item-more[data-more] {
+        font-size: 11.5px;
+        padding: 2px 8px;
+    }
+}
+
+@container (max-width: 92px) {
+    .preview-pane .roadmap-item-resizable .roadmap-item-header {
+        padding-left: 6px !important;
+        padding-right: 4px !important;
+    }
+
+    .preview-pane .roadmap-item-resizable .roadmap-item-header h4 {
+        font-size: 12.5px !important;
+    }
+
+    /* Just the count, so it still fits */
+    .roadmap-item-more[data-more] {
+        right: 5px;
+        padding: 2px 7px;
+    }
+
+    .roadmap-item-more[data-more]::before {
+        content: "+" attr(data-more);
+    }
+}
+
+@container (max-width: 64px) {
+    .preview-pane .roadmap-item-resizable .roadmap-item-header {
+        padding-left: 4px !important;
+        padding-right: 2px !important;
+    }
+}
