@@ -1,0 +1,144 @@
+{
+  "title": "shaco: how it was built",
+  "subtitle": "A field guide to AP Shaco support in League of Legends at shaco.mggriebz.com. Built in four weeks from July 3, 2026, and live since. Column subtitles count commits.",
+  "columns": [
+    {"label": "Week 1", "sub": "Jul 3 to 9, 81 commits"},
+    {"label": "", "sub": ""},
+    {"label": "", "sub": ""},
+    {"label": "Week 2", "sub": "Jul 10 to 16, 47 commits"},
+    {"label": "", "sub": ""},
+    {"label": "Week 3", "sub": "Jul 17 to 23, 29 commits"},
+    {"label": "", "sub": ""},
+    {"label": "Week 4", "sub": "Jul 24 to Aug 2, 2 commits"},
+    {"label": "Next", "sub": "Planned"},
+    {"label": "", "sub": ""}
+  ],
+  "milestones": [
+    {"start": 1.0, "title": "Live on day one", "icon": "rocket", "color": "#EF4444"}
+  ],
+  "lanes": [
+    {
+      "title": "Site",
+      "color": "#EF4444",
+      "height": 1.0,
+      "items": [
+        {
+          "title": "First release",
+          "start": 0.0,
+          "length": 0.86,
+          "icon": "rocket",
+          "color": "#EF4444",
+          "description": "- A written PRD first, then six build phases the same day: scaffold, design system, content model, data pipeline, components and pages\n- Astro and Tailwind on Azure Static Web Apps\n- The next day, the build page became a step-by-step guide"
+        },
+        {
+          "title": "Polish passes",
+          "start": 0.86,
+          "length": 3.57,
+          "icon": "star",
+          "color": "#EF4444",
+          "description": "- A UX overhaul PRD applied across every page (July 5)\n- Home page redesign (July 13) and a performance PRD for first-load speed and caching (July 14)"
+        },
+        {
+          "title": "Field notes",
+          "start": 5.86,
+          "length": 1.14,
+          "icon": "bookmark",
+          "color": "#EF4444",
+          "description": "- Visitor comments on each page, with a moderation panel (July 20 to 21)"
+        },
+        {
+          "title": "Every champion",
+          "start": 8.05,
+          "length": 1.9,
+          "icon": "flag",
+          "color": "#EF4444",
+          "description": "- Guides and clips for every champion and role, from MgGriebZ.com's League data"
+        }
+      ]
+    },
+    {
+      "title": "Clips",
+      "color": "#7C3AED",
+      "height": 1.0,
+      "items": [
+        {
+          "title": "Clip boxes",
+          "start": 0.86,
+          "length": 7.14,
+          "icon": "square",
+          "color": "#7C3AED",
+          "description": "- Five to ten second clips with notes, tagged by mechanic or matchup: vision control, level 1 trades, lane defense\n- Each clip links to its real match record\n- A repeatable path from replay, to clip, to a guide entry"
+        }
+      ]
+    },
+    {
+      "title": "Player",
+      "color": "#7C3AED",
+      "height": 0.8,
+      "items": [
+        {
+          "title": "Clip player",
+          "start": 0.43,
+          "length": 0.9,
+          "icon": "target",
+          "color": "#7C3AED",
+          "description": "- Short clips that loop, with loop controls on the detail page (July 4 to 5)"
+        },
+        {
+          "title": "Detail screen",
+          "start": 3.86,
+          "length": 1.71,
+          "icon": "clock",
+          "color": "#7C3AED",
+          "description": "- Player and notes side by side instead of stacked (July 13)\n- Redesigned detail screen with a playback dock: speed control between frame-step buttons (July 16 to 18)"
+        }
+      ]
+    },
+    {
+      "title": "Data",
+      "color": "#D4652F",
+      "height": 1.0,
+      "items": [
+        {
+          "title": "Stats pipeline",
+          "start": 0.0,
+          "length": 2.14,
+          "icon": "chart",
+          "color": "#D4652F",
+          "description": "- Game stats pulled from the MgGriebZ.com API at build time (July 3)\n- MgGriebZ.com starts a rebuild when a new clip is logged (July 7)"
+        },
+        {
+          "title": "Wards",
+          "start": 2.14,
+          "length": 0.9,
+          "icon": "search",
+          "color": "#D4652F",
+          "description": "- First-party visit tracking and game vision stats, planned in one PRD and shipped in eight phases on July 8\n- A private dashboard behind a GitHub login\n- Unit and end-to-end tests with Vitest and Playwright"
+        },
+        {
+          "title": "Matchups",
+          "start": 3.29,
+          "length": 1.14,
+          "icon": "globe",
+          "color": "#D4652F",
+          "description": "- Matchup pages built from past games, sorted by the opponents met most"
+        }
+      ]
+    },
+    {
+      "title": "Process",
+      "color": "#0F766E",
+      "height": 0.6,
+      "items": [
+        {
+          "title": "PRDs and a decision log",
+          "start": 0.0,
+          "length": 7.0,
+          "icon": "lightbulb",
+          "color": "#0F766E",
+          "description": "- Every feature started as a PRD and shipped in numbered phases\n- Decisions logged with IDs, past 200 by mid-July, and shipped PRDs archived\n- A CLAUDE.md guide tells coding agents how to execute a PRD"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+{
+  "title": "MgGriebZ.com: how it was built",
+  "subtitle": "My personal site and the API behind my other projects, from the first commit on June 18, 2025. Column subtitles count commits.",
+  "columns": [
+    {"label": "Jun 2025", "sub": "101 commits"},
+    {"label": "Q3 2025", "sub": "142 commits"},
+    {"label": "Q4 2025", "sub": "48 commits"},
+    {"label": "Q1 2026", "sub": "602 commits"},
+    {"label": "", "sub": ""},
+    {"label": "Q2 2026", "sub": "392 commits"},
+    {"label": "", "sub": ""},
+    {"label": "Q3 2026", "sub": "225 commits"},
+    {"label": "", "sub": ""},
+    {"label": "Next", "sub": "Planned"}
+  ],
+  "milestones": [
+    {"start": 1.54, "title": "Live", "icon": "rocket", "color": "#D4652F"},
+    {"start": 28.8, "title": "Claude Code rebuild", "icon": "flag", "color": "#D97706"},
+    {"start": 70.43, "title": "shaco.MgGriebZ.com", "icon": "rocket", "color": "#EF4444"}
+  ],
+  "lanes": [
+    {
+      "title": "Site",
+      "color": "#D4652F",
+      "height": 1.0,
+      "items": [
+        {
+          "title": "First version",
+          "start": 0.0,
+          "length": 1.74,
+          "icon": "bookmark",
+          "color": "#D4652F",
+          "description": "- React and Tailwind on Azure Static Web Apps, live two days after the first commit\n- About, career and gallery pages, then share pages, hero slides and comparison views (July to August 2025)"
+        },
+        {
+          "title": "RoadScript page",
+          "start": 2.88,
+          "length": 1.0,
+          "icon": "code",
+          "color": "#D4652F",
+          "description": "- An editable RoadScript roadmap inside the site (December 2025), reworked in January 2026"
+        },
+        {
+          "title": "Home and about pages",
+          "start": 4.56,
+          "length": 1.45,
+          "icon": "star",
+          "color": "#D4652F",
+          "description": "- New landing page with a hero carousel (March 2026)\n- About pages rewritten, and a header with a five-day calendar strip (May 2026)"
+        },
+        {
+          "title": "Sister sites",
+          "start": 6.96,
+          "length": 0.8,
+          "icon": "globe",
+          "color": "#D4652F",
+          "description": "- The API also serves Mg Glass's catalog on mgglass.mggriebz.com (June 2026)\n- It also serves shaco's stats and starts a shaco rebuild when new clips are logged (July 2026)"
+        },
+        {
+          "title": "Rolling week",
+          "start": 8.13,
+          "length": 0.87,
+          "spanning": true,
+          "icon": "calendar",
+          "color": "#D4652F",
+          "description": "- Home page rebuilt around a rolling week of events, games and commits, from a design handoff (August to September 2026)\n- Faster first load after fixing over-fetching on the home page"
+        }
+      ]
+    },
+    {
+      "title": "Calendar",
+      "color": "#0F766E",
+      "height": 1.0,
+      "items": [
+        {
+          "title": "Calendar",
+          "start": 2.89,
+          "length": 0.94,
+          "icon": "calendar",
+          "color": "#0F766E",
+          "description": "- Calendar of life events with photos (December 2025)\n- Commits from my GitHub repos on the same calendar (January 2026)\n- Bulk photo uploads and a standalone calendar view (January 2026)"
+        },
+        {
+          "title": "Shared events",
+          "start": 3.84,
+          "length": 1.05,
+          "icon": "bell",
+          "color": "#0F766E",
+          "description": "- Guest views, notification subscriptions and photo uploads (February 2026)\n- Shareable event pages (February 2026)\n- Multi-month selection and quick-log templates (March 2026)"
+        },
+        {
+          "title": "Media search",
+          "start": 5.42,
+          "length": 0.8,
+          "icon": "search",
+          "color": "#0F766E",
+          "description": "- Movies and shows looked up through the TMDB API, with poster images stored (April to May 2026)\n- Weekly navigation and preview cards on the calendar (May 2026)"
+        }
+      ]
+    },
+    {
+      "title": "Game data",
+      "color": "#EF4444",
+      "height": 1.0,
+      "items": [
+        {
+          "title": "League matches",
+          "start": 3.69,
+          "length": 1.07,
+          "icon": "chart",
+          "color": "#EF4444",
+          "description": "- League of Legends matches imported from the Riot API (February 2026)\n- Richer stats and a win and loss view on the calendar (March 2026)"
+        },
+        {
+          "title": "Game logs",
+          "start": 5.73,
+          "length": 0.8,
+          "icon": "square",
+          "color": "#EF4444",
+          "description": "- Game logs rebuilt, with batch import (May 2026)\n- A written PRD for public game-log pages"
+        },
+        {
+          "title": "Match data v2",
+          "start": 7.15,
+          "length": 0.8,
+          "icon": "target",
+          "color": "#EF4444",
+          "description": "- A second version of the Riot match data and a game dossier view (July 2026)\n- Feeds shaco, which rebuilds when new clips are logged here"
+        },
+        {
+          "title": "Champion data",
+          "start": 9.05,
+          "length": 0.9,
+          "icon": "flag",
+          "color": "#EF4444",
+          "description": "- League data for guides and clips across every champion, served to shaco"
+        }
+      ]
+    },
+    {
+      "title": "API and admin",
+      "color": "#1E3A8A",
+      "height": 0.9,
+      "items": [
+        {
+          "title": "API and database",
+          "start": 0.69,
+          "length": 0.9,
+          "icon": "gear",
+          "color": "#1E3A8A",
+          "description": "- A separate .NET API with Cosmos DB and Blob Storage (June 2025)\n- Admin editing and image uploads (July 2025)"
+        },
+        {
+          "title": "Admin overhaul",
+          "start": 3.38,
+          "length": 0.9,
+          "icon": "wrench",
+          "color": "#1E3A8A",
+          "description": "- Image management for calendar events, and image storage reworked (January 2026)\n- Admin page overhaul and write authorization on the API (February 2026)"
+        },
+        {
+          "title": "Security pass",
+          "start": 7.28,
+          "length": 0.95,
+          "icon": "lock",
+          "color": "#1E3A8A",
+          "description": "- Audited secrets exposed to the browser and moved every API secret server-side\n- Secrets in Azure Key Vault; storage access through a managed identity instead of shared keys (July 2026)"
+        }
+      ]
+    },
+    {
+      "title": "How it's built",
+      "color": "#D97706",
+      "height": 0.6,
+      "items": [
+        {
+          "title": "By hand",
+          "start": 0.0,
+          "length": 1.74,
+          "icon": "code",
+          "color": "#94A3B8",
+          "description": "- About 240 commits written with help from AI chat and committed by hand"
+        },
+        {
+          "title": "Claude Code pull requests",
+          "start": 2.88,
+          "length": 7.12,
+          "spanning": true,
+          "icon": "atom",
+          "color": "#D97706",
+          "description": "- From December 2025, agents work from a written plan and open pull requests; I review and merge\n- 435 merged pull requests; about 1,200 commits authored by Claude"
+        }
+      ]
+    }
+  ]
+}
