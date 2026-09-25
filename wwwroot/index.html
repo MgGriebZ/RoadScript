@@ -224,6 +224,10 @@
         .rs-shot { overflow-x: auto; overflow-y: hidden; border-radius: 12px; background: #0f0f17; box-shadow: 0 0 0 1px #2a2a3f; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
         .rs-shot img { display: block; width: 900px; max-width: none; height: auto; }
         .rs-shot-hint { margin: 10px 0 0; font-size: 13px; color: #8d92ad; }
+        .rs-more { margin: 12px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 14px; color: #b4b8cf; }
+        .rs-more span { color: #4a4e68; }
+        .rs-more a, .rs-why-text a { color: #9aa1ff; }
+        .rs-more a:hover, .rs-why-text a:hover { color: #c3c7ff; }
 
         .rs-section { padding-top: 56px; display: flex; flex-direction: column; gap: 20px; }
         .rs-section-head { display: flex; flex-direction: column; gap: 8px; }
@@ -376,12 +380,17 @@
                         <img src="img/showcase-portfolio.webp"
                              srcset="img/showcase-portfolio-800.webp 800w, img/showcase-portfolio.webp 1600w"
                              sizes="(max-width: 899px) 900px, 1200px"
-                             width="1600" height="998"
+                             width="1600" height="874"
                              decoding="async"
-                             alt="The example roadmap: Matt Griebel's products and projects from 2024 to 2026, in swim lanes for products, games, other projects and how I build, with launch milestones." />
+                             alt="The example roadmap: Matt Griebel's products and projects from 2024 to 2026, in swim lanes for products, websites, apps and games, and how I build, with launch milestones." />
                     </a>
                 </div>
                 <p class="rs-shot-hint">Swipe sideways to see the whole timeline, or open it to read each item.</p>
+                <p class="rs-more">More examples:
+                    <a href="/showcase/roadscript" data-rs-app-link data-rs-message="Opening the example roadmap">RoadScript build history</a><span aria-hidden="true">·</span>
+                    <a href="/showcase/mggriebz" data-rs-app-link data-rs-message="Opening the example roadmap">MgGriebZ.com build history</a><span aria-hidden="true">·</span>
+                    <a href="/showcase/shaco" data-rs-app-link data-rs-message="Opening the example roadmap">shaco build history</a>
+                </p>
             </section>
 
             <section class="rs-wrap rs-section" id="how">
@@ -429,7 +438,8 @@
                 <div class="rs-why">
                     <div class="rs-why-text">
                         <h2 class="rs-h2">Why I built this</h2>
-                        <p>A Fortune 500 bank client needed clearer roadmap transparency. I built the first version of RoadScript over a weekend, then kept expanding it through daily use.</p>
+                        <p>A Fortune 500 bank client asked for roadmaps of our development work during an onsite visit. I had the first version of RoadScript live within a week, then kept refining it through daily use at work.</p>
+                        <p>The examples include RoadScript's own <a href="/showcase/roadscript" data-rs-app-link data-rs-message="Opening the example roadmap">build history</a>, taken from its git log.</p>
                         <p>I build with AI coding agents. I write the plan, the agents implement it, and I review and merge every change.</p>
                         <div class="rs-author">
                             <strong>Matt Griebel</strong>
@@ -441,7 +451,7 @@
                         </div>
                     </div>
                     <dl class="rs-facts">
-                        <div><dt>First version</dt><dd>Built over a weekend</dd></div>
+                        <div><dt>First version</dt><dd>Live within a week</dd></div>
                         <div><dt>Commits</dt><dd>330+ since November 2025</dd></div>
                         <div><dt>Merged pull requests</dt><dd>81</dd></div>
                         <div><dt>Stack</dt><dd>Blazor WebAssembly on Azure</dd></div>
