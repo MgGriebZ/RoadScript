@@ -1630,3 +1630,195 @@ main {
         transform: none;
     }
 }
+
+/* ===== First-run help in the editor ===== */
+.preview-pane {
+    position: relative;
+}
+
+/* Shown over an empty roadmap: the next steps, instead of a blank grid */
+.rs-empty-invite {
+    position: absolute;
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    width: min(460px, calc(100% - 48px));
+    box-sizing: border-box;
+    padding: 24px 26px;
+    border-radius: 14px;
+    background: #1c1c29;
+    color: #eceef8;
+    box-shadow: 0 24px 60px rgba(20, 20, 40, 0.35), 0 0 0 1px #2f2f44;
+    font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    text-align: left;
+}
+
+.rs-empty-invite h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 750;
+    color: #eceef8;
+}
+
+.rs-empty-invite p {
+    margin: 0 0 18px;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: #c9ccdf;
+}
+
+.rs-empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.rs-empty-actions button,
+.rs-empty-actions a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 16px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    border: 1px solid #3a3a55;
+    background: #232334;
+    color: #eceef8;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.rs-empty-actions button:hover,
+.rs-empty-actions a:hover {
+    border-color: #5a5e90;
+}
+
+.rs-empty-actions .rs-empty-primary {
+    border-color: transparent;
+    background: #4f57d6;
+    color: #ffffff;
+}
+
+.rs-empty-actions .rs-empty-primary:hover {
+    background: #5d65e6;
+}
+
+.rs-empty-link {
+    margin-top: 16px;
+    padding: 4px 0;
+    border: none;
+    background: none;
+    color: #7fe3f5;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+/* Dismissible tips in the properties panel; cyan to match the JSON editor button */
+.rs-tip {
+    position: relative;
+    box-sizing: border-box;
+    padding: 14px 16px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 217, 255, 0.45);
+    background: #17293a;
+    color: #e0e7ff;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.rs-tip p {
+    margin: 0 0 10px;
+}
+
+.rs-tip .rs-tip-title {
+    margin-bottom: 4px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #7fe3f5;
+}
+
+.rs-tip-json {
+    margin: 12px 16px 0;
+}
+
+/* Arrow pointing up at the JSON Editor button */
+.rs-tip-json::before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    right: 44px;
+    width: 12px;
+    height: 12px;
+    background: #17293a;
+    border-top: 1px solid rgba(0, 217, 255, 0.45);
+    border-left: 1px solid rgba(0, 217, 255, 0.45);
+    transform: rotate(45deg);
+}
+
+.rs-tip-inline {
+    margin-bottom: 20px;
+}
+
+.rs-tip-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rs-tip-actions button {
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 7px;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.rs-tip-primary {
+    border: none;
+    background: #00c2e0;
+    color: #06202b;
+}
+
+.rs-tip-primary:hover {
+    background: #3fd6ee;
+}
+
+.rs-tip-secondary {
+    border: 1px solid rgba(0, 217, 255, 0.45);
+    background: transparent;
+    color: #e0e7ff;
+}
+
+.rs-tip-secondary:hover {
+    background: rgba(0, 217, 255, 0.1);
+}
+
+.rs-tip-off {
+    margin-top: 8px;
+    padding: 2px 0;
+    border: none;
+    background: none;
+    color: #a5b4fc;
+    font: inherit;
+    font-size: 12px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.rs-empty-invite button:focus-visible,
+.rs-empty-invite a:focus-visible,
+.rs-tip button:focus-visible {
+    outline: 3px solid #9aa1ff;
+    outline-offset: 2px;
+}

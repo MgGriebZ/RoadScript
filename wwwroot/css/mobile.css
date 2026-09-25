@@ -1052,3 +1052,39 @@ body.mobile-shell-active {
     position: fixed;
     width: 100%;
 }
+
+/* Empty roadmap invitation in the phone layout */
+.mobile-empty-invite {
+    margin: 12px 16px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background: #1c1c29;
+    color: #eceef8;
+}
+
+.mobile-empty-invite h2 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #eceef8;
+}
+
+.mobile-empty-invite p {
+    margin: 0 0 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #c9ccdf;
+}
+
+.mobile-empty-invite a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 9px;
+    background: #4f57d6;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+}

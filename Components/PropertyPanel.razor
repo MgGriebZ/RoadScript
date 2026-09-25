@@ -112,7 +112,29 @@ else
                 JSON Editor
             </button>
         </div>
+        @if (ShowJsonTip)
+        {
+            <section class="rs-tip rs-tip-json" aria-label="Tip: the JSON editor">
+                <p class="rs-tip-title">Two ways to edit</p>
+                <p>The JSON editor edits this same roadmap as text. A change in one view shows up in the other.</p>
+                <div class="rs-tip-actions">
+                    <button type="button" class="rs-tip-primary" @onclick="OpenJsonEditorFromTip">Try the JSON editor</button>
+                    <button type="button" class="rs-tip-secondary" @onclick="() => OnDismissTip.InvokeAsync(PreferencesService.TipJsonEditor)">Got it</button>
+                </div>
+                <button type="button" class="rs-tip-off" @onclick="() => OnTurnOffTips.InvokeAsync()">Turn off tips</button>
+            </section>
+        }
         <div style="display: flex; flex-direction: column; flex: 1; color: #e0e7ff; padding: 20px; overflow-y: auto;">
+            @if (ShowEditTip)
+            {
+                <section class="rs-tip rs-tip-inline" aria-label="Tip: editing on the roadmap">
+                    <p class="rs-tip-title">Edit right on the roadmap</p>
+                    <p>Click any lane, column, item or milestone to edit it in this panel. Drag an item to move it, or drag its edge to resize it.</p>
+                    <div class="rs-tip-actions">
+                        <button type="button" class="rs-tip-secondary" @onclick="() => OnDismissTip.InvokeAsync(PreferencesService.TipEditOnRoadmap)">Got it</button>
+                    </div>
+                </section>
+            }
 
             @* Roadmap Overview Section *@
             <div style="margin-bottom: 24px;">
@@ -253,6 +275,20 @@ else
     [Parameter]
     public int LaneIndex { get; set; } = 0;
 
+    /// <summary>First-run tip pointing at the JSON editor</summary>
+    [Parameter]
+    public bool ShowJsonTip { get; set; }
+
+    /// <summary>First-run tip about clicking and dragging on the roadmap</summary>
+    [Parameter]
+    public bool ShowEditTip { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnDismissTip { get; set; }
+
+    [Parameter]
+    public EventCallback OnTurnOffTips { get; set; }
+
     protected override void OnInitialized()
     {
         SelectionState.OnSelectionChanged += StateHasChanged;
@@ -374,6 +410,12 @@ else
         {
             await OnToggleJsonEditor.InvokeAsync();
         }
+    }
+
+    private async Task OpenJsonEditorFromTip()
+    {
+        await OnDismissTip.InvokeAsync(PreferencesService.TipJsonEditor);
+        await SwitchToJsonEditor();
     }
 
     // Quick action handlers for default dashboard

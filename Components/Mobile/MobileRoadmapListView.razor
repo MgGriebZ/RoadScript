@@ -48,6 +48,16 @@
             </div>
         }
 
+        @* Empty roadmap: point at the next step instead of empty lanes *@
+        @if ((Data.Lanes == null || Data.Lanes.All(l => l.Items.Count == 0)) && (Data.Milestones?.Count ?? 0) == 0)
+        {
+            <section class="mobile-empty-invite" aria-labelledby="mobile-empty-invite-title">
+                <h2 id="mobile-empty-invite-title">Your roadmap is empty</h2>
+                <p>Tap Add below to create your first item, or open a finished example to see what a roadmap can hold.</p>
+                <a href="showcase/portfolio">See an example</a>
+            </section>
+        }
+
         @* Lane sections *@
         @if (Data.Lanes?.Count > 0)
         {

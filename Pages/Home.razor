@@ -16,6 +16,7 @@
 @implements IDisposable
 @inject ResponsiveService ResponsiveService
 @inject NavigationManager Navigation
+@inject PreferencesService Preferences
 
 <PageTitle>@(!_initialized || _showLandingPage || _welcomeRequested ? LandingPageTitle : "RoadScript")</PageTitle>
 
@@ -220,6 +221,20 @@ else
                            OnRoadmapLinkClick="@HandleRoadmapLinkClick"
                            OnTitleClick="@HandleTitleClick" />
 
+            @if (IsRoadmapEmpty && !StateManager.IsPreviewMode)
+            {
+                <section class="rs-empty-invite" aria-labelledby="rs-empty-invite-title">
+                    <h2 id="rs-empty-invite-title">Your roadmap is empty</h2>
+                    <p>Add a first item, start from a template, or look at a finished example.</p>
+                    <div class="rs-empty-actions">
+                        <button type="button" class="rs-empty-primary" @onclick="AddFirstItem">Add an item</button>
+                        <button type="button" @onclick="OpenTemplatesFromInvite">Use a template</button>
+                        <a href="showcase/portfolio">See an example</a>
+                    </div>
+                    <button type="button" class="rs-empty-link" @onclick="OpenJsonEditorFromInvite">Rather type it? Open the JSON editor</button>
+                </section>
+            }
+
             <RoadmapFooter ActiveTab="@_activeTab"
                           Data="@_data"
                           IsPreviewMode="@StateManager.IsPreviewMode"
@@ -260,7 +275,11 @@ else
                       ItemIndex="@GetSelectedItemIndex()"
                       ItemCount="@GetSelectedItemCount()"
                       LaneIndex="@GetSelectedLaneIndex()"
-                      AvailableRoadmaps="@AllRoadmapsAcrossFolders" />
+                      AvailableRoadmaps="@AllRoadmapsAcrossFolders"
+                      ShowJsonTip="@Preferences.IsTipVisible(PreferencesService.TipJsonEditor)"
+                      ShowEditTip="@(HasAnyItems && !Preferences.IsTipVisible(PreferencesService.TipJsonEditor) && Preferences.IsTipVisible(PreferencesService.TipEditOnRoadmap))"
+                      OnDismissTip="HandleDismissTip"
+                      OnTurnOffTips="HandleTurnOffTips" />
     }
     else
     {
@@ -556,6 +575,7 @@ else
 
         _welcomeRequested = System.Text.RegularExpressions.Regex.IsMatch(new Uri(Navigation.Uri).Query.TrimStart('?'), @"(^|&)welcome(=|&|$)");
 
+        await Preferences.LoadAsync();
         await InitializeFolderManagerAsync();
 
         // Handle URL-based navigation and sharing
@@ -1490,6 +1510,7 @@ else
 
         _showLandingPage = false;
         await DebouncedSave();
+        await Preferences.StartTipsAsync();
         StateHasChanged();
     }
 
@@ -3941,6 +3962,11 @@ else
 
     private void ToggleJsonEditorMode()
     {
+        if (!StateManager.IsJsonEditorMode && Preferences.IsTipVisible(PreferencesService.TipJsonEditor))
+        {
+            _ = Preferences.DismissTipAsync(PreferencesService.TipJsonEditor);
+        }
+
         if (!StateManager.IsJsonEditorMode && _data != null)
         {
             // When entering JSON Editor Mode, sync current data to JSON and ensure sidebar is visible
@@ -3952,6 +3978,48 @@ else
             StateManager.ShowProperties = true; // Ensure sidebar is visible
         }
         StateManager.ToggleJsonEditorMode();
+    }
+
+    private bool HasAnyItems => _data?.Lanes.Any(l => l.Items.Count > 0) == true;
+
+    private bool IsRoadmapEmpty => _data != null && !HasAnyItems && (_data.Milestones?.Count ?? 0) == 0;
+
+    private async Task HandleDismissTip(string tipId)
+    {
+        await Preferences.DismissTipAsync(tipId);
+        StateHasChanged();
+    }
+
+    private async Task HandleTurnOffTips()
+    {
+        await Preferences.TurnOffTipsAsync();
+        StateHasChanged();
+    }
+
+    private async Task AddFirstItem()
+    {
+        if (_data == null) return;
+        if (_data.Lanes.Count == 0)
+        {
+            // Adding a lane also adds its first item
+            await HandleAddElement(("lane", "lanes"));
+            return;
+        }
+        await HandleAddElement(("item", "lanes[0].items"));
+    }
+
+    private void OpenTemplatesFromInvite()
+    {
+        // Templates are added as a new roadmap; this one is left as it is
+        StateManager.ShowTemplateSelectorDialog();
+    }
+
+    private void OpenJsonEditorFromInvite()
+    {
+        if (!StateManager.IsJsonEditorMode)
+        {
+            ToggleJsonEditorMode();
+        }
     }
 
     private void HandleJsonModalKeyDown(KeyboardEventArgs e)
