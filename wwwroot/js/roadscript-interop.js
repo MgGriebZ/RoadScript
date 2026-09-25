@@ -753,14 +753,14 @@ window.RoadScriptInterop.scrollIntoViewById = function (id) {
  * Keeps roadmap items from showing half-cut text.
  * - In the read-only examples (inside .showcase-canvas) CSS shows only an item's lead line;
  *   this hides that line too when it doesn't fit whole.
- * - In the editor, bullets that don't fit whole are hidden and the item shows "+N more".
+ * - In the editor, bullets that don't fit whole are skipped and "+N more" becomes the last row.
  * Runs after every render, resize and font load. It only toggles classes and a data attribute,
  * so it never changes the DOM structure Blazor manages.
  */
 (function () {
     const HIDDEN = 'rs-fit-hidden';
     const NONE = 'rs-fit-none';
-    const TOP = 'rs-more-top';
+    const INLINE = 'rs-more-inline';
     const COMPACT = 'rs-more-compact';
     const SHORT = 'rs-short';
     const TITLE_STEPS = ['rs-title-small', 'rs-title-smaller', 'rs-title-break'];
@@ -795,88 +795,106 @@ window.RoadScriptInterop.scrollIntoViewById = function (id) {
         if (tooTall || tooWide) desc.classList.add(NONE);
     }
 
-    function intersects(a, b) {
-        return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
-    }
-
-    // Tests the text itself, line by line, so a short line in a wide item can sit beside the count.
-    // The rect is grown by a few pixels so text never touches the count.
-    function textIntersects(el, r) {
-        const rect = { left: r.left - 4, right: r.right + 4, top: r.top - 2, bottom: r.bottom + 2 };
+    // True when a word in the unit's own text (not its sub-bullets) is wider than the unit
+    function ownTextTooWide(el) {
         const range = document.createRange();
         range.selectNodeContents(el);
         const sub = el.tagName === 'LI' ? el.querySelector(':scope > ul, :scope > ol') : null;
         if (sub) range.setEndBefore(sub);
-        return Array.from(range.getClientRects()).some(line => intersects(line, rect));
+        const right = el.getBoundingClientRect().right + 1;
+        return Array.from(range.getClientRects()).some(line => line.right > right);
     }
 
+    // Nesting depth of a unit: paragraphs and top-level bullets are 1, sub-bullets 2 and deeper
+    function depthOf(unit, desc) {
+        if (unit.tagName !== 'LI') return 1;
+        let depth = 0;
+        for (let el = unit.parentElement; el && el !== desc; el = el.parentElement) {
+            if (el.tagName === 'UL' || el.tagName === 'OL') depth++;
+        }
+        return Math.max(depth, 1);
+    }
+
+    // Editor: shows every bullet that fits whole. Walking in order, a bullet that would be cut off
+    // (too tall for the space left, or with a word wider than the item) is skipped together with
+    // its sub-bullets, and later bullets that do fit still show. "+N more" then becomes the
+    // item's last row.
     function fitBullets(item, desc, more) {
         desc.querySelectorAll('.' + HIDDEN).forEach(el => el.classList.remove(HIDDEN));
         if (more) {
             more.removeAttribute('data-more');
-            more.classList.remove(TOP, COMPACT);
+            more.classList.remove(INLINE, COMPACT);
         }
 
         const units = Array.from(desc.querySelectorAll(':scope > p, :scope > pre, :scope > div, li'));
         if (units.length === 0) return;
+        const depths = units.map(u => depthOf(u, desc));
+        const isHidden = i => units[i].classList.contains(HIDDEN);
+
+        // Hides a unit and the deeper units that follow it (its sub-bullets)
+        const hideWithSubs = i => {
+            units[i].classList.add(HIDDEN);
+            for (let j = i + 1; j < units.length && depths[j] > depths[i]; j++) units[j].classList.add(HIDDEN);
+        };
 
         const bottom = contentBottom(item);
-        // A unit is cut off when it runs past the bottom, or when one of its words is wider than the item
-        let first = units.findIndex(u => ownBottom(u) > bottom + 0.5 || u.scrollWidth > u.clientWidth + 1);
-        if (first < 0) return;
+        for (let i = 0; i < units.length; i++) {
+            if (isHidden(i)) continue;
+            const u = units[i];
+            const tooWide = u.tagName !== 'PRE' && ownTextTooWide(u);
+            if (tooWide || ownBottom(u) > bottom + 0.5) hideWithSubs(i);
+        }
 
-        // Hide everything from the first unit that is cut off
-        const hide = from => { for (let i = from; i < units.length; i++) units[i].classList.add(HIDDEN); };
-        hide(first);
-        if (!more) return;
+        const hiddenCount = () => units.filter((_, i) => isHidden(i)).length;
+        if (hiddenCount() === 0 || !more) return;
 
-        // Show "+N more" in the bottom corner. If it would cover a visible line, try the title
-        // bar instead, and hide the covered bullets only when the title bar has no room.
-        more.setAttribute('data-more', String(units.length - first));
-        let covered = first;
-        while (covered > 0 && textIntersects(units[covered - 1], more.getBoundingClientRect())) covered--;
-        if (covered < first && !fitsInTitleBar(item, more)) {
-            if (covered === 0) {
-                // The count would cover the summary line, and the summary matters more
+        // Place "+N more", hiding bullets from the end until it fits. Keep the first line rather
+        // than trade it for the count.
+        for (;;) {
+            const visible = units.filter((_, i) => !isHidden(i));
+            more.setAttribute('data-more', String(hiddenCount()));
+            if (placeCount(item, more, visible, bottom)) return;
+            if (visible.length <= 1) {
                 more.removeAttribute('data-more');
                 return;
             }
-            for (let i = covered; i < first; i++) units[i].classList.add(HIDDEN);
-            first = covered;
-            more.setAttribute('data-more', String(units.length - first));
+            hideWithSubs(units.indexOf(visible[visible.length - 1]));
         }
-
-        // The bottom corner overlaps the title in a very short item: use the title bar, or
-        // show no count at all in a tiny item, where the title alone says enough
-        if (more.classList.contains(TOP)) return;
-        const box = item.getBoundingClientRect();
-        const header = item.querySelector(':scope > .roadmap-item-header');
-        const pillNow = more.getBoundingClientRect();
-        const tooNarrow = pillNow.left < box.left + 4;
-        const coversTitle = header && intersects(pillNow, header.getBoundingClientRect());
-        if (!tooNarrow && !coversTitle) return;
-        if (!tooNarrow && fitsInTitleBar(item, more)) return;
-        more.removeAttribute('data-more');
     }
 
-    // Moves the count into the title bar when it fits beside the title, as "+N more" or just "+N"
-    function fitsInTitleBar(item, more) {
-        const header = item.querySelector(':scope > .roadmap-item-header');
-        if (!header) return false;
-        const title = header.querySelector('h4');
-        const fits = () => {
-            const pill = more.getBoundingClientRect();
-            const bar = header.getBoundingClientRect();
-            return pill.top >= bar.top && pill.bottom <= bar.bottom + 1 &&
-                !(title && textIntersects(title, pill)) &&
-                !Array.from(header.children).some(el => el !== title && intersects(el.getBoundingClientRect(), pill));
-        };
-        more.classList.add(TOP);
-        if (fits()) return true;
-        more.classList.add(COMPACT);
-        if (fits()) return true;
-        more.classList.remove(TOP, COMPACT);
+    // Tries the count as a row under the last bullet, then at the end of the last line when that
+    // line is short, each as "+N more" and then "+N". Returns false when none fits whole.
+    function placeCount(item, more, visible, bottom) {
+        const box = item.getBoundingClientRect();
+        const cs = getComputedStyle(item);
+        const left = box.left + parseFloat(cs.borderLeftWidth) + 1;
+        const right = box.right - parseFloat(cs.borderRightWidth) - 1;
+        const last = visible[visible.length - 1];
+        const options = [[], [COMPACT], [INLINE], [INLINE, COMPACT]];
+
+        for (const classes of options) {
+            more.classList.remove(INLINE, COMPACT);
+            more.classList.add(...classes);
+            const inline = classes.includes(INLINE);
+            if (inline && !last) continue;
+            const r = more.getBoundingClientRect();
+            const fits = r.bottom <= bottom + 0.5 &&
+                (inline ? r.left >= left && r.right <= right && !textIntersects(last, r)
+                        : more.scrollWidth <= more.clientWidth + 1);
+            if (fits) return true;
+        }
+        more.classList.remove(INLINE, COMPACT);
         return false;
+    }
+
+    // True when any line of the unit's own text overlaps the rect, with a small gap
+    function textIntersects(el, r) {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sub = el.tagName === 'LI' ? el.querySelector(':scope > ul, :scope > ol') : null;
+        if (sub) range.setEndBefore(sub);
+        return Array.from(range.getClientRects()).some(line =>
+            line.left < r.right + 6 && r.left - 6 < line.right && line.top < r.bottom && r.top < line.bottom);
     }
 
     // Editor titles keep whole words: a word wider than the item steps the title down a size,
