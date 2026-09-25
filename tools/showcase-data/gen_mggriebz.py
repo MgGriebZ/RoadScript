@@ -20,6 +20,27 @@ def pos(d):
             return first + units * (d - start).days / (end - start).days
     raise ValueError(d)
 
+# One short lead sentence per item: the timeline shows only this line
+SUMMARIES = {
+    'First version': 'React site, live two days after the first commit',
+    'RoadScript page': 'An editable roadmap inside the site',
+    'Home and about pages': 'New landing page, about pages and header',
+    'Sister sites': 'The API behind Mg Glass and shaco',
+    'Rolling week': 'Home rebuilt around a rolling week',
+    'Calendar': 'Life events, photos and commits on one calendar',
+    'Shared events': 'Notifications and shareable event pages',
+    'Media search': 'Movies and shows from TMDB',
+    'League matches': 'Match history from the Riot API',
+    'Game logs': 'Game logs rebuilt with batch import',
+    'Match data v2': 'Richer match data that feeds shaco',
+    'Champion data': 'League data for every champion',
+    'API and database': '.NET API with Cosmos DB and Blob Storage',
+    'Admin overhaul': 'Image management and a new admin page',
+    'Security pass': 'Secrets moved server-side and into Key Vault',
+    'By hand': 'About 240 commits written with AI chat',
+    'Claude Code pull requests': 'Agents open pull requests for review',
+}
+
 def item(title, start, end, icon, color, desc, spanning=False, greyed=False, min_len=None):
     s = round(start, 2)
     length = round(round(end, 2) - s, 2)
@@ -30,7 +51,7 @@ def item(title, start, end, icon, color, desc, spanning=False, greyed=False, min
     it["icon"] = icon
     it["color"] = color
     if greyed: it["greyed"] = True
-    it["description"] = "\n".join("- " + b for b in desc)
+    it["description"] = SUMMARIES[title] + "\n" + "\n".join("- " + b for b in desc)
     return it
 
 def ms(title, d, icon, color):

@@ -23,6 +23,21 @@ def end_of(d):
             return first + units * ((d - start).days + 1) / (end - start).days
     raise ValueError(d)
 
+# One short lead sentence per item: the timeline shows only this line
+SUMMARIES = {
+    'First release': 'A PRD first, then six build phases in a day',
+    'Polish passes': 'UX, home page and performance passes',
+    'Field notes': 'Visitor comments with moderation',
+    'Every champion': 'Guides and clips for every champion',
+    'Clip boxes': 'Short clips with notes, linked to real matches',
+    'Clip player': 'Looping clips with playback controls',
+    'Detail screen': 'Player and notes side by side',
+    'Stats pipeline': 'Stats from the MgGriebZ.com API',
+    'Wards': 'Visit tracking and vision stats',
+    'Matchups': 'Matchup pages from past games',
+    'PRDs and a decision log': 'Every feature starts as a PRD',
+}
+
 def item(title, start, end, icon, color, desc, spanning=False, greyed=False, min_len=None):
     s = round(start, 2)
     length = round(round(end, 2) - s, 2)
@@ -33,7 +48,7 @@ def item(title, start, end, icon, color, desc, spanning=False, greyed=False, min
     it["icon"] = icon
     it["color"] = color
     if greyed: it["greyed"] = True
-    it["description"] = "\n".join("- " + b for b in desc)
+    it["description"] = SUMMARIES[title] + "\n" + "\n".join("- " + b for b in desc)
     return it
 
 cols = [

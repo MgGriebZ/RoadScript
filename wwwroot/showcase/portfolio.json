@@ -38,7 +38,7 @@
           "icon": "calendar",
           "color": "#45B69C",
           "greyed": true,
-          "description": "- Gen-AI tarot journal: AI readings with generated images, logged to Cosmos DB to build a working personality of the tarot, the user and the AI\n- Grew into a social platform: public and private readings, votes on public cards, comments, Azure AD B2C sign-in\n- .NET MVC version live in July 2024, rebuilt in Blazor WebAssembly over the 2024 holidays\n- Went dormant because I had built more than I planned to market. A 2026 rework into a tarot auto-battler paused after three days"
+          "description": "Gen-AI tarot journal with a social layer\n- AI readings with generated images, logged to Cosmos DB to build a working personality of the tarot, the user and the AI\n- Grew into a social platform: public and private readings, votes on public cards, comments, Azure AD B2C sign-in\n- .NET MVC version live in July 2024, rebuilt in Blazor WebAssembly over the 2024 holidays\n- Went dormant because I had built more than I planned to market. A 2026 rework into a tarot auto-battler paused after three days"
         },
         {
           "title": "MgGriebZ.com",
@@ -48,7 +48,7 @@
           "icon": "bookmark",
           "color": "#D4652F",
           "linkedRoadmapId": "showcase:mggriebz",
-          "description": "- Personal hub: life-events calendar with photos, League of Legends match history from the Riot API, GitHub commit tracking\n- One API behind it: also serves shaco's stats and Mg Glass's catalog, and hosts one-off event pages\n- React and .NET 8 on Azure (Cosmos DB, Blob Storage)\n- 1,500+ commits and 435 merged pull requests since June 2025"
+          "description": "Personal hub and the API behind my other sites\n- Life-events calendar with photos, League of Legends match history from the Riot API, GitHub commit tracking\n- One API behind it: also serves shaco's stats and Mg Glass's catalog, and hosts one-off event pages\n- React and .NET 8 on Azure (Cosmos DB, Blob Storage)\n- 1,500+ commits and 435 merged pull requests since June 2025"
         },
         {
           "title": "RoadScript",
@@ -58,7 +58,7 @@
           "icon": "code",
           "color": "#1E3A8A",
           "linkedRoadmapId": "showcase:roadscript",
-          "description": "- Built after a Fortune 500 bank client asked for development roadmaps during an onsite visit, and live within a week\n- Refined through daily use at work: developers as columns, lanes for committed and blocked work, used in refinement and planning\n- Visual editor for stakeholders, JSON editor for technical users; runs in the browser with no backend\n- 330+ commits and 81 merged pull requests"
+          "description": "Roadmaps you edit visually or as JSON\n- Built after a Fortune 500 bank client asked for development roadmaps during an onsite visit, and live within a week\n- Refined through daily use at work: developers as columns, lanes for committed and blocked work, used in refinement and planning\n- Visual editor for stakeholders, JSON editor for technical users; runs in the browser with no backend\n- 330+ commits and 81 merged pull requests"
         },
         {
           "title": "Public launch",
@@ -66,7 +66,7 @@
           "length": 1.9,
           "icon": "flag",
           "color": "#1E3A8A",
-          "description": "- RoadScript's public launch on LinkedIn and Reddit\n- New landing page and example roadmaps, including this one"
+          "description": "Launch on LinkedIn and Reddit\n- New landing page and example roadmaps, including this one"
         }
       ]
     },
@@ -81,7 +81,7 @@
           "length": 1.98,
           "icon": "wrench",
           "color": "#8F8FE8",
-          "description": "- AshMe Glass, then Captain Hook Glass Art, then Sassy Cakes, from May to August 2025\n- Each added a piece: React on Azure Static Web Apps, a .NET API, an admin CMS, Cosmos DB and Blob Storage\n- Packaged into a public full-stack site template that shaped MgGriebZ.com"
+          "description": "Three custom sites, then a public template\n- AshMe Glass, then Captain Hook Glass Art, then Sassy Cakes, from May to August 2025\n- Each added a piece: React on Azure Static Web Apps, a .NET API, an admin CMS, Cosmos DB and Blob Storage\n- Packaged into a public full-stack site template that shaped MgGriebZ.com"
         },
         {
           "title": "CosmoScope",
@@ -89,7 +89,7 @@
           "length": 3.29,
           "icon": "globe",
           "color": "#6366F1",
-          "description": "- Should I play frisbee golf or use the telescope tonight? A weather-based helper\n- A .NET MAUI app in December 2025 and January 2026, then a web app, live on Azure since April 2026"
+          "description": "Frisbee golf or the telescope tonight?\n- A weather-based helper for choosing between the two\n- A .NET MAUI app in December 2025 and January 2026, then a web app, live on Azure since April 2026"
         },
         {
           "title": "HPP Glass",
@@ -97,7 +97,7 @@
           "length": 1.39,
           "icon": "star",
           "color": "#F88379",
-          "description": "- Portfolio and admin site for two glass artists, still live\n- Built for volume: bulk uploads of hundreds of photos, sorting, categories and rotating featured pieces\n- The best parts of the earlier custom sites, with a server-side Functions API\n- Led to Mg Glass in June 2026: a planner for my own lampworking studio at mgglass.mggriebz.com, parked until the studio budget is ready"
+          "description": "Portfolio and admin for two glass artists\n- Still live\n- Built for volume: bulk uploads of hundreds of photos, sorting, categories and rotating featured pieces\n- The best parts of the earlier custom sites, with a server-side Functions API\n- Led to Mg Glass in June 2026: a planner for my own lampworking studio at mgglass.mggriebz.com, parked until the studio budget is ready"
         },
         {
           "title": "shaco",
@@ -106,7 +106,7 @@
           "icon": "square",
           "color": "#EF4444",
           "linkedRoadmapId": "showcase:shaco",
-          "description": "- Field guide to AP Shaco support in League of Legends, built from MgGriebZ.com game data\n- Practice for making video: a repeatable path from replay, to a 5 to 10 second clip, to a guide entry\n- Clip controls: several paused side by side, full screen, slow and fast playback\n- Astro static site with a written PRD and decision log; 159 commits in July 2026"
+          "description": "AP Shaco support guide with clips\n- A League of Legends field guide built from MgGriebZ.com game data\n- Practice for making video: a repeatable path from replay, to a 5 to 10 second clip, to a guide entry\n- Clip controls: several paused side by side, full screen, slow and fast playback\n- Astro static site with a written PRD and decision log; 159 commits in July 2026"
         },
         {
           "title": "Guides and clips",
@@ -114,7 +114,7 @@
           "length": 1.9,
           "icon": "flag",
           "color": "#EF4444",
-          "description": "- Broaden shaco into guides and clips for every champion and role, as a slice of the League data on MgGriebZ.com"
+          "description": "Every champion and role\n- Broaden shaco into guides and clips for every champion and role, as a slice of the League data on MgGriebZ.com"
         }
       ]
     },
@@ -130,7 +130,7 @@
           "icon": "star",
           "color": "#9999ff",
           "greyed": true,
-          "description": "- Meditative mobile app: roll a sigil from six traditions and see how it echoes the others\n- Built in Flutter in May and June 2025; the 120 sigil artworks and release prep followed in April and May 2026\n- Paused just before an app store release"
+          "description": "Meditative sigil app\n- Roll a sigil from six traditions and see how it echoes the others\n- Built in Flutter in May and June 2025; the 120 sigil artworks and release prep followed in April and May 2026\n- Paused just before an app store release"
         },
         {
           "title": "FlowForge",
@@ -139,7 +139,7 @@
           "icon": "lightbulb",
           "color": "#8B9A8B",
           "greyed": true,
-          "description": "- Turn-based game about workplace conversations: buzzwords, emotions and roles (IC, manager, exec) decide when to agree, challenge, ask or defer\n- Scenario builder for replaying conversations\n- Built from September 2025 to February 2026, then paused before reaching production"
+          "description": "A game about workplace conversations\n- Turn-based game about workplace conversations: buzzwords, emotions and roles (IC, manager, exec) decide when to agree, challenge, ask or defer\n- Scenario builder for replaying conversations\n- Built from September 2025 to February 2026, then paused before reaching production"
         },
         {
           "title": "Rehoboam",
@@ -148,7 +148,7 @@
           "icon": "chart",
           "color": "#94A3B8",
           "greyed": true,
-          "description": "- Tests whether AI news moves markets: Reddit and news sweeps classified by Claude\n- Sector visuals showing how AI companies affect wider markets\n- Idea stage"
+          "description": "Does AI news move markets?\n- Reddit and news sweeps classified by Claude\n- Sector visuals showing how AI companies affect wider markets\n- Idea stage"
         },
         {
           "title": "Core Clock",
@@ -157,7 +157,7 @@
           "spanning": true,
           "icon": "clock",
           "color": "#7C4A1E",
-          "description": "- Third-person arena game: pick rogue, mage, warrior or hunter and move pucks into sockets to fix the Core's clock\n- Movement and abilities inspired by World of Warcraft arena\n- Started in Unity, moved to Godot after a week\n- 690+ commits in two months"
+          "description": "Third-person arena game in Godot\n- Pick rogue, mage, warrior or hunter and move pucks into sockets to fix the Core's clock\n- Movement and abilities inspired by World of Warcraft arena\n- Started in Unity, moved to Godot after a week\n- 690+ commits in two months"
         },
         {
           "title": "Core Clock on itch.io",
@@ -165,7 +165,7 @@
           "length": 1.9,
           "icon": "flag",
           "color": "#7C4A1E",
-          "description": "- Single-player release on itch.io once the game feels right. The page is set up and private"
+          "description": "Single-player release\n- Once the game feels right. The itch.io page is set up and private"
         }
       ]
     },
@@ -180,7 +180,7 @@
           "length": 5.76,
           "icon": "code",
           "color": "#94A3B8",
-          "description": "- Code drafted in AI chat, pasted in and committed by hand\n- First Codex pull request in June 2025"
+          "description": "Drafted in chat, committed by hand\n- First Codex pull request in June 2025"
         },
         {
           "title": "Claude Code on the web",
@@ -188,7 +188,7 @@
           "length": 5.72,
           "icon": "atom",
           "color": "#D97706",
-          "description": "- From November 2025, agents work from a written plan and open pull requests; I review and merge\n- More than 90% of commits in this period are authored by Claude"
+          "description": "Agents open pull requests for review\n- From November 2025, agents work from a written plan\n- More than 90% of commits in this period are authored by Claude"
         },
         {
           "title": "Local agents",
@@ -197,7 +197,7 @@
           "spanning": true,
           "icon": "gear",
           "color": "#0F766E",
-          "description": "- Codex from July 2026, local Claude Code from August\n- Core Clock needs them: game assets, tuning and MCP tools live on my machine, and work runs in planned execution slices\n- Pocket Playroom, a digital playroom my kids use on a tablet, was built with Codex over a weekend in July 2026"
+          "description": "Codex and local Claude Code\n- Codex from July 2026, local Claude Code from August\n- Core Clock needs them: game assets, tuning and MCP tools live on my machine, and work runs in planned execution slices\n- Pocket Playroom, a digital playroom my kids use on a tablet, was built with Codex over a weekend in July 2026"
         }
       ]
     }

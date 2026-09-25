@@ -30,7 +30,7 @@
           "length": 1.74,
           "icon": "bookmark",
           "color": "#D4652F",
-          "description": "- React and Tailwind on Azure Static Web Apps, live two days after the first commit\n- About, career and gallery pages, then share pages, hero slides and comparison views (July to August 2025)"
+          "description": "React site, live two days after the first commit\n- React and Tailwind on Azure Static Web Apps, live two days after the first commit\n- About, career and gallery pages, then share pages, hero slides and comparison views (July to August 2025)"
         },
         {
           "title": "RoadScript page",
@@ -38,7 +38,7 @@
           "length": 1.0,
           "icon": "code",
           "color": "#D4652F",
-          "description": "- An editable RoadScript roadmap inside the site (December 2025), reworked in January 2026"
+          "description": "An editable roadmap inside the site\n- An editable RoadScript roadmap inside the site (December 2025), reworked in January 2026"
         },
         {
           "title": "Home and about pages",
@@ -46,7 +46,7 @@
           "length": 1.45,
           "icon": "star",
           "color": "#D4652F",
-          "description": "- New landing page with a hero carousel (March 2026)\n- About pages rewritten, and a header with a five-day calendar strip (May 2026)"
+          "description": "New landing page, about pages and header\n- New landing page with a hero carousel (March 2026)\n- About pages rewritten, and a header with a five-day calendar strip (May 2026)"
         },
         {
           "title": "Sister sites",
@@ -54,7 +54,7 @@
           "length": 0.8,
           "icon": "globe",
           "color": "#D4652F",
-          "description": "- The API also serves Mg Glass's catalog on mgglass.mggriebz.com (June 2026)\n- It also serves shaco's stats and starts a shaco rebuild when new clips are logged (July 2026)"
+          "description": "The API behind Mg Glass and shaco\n- The API also serves Mg Glass's catalog on mgglass.mggriebz.com (June 2026)\n- It also serves shaco's stats and starts a shaco rebuild when new clips are logged (July 2026)"
         },
         {
           "title": "Rolling week",
@@ -63,7 +63,7 @@
           "spanning": true,
           "icon": "calendar",
           "color": "#D4652F",
-          "description": "- Home page rebuilt around a rolling week of events, games and commits, from a design handoff (August to September 2026)\n- Faster first load after fixing over-fetching on the home page"
+          "description": "Home rebuilt around a rolling week\n- Home page rebuilt around a rolling week of events, games and commits, from a design handoff (August to September 2026)\n- Faster first load after fixing over-fetching on the home page"
         }
       ]
     },
@@ -78,7 +78,7 @@
           "length": 0.94,
           "icon": "calendar",
           "color": "#0F766E",
-          "description": "- Calendar of life events with photos (December 2025)\n- Commits from my GitHub repos on the same calendar (January 2026)\n- Bulk photo uploads and a standalone calendar view (January 2026)"
+          "description": "Life events, photos and commits on one calendar\n- Calendar of life events with photos (December 2025)\n- Commits from my GitHub repos on the same calendar (January 2026)\n- Bulk photo uploads and a standalone calendar view (January 2026)"
         },
         {
           "title": "Shared events",
@@ -86,7 +86,7 @@
           "length": 1.05,
           "icon": "bell",
           "color": "#0F766E",
-          "description": "- Guest views, notification subscriptions and photo uploads (February 2026)\n- Shareable event pages (February 2026)\n- Multi-month selection and quick-log templates (March 2026)"
+          "description": "Notifications and shareable event pages\n- Guest views, notification subscriptions and photo uploads (February 2026)\n- Shareable event pages (February 2026)\n- Multi-month selection and quick-log templates (March 2026)"
         },
         {
           "title": "Media search",
@@ -94,7 +94,7 @@
           "length": 0.8,
           "icon": "search",
           "color": "#0F766E",
-          "description": "- Movies and shows looked up through the TMDB API, with poster images stored (April to May 2026)\n- Weekly navigation and preview cards on the calendar (May 2026)"
+          "description": "Movies and shows from TMDB\n- Movies and shows looked up through the TMDB API, with poster images stored (April to May 2026)\n- Weekly navigation and preview cards on the calendar (May 2026)"
         }
       ]
     },
@@ -109,7 +109,7 @@
           "length": 1.07,
           "icon": "chart",
           "color": "#EF4444",
-          "description": "- League of Legends matches imported from the Riot API (February 2026)\n- Richer stats and a win and loss view on the calendar (March 2026)"
+          "description": "Match history from the Riot API\n- League of Legends matches imported from the Riot API (February 2026)\n- Richer stats and a win and loss view on the calendar (March 2026)"
         },
         {
           "title": "Game logs",
@@ -117,7 +117,7 @@
           "length": 0.8,
           "icon": "square",
           "color": "#EF4444",
-          "description": "- Game logs rebuilt, with batch import (May 2026)\n- A written PRD for public game-log pages"
+          "description": "Game logs rebuilt with batch import\n- Game logs rebuilt, with batch import (May 2026)\n- A written PRD for public game-log pages"
         },
         {
           "title": "Match data v2",
@@ -125,7 +125,7 @@
           "length": 0.8,
           "icon": "target",
           "color": "#EF4444",
-          "description": "- A second version of the Riot match data and a game dossier view (July 2026)\n- Feeds shaco, which rebuilds when new clips are logged here"
+          "description": "Richer match data that feeds shaco\n- A second version of the Riot match data and a game dossier view (July 2026)\n- Feeds shaco, which rebuilds when new clips are logged here"
         },
         {
           "title": "Champion data",
@@ -133,7 +133,7 @@
           "length": 0.9,
           "icon": "flag",
           "color": "#EF4444",
-          "description": "- League data for guides and clips across every champion, served to shaco"
+          "description": "League data for every champion\n- League data for guides and clips across every champion, served to shaco"
         }
       ]
     },
@@ -148,7 +148,7 @@
           "length": 0.9,
           "icon": "gear",
           "color": "#1E3A8A",
-          "description": "- A separate .NET API with Cosmos DB and Blob Storage (June 2025)\n- Admin editing and image uploads (July 2025)"
+          "description": ".NET API with Cosmos DB and Blob Storage\n- A separate .NET API with Cosmos DB and Blob Storage (June 2025)\n- Admin editing and image uploads (July 2025)"
         },
         {
           "title": "Admin overhaul",
@@ -156,7 +156,7 @@
           "length": 0.9,
           "icon": "wrench",
           "color": "#1E3A8A",
-          "description": "- Image management for calendar events, and image storage reworked (January 2026)\n- Admin page overhaul and write authorization on the API (February 2026)"
+          "description": "Image management and a new admin page\n- Image management for calendar events, and image storage reworked (January 2026)\n- Admin page overhaul and write authorization on the API (February 2026)"
         },
         {
           "title": "Security pass",
@@ -164,7 +164,7 @@
           "length": 0.95,
           "icon": "lock",
           "color": "#1E3A8A",
-          "description": "- Audited secrets exposed to the browser and moved every API secret server-side\n- Secrets in Azure Key Vault; storage access through a managed identity instead of shared keys (July 2026)"
+          "description": "Secrets moved server-side and into Key Vault\n- Audited secrets exposed to the browser and moved every API secret server-side\n- Secrets in Azure Key Vault; storage access through a managed identity instead of shared keys (July 2026)"
         }
       ]
     },
@@ -179,7 +179,7 @@
           "length": 1.74,
           "icon": "code",
           "color": "#94A3B8",
-          "description": "- About 240 commits written with help from AI chat and committed by hand"
+          "description": "About 240 commits written with AI chat\n- About 240 commits written with help from AI chat and committed by hand"
         },
         {
           "title": "Claude Code pull requests",
@@ -188,7 +188,7 @@
           "spanning": true,
           "icon": "atom",
           "color": "#D97706",
-          "description": "- From December 2025, agents work from a written plan and open pull requests; I review and merge\n- 435 merged pull requests; about 1,200 commits authored by Claude"
+          "description": "Agents open pull requests for review\n- From December 2025, agents work from a written plan and open pull requests; I review and merge\n- 435 merged pull requests; about 1,200 commits authored by Claude"
         }
       ]
     }
