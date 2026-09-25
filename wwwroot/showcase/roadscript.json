@@ -131,7 +131,7 @@
           "length": 2.12,
           "icon": "dice",
           "color": "#7C3AED",
-          "description": "- Five starter templates: sprint cycle, project timeline, annual roadmap, scrum board and retrospective\n- A dice button fills a template with random items to try things out"
+          "description": "- Five starter templates: daily planning, projects, milestones, retro and flows\n- A dice button fills a template with random items to try things out"
         },
         {
           "title": "Themes",

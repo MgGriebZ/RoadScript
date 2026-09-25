@@ -109,7 +109,7 @@ data = {
         ]},
         {"title": "Look and feel", "color": PURPLE, "height": 0.9, "items": [
             item("Templates", pos(date(2025, 11, 26)), pos(date(2025, 12, 8)), "dice", PURPLE, [
-                "Five starter templates: sprint cycle, project timeline, annual roadmap, scrum board and retrospective",
+                "Five starter templates: daily planning, projects, milestones, retro and flows",
                 "A dice button fills a template with random items to try things out",
             ]),
             item("Themes", pos(date(2025, 12, 19)), pos(date(2025, 12, 21)), "star", PURPLE, [
