@@ -15,7 +15,7 @@
         @* Column pills *@
         @if (Data.Columns?.Count > 0)
         {
-            <div class="mobile-column-pills">
+            <div class="mobile-column-pills" tabindex="0" role="region" aria-label="Columns">
                 @for (int i = 0; i < Data.Columns.Count; i++)
                 {
                     var col = Data.Columns[i];
@@ -25,7 +25,7 @@
                         @col.Label
                         @if (!string.IsNullOrEmpty(col.Sub))
                         {
-                            <span style="opacity: 0.7; margin-left: 3px;">@col.Sub</span>
+                            <span class="mobile-column-pill-sub">@col.Sub</span>
                         }
                     </div>
                 }
@@ -35,14 +35,14 @@
         @* Milestone chips *@
         @if (Data.Milestones?.Count > 0)
         {
-            <div class="mobile-milestones-row">
+            <div class="mobile-milestones-row" tabindex="0" role="region" aria-label="Milestones">
                 @foreach (var milestone in Data.Milestones)
                 {
                     <div class="mobile-milestone-chip">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="@milestone.Color" stroke="none">
                             <polygon points="12,2 22,12 12,22 2,12"></polygon>
                         </svg>
-                        <span style="color: @milestone.Color;">@milestone.Title</span>
+                        <span style="color: #e5e7eb;">@milestone.Title</span>
                     </div>
                 }
             </div>

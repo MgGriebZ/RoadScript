@@ -18,6 +18,7 @@
         <input type="text"
                value="@Item.Title"
                @onchange="@(e => OnChange.InvokeAsync(("title", e.Value)))"
+               aria-label="Item title"
                class="form-control" />
     </div>
 
@@ -47,6 +48,7 @@
 
             @* Editable Numeric Value *@
             <input type="number"
+                   aria-label="Length in columns"
                    value="@Item.Length"
                    @onchange="@(e => OnChange.InvokeAsync(("length", double.Parse(e.Value?.ToString() ?? "0.25"))))"
                    style="flex: 1; min-width: 55px; text-align: center; background: #1a1a2e; border: 1px solid #667eea; border-radius: 4px; padding: 6px 4px; font-weight: 600; color: #667eea; font-size: 13px;"
@@ -101,6 +103,7 @@
 
             @* Editable Numeric Value *@
             <input type="number"
+                   aria-label="Start position in columns"
                    value="@Item.Start"
                    @onchange="@(e => OnChange.InvokeAsync(("start", double.Parse(e.Value?.ToString() ?? "0"))))"
                    style="flex: 1; min-width: 55px; text-align: center; background: #1a1a2e; border: 1px solid #667eea; border-radius: 4px; padding: 6px 4px; font-weight: 600; color: #667eea; font-size: 13px;"
@@ -129,6 +132,7 @@
         </div>
 
         <input type="range"
+               aria-label="Start position"
                value="@Item.Start"
                @onchange="@(e => OnChange.InvokeAsync(("start", double.Parse(e.Value?.ToString() ?? "0"))))"
                min="0"
@@ -291,7 +295,7 @@
 
     <div class="form-group">
         <label style="margin-bottom: 8px; font-weight: 600; color: #e0e7ff;">Description</label>
-        <div style="font-size: 10px; color: #666; margin-bottom: 8px;">
+        <div style="font-size: 10px; color: #a5a8c0; margin-bottom: 8px;">
             Markdown: **bold** · *italic* · ~~strike~~ · `code` · - bullets · (indent 2 spaces for sub-bullets)
         </div>
 

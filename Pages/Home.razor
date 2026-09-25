@@ -43,7 +43,7 @@ else if (_isMobileLayout)
                       OnMenuClick="@(() => { _mobileSideDrawerOpen = true; StateHasChanged(); })"
                       OnToggleView="@(async () => await ToggleViewMode(null))" />
 
-        <div class="mobile-content">
+        <div class="mobile-content" tabindex="0" role="region" aria-label="Roadmap">
             @if (_data != null)
             {
                 <MobileRoadmapListView Data="@_data"
@@ -353,7 +353,7 @@ else
                             📥 Import Session Data
                         </button>
                     </div>
-                    <div style="font-size: 10px; color: #6b7280; line-height: 1.3; margin-top: 2px;">
+                    <div style="font-size: 10px; color: #9ca3af; line-height: 1.3; margin-top: 2px;">
                         Export/import all folders and roadmaps
                     </div>
                 </div>

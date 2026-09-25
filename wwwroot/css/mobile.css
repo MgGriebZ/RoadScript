@@ -810,7 +810,7 @@
 }
 
 .mobile-bottom-nav-item.active {
-    color: #667eea;
+    color: #8b93f8;
 }
 
 /* ========== MOBILE ROADMAP LIST VIEW ========== */
@@ -980,7 +980,7 @@
 
 .mobile-item-card-meta {
     font-size: 11px;
-    color: #9ca3af;
+    color: #6b7280;
     margin-bottom: 6px;
 }
 
@@ -1087,4 +1087,13 @@ body.mobile-shell-active {
     font-size: 15px;
     font-weight: 600;
     text-decoration: none;
+}
+
+.mobile-column-pill-sub {
+    margin-left: 3px;
+    color: #b4b8cf;
+}
+
+.mobile-column-pill.active .mobile-column-pill-sub {
+    color: #eef0ff;
 }

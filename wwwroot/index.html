@@ -280,7 +280,8 @@
         #landing a:focus-visible,
         #landing button:focus-visible,
         #landing input:focus-visible,
-        .rs-shot:focus-visible {
+        .rs-shot:focus-visible,
+        .rs-code:focus-visible {
             outline: 3px solid #9aa1ff;
             outline-offset: 2px;
         }
@@ -423,7 +424,7 @@
                             <span class="rs-tag">For technical users</span>
                         </div>
                         <p>Every roadmap is plain JSON. Paste one in, bulk-edit items, or keep it in version control next to your code.</p>
-<pre class="rs-code"><code>{
+<pre class="rs-code" tabindex="0" aria-label="Example roadmap item in JSON"><code>{
   <span class="k">"title"</span>: <span class="s">"RoadScript"</span>,
   <span class="k">"start"</span>: <span class="n">4.6</span>,
   <span class="k">"length"</span>: <span class="n">2.1</span>,
