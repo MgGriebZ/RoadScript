@@ -709,3 +709,35 @@ if (document.readyState === 'loading') {
 } else {
     window.RoadScriptInterop.addEditorStyles();
 }
+
+// Items that open details in the read-only showcase are focusable divs with role="button".
+// Give them the keyboard behavior of a real button: Enter and Space activate them.
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const el = e.target;
+    if (!(el instanceof Element) || !el.hasAttribute('data-rs-inspect')) return;
+    e.preventDefault();
+    el.click();
+});
+
+/**
+ * Moves keyboard focus to an element by id without scrolling the page. Returns true when found.
+ * @param {string} id
+ */
+window.RoadScriptInterop.focusById = function (id) {
+    const el = document.getElementById(id);
+    if (!el) return false;
+    el.focus({ preventScroll: true });
+    return true;
+};
+
+/**
+ * Scrolls an element into view by the smallest amount, horizontally and vertically.
+ * @param {string} id
+ */
+window.RoadScriptInterop.scrollIntoViewById = function (id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+};
