@@ -28,7 +28,7 @@
           "length": 0.86,
           "icon": "rocket",
           "color": "#EF4444",
-          "description": "- A written PRD first, then six build phases the same day: scaffold, design system, content model, data pipeline, components and pages\n- Astro and Tailwind on Azure Static Web Apps\n- The next day, the build page became a step-by-step guide"
+          "description": "A PRD first, then six build phases in a day\n- A written PRD first, then six build phases the same day: scaffold, design system, content model, data pipeline, components and pages\n- Astro and Tailwind on Azure Static Web Apps\n- The next day, the build page became a step-by-step guide"
         },
         {
           "title": "Polish passes",
@@ -36,7 +36,7 @@
           "length": 3.57,
           "icon": "star",
           "color": "#EF4444",
-          "description": "- A UX overhaul PRD applied across every page (July 5)\n- Home page redesign (July 13) and a performance PRD for first-load speed and caching (July 14)"
+          "description": "UX, home page and performance passes\n- A UX overhaul PRD applied across every page (July 5)\n- Home page redesign (July 13) and a performance PRD for first-load speed and caching (July 14)"
         },
         {
           "title": "Field notes",
@@ -44,7 +44,7 @@
           "length": 1.14,
           "icon": "bookmark",
           "color": "#EF4444",
-          "description": "- Visitor comments on each page, with a moderation panel (July 20 to 21)"
+          "description": "Visitor comments with moderation\n- Visitor comments on each page, with a moderation panel (July 20 to 21)"
         },
         {
           "title": "Every champion",
@@ -52,7 +52,7 @@
           "length": 1.9,
           "icon": "flag",
           "color": "#EF4444",
-          "description": "- Guides and clips for every champion and role, from MgGriebZ.com's League data"
+          "description": "Guides and clips for every champion\n- Guides and clips for every champion and role, from MgGriebZ.com's League data"
         }
       ]
     },
@@ -67,7 +67,7 @@
           "length": 7.14,
           "icon": "square",
           "color": "#7C3AED",
-          "description": "- Five to ten second clips with notes, tagged by mechanic or matchup: vision control, level 1 trades, lane defense\n- Each clip links to its real match record\n- A repeatable path from replay, to clip, to a guide entry"
+          "description": "Short clips with notes, linked to real matches\n- Five to ten second clips with notes, tagged by mechanic or matchup: vision control, level 1 trades, lane defense\n- Each clip links to its real match record\n- A repeatable path from replay, to clip, to a guide entry"
         }
       ]
     },
@@ -82,7 +82,7 @@
           "length": 0.9,
           "icon": "target",
           "color": "#7C3AED",
-          "description": "- Short clips that loop, with loop controls on the detail page (July 4 to 5)"
+          "description": "Looping clips with playback controls\n- Short clips that loop, with loop controls on the detail page (July 4 to 5)"
         },
         {
           "title": "Detail screen",
@@ -90,7 +90,7 @@
           "length": 1.71,
           "icon": "clock",
           "color": "#7C3AED",
-          "description": "- Player and notes side by side instead of stacked (July 13)\n- Redesigned detail screen with a playback dock: speed control between frame-step buttons (July 16 to 18)"
+          "description": "Player and notes side by side\n- Player and notes side by side instead of stacked (July 13)\n- Redesigned detail screen with a playback dock: speed control between frame-step buttons (July 16 to 18)"
         }
       ]
     },
@@ -105,7 +105,7 @@
           "length": 2.14,
           "icon": "chart",
           "color": "#D4652F",
-          "description": "- Game stats pulled from the MgGriebZ.com API at build time (July 3)\n- MgGriebZ.com starts a rebuild when a new clip is logged (July 7)"
+          "description": "Stats from the MgGriebZ.com API\n- Game stats pulled from the MgGriebZ.com API at build time (July 3)\n- MgGriebZ.com starts a rebuild when a new clip is logged (July 7)"
         },
         {
           "title": "Wards",
@@ -113,7 +113,7 @@
           "length": 0.9,
           "icon": "search",
           "color": "#D4652F",
-          "description": "- First-party visit tracking and game vision stats, planned in one PRD and shipped in eight phases on July 8\n- A private dashboard behind a GitHub login\n- Unit and end-to-end tests with Vitest and Playwright"
+          "description": "Visit tracking and vision stats\n- First-party visit tracking and game vision stats, planned in one PRD and shipped in eight phases on July 8\n- A private dashboard behind a GitHub login\n- Unit and end-to-end tests with Vitest and Playwright"
         },
         {
           "title": "Matchups",
@@ -121,7 +121,7 @@
           "length": 1.14,
           "icon": "globe",
           "color": "#D4652F",
-          "description": "- Matchup pages built from past games, sorted by the opponents met most"
+          "description": "Matchup pages from past games\n- Matchup pages built from past games, sorted by the opponents met most"
         }
       ]
     },
@@ -136,7 +136,7 @@
           "length": 7.0,
           "icon": "lightbulb",
           "color": "#0F766E",
-          "description": "- Every feature started as a PRD and shipped in numbered phases\n- Decisions logged with IDs, past 200 by mid-July, and shipped PRDs archived\n- A CLAUDE.md guide tells coding agents how to execute a PRD"
+          "description": "Every feature starts as a PRD\n- Every feature started as a PRD and shipped in numbered phases\n- Decisions logged with IDs, past 200 by mid-July, and shipped PRDs archived\n- A CLAUDE.md guide tells coding agents how to execute a PRD"
         }
       ]
     }

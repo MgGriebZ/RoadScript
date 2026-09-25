@@ -748,3 +748,190 @@ window.RoadScriptInterop.scrollIntoViewById = function (id) {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
 };
+
+/**
+ * Keeps roadmap items from showing half-cut text.
+ * - In the read-only examples (inside .showcase-canvas) CSS shows only an item's lead line;
+ *   this hides that line too when it doesn't fit whole.
+ * - In the editor, bullets that don't fit whole are hidden and the item shows "+N more".
+ * Runs after every render, resize and font load. It only toggles classes and a data attribute,
+ * so it never changes the DOM structure Blazor manages.
+ */
+(function () {
+    const HIDDEN = 'rs-fit-hidden';
+    const NONE = 'rs-fit-none';
+    const TOP = 'rs-more-top';
+    const COMPACT = 'rs-more-compact';
+    const SHORT = 'rs-short';
+    const TITLE_STEPS = ['rs-title-small', 'rs-title-smaller', 'rs-title-break'];
+    let queued = false;
+    const watched = new WeakSet();
+    const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(schedule) : null;
+
+    function schedule() {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(() => {
+            queued = false;
+            fitAll();
+        });
+    }
+
+    function contentBottom(item) {
+        const cs = getComputedStyle(item);
+        return item.getBoundingClientRect().bottom - parseFloat(cs.borderBottomWidth) - parseFloat(cs.paddingBottom);
+    }
+
+    // A list item's own text ends where its sub-list starts
+    function ownBottom(el) {
+        const sub = el.tagName === 'LI' ? el.querySelector(':scope > ul, :scope > ol') : null;
+        return sub ? sub.getBoundingClientRect().top : el.getBoundingClientRect().bottom;
+    }
+
+    function fitLeadLine(item, desc) {
+        desc.classList.remove(NONE);
+        const tooTall = desc.getBoundingClientRect().bottom > contentBottom(item) + 0.5;
+        const tooWide = desc.scrollWidth > desc.clientWidth + 1;
+        if (tooTall || tooWide) desc.classList.add(NONE);
+    }
+
+    function intersects(a, b) {
+        return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+    }
+
+    // Tests the text itself, line by line, so a short line in a wide item can sit beside the count.
+    // The rect is grown by a few pixels so text never touches the count.
+    function textIntersects(el, r) {
+        const rect = { left: r.left - 4, right: r.right + 4, top: r.top - 2, bottom: r.bottom + 2 };
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sub = el.tagName === 'LI' ? el.querySelector(':scope > ul, :scope > ol') : null;
+        if (sub) range.setEndBefore(sub);
+        return Array.from(range.getClientRects()).some(line => intersects(line, rect));
+    }
+
+    function fitBullets(item, desc, more) {
+        desc.querySelectorAll('.' + HIDDEN).forEach(el => el.classList.remove(HIDDEN));
+        if (more) {
+            more.removeAttribute('data-more');
+            more.classList.remove(TOP, COMPACT);
+        }
+
+        const units = Array.from(desc.querySelectorAll(':scope > p, :scope > pre, :scope > div, li'));
+        if (units.length === 0) return;
+
+        const bottom = contentBottom(item);
+        // A unit is cut off when it runs past the bottom, or when one of its words is wider than the item
+        let first = units.findIndex(u => ownBottom(u) > bottom + 0.5 || u.scrollWidth > u.clientWidth + 1);
+        if (first < 0) return;
+
+        // Hide everything from the first unit that is cut off
+        const hide = from => { for (let i = from; i < units.length; i++) units[i].classList.add(HIDDEN); };
+        hide(first);
+        if (!more) return;
+
+        // Show "+N more" in the bottom corner. If it would cover a visible line, try the title
+        // bar instead, and hide the covered bullets only when the title bar has no room.
+        more.setAttribute('data-more', String(units.length - first));
+        let covered = first;
+        while (covered > 0 && textIntersects(units[covered - 1], more.getBoundingClientRect())) covered--;
+        if (covered < first && !fitsInTitleBar(item, more)) {
+            if (covered === 0) {
+                // The count would cover the summary line, and the summary matters more
+                more.removeAttribute('data-more');
+                return;
+            }
+            for (let i = covered; i < first; i++) units[i].classList.add(HIDDEN);
+            first = covered;
+            more.setAttribute('data-more', String(units.length - first));
+        }
+
+        // The bottom corner overlaps the title in a very short item: use the title bar, or
+        // show no count at all in a tiny item, where the title alone says enough
+        if (more.classList.contains(TOP)) return;
+        const box = item.getBoundingClientRect();
+        const header = item.querySelector(':scope > .roadmap-item-header');
+        const pillNow = more.getBoundingClientRect();
+        const tooNarrow = pillNow.left < box.left + 4;
+        const coversTitle = header && intersects(pillNow, header.getBoundingClientRect());
+        if (!tooNarrow && !coversTitle) return;
+        if (!tooNarrow && fitsInTitleBar(item, more)) return;
+        more.removeAttribute('data-more');
+    }
+
+    // Moves the count into the title bar when it fits beside the title, as "+N more" or just "+N"
+    function fitsInTitleBar(item, more) {
+        const header = item.querySelector(':scope > .roadmap-item-header');
+        if (!header) return false;
+        const title = header.querySelector('h4');
+        const fits = () => {
+            const pill = more.getBoundingClientRect();
+            const bar = header.getBoundingClientRect();
+            return pill.top >= bar.top && pill.bottom <= bar.bottom + 1 &&
+                !(title && textIntersects(title, pill)) &&
+                !Array.from(header.children).some(el => el !== title && intersects(el.getBoundingClientRect(), pill));
+        };
+        more.classList.add(TOP);
+        if (fits()) return true;
+        more.classList.add(COMPACT);
+        if (fits()) return true;
+        more.classList.remove(TOP, COMPACT);
+        return false;
+    }
+
+    // Editor titles keep whole words: a word wider than the item steps the title down a size,
+    // and only a word that still doesn't fit at the smallest size may break
+    function fitTitle(item) {
+        item.classList.remove(...TITLE_STEPS);
+        const title = item.querySelector(':scope > .roadmap-item-header h4');
+        if (!title) return;
+        for (const step of TITLE_STEPS) {
+            if (title.scrollWidth <= title.clientWidth + 1) return;
+            item.classList.add(step);
+        }
+    }
+
+    function fitItem(item) {
+        const desc = item.querySelector(':scope > .roadmap-item-description');
+        if (item.closest('.showcase-canvas')) {
+            if (desc) fitLeadLine(item, desc);
+            return;
+        }
+        item.classList.toggle(SHORT, item.getBoundingClientRect().height < 80);
+        fitTitle(item);
+        if (desc) fitBullets(item, desc, item.querySelector(':scope > .roadmap-item-more'));
+    }
+
+    // Items can change size without a DOM change (a row grows, a panel opens), so watch each one
+    function watch(el) {
+        if (resizeObserver && !watched.has(el)) {
+            watched.add(el);
+            resizeObserver.observe(el);
+        }
+    }
+
+    function fitAll() {
+        document.querySelectorAll('.roadmap-container').forEach(watch);
+        document.querySelectorAll('.roadmap-item-resizable').forEach(item => {
+            watch(item);
+            fitItem(item);
+        });
+    }
+
+    function start() {
+        // Re-fit when Blazor re-renders or items move; class and data-more changes made here are not watched
+        new MutationObserver(schedule).observe(document.body, {
+            subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['style']
+        });
+        window.addEventListener('resize', schedule);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+        schedule();
+    }
+
+    window.RoadScriptFit = { refresh: schedule };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+    } else {
+        start();
+    }
+})();

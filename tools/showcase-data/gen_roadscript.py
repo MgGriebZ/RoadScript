@@ -20,6 +20,24 @@ def pos(d):
             return first + units * (d - start).days / (end - start).days
     raise ValueError(d)
 
+# One short lead sentence per item: the timeline shows only this line
+SUMMARIES = {
+    'First version': 'Live the day of the first commit',
+    'Direct editing': 'Drag, resize and jump to the JSON',
+    'Richer items': 'Lane milestones and markdown details',
+    'Wide columns': 'Columns for uneven periods',
+    'Tabs and folders': 'Several roadmaps, saved in the browser',
+    'Linked roadmaps': 'Roadmaps that link to each other',
+    'Share links': 'The whole roadmap lives in the link',
+    'Export and install': 'Markdown and SVG export, and an installable app',
+    'Landing page': 'A front door and read-only examples',
+    'Public launch': 'Launch on LinkedIn and Reddit',
+    'Templates': 'Five starter templates',
+    'Themes': 'Seasonal backgrounds',
+    'Phone layouts': 'Several passes at phone layouts',
+    'Daily use at work': 'Used every day in refinement and sprint planning',
+}
+
 def item(title, start, end, icon, color, desc, spanning=False, greyed=False, min_len=None):
     s = round(start, 2)
     length = round(round(end, 2) - s, 2)
@@ -30,7 +48,7 @@ def item(title, start, end, icon, color, desc, spanning=False, greyed=False, min
     it["icon"] = icon
     it["color"] = color
     if greyed: it["greyed"] = True
-    it["description"] = "\n".join("- " + b for b in desc)
+    it["description"] = SUMMARIES[title] + "\n" + "\n".join("- " + b for b in desc)
     return it
 
 def ms(title, d, icon, color):

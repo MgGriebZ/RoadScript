@@ -955,8 +955,13 @@
     box-shadow: 0 0 0 2px #667eea, 0 2px 8px rgba(0,0,0,0.12);
 }
 
+/* Paused or retired: drained of color, with text that stays readable */
 .mobile-item-card.greyed {
-    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+.mobile-item-card.greyed .mobile-item-card-title {
+    color: #4b5563;
 }
 
 .mobile-item-card.spanning {

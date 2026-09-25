@@ -255,6 +255,11 @@
                                 }
                             </ul>
                         }
+                        @if (hasDetails)
+                        {
+                            @* Filled in by roadscript-interop.js when some bullets don't fit: "+2 more" *@
+                            <span class="roadmap-item-more" aria-hidden="true"></span>
+                        }
                     </div>
                     }
                 }

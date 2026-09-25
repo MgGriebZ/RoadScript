@@ -9,7 +9,11 @@ namespace RoadScript.Services;
 /// <summary>
 /// An example roadmap bundled with the app under wwwroot/showcase/{Slug}.json.
 /// </summary>
-public record ShowcaseEntry(string Slug, string Name);
+/// <param name="Name">Full name, used for links between examples</param>
+/// <param name="CardTitle">Short name on the example switcher</param>
+/// <param name="CardMeta">One line under the short name</param>
+/// <param name="Lede">The sentence under the title at the top of the page</param>
+public record ShowcaseEntry(string Slug, string Name, string CardTitle, string CardMeta, string Lede);
 
 /// <summary>
 /// Helpers for the read-only example roadmaps. Examples are static files; nothing here
@@ -24,10 +28,14 @@ public static class ShowcaseService
 
     public static readonly IReadOnlyList<ShowcaseEntry> All = new[]
     {
-        new ShowcaseEntry("portfolio", "Portfolio overview"),
-        new ShowcaseEntry("roadscript", "RoadScript build history"),
-        new ShowcaseEntry("mggriebz", "MgGriebZ.com build history"),
-        new ShowcaseEntry("shaco", "shaco build history"),
+        new ShowcaseEntry("portfolio", "Portfolio overview", "Portfolio overview", "Everything since 2024",
+            "Everything I have built since 2024, from launched products to paused experiments, and how the way I build changed along the way."),
+        new ShowcaseEntry("roadscript", "RoadScript build history", "RoadScript", "Build history since Nov 2025",
+            "How this app was built, from the first commit on November 25, 2025. Column subtitles count the commits in each period."),
+        new ShowcaseEntry("mggriebz", "MgGriebZ.com build history", "MgGriebZ.com", "Build history since Jun 2025",
+            "My personal site and the API behind my other projects, from the first commit on June 18, 2025. Column subtitles count commits."),
+        new ShowcaseEntry("shaco", "shaco build history", "shaco", "Built in four weeks, Jul 2026",
+            "A field guide to AP Shaco support in League of Legends, built in four weeks from July 3, 2026. Column subtitles count commits."),
     };
 
     public static readonly JsonSerializerOptions JsonOptions = new()

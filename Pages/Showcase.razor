@@ -14,7 +14,7 @@
     <header class="showcase-bar">
         <nav class="showcase-crumbs" aria-label="Breadcrumb">
             <a class="showcase-brand" href="/">
-                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 10-10 10L2 12z" fill="#7b83ff"></path></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 10-10 10L2 12z" fill="#7b83ff"></path></svg>
                 <span>RoadScript</span>
             </a>
             <span class="showcase-crumb-sep" aria-hidden="true">/</span>
@@ -27,113 +27,121 @@
             </span>
             @if (_data != null)
             {
-                <button type="button" class="showcase-button showcase-bar-copy" @onclick="MakeEditableCopy">Make an editable copy</button>
+                <button type="button" class="showcase-button showcase-bar-copy" @onclick="MakeEditableCopy">@CopyIcon Make an editable copy</button>
             }
         </div>
     </header>
 
-    <nav class="showcase-tabs" aria-label="Examples">
-        @foreach (var entry in ShowcaseService.All)
+    <section class="showcase-hero" aria-labelledby="showcase-title">
+        <p class="showcase-eyebrow">Example roadmap</p>
+        <h1 id="showcase-title">@(_data?.Title ?? CurrentEntry?.Name ?? (_notFound ? "Example not found" : "Example roadmap"))</h1>
+        @if (CurrentEntry != null)
         {
-            var isCurrent = entry.Slug == Slug;
-            <a href="@($"showcase/{entry.Slug}")" aria-current="@(isCurrent ? "page" : null)">@entry.Name</a>
+            <p class="showcase-lede">@CurrentEntry.Lede</p>
         }
-    </nav>
+        <nav class="showcase-switcher" aria-label="Examples">
+            @foreach (var entry in ShowcaseService.All)
+            {
+                var isCurrent = entry.Slug == Slug;
+                <a class="showcase-switch" href="@($"showcase/{entry.Slug}")" aria-current="@(isCurrent ? "page" : null)" data-slug="@entry.Slug">
+                    <span class="showcase-switch-icon" aria-hidden="true">@SwitchIcon(entry.Slug)</span>
+                    <span class="showcase-switch-text">
+                        <span class="showcase-switch-title">@entry.CardTitle</span>
+                        <span class="showcase-switch-meta">@entry.CardMeta</span>
+                    </span>
+                </a>
+            }
+        </nav>
+    </section>
 
     <div class="showcase-body">
         @if (_data != null)
         {
             <main class="showcase-main">
-                <div class="showcase-heading">
-                    <h1>@_data.Title</h1>
-                    @if (!string.IsNullOrWhiteSpace(_data.Subtitle))
-                    {
-                        <p>@_data.Subtitle</p>
-                    }
-                </div>
-                <div class="showcase-toolbar">
-                    <div class="showcase-views" role="group" aria-label="View">
-                        @foreach (var view in Views)
+                <section class="showcase-frame" aria-label="@($"{_data.Title}, {_view.ToLowerInvariant()} view")">
+                    <div class="showcase-toolbar">
+                        <div class="showcase-views" role="group" aria-label="View">
+                            @foreach (var view in Views)
+                            {
+                                var isActive = view == _view;
+                                <button type="button" aria-pressed="@(isActive ? "true" : "false")" @onclick="() => SetView(view)">@ViewIcon(view)<span>@view</span></button>
+                            }
+                        </div>
+                        @if (_view == TimelineView)
                         {
-                            var isActive = view == _view;
-                            <button type="button" aria-pressed="@(isActive ? "true" : "false")" @onclick="() => SetView(view)">@view</button>
+                            <ul class="showcase-legend" aria-label="Legend">
+                                <li>@RocketIcon Public launch</li>
+                                <li><span class="showcase-legend-key is-dashed"></span>In progress</li>
+                                <li><span class="showcase-legend-key is-grey"></span>Paused or retired</li>
+                                <li><span class="showcase-legend-chip">Next</span>Plans</li>
+                            </ul>
+                            <p class="showcase-toolbar-note">@PointerIcon <span>Select an item for its details</span></p>
+                        }
+                        else if (_view == ListView)
+                        {
+                            <p class="showcase-toolbar-note">Every item, lane by lane, in timeline order</p>
+                        }
+                        else
+                        {
+                            <p class="showcase-toolbar-note">The same roadmap as JSON. In RoadScript you can edit either one.</p>
                         }
                     </div>
-                    <p class="showcase-toolbar-note">
-                        @switch (_view)
-                        {
-                            case TimelineView:
-                                <span class="showcase-note-wide">Select any item to read its details.</span>
-                                <span class="showcase-note-narrow">Swipe sideways for more. Tap an item for details.</span>
-                                <span class="showcase-legend" aria-hidden="true">
-                                    <span class="showcase-legend-key is-dashed"></span>In progress
-                                    <span class="showcase-legend-key is-grey"></span>Paused or retired
-                                </span>
-                                break;
-                            case ListView:
-                                <span>Every item, lane by lane, in timeline order.</span>
-                                break;
-                            default:
-                                <span>The same roadmap as JSON. In RoadScript you can edit either one.</span>
-                                break;
-                        }
-                    </p>
-                </div>
 
-                @if (_view == TimelineView)
-                {
-                    <div class="showcase-scroller" tabindex="0" role="region" aria-label="@($"{_data.Title} timeline. Scrolls sideways.")">
-                        <div class="showcase-canvas">
-                            <RoadmapRenderer Data="@_data"
-                                             IsPreviewMode="true"
-                                             ActiveTab="@_tab"
-                                             SessionManager="@_session"
-                                             AvailableRoadmaps="@_noLinks"
-                                             OnItemInspect="@InspectItem"
-                                             InspectedItemKey="@_inspectedKey"
-                                             OnRoadmapLinkClick="@OpenLinkedShowcase" />
+                    @if (_view == TimelineView)
+                    {
+                        <div class="showcase-scroller" tabindex="0" role="region" aria-label="@($"{_data.Title} timeline. Scrolls sideways.")">
+                            <div class="showcase-canvas">
+                                <RoadmapRenderer Data="@_data"
+                                                 IsPreviewMode="true"
+                                                 ActiveTab="@_tab"
+                                                 SessionManager="@_session"
+                                                 AvailableRoadmaps="@_noLinks"
+                                                 OnItemInspect="@InspectItem"
+                                                 InspectedItemKey="@_inspectedKey"
+                                                 OnRoadmapLinkClick="@OpenLinkedShowcase" />
+                            </div>
                         </div>
-                    </div>
-                }
-                else if (_view == ListView)
-                {
-                    <div class="showcase-list">
-                        @foreach (var lane in _data.Lanes)
-                        {
-                            <section class="showcase-list-lane" aria-label="@lane.Title">
-                                <h2><span class="showcase-swatch" style="background: @lane.Color"></span>@lane.Title</h2>
-                                @foreach (var (item, _) in ShowcaseService.VisibleItemsInOrder(lane))
-                                {
-                                    var status = ShowcaseService.DescribeStatus(_data, item);
-                                    var linked = ShowcaseService.FindLinked(item.LinkedRoadmapId);
-                                    <article class="showcase-card @(item.Greyed ? "is-greyed" : "")" style="--lane-color: @(item.Color ?? lane.Color)">
-                                        <h3>@item.Title</h3>
-                                        <p class="showcase-meta">@ShowcaseService.DescribeDates(_data, item)@(status != null ? $" · {status}" : "")</p>
-                                        <div class="showcase-md">@((MarkupString)MarkdownRenderer.RenderToHtml(item.Description, item.Color ?? lane.Color))</div>
-                                        @if (linked != null)
-                                        {
-                                            <a class="showcase-linked" href="@($"showcase/{linked.Slug}")">@linked.Name @ArrowIcon</a>
-                                        }
-                                    </article>
-                                }
-                            </section>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="showcase-json">
-                        <div class="showcase-json-bar">
-                            <span class="showcase-json-name">@($"{Slug}.json")</span>
-                            <button type="button" class="showcase-button is-quiet" @onclick="CopyJson">@(_jsonCopied ? "Copied" : "Copy JSON")</button>
+                        <p class="showcase-scroll-hint">Swipe sideways for more. Tap an item for details.</p>
+                    }
+                    else if (_view == ListView)
+                    {
+                        <div class="showcase-list">
+                            @foreach (var lane in _data.Lanes)
+                            {
+                                <section class="showcase-list-lane" aria-label="@lane.Title">
+                                    <h2><span class="showcase-swatch" style="background: @lane.Color"></span>@lane.Title</h2>
+                                    @foreach (var (item, _) in ShowcaseService.VisibleItemsInOrder(lane))
+                                    {
+                                        var status = ShowcaseService.DescribeStatus(_data, item);
+                                        var linked = ShowcaseService.FindLinked(item.LinkedRoadmapId);
+                                        <article class="showcase-card @(item.Greyed ? "is-greyed" : "")" style="--lane-color: @(item.Color ?? lane.Color)">
+                                            <h3>@item.Title</h3>
+                                            <p class="showcase-meta">@ShowcaseService.DescribeDates(_data, item)@(status != null ? $" · {status}" : "")</p>
+                                            <div class="showcase-md">@((MarkupString)MarkdownRenderer.RenderToHtml(item.Description, item.Color ?? lane.Color))</div>
+                                            @if (linked != null)
+                                            {
+                                                <a class="showcase-linked" href="@($"showcase/{linked.Slug}")">@linked.Name @ArrowIcon</a>
+                                            }
+                                        </article>
+                                    }
+                                </section>
+                            }
                         </div>
-                        <pre tabindex="0" aria-label="Roadmap JSON"><code>@((MarkupString)_highlightedJson)</code></pre>
-                    </div>
-                }
+                    }
+                    else
+                    {
+                        <div class="showcase-json">
+                            <div class="showcase-json-bar">
+                                <span class="showcase-json-name">@($"{Slug}.json")</span>
+                                <button type="button" class="showcase-button is-quiet" @onclick="CopyJson">@(_jsonCopied ? "Copied" : "Copy JSON")</button>
+                            </div>
+                            <pre tabindex="0" aria-label="Roadmap JSON"><code>@((MarkupString)_highlightedJson)</code></pre>
+                        </div>
+                    }
+                </section>
 
                 <div class="showcase-copy-inline">
-                    <button type="button" class="showcase-button" @onclick="MakeEditableCopy">Make an editable copy</button>
-                    <p>Adds a copy to your roadmaps in this browser. Your existing roadmaps are not changed.</p>
+                    <button type="button" class="showcase-button" @onclick="MakeEditableCopy">@CopyIcon Make an editable copy</button>
                 </div>
             </main>
 
@@ -168,7 +176,7 @@
         else if (_notFound)
         {
             <main class="showcase-message">
-                <h1>That example roadmap doesn't exist</h1>
+                <h2>That example roadmap doesn't exist</h2>
                 <p>It may have been renamed. Pick one of the examples above, or go to the home page.</p>
                 <a class="showcase-button" href="/">Go to RoadScript</a>
             </main>
@@ -193,6 +201,31 @@
     private static readonly string[] Views = { TimelineView, ListView, JsonView };
 
     private static readonly Regex SlugPattern = new("^[a-z0-9-]{1,60}$", RegexOptions.Compiled);
+
+    private static MarkupString Svg(string inner, int size = 16, string extra = "") => new(
+        $"<svg width=\"{size}\" height=\"{size}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"{extra}>{inner}</svg>");
+
+    private static readonly MarkupString CopyIcon = Svg("<rect x=\"9\" y=\"9\" width=\"12\" height=\"12\" rx=\"2\"></rect><path d=\"M5 15V5a2 2 0 0 1 2-2h10\"></path>");
+    private static readonly MarkupString RocketIcon = Svg("<path d=\"M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z\"></path><path d=\"M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z\"></path>", 15, " class=\"showcase-legend-rocket\"");
+    private static readonly MarkupString PointerIcon = Svg("<path d=\"M9 3l10 10-4 1 3 6-2 1-3-6-4 3z\"></path>", 15);
+
+    private static MarkupString ViewIcon(string view) => view switch
+    {
+        TimelineView => Svg("<path d=\"M3 6h9\"></path><path d=\"M7 12h12\"></path><path d=\"M11 18h10\"></path>", 15),
+        ListView => Svg("<path d=\"M9 6h12\"></path><path d=\"M9 12h12\"></path><path d=\"M9 18h12\"></path><path d=\"M4 6h.01\"></path><path d=\"M4 12h.01\"></path><path d=\"M4 18h.01\"></path>", 15),
+        _ => Svg("<path d=\"M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1\"></path><path d=\"M16 21h1a2 2 0 0 0 2-2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1\"></path>", 15)
+    };
+
+    private static MarkupString SwitchIcon(string slug) => slug switch
+    {
+        "portfolio" => Svg("<path d=\"M3 6h7\"></path><path d=\"M6 12h11\"></path><path d=\"M9 18h12\"></path>", 20),
+        "roadscript" => new("<svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 2l10 10-10 10L2 12z\" fill=\"currentColor\"></path></svg>"),
+        "mggriebz" => Svg("<path d=\"M3 11l9-7 9 7\"></path><path d=\"M5 10v10h14V10\"></path>", 19),
+        "shaco" => Svg("<rect x=\"3\" y=\"6\" width=\"18\" height=\"14\" rx=\"2\"></rect><path d=\"M3 10h18\"></path><path d=\"M8 6l2 4\"></path><path d=\"M14 6l2 4\"></path>", 19),
+        _ => Svg("<circle cx=\"12\" cy=\"12\" r=\"8\"></circle>", 18)
+    };
+
+    private ShowcaseEntry? CurrentEntry => ShowcaseService.Find(Slug);
 
     private static readonly MarkupString ArrowIcon = new(
         "<svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"></path><path d=\"M13 6l6 6-6 6\"></path></svg>");
