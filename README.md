@@ -46,6 +46,7 @@ It is built with AI coding agents. I write the plan, the agents implement it in 
 - Installable as an app
 
 **Keyboard shortcuts in the editor**
+- `Ctrl`/`Cmd` + `Z` undoes the last change, and `Ctrl`/`Cmd` + `Y` or `Ctrl`/`Cmd` + `Shift` + `Z` redoes it. Each roadmap keeps its own history until the page is reloaded.
 - `Esc` clears the selection
 - `Ctrl`/`Cmd` + `D` duplicates the selected element, `Delete` removes it
 - Arrow keys move between elements

@@ -17,6 +17,7 @@
 @inject ResponsiveService ResponsiveService
 @inject NavigationManager Navigation
 @inject PreferencesService Preferences
+@inject EditHistory History
 
 <PageTitle>@(!_initialized || _showLandingPage || _welcomeRequested ? LandingPageTitle : "RoadScript")</PageTitle>
 
@@ -883,78 +884,96 @@ else
         }
     }
 
+    // Undo history. Before an edit, the roadmap's current state is kept as a pending snapshot.
+    // The next save commits it to the history, but only if the roadmap actually changed, so
+    // clicks that start no edit (like pressing on an item without dragging it) don't clear redo.
+    private string? _pendingSnapshot;
+    private string? _pendingSnapshotKey;
+
+    private string? CurrentHistoryKey => _activeTab == null ? null : EditHistory.KeyFor(_activeFolder?.Id, _activeTab.Id);
+
+    private string? SnapshotOfCurrent() => _data == null ? null : JsonSerializer.Serialize(_data);
+
     private void SaveHistorySnapshot()
     {
-        if (!string.IsNullOrEmpty(_currentJson))
+        var key = CurrentHistoryKey;
+        var snapshot = SnapshotOfCurrent();
+        if (key == null || snapshot == null) return;
+
+        // Keep the earliest state if edits happen before the next save
+        if (_pendingSnapshot != null && _pendingSnapshotKey == key) return;
+
+        _pendingSnapshot = snapshot;
+        _pendingSnapshotKey = key;
+    }
+
+    private void CommitPendingSnapshot()
+    {
+        if (_pendingSnapshot == null) return;
+
+        var key = _pendingSnapshotKey;
+        var before = _pendingSnapshot;
+        _pendingSnapshot = null;
+        _pendingSnapshotKey = null;
+
+        // A different roadmap is open now; this snapshot can't be compared, so drop it
+        if (key == null || key != CurrentHistoryKey) return;
+
+        var now = SnapshotOfCurrent();
+        if (now != null && now != before)
         {
-            SelectionState.PushHistory(_currentJson);
+            History.Record(key, before);
         }
     }
 
-    // Undo and redo have been inactive since December 2025, when the unused Monaco editor
-    // was dropped from the page: both were gated on an editor instance that is never created.
-    // They stay off until the snapshot history in SelectionState is reworked.
-    private static readonly bool UndoRedoEnabled = false;
-
-    private async Task HandleUndo()
+    private void ClearEditHistory()
     {
-        try
-        {
-            var previousJson = SelectionState.Undo();
-            if (UndoRedoEnabled && previousJson != null)
-            {
-                _currentJson = previousJson;
-                ParseJson(previousJson);
-
-                if (_error == null && _sessionManager != null && _activeTab != null)
-                {
-                    _activeTab.Data = _data!;
-                    _activeTab.LastModified = DateTime.UtcNow;
-                    if (_folderManager != null)
-                    {
-                        // Use immediate save for undo (critical state change)
-                        await SaveState();
-                    }
-                }
-
-                SelectionState.Clear();
-                await InvokeAsync(StateHasChanged);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error during undo: {ex.Message}");
-        }
+        History.Clear();
+        _pendingSnapshot = null;
+        _pendingSnapshotKey = null;
     }
 
-    private async Task HandleRedo()
+    private Task HandleUndo() => StepHistory(undo: true);
+
+    private Task HandleRedo() => StepHistory(undo: false);
+
+    private async Task StepHistory(bool undo)
     {
         try
         {
-            var nextJson = SelectionState.Redo();
-            if (UndoRedoEnabled && nextJson != null)
+            CommitPendingSnapshot();
+
+            var key = CurrentHistoryKey;
+            var current = SnapshotOfCurrent();
+            if (key == null || current == null || _activeTab == null) return;
+
+            var snapshot = undo ? History.Undo(key, current) : History.Redo(key, current);
+            if (snapshot == null) return;
+
+            ParseJson(snapshot);
+            if (_data == null)
             {
-                _currentJson = nextJson;
-                ParseJson(nextJson);
-
-                if (_error == null && _sessionManager != null && _activeTab != null)
-                {
-                    _activeTab.Data = _data!;
-                    _activeTab.LastModified = DateTime.UtcNow;
-                    if (_folderManager != null)
-                    {
-                        // Use immediate save for redo (critical state change)
-                        await SaveState();
-                    }
-                }
-
-                SelectionState.Clear();
-                await InvokeAsync(StateHasChanged);
+                // Should not happen: snapshots are serialized from valid roadmaps. Keep what was there.
+                ParseJson(current);
+                return;
             }
+
+            _activeTab.Data = _data;
+            _activeTab.LastModified = DateTime.UtcNow;
+            if (_activeFolder != null)
+            {
+                _activeFolder.LastModified = DateTime.UtcNow;
+            }
+            _currentJson = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+            _hasUnsavedJsonChanges = false;
+
+            SelectionState.Clear();
+            await SaveState();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error during redo: {ex.Message}");
+            Console.WriteLine($"Error during {(undo ? "undo" : "redo")}: {ex.Message}");
         }
     }
 
@@ -1384,6 +1403,7 @@ else
 
         try
         {
+            SaveHistorySnapshot();
             ParseJson(_currentJson);
 
             if (_data != null && _activeTab != null && _folderManager != null)
@@ -1469,6 +1489,7 @@ else
             tabName = "Untitled Roadmap";
         }
 
+        ClearEditHistory();
         _folderManager = new FolderManager
         {
             ActiveFolderId = "folder-1",
@@ -1633,6 +1654,8 @@ else
     /// </summary>
     private async Task DebouncedSave()
     {
+        CommitPendingSnapshot();
+
         // Cancel any pending save
         _saveCancellation?.Cancel();
         _saveCancellation = new CancellationTokenSource();
@@ -1673,6 +1696,7 @@ else
     /// </summary>
     private async Task SaveState()
     {
+        CommitPendingSnapshot();
         await _saveLock.WaitAsync();
         try
         {
@@ -1919,6 +1943,7 @@ else
             }
 
             // Replace the entire folder manager
+            ClearEditHistory();
             _folderManager = importedFolderManager;
             _activeFolder = _folderManager.Folders.FirstOrDefault();
             _sessionManager = _activeFolder?.SessionManager;
@@ -3154,6 +3179,7 @@ else
 
         bool isLastTab = _sessionManager.Tabs.Count == 1;
 
+        History.Forget(EditHistory.KeyFor(_activeFolder?.Id, tabId));
         StorageService.RemoveTab(_sessionManager, tabId);
 
         if (isLastTab && _activeFolder != null)
@@ -3230,6 +3256,7 @@ else
 
         if (isLastTab)
         {
+            History.Forget(_activeFolder.Id + "/");
             StorageService.RemoveFolder(_folderManager, _activeFolder.Id);
 
             if (_folderManager.Folders.Count == 0)
@@ -3755,6 +3782,7 @@ else
         }
         else
         {
+            History.Forget(EditHistory.KeyFor(folder.Id, tab.Id));
             StorageService.RemoveTab(folder.SessionManager, tab.Id);
             folder.LastModified = DateTime.UtcNow;
 
@@ -4265,6 +4293,7 @@ else
             return;
         }
 
+        History.Forget(_activeFolder.Id + "/");
         StorageService.RemoveFolder(_folderManager, _activeFolder.Id);
         _activeFolder = StorageService.GetActiveFolder(_folderManager);
 

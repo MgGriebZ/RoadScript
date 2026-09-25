@@ -295,17 +295,24 @@ window.RoadScriptInterop = {
                 return;
             }
 
-            // Ctrl/Cmd + Z - Undo
-            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+            // Undo and redo for the roadmap. Inside a text field, leave the keys to the browser
+            // so typing can be undone the usual way.
+            const key = (e.key || '').toLowerCase();
+            const isTextEditing = isInputField || target.isContentEditable || target.tagName === 'SELECT';
+
+            // Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y - Redo
+            if ((e.ctrlKey || e.metaKey) && !e.altKey && ((key === 'z' && e.shiftKey) || key === 'y')) {
+                if (isTextEditing) return;
                 e.preventDefault();
-                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Undo');
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Redo');
                 return;
             }
 
-            // Ctrl/Cmd + Y - Redo
-            if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+            // Ctrl/Cmd + Z - Undo
+            if ((e.ctrlKey || e.metaKey) && !e.altKey && key === 'z') {
+                if (isTextEditing) return;
                 e.preventDefault();
-                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Redo');
+                dotNetRef.invokeMethodAsync('HandleKeyboardShortcut', 'Undo');
                 return;
             }
 
