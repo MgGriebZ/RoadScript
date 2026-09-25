@@ -18,6 +18,7 @@ builder.Services.AddScoped<UrlNavigationService>();
 builder.Services.AddScoped<ThemeService>();
 builder.Services.AddScoped<RoadmapStateManager>();
 builder.Services.AddScoped<DependencyDetectionService>();
+builder.Services.AddScoped<PreferencesService>();
 
 // Register mobile/responsive services
 builder.Services.AddScoped<ResponsiveService>();
