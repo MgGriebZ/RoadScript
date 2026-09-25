@@ -10,6 +10,7 @@ namespace RoadScript.Services;
 public static class MarkdownRenderer
 {
     private static readonly Regex UrlRegex = new(@"(https?://[^\s<]+)", RegexOptions.Compiled);
+    private static readonly Regex TextBetweenTags = new(@"(?<=^|>)[^<]+", RegexOptions.Compiled);
 
     /// <summary>
     /// Convert markdown text to sanitized HTML for rendering inside swim lane items.
@@ -231,6 +232,10 @@ public static class MarkdownRenderer
         // Inline code: `text`
         line = Regex.Replace(line, @"`([^`]+)`",
             "<code style=\"padding:1px 4px;background:#f3f4f6;color:#374151;border-radius:3px;font-size:0.9em;font-family:monospace;border:1px solid #e5e7eb;\">$1</code>");
+
+        // Let text wrap after a slash, so "Hosting/Services" fits a narrow item as "Hosting/" and "Services".
+        // Only text between tags changes; attributes like href are left alone.
+        line = TextBetweenTags.Replace(line, m => m.Value.Replace("/", "/<wbr>"));
 
         return line;
     }
