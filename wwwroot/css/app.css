@@ -2134,6 +2134,11 @@ main {
     font-size: 10.5px !important;
 }
 
+/* Only when a title word still doesn't fit at the smallest size: drop the icon to make room */
+.preview-pane .roadmap-item-resizable.rs-title-noicon .roadmap-item-header > div:first-child {
+    display: none !important;
+}
+
 .preview-pane .roadmap-item-resizable.rs-title-break .roadmap-item-header h4 {
     overflow-wrap: anywhere;
 }
@@ -2192,16 +2197,19 @@ main {
     }
 }
 
-/* Narrow items: no icon, tighter padding, smaller type */
+/* Narrow items: a smaller icon, tighter padding, smaller type */
 @container (max-width: 130px) {
     .preview-pane .roadmap-item-resizable .roadmap-item-header {
         padding-left: 8px !important;
         padding-right: 6px !important;
-        gap: 4px !important;
+        gap: 5px !important;
     }
 
-    .preview-pane .roadmap-item-resizable .roadmap-item-header > div:first-child {
-        display: none !important;
+    .preview-pane .roadmap-item-resizable .roadmap-item-header:has(h4) > div:first-child,
+    .preview-pane .roadmap-item-resizable .roadmap-item-header:has(h4) > div:first-child svg {
+        width: 16px !important;
+        height: 16px !important;
+        flex-shrink: 0;
     }
 
     .preview-pane .roadmap-item-resizable .roadmap-item-header h4 {

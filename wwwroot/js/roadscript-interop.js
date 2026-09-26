@@ -763,7 +763,7 @@ window.RoadScriptInterop.scrollIntoViewById = function (id) {
     const INLINE = 'rs-more-inline';
     const COMPACT = 'rs-more-compact';
     const SHORT = 'rs-short';
-    const TITLE_STEPS = ['rs-title-small', 'rs-title-smaller', 'rs-title-break'];
+    const TITLE_STEPS = ['rs-title-small', 'rs-title-smaller', 'rs-title-noicon', 'rs-title-break'];
     let queued = false;
     const watched = new WeakSet();
     const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(schedule) : null;
@@ -897,8 +897,8 @@ window.RoadScriptInterop.scrollIntoViewById = function (id) {
             line.left < r.right + 6 && r.left - 6 < line.right && line.top < r.bottom && r.top < line.bottom);
     }
 
-    // Editor titles keep whole words: a word wider than the item steps the title down a size,
-    // and only a word that still doesn't fit at the smallest size may break
+    // Editor titles keep whole words: a word wider than the item steps the title down a size.
+    // Only a word that still doesn't fit at the smallest size hides the icon, and then may break.
     function fitTitle(item) {
         item.classList.remove(...TITLE_STEPS);
         const title = item.querySelector(':scope > .roadmap-item-header h4');
