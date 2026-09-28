@@ -202,8 +202,8 @@ html, body, #app {
         line-height: 1.4 !important;
     }
 
-    /* Lane titles: 16px → 14px (-13%) */
-    .preview-pane .roadmap > div > div:first-child span {
+    /* Lane titles: 16px → 14px (-13%). Only the title: the small history labels under it keep their size. */
+    .preview-pane .roadmap .roadmap-lane-title {
         font-size: 14px !important;
         line-height: 1.3 !important;
     }
