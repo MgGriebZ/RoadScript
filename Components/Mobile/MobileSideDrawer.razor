@@ -104,7 +104,7 @@
                     </button>
 
                     <button @onclick="@(() => { OnShareClick.InvokeAsync(); Close(); })"
-                            style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: transparent; border: none; color: #e0e7ff; font-size: 14px; cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent;">
+                            style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: transparent; border: none; color: #e0e7ff; font-size: 14px; cursor: pointer; text-align: left; border-bottom: 1px solid #2a2a3e; -webkit-tap-highlight-color: transparent;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
                             <circle cx="18" cy="5" r="3"></circle>
                             <circle cx="6" cy="12" r="3"></circle>
@@ -113,6 +113,16 @@
                             <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                         </svg>
                         Share Roadmap
+                    </button>
+
+                    <button @onclick="@(() => { OnWelcomeClick.InvokeAsync(); Close(); })"
+                            style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: transparent; border: none; color: #e0e7ff; font-size: 14px; cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 11.5L12 4l9 7.5"></path>
+                            <path d="M5.5 10v10h13V10"></path>
+                            <path d="M10 20v-5.5h4V20"></path>
+                        </svg>
+                        Welcome page
                     </button>
                 </div>
             }
@@ -158,6 +168,7 @@
     [Parameter] public EventCallback OnTabAdd { get; set; }
     [Parameter] public EventCallback OnToggleFolderSelector { get; set; }
     [Parameter] public EventCallback OnShareClick { get; set; }
+    [Parameter] public EventCallback OnWelcomeClick { get; set; }
     [Parameter] public EventCallback OnTemplatesClick { get; set; }
 
     private async Task Close()
