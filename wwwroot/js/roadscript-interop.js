@@ -277,6 +277,9 @@ window.RoadScriptInterop = {
             // The static landing page is showing: leave keys (arrows, Ctrl+P) to the browser
             if (document.documentElement.getAttribute('data-view') === 'landing') return;
 
+            // The editor stays loaded behind the welcome page, so its shortcuts must not act on it
+            if (document.documentElement.getAttribute('data-view') === 'landing') return;
+
             // Check if user is typing in an input/textarea
             const target = e.target;
             const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';

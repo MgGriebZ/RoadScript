@@ -59,8 +59,12 @@
 
             var saved = hasSavedRoadmaps();
 
+            function hasWelcomeInUrl() {
+                return /(^|[?&])welcome(=|&|$)/.test(location.search.slice(1));
+            }
+
             function initialView() {
-                if (/(^|[?&])welcome(=|&|$)/.test(location.search.slice(1))) return 'landing';
+                if (hasWelcomeInUrl()) return 'landing';
                 var path = location.pathname;
                 if (path !== '/' && path !== '/index.html') return 'app';
                 if (/^#(share[\/=]|\/folder\/)/.test(location.hash)) return 'app';
@@ -117,6 +121,35 @@
                     }
                 },
 
+                // The editor's Home button. Only what is visible changes: nothing saved is read or written.
+                // The main button offers the visitor's roadmaps, and the address gets ?welcome so Back returns.
+                enterWelcome: function () {
+                    var button = document.getElementById('rs-start-button');
+                    if (button) {
+                        button.textContent = 'Open your roadmaps';
+                        button.setAttribute('data-rs-request', 'open');
+                    }
+                    if (!hasWelcomeInUrl()) {
+                        history.pushState(null, '', location.pathname + '?welcome' + location.hash);
+                    }
+                },
+
+                // Back to the editor: drop ?welcome from the address and keep the rest of it
+                leaveWelcome: function () {
+                    if (!hasWelcomeInUrl()) return;
+                    var params = new URLSearchParams(location.search);
+                    params.delete('welcome');
+                    var query = params.toString();
+                    history.replaceState(history.state, '', location.pathname + (query ? '?' + query : '') + location.hash);
+                },
+
+                // Start at the top of the page, with the main button ready for the keyboard
+                focusLanding: function () {
+                    window.scrollTo(0, 0);
+                    var button = document.getElementById('rs-start-button');
+                    if (button) button.focus({ preventScroll: true });
+                },
+
                 showShareError: function (message) {
                     boot.setView('landing');
                     var error = document.getElementById('rs-share-error');
@@ -168,7 +201,16 @@
             });
 
             window.addEventListener('popstate', function () {
-                if (!started) root.setAttribute('data-view', initialView());
+                if (!started) {
+                    root.setAttribute('data-view', initialView());
+                    return;
+                }
+                // Back and Forward move between the editor and this page
+                if (!app) return;
+                var view = root.getAttribute('data-view');
+                var welcome = hasWelcomeInUrl();
+                if (view === 'landing' && !welcome) app.invokeMethodAsync('HandleBootRequest', 'open', null);
+                else if (view === 'app' && welcome) app.invokeMethodAsync('HandleBootRequest', 'welcome', null);
             });
         })();
     </script>

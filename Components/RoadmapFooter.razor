@@ -34,6 +34,16 @@
 
             @* Action buttons *@
             <div class="footer-action-buttons" style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" @onclick="@(() => OnHomeClick.InvokeAsync())"
+                        class="footer-button"
+                        style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(99, 102, 241, 0.1); border-radius: 6px; transition: all 0.2s; cursor: pointer; border: 1px solid rgba(99, 102, 241, 0.2); font-family: inherit;"
+                        title="Show the RoadScript welcome page. Your roadmaps stay as they are."
+                        aria-label="Home: show the RoadScript welcome page"
+                        onmouseover="this.style.background='rgba(99, 102, 241, 0.15)'"
+                        onmouseout="this.style.background='rgba(99, 102, 241, 0.1)'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5L12 4l9 7.5"></path><path d="M5.5 10v10h13V10"></path><path d="M10 20v-5.5h4V20"></path></svg>
+                    <span class="footer-button-label" style="font-size: 11px; font-weight: 600; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.3px;">Home</span>
+                </button>
                 <a href="https://github.com/MgGriebZ/RoadScript"
                    target="_blank"
                    rel="noopener noreferrer"
@@ -45,24 +55,24 @@
                     <Icon IconType="github" Size="14" Color="#6366f1" />
                     <span class="footer-button-label" style="font-size: 11px; font-weight: 600; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.3px;">Repo</span>
                 </a>
-                <div @onclick="@(() => OnShareClick.InvokeAsync())"
-                     class="footer-button"
-                     style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(99, 102, 241, 0.1); border-radius: 6px; transition: all 0.2s; cursor: pointer; border: 1px solid rgba(99, 102, 241, 0.2);"
-                     title="Share this roadmap"
-                     onmouseover="this.style.background='rgba(99, 102, 241, 0.15)'"
-                     onmouseout="this.style.background='rgba(99, 102, 241, 0.1)'">
+                <button type="button" @onclick="@(() => OnShareClick.InvokeAsync())"
+                        class="footer-button"
+                        style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(99, 102, 241, 0.1); border-radius: 6px; transition: all 0.2s; cursor: pointer; border: 1px solid rgba(99, 102, 241, 0.2); font-family: inherit;"
+                        title="Share this roadmap"
+                        onmouseover="this.style.background='rgba(99, 102, 241, 0.15)'"
+                        onmouseout="this.style.background='rgba(99, 102, 241, 0.1)'">
                     <Icon IconType="globe" Size="14" Color="#6366f1" />
                     <span class="footer-button-label" style="font-size: 11px; font-weight: 600; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.3px;">Share</span>
-                </div>
-                <div @onclick="@(() => OnImportClick.InvokeAsync())"
-                     class="footer-button"
-                     style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(16, 185, 129, 0.1); border-radius: 6px; transition: all 0.2s; cursor: pointer; border: 1px solid rgba(16, 185, 129, 0.2);"
-                     title="Import roadmap or session data"
-                     onmouseover="this.style.background='rgba(16, 185, 129, 0.15)'"
-                     onmouseout="this.style.background='rgba(16, 185, 129, 0.1)'">
+                </button>
+                <button type="button" @onclick="@(() => OnImportClick.InvokeAsync())"
+                        class="footer-button"
+                        style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(16, 185, 129, 0.1); border-radius: 6px; transition: all 0.2s; cursor: pointer; border: 1px solid rgba(16, 185, 129, 0.2); font-family: inherit;"
+                        title="Import roadmap or session data"
+                        onmouseover="this.style.background='rgba(16, 185, 129, 0.15)'"
+                        onmouseout="this.style.background='rgba(16, 185, 129, 0.1)'">
                     <Icon IconType="download" Size="14" Color="#10b981" />
                     <span class="footer-button-label" style="font-size: 11px; font-weight: 600; color: #047857; text-transform: uppercase; letter-spacing: 0.3px;">Import</span>
-                </div>
+                </button>
             </div>
         </div>
     </div>
@@ -98,6 +108,12 @@
     /// </summary>
     [Parameter]
     public EventCallback OnImportClick { get; set; }
+
+    /// <summary>
+    /// Callback fired when the home button is clicked. Shows the welcome page without changing any roadmap.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnHomeClick { get; set; }
 
     /// <summary>
     /// Generates the CSS style string for the footer bar.

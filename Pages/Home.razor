@@ -83,6 +83,7 @@ else if (_isMobileLayout)
                           OnTabAdd="HandleTabAdd"
                           OnToggleFolderSelector="ToggleFolderSelector"
                           OnShareClick="HandleQuickShare"
+                          OnWelcomeClick="HandleShowWelcome"
                           OnTemplatesClick="HandleMobileTemplatesClick" />
 
         <MobilePropertySheet IsPropertySheetOpen="@_mobilePropertySheetOpen"
@@ -240,7 +241,8 @@ else
                           Data="@_data"
                           IsPreviewMode="@StateManager.IsPreviewMode"
                           OnShareClick="@HandleQuickShare"
-                          OnImportClick="@HandleFooterImportClick" />
+                          OnImportClick="@HandleFooterImportClick"
+                          OnHomeClick="@HandleShowWelcome" />
         }
         else if (_error != null)
         {
@@ -1556,16 +1558,51 @@ else
                     return; // The error is shown on the landing page, which stays open
                 }
                 break;
+            case "welcome":
+                await ShowWelcomeAsync();
+                return;
         }
 
         if (_welcomeRequested)
         {
             _welcomeRequested = false;
-            await JSRuntime.InvokeVoidAsync("history.replaceState", null, "", "/");
+            await CallBootAsync("RoadScriptBoot.leaveWelcome");
         }
 
         await SyncBootViewAsync();
         await InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Shows the welcome page again for a visitor who has roadmaps (the Home button, or Forward in the browser).
+    /// Only what is visible changes: nothing saved is read, written or replaced, and the editor stays loaded.
+    /// </summary>
+    private async Task ShowWelcomeAsync()
+    {
+        // The editor's keyboard shortcuts are switched off while the welcome page shows, and nothing stays selected
+        SelectionState.Clear();
+        _mobileSideDrawerOpen = false;
+        _mobilePropertySheetOpen = false;
+        _welcomeRequested = true;
+
+        await CallBootAsync("RoadScriptBoot.enterWelcome");
+        await SyncBootViewAsync();
+        await InvokeAsync(StateHasChanged);
+        await CallBootAsync("RoadScriptBoot.focusLanding");
+    }
+
+    private Task HandleShowWelcome() => HandleBootRequest("welcome", null);
+
+    private async Task CallBootAsync(string method)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync(method);
+        }
+        catch (JSException ex)
+        {
+            Console.WriteLine($"[RoadScript] {method} unavailable: {ex.Message}");
+        }
     }
 
     /// <summary>
