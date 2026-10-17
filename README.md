@@ -1,3 +1,5 @@
+<p align="center"><img src="wwwroot/favicon.svg" alt="RoadScript logo" width="72" height="72"></p>
+
 # RoadScript
 
 ![Deployed](https://img.shields.io/badge/Status-Deployed-success) ![.NET](https://img.shields.io/badge/.NET-9.0-512BD4) ![License](https://img.shields.io/badge/License-MIT-blue)
